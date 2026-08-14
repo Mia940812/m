@@ -34,7 +34,7 @@
           Mia組
         </div>
         <h2 class="text-lg font-extrabold text-slate-900">派件報數與薪酬結算系統</h2>
-        <p class="text-xs text-slate-500">香港物流專屬 • 步兵報更對數工作台</p>
+        <p class="text-xs text-slate-500">觀塘 • 東區 • 沙田 營運與埋數工作台</p>
       </div>
 
       <div class="space-y-4 text-xs">
@@ -98,6 +98,9 @@
           <button id="nav-btn-main" onclick="switchNavTab('main')" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold transition flex items-center gap-1 shadow-sm">
             <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i> 主工作台
           </button>
+          <button id="nav-btn-settle" onclick="openModalSettlement()" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition flex items-center gap-1 shadow-sm">
+            <i data-lucide="receipt" class="w-3.5 h-3.5"></i> 9- 埋數/買物資
+          </button>
           <button id="nav-btn-history" onclick="switchNavTab('history')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1 border border-slate-200">
             <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-600"></i> 6- 紀錄
           </button>
@@ -115,7 +118,7 @@
       </div>
     </header>
 
-    <!-- 🌟 快捷操作入口導航列 (1 - 5 號 ＋ 8 號車線入口) -->
+    <!-- 🌟 快捷操作入口導航列 (1 - 5 號 ＋ 8 號車線 ＋ 9 號埋數) -->
     <section class="bg-white border-b border-slate-200/80 px-4 sm:px-6 py-2 shadow-sm">
       <div class="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto pb-0.5 text-xs font-bold custom-scrollbar" id="quick-action-bar"></div>
     </section>
@@ -163,14 +166,13 @@
         <div class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between">
           <div>
             <div class="text-xs font-bold text-slate-500 flex items-center gap-1">
-              <i data-lucide="wallet" class="w-3.5 h-3.5 text-indigo-600"></i> 今天出糧 / 剩餘結欠
+              <i data-lucide="shopping-cart" class="w-3.5 h-3.5 text-amber-600"></i> 今日物資/雜支支出
             </div>
-            <div class="text-xs font-black mt-1 space-y-0.5">
-              <div class="text-indigo-600">已轉出: <span id="adm-stat-paid-today" class="text-sm font-black">$0</span></div>
-              <div class="text-rose-600">總欠款: <span id="adm-stat-debt" class="text-sm font-black">$0</span></div>
-            </div>
+            <div id="adm-stat-expense-today" class="text-2xl font-black text-amber-700 mt-1">$0</div>
           </div>
-          <div class="text-[10px] text-slate-400 mt-1 border-t border-slate-100 pt-1.5">依指定糧期安排轉帳</div>
+          <div class="text-[10px] text-slate-400 mt-1 border-t border-slate-100 pt-1.5 flex justify-between">
+            <span>總營運成本: <b id="adm-stat-total-cost" class="text-slate-800">$0</b></span>
+          </div>
         </div>
       </div>
 
@@ -193,7 +195,7 @@
             <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 1- 分區圍欄
           </button>
           <button onclick="openModal2()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition active:scale-95">
-            <i data-lucide="users-round" class="w-3.5 h-3.5"></i> 2- 觀塘與東區排班
+            <i data-lucide="users-round" class="w-3.5 h-3.5"></i> 2- 區域排班分工
           </button>
           <button onclick="openAddRiderModal()" class="flex-1 sm:flex-initial justify-center px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition active:scale-95">
             <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> ＋ 新增普通步兵
@@ -243,9 +245,9 @@
       <!-- A/B 專屬：當日圍欄數量總覽區塊 -->
       <div id="cap-fence-counts-overview" class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3 hidden">
         <h3 class="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
-          <i data-lucide="boxes" class="w-4 h-4 text-blue-600"></i> 今日全區圍欄數量總覽 (觀塘區 & 東區)
+          <i data-lucide="boxes" class="w-4 h-4 text-blue-600"></i> 今日全區圍欄數量總覽 (觀塘區 & 東區 & 沙田區)
         </h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="cap-fences-summary-container"></div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="cap-fences-summary-container"></div>
       </div>
 
       <div id="captain-mobile-cards" class="block md:hidden space-y-3"></div>
@@ -523,12 +525,12 @@
 
   </div>
 
-  <!-- ==================== 快捷彈窗 1：分區圍欄 ==================== -->
+  <!-- ==================== 快捷彈窗 1：分區圍欄 (觀塘 + 東區 + 沙田) ==================== -->
   <div id="modal-fences-zone" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
         <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-          <i data-lucide="map-pin" class="w-5 h-5 text-purple-600"></i> 1- 分區圍欄管理
+          <i data-lucide="map-pin" class="w-5 h-5 text-purple-600"></i> 1- 分區圍欄管理 (觀塘 / 東區 / 沙田)
         </h3>
         <button onclick="closeModal1()" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
@@ -544,6 +546,7 @@
             <select id="new-fence-zone-select" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold focus:ring-1 focus:ring-purple-500">
               <option value="kt">觀塘區</option>
               <option value="east">東區</option>
+              <option value="st">沙田區</option>
             </select>
           </div>
           <div>
@@ -556,12 +559,16 @@
 
       <div class="space-y-3 text-xs">
         <div>
-          <h4 class="font-bold text-blue-700 mb-1.5 flex items-center gap-1">📍 觀塘區現有圍欄 (15個)：</h4>
-          <div id="m1-kt-list" class="space-y-1.5 max-h-40 overflow-y-auto custom-scrollbar"></div>
+          <h4 class="font-bold text-blue-700 mb-1 flex items-center gap-1">📍 觀塘區圍欄：</h4>
+          <div id="m1-kt-list" class="space-y-1 max-h-28 overflow-y-auto custom-scrollbar"></div>
         </div>
         <div>
-          <h4 class="font-bold text-indigo-700 mb-1.5 flex items-center gap-1">📍 東區現有圍欄 (38個)：</h4>
-          <div id="m1-east-list" class="space-y-1.5 max-h-40 overflow-y-auto custom-scrollbar"></div>
+          <h4 class="font-bold text-indigo-700 mb-1 flex items-center gap-1">📍 東區圍欄：</h4>
+          <div id="m1-east-list" class="space-y-1 max-h-28 overflow-y-auto custom-scrollbar"></div>
+        </div>
+        <div>
+          <h4 class="font-bold text-emerald-700 mb-1 flex items-center gap-1">📍 沙田區圍欄：</h4>
+          <div id="m1-st-list" class="space-y-1 max-h-28 overflow-y-auto custom-scrollbar"></div>
         </div>
       </div>
 
@@ -571,26 +578,29 @@
     </div>
   </div>
 
-  <!-- ==================== 快捷彈窗 2：區域分工與排班 (全面分開 觀塘 & 東區) ==================== -->
+  <!-- ==================== 快捷彈窗 2：區域分工與排班 (觀塘 & 東區 & 沙田) ==================== -->
   <div id="modal-assignments" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-3xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
         <div>
           <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-            <i data-lucide="users-round" class="w-5 h-5 text-blue-600"></i> 2- 觀塘與東區分工排班名冊
+            <i data-lucide="users-round" class="w-5 h-5 text-blue-600"></i> 2- 觀塘、東區與沙田分工排班名冊
           </h3>
-          <p class="text-xs text-slate-500">分開東區與觀塘獨立排班，總管理員 Mia 可自由增刪人員、圍欄與作業先後次序</p>
+          <p class="text-xs text-slate-500">獨立分區排班，總管理員 Mia 可自由增刪人員、圍欄與作業先後次序</p>
         </div>
         <button onclick="closeModal2()" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
-      <!-- 分區切換選單 -->
+      <!-- 分區切換選單 (觀塘 / 東區 / 沙田) -->
       <div class="flex gap-2 border-b border-slate-200 pb-2 text-xs font-bold">
-        <button type="button" onclick="switchAssignmentTab('kt')" id="tab-assign-kt" class="px-4 py-2 rounded-xl bg-blue-600 text-white shadow-sm transition flex items-center gap-1.5">
-          📍 觀塘區分工排班 (<span id="count-assign-kt">0</span>)
+        <button type="button" onclick="switchAssignmentTab('kt')" id="tab-assign-kt" class="px-3.5 py-2 rounded-xl bg-blue-600 text-white shadow-sm transition flex items-center gap-1">
+          📍 觀塘區 (<span id="count-assign-kt">0</span>)
         </button>
-        <button type="button" onclick="switchAssignmentTab('east')" id="tab-assign-east" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex items-center gap-1.5">
-          📍 東區分工排班 (<span id="count-assign-east">0</span>)
+        <button type="button" onclick="switchAssignmentTab('east')" id="tab-assign-east" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex items-center gap-1">
+          📍 東區 (<span id="count-assign-east">0</span>)
+        </button>
+        <button type="button" onclick="switchAssignmentTab('st')" id="tab-assign-st" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex items-center gap-1">
+          📍 沙田區 (<span id="count-assign-st">0</span>)
         </button>
       </div>
 
@@ -655,7 +665,7 @@
     <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
         <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-          <i data-lucide="boxes" class="w-5 h-5 text-blue-600"></i> 3- 觀塘區圍欄數量 (15個)
+          <i data-lucide="boxes" class="w-5 h-5 text-blue-600"></i> 3- 觀塘區圍欄數量
         </h3>
         <button onclick="closeModal3()" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
@@ -672,7 +682,7 @@
     <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
         <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-          <i data-lucide="boxes" class="w-5 h-5 text-indigo-600"></i> 4- 東區圍欄數量 (38個)
+          <i data-lucide="boxes" class="w-5 h-5 text-indigo-600"></i> 4- 東區圍欄數量
         </h3>
         <button onclick="closeModal4()" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
@@ -684,7 +694,7 @@
     </div>
   </div>
 
-  <!-- ==================== 快捷彈窗 5：翌日同事上班報更 ==================== -->
+  <!-- ==================== 快捷彈窗 5：翌日同事上班報更 (支援沙田) ==================== -->
   <div id="modal-shift-reporting" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -701,11 +711,12 @@
         </div>
 
         <div>
-          <label class="font-bold text-slate-800 block mb-1">📍 上班區域 (三選一)：</label>
-          <div class="grid grid-cols-3 gap-2">
+          <label class="font-bold text-slate-800 block mb-1">📍 上班區域選擇：</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <button type="button" onclick="setShiftZone('east')" id="shift-btn-east" class="py-2.5 rounded-xl border border-slate-300 bg-white font-bold text-slate-700">東區</button>
             <button type="button" onclick="setShiftZone('kt')" id="shift-btn-kt" class="py-2.5 rounded-xl border border-slate-300 bg-white font-bold text-slate-700">觀塘</button>
-            <button type="button" onclick="setShiftZone('both')" id="shift-btn-both" class="py-2.5 rounded-xl border border-blue-600 bg-blue-600 text-white font-bold shadow-sm">兩個區都可以</button>
+            <button type="button" onclick="setShiftZone('st')" id="shift-btn-st" class="py-2.5 rounded-xl border border-slate-300 bg-white font-bold text-slate-700">沙田</button>
+            <button type="button" onclick="setShiftZone('both')" id="shift-btn-both" class="py-2.5 rounded-xl border border-blue-600 bg-blue-600 text-white font-bold shadow-sm">全區皆可</button>
           </div>
         </div>
 
@@ -741,7 +752,7 @@
     </div>
   </div>
 
-  <!-- ==================== 快捷彈窗 8：車線調度 (司機派車順序) ==================== -->
+  <!-- ==================== 快捷彈窗 8：車線調度 ==================== -->
   <div id="modal-truck-routes" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -793,6 +804,93 @@
 
       <div class="flex justify-end pt-2">
         <button onclick="closeModal8()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 🌟 快捷彈窗 9：Mia 埋數與買物資記帳系統 ==================== -->
+  <div id="modal-settlement" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-2xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div>
+          <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+            <i data-lucide="receipt" class="w-5 h-5 text-amber-600"></i> 9- 總管理員 Mia 每日埋數與買物資記帳
+          </h3>
+          <p class="text-xs text-slate-500">記錄日常買膠紙、買水、板車維修、車資及全日財務總結算</p>
+        </div>
+        <button onclick="closeModalSettlement()" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <!-- 4 大即時埋數總覽卡片 -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+        <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200">
+          <div class="text-emerald-700 font-bold">全體應發工資</div>
+          <div id="set-total-wages" class="text-lg font-black text-emerald-800 mt-0.5">$0</div>
+        </div>
+        <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200">
+          <div class="text-amber-800 font-bold">今日買物資/雜支</div>
+          <div id="set-total-expenses" class="text-lg font-black text-amber-900 mt-0.5">$0</div>
+        </div>
+        <div class="p-3 bg-indigo-50 rounded-2xl border border-indigo-200">
+          <div class="text-indigo-700 font-bold">全日總營運成本</div>
+          <div id="set-grand-total" class="text-lg font-black text-indigo-900 mt-0.5">$0</div>
+        </div>
+        <div class="p-3 bg-rose-50 rounded-2xl border border-rose-200">
+          <div class="text-rose-700 font-bold">剩餘總欠款</div>
+          <div id="set-total-debt" class="text-lg font-black text-rose-900 mt-0.5">$0</div>
+        </div>
+      </div>
+
+      <!-- 新增買物資 / 雜支表單 (Mia 專屬) -->
+      <div id="settle-admin-box" class="bg-amber-50/60 p-3.5 rounded-2xl border border-amber-200 space-y-2 text-xs">
+        <div class="font-bold text-amber-900 flex items-center gap-1">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-amber-600"></i> ＋ 新增買物資 / 雜支支出記錄
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">物資/支出項目</label>
+            <input id="new-exp-name" type="text" placeholder="例如：買膠紙 / 買水 / 板車" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold">
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">支出金額 ($)</label>
+            <input id="new-exp-amount" type="number" placeholder="金額" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold text-amber-900">
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">經手人 / 付款人</label>
+            <input id="new-exp-buyer" type="text" value="Mia" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold">
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">備註說明</label>
+            <input id="new-exp-remark" type="text" placeholder="選填" class="w-full bg-white border border-slate-200 rounded-xl p-2">
+          </div>
+        </div>
+        <button onclick="saveNewExpense()" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold transition shadow-sm">
+          確認記錄此筆支出
+        </button>
+      </div>
+
+      <!-- 物資支出明細清單 -->
+      <div class="space-y-2 text-xs">
+        <h4 class="font-bold text-slate-700">今日物資與雜支支出清單：</h4>
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+              <tr>
+                <th class="py-2.5 px-3">日期</th>
+                <th class="py-2.5 px-3">支出項目</th>
+                <th class="py-2.5 px-3 text-right">金額 ($)</th>
+                <th class="py-2.5 px-3">經手人</th>
+                <th class="py-2.5 px-3">備註</th>
+                <th class="py-2.5 px-3 text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody id="settle-expenses-tbody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button onclick="closeModalSettlement()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">關閉</button>
       </div>
     </div>
   </div>
@@ -930,7 +1028,7 @@
       { key: 'eastern', name: '東區', defaultPrice: 4 }
     ];
 
-    // 自訂分區圍欄資料庫 (觀塘 15 個 + 東區 38 個)
+    // 自訂分區圍欄資料庫 (觀塘 15 個 + 東區 38 個 + 沙田區)
     const defaultZoneFences = {
       kt: [
         { id: '01E', name: '01E Koko Hills' },
@@ -991,6 +1089,13 @@
         { id: '76F', name: '76F 常安街簡約公屋暫存點' },
         { id: '15F', name: '15F 明華A-E座' },
         { id: '16F', name: '16F 明華1&2座' }
+      ],
+      st: [
+        { id: 'ST_01', name: '沙田第一城' },
+        { id: 'ST_02', name: '沙田市中心/新城市' },
+        { id: 'ST_03', name: '火炭工業區' },
+        { id: 'ST_04', name: '大圍區' },
+        { id: 'ST_05', name: '馬鞍山區' }
       ]
     };
 
@@ -1032,7 +1137,7 @@
         payday: '隔日結算', commission: 0, penalty: 0, comp: 0, deduct: 0, advance: 0, paidToday: 0, payoutStatus: '待轉帳' }
     ];
 
-    // 初始獨立分工名冊
+    // 初始獨立分工名冊 (觀塘 / 東區 / 沙田)
     const defaultZoneAssignments = {
       kt: [
         { id: 'A001', name: 'A001', team: 'A組', fence: '11E 麗港城-1號托', order: '第 1 順位' },
@@ -1041,7 +1146,8 @@
       ],
       east: [
         { id: 'D01', name: '自由步兵 D01', team: '自由步兵', fence: '03F 東旭苑', order: '第 1 順位' }
-      ]
+      ],
+      st: []
     };
 
     const defaultTruckRoutes = [
@@ -1050,7 +1156,12 @@
       { id: 'tr_3', time: '09:30', fence: '02E 觀塘工商區1號', driver: '張司機', order: '第 3 班車' }
     ];
 
-    const DB_PREFIX = 'MIA_ULTRA_NO_TEAM_2026_';
+    const defaultExpenses = [
+      { id: 'exp_1', date: new Date().toISOString().split('T')[0], name: '買封箱大膠紙 (6卷)', amount: 120, buyer: 'Mia', remark: '日常包裝耗材' },
+      { id: 'exp_2', date: new Date().toISOString().split('T')[0], name: '步兵飲用水/支裝水', amount: 80, buyer: 'Mia', remark: '物資補給' }
+    ];
+
+    const DB_PREFIX = 'MIA_FLAGSHIP_SETTLE_2026_';
 
     let zoneFences = JSON.parse(localStorage.getItem(DB_PREFIX + 'ZONE_FENCES')) || defaultZoneFences;
     let zoneFenceCounts = JSON.parse(localStorage.getItem(DB_PREFIX + 'ZONE_COUNTS')) || {};
@@ -1059,6 +1170,7 @@
     let historyRecords = JSON.parse(localStorage.getItem(DB_PREFIX + 'HIST')) || [];
     let shiftReports = JSON.parse(localStorage.getItem(DB_PREFIX + 'SHIFTS')) || [];
     let truckRoutes = JSON.parse(localStorage.getItem(DB_PREFIX + 'TRUCKS')) || defaultTruckRoutes;
+    let expensesList = JSON.parse(localStorage.getItem(DB_PREFIX + 'EXPENSES')) || defaultExpenses;
 
     let currentAssignTab = 'kt';
 
@@ -1088,6 +1200,7 @@
       localStorage.setItem(DB_PREFIX + 'HIST', JSON.stringify(historyRecords));
       localStorage.setItem(DB_PREFIX + 'SHIFTS', JSON.stringify(shiftReports));
       localStorage.setItem(DB_PREFIX + 'TRUCKS', JSON.stringify(truckRoutes));
+      localStorage.setItem(DB_PREFIX + 'EXPENSES', JSON.stringify(expensesList));
     }
 
     function onDateChanged(newDate) {
@@ -1146,7 +1259,7 @@
         loggedInUser.role = 'admin';
         badge.innerText = '👑 總管理員';
         badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-black leading-none';
-        info.innerText = 'Mia (最高全域編輯權限：可修改所有項目、圍欄、分工、車線、財務、密碼)';
+        info.innerText = 'Mia (最高全域權限：全項目修改、沙田/觀塘/東區分工、埋數記帳、密碼全管)';
         btnClearHist.classList.remove('hidden');
       } else if (loggedInUser.role === 'captain') {
         badge.innerText = '🎖️ 組長';
@@ -1175,7 +1288,7 @@
       lucide.createIcons();
     }
 
-    // ==================== 動態生成 1-5 號 ＋ 8 號車線快捷入口 ====================
+    // ==================== 動態生成 1-5 號 ＋ 8 號車線 ＋ 9 號埋數快捷入口 ====================
     function renderQuickActionBar() {
       const bar = document.getElementById('quick-action-bar');
       bar.innerHTML = '';
@@ -1189,7 +1302,7 @@
       if (isMia || isCapAorB || isCapC) {
         bar.innerHTML += `
           <button onclick="openModal1()" class="px-3.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 transition flex items-center gap-1 whitespace-nowrap shadow-sm">
-            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-purple-600"></i> 1- 分區圍欄
+            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-purple-600"></i> 1- 分區圍欄 (沙田/觀塘/東區)
           </button>
         `;
       } else if (isRider) {
@@ -1203,7 +1316,7 @@
       // 入口 2: 區域分工與排班次序
       bar.innerHTML += `
         <button onclick="openModal2()" class="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 transition flex items-center gap-1 whitespace-nowrap shadow-sm">
-          <i data-lucide="users-round" class="w-3.5 h-3.5 text-blue-600"></i> 2- 觀塘與東區分工
+          <i data-lucide="users-round" class="w-3.5 h-3.5 text-blue-600"></i> 2- 區域排班分工
         </button>
       `;
 
@@ -1236,6 +1349,13 @@
       bar.innerHTML += `
         <button onclick="openModal8()" class="px-3.5 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200 transition flex items-center gap-1 whitespace-nowrap shadow-sm">
           <i data-lucide="truck" class="w-3.5 h-3.5 text-orange-600"></i> 8- 車線調度
+        </button>
+      `;
+
+      // 🌟 入口 9: Mia 埋數與買物資記帳
+      bar.innerHTML += `
+        <button onclick="openModalSettlement()" class="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition flex items-center gap-1 whitespace-nowrap shadow-sm active:scale-95">
+          <i data-lucide="receipt" class="w-3.5 h-3.5"></i> 9- 埋數/買物資記帳
         </button>
       `;
 
@@ -1544,14 +1664,17 @@
         tbody.appendChild(tr);
       });
 
+      let totalExpensesToday = expensesList.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
+      let grandTotalCost = totalNetWage + totalExpensesToday;
+
       document.getElementById('adm-stat-tickets').innerText = totalTickets + ' 票';
       document.getElementById('adm-stat-signed').innerText = totalSigned + ' 件';
       document.getElementById('adm-stat-refunded').innerText = totalRefunded + ' 件';
       document.getElementById('adm-stat-pending-pickup').innerText = totalPendingPickup + ' 件殘留';
       document.getElementById('adm-stat-pending-pickup-riders').innerText = pendingPickupRidersCount;
       document.getElementById('adm-stat-net').innerText = '$' + totalNetWage.toLocaleString();
-      document.getElementById('adm-stat-paid-today').innerText = '$' + totalPaidToday.toLocaleString();
-      document.getElementById('adm-stat-debt').innerText = '$' + totalDebt.toLocaleString();
+      document.getElementById('adm-stat-expense-today').innerText = '$' + totalExpensesToday.toLocaleString();
+      document.getElementById('adm-stat-total-cost').innerText = '$' + grandTotalCost.toLocaleString();
 
       lucide.createIcons();
     }
@@ -1707,19 +1830,25 @@
 
     function renderCaptainFenceCounts() {
       const container = document.getElementById('cap-fences-summary-container');
-      let ktHTML = '<div class="space-y-1.5"><b class="text-blue-700 text-xs flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 觀塘區圍欄數量：</b>';
+      let ktHTML = '<div class="space-y-1.5"><b class="text-blue-700 text-xs flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 觀塘區：</b>';
       zoneFences.kt.forEach(f => {
-        ktHTML += `<div class="flex justify-between bg-sky-50/70 px-3 py-1.5 rounded-xl border border-sky-100 text-xs"><span>${f.name}</span><b class="text-sky-900 font-black">${zoneFenceCounts[f.id] || 0} 件</b></div>`;
+        ktHTML += `<div class="flex justify-between bg-sky-50/70 px-2.5 py-1 rounded-xl border border-sky-100 text-xs"><span>${f.name}</span><b class="text-sky-900 font-black">${zoneFenceCounts[f.id] || 0} 件</b></div>`;
       });
       ktHTML += '</div>';
 
-      let eastHTML = '<div class="space-y-1.5"><b class="text-indigo-700 text-xs flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 東區圍欄數量：</b>';
-      zoneFences.east.forEach(f => {
-        eastHTML += `<div class="flex justify-between bg-indigo-50/70 px-3 py-1.5 rounded-xl border border-indigo-100 text-xs"><span>${f.name}</span><b class="text-indigo-900 font-black">${zoneFenceCounts[f.id] || 0} 件</b></div>`;
+      let eastHTML = '<div class="space-y-1.5"><b class="text-indigo-700 text-xs flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 東區：</b>';
+      zoneFences.east.slice(0, 10).forEach(f => {
+        eastHTML += `<div class="flex justify-between bg-indigo-50/70 px-2.5 py-1 rounded-xl border border-indigo-100 text-xs"><span>${f.name}</span><b class="text-indigo-900 font-black">${zoneFenceCounts[f.id] || 0} 件</b></div>`;
       });
       eastHTML += '</div>';
 
-      container.innerHTML = ktHTML + eastHTML;
+      let stHTML = '<div class="space-y-1.5"><b class="text-emerald-700 text-xs flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 沙田區：</b>';
+      zoneFences.st.forEach(f => {
+        stHTML += `<div class="flex justify-between bg-emerald-50/70 px-2.5 py-1 rounded-xl border border-emerald-100 text-xs"><span>${f.name}</span><b class="text-emerald-900 font-black">${zoneFenceCounts[f.id] || 0} 件</b></div>`;
+      });
+      stHTML += '</div>';
+
+      container.innerHTML = ktHTML + eastHTML + stHTML;
     }
 
     // ==================== 3. 步兵每日報數端 ====================
@@ -1737,6 +1866,7 @@
 
       const ktFind = zoneAssignments.kt.find(x => x.id === acc.id);
       const eastFind = zoneAssignments.east.find(x => x.id === acc.id);
+      const stFind = zoneAssignments.st ? zoneAssignments.st.find(x => x.id === acc.id) : null;
 
       if (ktFind) {
         assignedTxt = `【觀塘區】${ktFind.fence}`;
@@ -1744,6 +1874,9 @@
       } else if (eastFind) {
         assignedTxt = `【東區】${eastFind.fence}`;
         orderTxt = eastFind.order;
+      } else if (stFind) {
+        assignedTxt = `【沙田區】${stFind.fence}`;
+        orderTxt = stFind.order;
       } else if (acc.assignedFence) {
         assignedTxt = acc.assignedFence;
         orderTxt = acc.assignedOrder || '第 1 順位';
@@ -1882,7 +2015,7 @@
       document.getElementById('rider-success-card').classList.add('hidden');
     }
 
-    // ==================== 快捷彈窗 1：分區圍欄 ====================
+    // ==================== 快捷彈窗 1：分區圍欄 (沙田/觀塘/東區) ====================
     function openModal1() {
       const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
       const box = document.getElementById('m1-admin-create-box');
@@ -1905,23 +2038,34 @@
       const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
       const ktList = document.getElementById('m1-kt-list');
       const eastList = document.getElementById('m1-east-list');
+      const stList = document.getElementById('m1-st-list');
       ktList.innerHTML = '';
       eastList.innerHTML = '';
+      stList.innerHTML = '';
 
       zoneFences.kt.forEach((f, idx) => {
         ktList.innerHTML += `
-          <div class="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-200">
+          <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200">
             <span class="font-bold text-slate-800">${f.name}</span>
-            ${isMia ? `<button onclick="deleteZoneFence('kt', ${idx})" class="text-rose-600 hover:bg-rose-50 p-1.5 rounded-xl"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
+            ${isMia ? `<button onclick="deleteZoneFence('kt', ${idx})" class="text-rose-600 hover:bg-rose-50 p-1 rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
           </div>
         `;
       });
 
       zoneFences.east.forEach((f, idx) => {
         eastList.innerHTML += `
-          <div class="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-200">
+          <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200">
             <span class="font-bold text-slate-800">${f.name}</span>
-            ${isMia ? `<button onclick="deleteZoneFence('east', ${idx})" class="text-rose-600 hover:bg-rose-50 p-1.5 rounded-xl"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
+            ${isMia ? `<button onclick="deleteZoneFence('east', ${idx})" class="text-rose-600 hover:bg-rose-50 p-1 rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
+          </div>
+        `;
+      });
+
+      zoneFences.st.forEach((f, idx) => {
+        stList.innerHTML += `
+          <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200">
+            <span class="font-bold text-slate-800">${f.name}</span>
+            ${isMia ? `<button onclick="deleteZoneFence('st', ${idx})" class="text-rose-600 hover:bg-rose-50 p-1 rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
           </div>
         `;
       });
@@ -1934,11 +2078,12 @@
       if (!name) { alert('請輸入圍欄名稱！'); return; }
 
       const id = `${zone}_${Date.now()}`;
+      zoneFences[zone] = zoneFences[zone] || [];
       zoneFences[zone].push({ id: id, name: name });
       saveData();
       document.getElementById('new-fence-zone-name').value = '';
       renderZoneFencesLists();
-      alert(`✅ 成功於【${zone === 'kt' ? '觀塘區' : '東區'}】建立新圍欄：${name}`);
+      alert(`✅ 成功建立新圍欄：${name}`);
     }
 
     function deleteZoneFence(zone, idx) {
@@ -1949,7 +2094,7 @@
       }
     }
 
-    // ==================== 快捷彈窗 2：分區排班分工 ====================
+    // ==================== 快捷彈窗 2：分區排班分工 (觀塘 / 東區 / 沙田) ====================
     function openModal2() {
       const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
       const addBox = document.getElementById('m2-admin-add-box');
@@ -1993,16 +2138,22 @@
       currentAssignTab = zone;
       const btnKt = document.getElementById('tab-assign-kt');
       const btnEast = document.getElementById('tab-assign-east');
+      const btnSt = document.getElementById('tab-assign-st');
       const label = document.getElementById('m2-current-zone-label');
 
+      btnKt.className = 'px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex items-center gap-1';
+      btnEast.className = 'px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex items-center gap-1';
+      btnSt.className = 'px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex items-center gap-1';
+
       if (zone === 'kt') {
-        btnKt.className = 'px-4 py-2 rounded-xl bg-blue-600 text-white shadow-sm transition flex items-center gap-1.5';
-        btnEast.className = 'px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex items-center gap-1.5';
+        btnKt.className = 'px-3.5 py-2 rounded-xl bg-blue-600 text-white shadow-sm transition flex items-center gap-1';
         if (label) label.innerText = '【📍 觀塘區】';
-      } else {
-        btnEast.className = 'px-4 py-2 rounded-xl bg-indigo-600 text-white shadow-sm transition flex items-center gap-1.5';
-        btnKt.className = 'px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex items-center gap-1.5';
+      } else if (zone === 'east') {
+        btnEast.className = 'px-3.5 py-2 rounded-xl bg-indigo-600 text-white shadow-sm transition flex items-center gap-1';
         if (label) label.innerText = '【📍 東區】';
+      } else {
+        btnSt.className = 'px-3.5 py-2 rounded-xl bg-emerald-600 text-white shadow-sm transition flex items-center gap-1';
+        if (label) label.innerText = '【📍 沙田區】';
       }
 
       populateFenceSelectDropdown();
@@ -2014,13 +2165,15 @@
       const tbody = document.getElementById('m2-assignment-table-body');
       tbody.innerHTML = '';
 
+      zoneAssignments.st = zoneAssignments.st || [];
       document.getElementById('count-assign-kt').innerText = zoneAssignments.kt.length;
       document.getElementById('count-assign-east').innerText = zoneAssignments.east.length;
+      document.getElementById('count-assign-st').innerText = zoneAssignments.st.length;
 
       const list = zoneAssignments[currentAssignTab] || [];
 
       if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">目前${currentAssignTab === 'kt' ? '觀塘區' : '東區'}尚無排班分工記錄，點擊上方可新增！</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">目前尚無排班記錄，點擊上方可新增！</td></tr>`;
         return;
       }
 
@@ -2055,6 +2208,7 @@
       const targetAcc = accounts.find(a => a.id === riderId);
       if (!targetAcc) return;
 
+      zoneAssignments[currentAssignTab] = zoneAssignments[currentAssignTab] || [];
       zoneAssignments[currentAssignTab].push({
         id: targetAcc.id,
         name: targetAcc.name,
@@ -2063,12 +2217,13 @@
         order: order
       });
 
-      targetAcc.assignedFence = `${currentAssignTab === 'kt' ? '觀塘' : '東區'} • ${fence}`;
+      const zoneName = currentAssignTab === 'kt' ? '觀塘' : (currentAssignTab === 'east' ? '東區' : '沙田');
+      targetAcc.assignedFence = `${zoneName} • ${fence}`;
       targetAcc.assignedOrder = order;
 
       saveData();
       renderAssignmentsTable();
-      alert(`✅ 成功新增 ${targetAcc.name} 至【${currentAssignTab === 'kt' ? '觀塘區' : '東區'}】${order} (圍欄: ${fence})！`);
+      alert(`✅ 成功新增 ${targetAcc.name} 至【${zoneName}】${order} (圍欄: ${fence})！`);
       if (loggedInUser && loggedInUser.role === 'admin') renderAdminView();
     }
 
@@ -2177,6 +2332,7 @@
       currentShiftZone = zone;
       const btnEast = document.getElementById('shift-btn-east');
       const btnKt = document.getElementById('shift-btn-kt');
+      const btnSt = document.getElementById('shift-btn-st');
       const btnBoth = document.getElementById('shift-btn-both');
 
       const normalCls = 'py-2.5 rounded-xl border border-slate-300 bg-white font-bold text-slate-700';
@@ -2184,6 +2340,7 @@
 
       btnEast.className = zone === 'east' ? activeCls : normalCls;
       btnKt.className = zone === 'kt' ? activeCls : normalCls;
+      btnSt.className = zone === 'st' ? activeCls : normalCls;
       btnBoth.className = zone === 'both' ? activeCls : normalCls;
     }
 
@@ -2193,7 +2350,8 @@
       const fence = document.getElementById('shift-assigned-fence-inp').value.trim();
       const remark = document.getElementById('shift-remark-inp').value.trim();
 
-      const zoneText = currentShiftZone === 'east' ? '東區' : (currentShiftZone === 'kt' ? '觀塘' : '兩個區都可以');
+      const zoneMap = { east: '東區', kt: '觀塘', st: '沙田', both: '全區皆可' };
+      const zoneText = zoneMap[currentShiftZone] || '全區皆可';
 
       shiftReports.unshift({
         id: loggedInUser.id,
@@ -2305,6 +2463,109 @@
         truckRoutes.splice(idx, 1);
         saveData();
         renderTruckRoutesList();
+      }
+    }
+
+    // ==================== 🌟 9. Mia 埋數與買物資記帳系統 ====================
+    function openModalSettlement() {
+      renderSettlementView();
+      document.getElementById('modal-settlement').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeModalSettlement() {
+      document.getElementById('modal-settlement').classList.add('hidden');
+    }
+
+    function renderSettlementView() {
+      const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
+      document.getElementById('settle-admin-box').style.display = isMia ? 'block' : 'none';
+
+      let totalWages = 0, totalDebt = 0;
+      accounts.forEach(acc => {
+        if (acc.id === 'ADMIN') return;
+        let gross = 0;
+        coreFences.forEach(f => {
+          const cnt = acc.counts[f.key] || 0;
+          const prc = acc.prices[f.key] || f.defaultPrice;
+          gross += (cnt * prc);
+        });
+        const net = gross - (acc.deduct || 0);
+        totalWages += net;
+        const debt = ((acc.advance || 0) + (acc.paidToday || 0)) - net;
+        if (debt > 0) totalDebt += debt;
+      });
+
+      let totalExpenses = expensesList.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+      let grandTotal = totalWages + totalExpenses;
+
+      document.getElementById('set-total-wages').innerText = '$' + totalWages.toLocaleString();
+      document.getElementById('set-total-expenses').innerText = '$' + totalExpenses.toLocaleString();
+      document.getElementById('set-grand-total').innerText = '$' + grandTotal.toLocaleString();
+      document.getElementById('set-total-debt').innerText = '$' + totalDebt.toLocaleString();
+
+      const tbody = document.getElementById('settle-expenses-tbody');
+      tbody.innerHTML = '';
+
+      if (expensesList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-slate-400">目前尚無物資與雜支支出記錄</td></tr>`;
+        return;
+      }
+
+      expensesList.forEach((exp, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 font-mono">${exp.date}</td>
+          <td class="py-2.5 px-3 font-bold text-slate-900">${exp.name}</td>
+          <td class="py-2.5 px-3 text-right font-black text-amber-800">$${exp.amount}</td>
+          <td class="py-2.5 px-3 text-slate-600">${exp.buyer}</td>
+          <td class="py-2.5 px-3 text-slate-400">${exp.remark || '-'}</td>
+          <td class="py-2.5 px-3 text-right">
+            ${isMia ? `
+              <button onclick="deleteExpense(${idx})" class="p-1 text-rose-600 hover:bg-rose-50 rounded">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            ` : '<span class="text-slate-400">唯讀</span>'}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      lucide.createIcons();
+    }
+
+    function saveNewExpense() {
+      const name = document.getElementById('new-exp-name').value.trim();
+      const amount = Number(document.getElementById('new-exp-amount').value) || 0;
+      const buyer = document.getElementById('new-exp-buyer').value.trim() || 'Mia';
+      const remark = document.getElementById('new-exp-remark').value.trim();
+      const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
+
+      if (!name || amount <= 0) { alert('請輸入物資項目與正確金額！'); return; }
+
+      expensesList.unshift({
+        id: 'exp_' + Date.now(),
+        date: today,
+        name: name,
+        amount: amount,
+        buyer: buyer,
+        remark: remark
+      });
+
+      saveData();
+      document.getElementById('new-exp-name').value = '';
+      document.getElementById('new-exp-amount').value = '';
+      document.getElementById('new-exp-remark').value = '';
+      renderSettlementView();
+      renderAdminView();
+      alert(`✅ 成功記錄物資支出：${name} ($${amount})！`);
+    }
+
+    function deleteExpense(idx) {
+      if (confirm('確定刪除此筆物資支出記錄嗎？')) {
+        expensesList.splice(idx, 1);
+        saveData();
+        renderSettlementView();
+        renderAdminView();
       }
     }
 
