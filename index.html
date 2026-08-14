@@ -8,8 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     body { 
       font-family: 'Plus Jakarta Sans', 'Noto Sans TC', system-ui, -apple-system, sans-serif;
@@ -17,26 +17,33 @@
     }
     input[type=number]::-webkit-inner-spin-button, 
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased overflow-x-hidden">
+<body class="bg-slate-100/90 text-slate-800 min-h-screen flex flex-col antialiased overflow-x-hidden">
 
   <!-- ==================== 0. 登入門禁畫面 ==================== -->
   <div id="view-login" class="flex-1 flex items-center justify-center p-4 min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950">
-    <div class="w-full max-w-sm bg-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+    <div class="w-full max-w-sm bg-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 border border-slate-100">
       
       <div class="text-center space-y-2">
-        <div class="inline-flex h-12 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 items-center justify-center text-white shadow-lg shadow-blue-500/30 font-black text-lg tracking-wider">
+        <div class="inline-flex h-12 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 items-center justify-center text-white shadow-lg shadow-blue-500/30 font-black text-lg tracking-wider">
           Mia組
         </div>
         <h2 class="text-lg font-extrabold text-slate-900">派件報數與薪酬結算系統</h2>
-        <p class="text-xs text-slate-500">請輸入由總管理員分派的帳號與密碼</p>
+        <p class="text-xs text-slate-500">香港物流專屬 • 步兵報更對數工作台</p>
       </div>
 
       <div class="space-y-4 text-xs">
         <div>
-          <label class="font-bold text-slate-700 block mb-1.5">登入帳號 / 步兵編號 (ID)</label>
-          <input id="login-username" type="text" placeholder="例如 ADMIN / A001 / D01" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition uppercase">
+          <label class="font-bold text-slate-700 block mb-1.5 flex items-center justify-between">
+            <span>登入帳號 / 步兵編號 (ID)</span>
+            <span class="text-[10px] text-slate-400 font-normal">例如 ADMIN / A001 / D01</span>
+          </label>
+          <input id="login-username" type="text" placeholder="請輸入登入 ID" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition uppercase">
         </div>
 
         <div>
@@ -66,11 +73,11 @@
   <div id="app-container" class="hidden flex-1 flex flex-col min-h-screen">
     
     <!-- 頂部全域導航列 -->
-    <header class="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 sticky top-0 z-50 shadow-sm">
+    <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 py-2.5 sticky top-0 z-50 shadow-sm">
       <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
         
         <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchNavTab('main')">
-          <div class="h-9 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 font-black text-sm tracking-wider flex-shrink-0">
+          <div class="h-9 px-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 font-black text-sm tracking-wider flex-shrink-0">
             Mia組
           </div>
           <div>
@@ -82,13 +89,13 @@
           </div>
         </div>
 
-        <!-- 頂部功能入口 ＋ 日期選擇器 -->
+        <!-- 頂部功能入口 ＋ 系統作業日期 -->
         <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-          <div class="flex items-center bg-slate-100 px-2.5 py-1 rounded-xl border border-slate-200 text-xs font-bold text-slate-700">
+          <div class="flex items-center bg-slate-100/80 hover:bg-slate-200/60 px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 transition">
             <i data-lucide="calendar" class="w-3.5 h-3.5 mr-1.5 text-blue-600"></i>
             <input id="global-system-date" type="date" onchange="onDateChanged(this.value)" class="bg-transparent font-bold outline-none cursor-pointer text-slate-800 text-xs">
           </div>
-          <button id="nav-btn-main" onclick="switchNavTab('main')" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold transition flex items-center gap-1">
+          <button id="nav-btn-main" onclick="switchNavTab('main')" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold transition flex items-center gap-1 shadow-sm">
             <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i> 主工作台
           </button>
           <button id="nav-btn-history" onclick="switchNavTab('history')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1 border border-slate-200">
@@ -100,7 +107,7 @@
           <button id="nav-btn-pwd" onclick="openSelfPasswordModal()" class="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition flex items-center gap-1 border border-amber-200">
             <i data-lucide="key" class="w-3.5 h-3.5 text-amber-600"></i> 改密碼
           </button>
-          <button onclick="handleLogout()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-200">
+          <button onclick="handleLogout()" class="px-3 py-1.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-200">
             <i data-lucide="log-out" class="w-3.5 h-3.5"></i> 登出
           </button>
         </div>
@@ -108,9 +115,9 @@
       </div>
     </header>
 
-    <!-- 🌟 快捷操作入口導航列 (1 - 5 號 ＋ 8 號車線入口，動態權限過濾) -->
-    <section class="bg-slate-50 border-b border-slate-200 px-4 sm:px-6 py-2.5">
-      <div class="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto pb-1 text-xs font-bold" id="quick-action-bar"></div>
+    <!-- 🌟 快捷操作入口導航列 (1 - 5 號 ＋ 8 號車線入口) -->
+    <section class="bg-white border-b border-slate-200/80 px-4 sm:px-6 py-2 shadow-sm">
+      <div class="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto pb-0.5 text-xs font-bold custom-scrollbar" id="quick-action-bar"></div>
     </section>
 
     <!-- ==================== 1. 總管理員全盤大表 (Mia 最高權限) ==================== -->
@@ -118,58 +125,66 @@
       
       <!-- 頂部 4 大統計指標卡片 -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
-        <div class="p-3.5 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <div class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between">
           <div>
-            <div class="text-[11px] sm:text-xs font-semibold text-slate-500">今日全隊總票量</div>
-            <div id="adm-stat-tickets" class="text-xl sm:text-2xl font-black text-slate-900 mt-1">0 票</div>
+            <div class="text-xs font-bold text-slate-500 flex items-center gap-1">
+              <i data-lucide="package" class="w-3.5 h-3.5 text-blue-600"></i> 今日全體總票量
+            </div>
+            <div id="adm-stat-tickets" class="text-2xl font-black text-slate-900 mt-1">0 票</div>
           </div>
-          <div class="text-[11px] sm:text-xs text-blue-600 font-semibold mt-2 flex items-center justify-between">
-            <span>簽收: <b id="adm-stat-signed">0</b> 件</span>
+          <div class="text-xs text-blue-600 font-semibold mt-2 flex items-center justify-between border-t border-slate-100 pt-1.5">
+            <span>簽收: <b id="adm-stat-signed" class="text-emerald-600">0</b> 件</span>
             <span class="text-rose-600 font-bold">退款: <b id="adm-stat-refunded">0</b> 件</span>
           </div>
         </div>
 
-        <div class="p-3.5 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <div class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between">
           <div>
-            <div class="text-[11px] sm:text-xs font-semibold text-slate-500">圍欄清場待攬收殘留</div>
-            <div id="adm-stat-pending-pickup" class="text-xl sm:text-2xl font-black text-slate-700 mt-1">0 件殘留</div>
+            <div class="text-xs font-bold text-slate-500 flex items-center gap-1">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-600"></i> 清場待攬收殘留
+            </div>
+            <div id="adm-stat-pending-pickup" class="text-2xl font-black text-slate-800 mt-1">0 件殘留</div>
           </div>
-          <div class="text-[10px] sm:text-xs text-slate-500 font-medium mt-2 flex items-center gap-1">
-            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0"></i> <span id="adm-stat-pending-pickup-riders">0</span> 人待攬收異常
+          <div class="text-[11px] text-slate-500 font-medium mt-2 flex items-center gap-1 border-t border-slate-100 pt-1.5">
+            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0"></i> <span id="adm-stat-pending-pickup-riders" class="font-bold text-amber-700">0</span> 人待攬收異常
           </div>
         </div>
 
-        <div class="p-3.5 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <div class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between">
           <div>
-            <div class="text-[11px] sm:text-xs font-semibold text-slate-500">今日應發總工資</div>
-            <div id="adm-stat-net" class="text-xl sm:text-2xl font-black text-emerald-600 mt-1">$0</div>
+            <div class="text-xs font-bold text-slate-500 flex items-center gap-1">
+              <i data-lucide="dollar-sign" class="w-3.5 h-3.5 text-emerald-600"></i> 今日應發總工資
+            </div>
+            <div id="adm-stat-net" class="text-2xl font-black text-emerald-600 mt-1">$0</div>
           </div>
-          <div class="text-[10px] sm:text-xs text-emerald-600 font-medium mt-2">已扣除工單、扣糧與借支</div>
+          <div class="text-[11px] text-emerald-600 font-medium mt-2 border-t border-slate-100 pt-1.5">已扣除工單、扣糧與借支</div>
         </div>
 
-        <div class="p-3.5 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <div class="p-4 rounded-3xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between">
           <div>
-            <div class="text-[11px] sm:text-xs font-semibold text-slate-500">今天出的糧 / 剩餘結欠</div>
-            <div class="text-sm font-black mt-1 space-y-0.5">
-              <div class="text-indigo-600">已轉出: <span id="adm-stat-paid-today">$0</span></div>
-              <div class="text-rose-600">總欠款: <span id="adm-stat-debt">$0</span></div>
+            <div class="text-xs font-bold text-slate-500 flex items-center gap-1">
+              <i data-lucide="wallet" class="w-3.5 h-3.5 text-indigo-600"></i> 今天出糧 / 剩餘結欠
+            </div>
+            <div class="text-xs font-black mt-1 space-y-0.5">
+              <div class="text-indigo-600">已轉出: <span id="adm-stat-paid-today" class="text-sm font-black">$0</span></div>
+              <div class="text-rose-600">總欠款: <span id="adm-stat-debt" class="text-sm font-black">$0</span></div>
             </div>
           </div>
-          <div class="text-[10px] text-slate-400 mt-1">指定糧期發放</div>
+          <div class="text-[10px] text-slate-400 mt-1 border-t border-slate-100 pt-1.5">依指定糧期安排轉帳</div>
         </div>
       </div>
 
       <!-- 管理員操作列 -->
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-white p-3.5 rounded-3xl border border-slate-200/80 shadow-sm">
         <div class="flex items-center gap-2">
-          <span class="text-xs font-bold text-slate-700 whitespace-nowrap">篩選隊伍:</span>
-          <select id="adm-filter-team" onchange="renderAdminView()" class="w-full sm:w-auto bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-700 focus:outline-none">
-            <option value="all">全部隊伍 (全體人員)</option>
-            <option value="Mia自營隊">⭐ Mia 自營隊 (KM001+ 直屬)</option>
-            <option value="景鴻隊">A 隊 (A001 景鴻隊)</option>
-            <option value="詠豪隊">B 隊 (B001 詠豪隊)</option>
-            <option value="俊華隊">C 隊 (C001 俊華隊)</option>
-            <option value="自由步兵">🌟 自由步兵 (無專屬隊伍)</option>
+          <span class="text-xs font-bold text-slate-700 whitespace-nowrap">分類篩選:</span>
+          <select id="adm-filter-team" onchange="renderAdminView()" class="w-full sm:w-auto bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none">
+            <option value="all">全體人員 (全部)</option>
+            <option value="Mia自營組">⭐ Mia 自營組 (KM001+ 直屬)</option>
+            <option value="A組">A 組 (A001 組)</option>
+            <option value="B組">B 組 (B001 組)</option>
+            <option value="C組">C 組 (C001 組)</option>
+            <option value="自由步兵">🌟 自由步兵</option>
           </select>
         </div>
 
@@ -178,7 +193,7 @@
             <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 1- 分區圍欄
           </button>
           <button onclick="openModal2()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition active:scale-95">
-            <i data-lucide="users-round" class="w-3.5 h-3.5"></i> 2- 觀塘與東區排班分工
+            <i data-lucide="users-round" class="w-3.5 h-3.5"></i> 2- 觀塘與東區排班
           </button>
           <button onclick="openAddRiderModal()" class="flex-1 sm:flex-initial justify-center px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition active:scale-95">
             <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> ＋ 新增普通步兵
@@ -189,19 +204,20 @@
         </div>
       </div>
 
-      <!-- 手機端卡片流 -->
+      <!-- 手機端精緻卡片流 -->
       <div id="admin-mobile-cards" class="block md:hidden space-y-3"></div>
 
       <!-- 電腦端寬螢幕表格 -->
-      <div class="hidden md:block bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <div class="hidden md:block bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
           <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <span class="px-2 py-0.5 bg-blue-600 text-white rounded text-xs font-black">Mia組</span>
-            全體派貨員薪酬結算、4大指定圍欄、單號與密碼全覽（所有欄位均可直接修改）
+            <span class="px-2.5 py-0.5 bg-blue-600 text-white rounded-lg text-xs font-black">Mia組</span>
+            全體派貨員薪酬結算、4大指定圍欄、單號與密碼全覽（所有欄位均可直接點擊修改）
           </h2>
+          <span class="text-xs text-slate-400">總管理員 Mia 具最高權限</span>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto custom-scrollbar">
           <table class="w-full text-left text-xs border-collapse min-w-[2500px]" id="admin-main-table">
             <thead class="bg-slate-100/70 text-slate-600 font-semibold border-b border-slate-200 text-[11px]" id="admin-table-head"></thead>
             <tbody id="admin-table-body" class="divide-y divide-slate-100 text-slate-700"></tbody>
@@ -210,22 +226,22 @@
       </div>
     </main>
 
-    <!-- ==================== 2. 隊長工作台 ==================== -->
+    <!-- ==================== 2. 組長工作台 ==================== -->
     <main id="view-captain" class="flex-1 p-3 sm:p-6 space-y-4 max-w-6xl w-full mx-auto hidden tab-content">
       <div class="bg-gradient-to-r from-blue-700 to-indigo-700 rounded-3xl p-5 sm:p-6 text-white shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <div class="text-[10px] sm:text-xs text-blue-200 font-bold uppercase tracking-wider">Mia組 • 隊長工作台</div>
-          <h2 id="cap-name-display" class="text-xl sm:text-2xl font-black mt-1">隊長工作台</h2>
-          <p class="text-xs text-blue-100 mt-1">檢視轄下隊員報數、圍欄件數、簽收單號與清場待攬收單號。</p>
+          <div class="text-[10px] sm:text-xs text-blue-200 font-bold uppercase tracking-wider">Mia組 • 組長工作台</div>
+          <h2 id="cap-name-display" class="text-xl sm:text-2xl font-black mt-1">工作台</h2>
+          <p class="text-xs text-blue-100 mt-1">檢視轄下組員報數、圍欄件數、簽收單號與清場待攬收單號。</p>
         </div>
         <div class="w-full sm:w-auto bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 text-left sm:text-right">
-          <div class="text-xs text-blue-200">本隊今日總派票量</div>
+          <div class="text-xs text-blue-200">今日總派票量</div>
           <div id="cap-team-tickets" class="text-xl font-black mt-0.5">0 票</div>
         </div>
       </div>
 
-      <!-- 隊長 A/B 專屬：當日圍欄數量總覽區塊 -->
-      <div id="cap-fence-counts-overview" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3 hidden">
+      <!-- A/B 專屬：當日圍欄數量總覽區塊 -->
+      <div id="cap-fence-counts-overview" class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3 hidden">
         <h3 class="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
           <i data-lucide="boxes" class="w-4 h-4 text-blue-600"></i> 今日全區圍欄數量總覽 (觀塘區 & 東區)
         </h3>
@@ -234,13 +250,13 @@
 
       <div id="captain-mobile-cards" class="block md:hidden space-y-3"></div>
 
-      <div class="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="hidden md:block bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <i data-lucide="users" class="w-4 h-4 text-blue-600"></i> 我負責的隊員名單、4大圍欄與單號
+            <i data-lucide="users" class="w-4 h-4 text-blue-600"></i> 我負責的名單、4大圍欄與單號
           </h3>
         </div>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto custom-scrollbar">
           <table class="w-full text-left text-xs border-collapse min-w-[1500px]">
             <thead class="bg-slate-100/70 text-slate-600 font-semibold border-b border-slate-200 text-[11px]" id="captain-table-head"></thead>
             <tbody id="captain-table-body" class="divide-y divide-slate-100 text-slate-700"></tbody>
@@ -261,7 +277,7 @@
             <h3 id="rider-name-display" class="text-lg font-extrabold text-slate-900 mt-0.5">
               步兵姓名 <span id="rider-id-badge" class="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md font-mono font-bold">ID</span>
             </h3>
-            <div id="rider-team-display" class="text-xs text-slate-500 font-semibold mt-0.5">所屬隊伍</div>
+            <div id="rider-team-display" class="text-xs text-slate-500 font-semibold mt-0.5">所屬分組</div>
           </div>
           <div class="text-right">
             <button onclick="openSelfPasswordModal()" class="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg font-bold hover:bg-amber-100 transition flex items-center gap-1 ml-auto">
@@ -380,13 +396,13 @@
 
     <!-- ==================== 4. 頁頂入口 6 - 過往報數紀錄 ==================== -->
     <main id="view-history" class="flex-1 p-3 sm:p-6 space-y-4 max-w-7xl w-full mx-auto hidden tab-content">
-      <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-4">
+      <div class="bg-white rounded-3xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-4">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-3">
           <div>
             <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
               <i data-lucide="calendar" class="w-5 h-5 text-blue-600"></i> 6- 紀錄 - 過往報數紀錄清單
             </h2>
-            <p class="text-xs text-slate-500">查閱每日所有步兵與隊長的歷史報數封存快照</p>
+            <p class="text-xs text-slate-500">查閱每日所有步兵與幹部的歷史報數封存快照</p>
           </div>
           <div class="flex items-center gap-2">
             <input id="history-search-input" type="text" placeholder="搜尋姓名 / ID / 日期" oninput="renderHistoryView()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold">
@@ -394,13 +410,13 @@
           </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto custom-scrollbar">
           <table class="w-full text-left text-xs border-collapse min-w-[1100px]">
             <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 text-[11px]">
               <tr>
                 <th class="py-3 px-3">報數日期</th>
                 <th class="py-3 px-3">步兵姓名 (ID)</th>
-                <th class="py-3 px-3">所屬隊伍</th>
+                <th class="py-3 px-3">所屬組別</th>
                 <th class="py-3 px-3 text-center">4大圍欄件數明細</th>
                 <th class="py-3 px-2 text-center">總票量</th>
                 <th class="py-3 px-2 text-center text-emerald-700">簽收 (件)</th>
@@ -419,7 +435,7 @@
 
     <!-- ==================== 5. 頁頂入口 7 - 數據統計 ==================== -->
     <main id="view-stats" class="flex-1 p-3 sm:p-6 space-y-4 max-w-7xl w-full mx-auto hidden tab-content">
-      <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-5">
+      <div class="bg-white rounded-3xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-5">
         <div>
           <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
             <i data-lucide="bar-chart-3" class="w-5 h-5 text-emerald-600"></i> 7- 數據 - 區間統計與總量分析
@@ -485,7 +501,7 @@
 
         <div class="border-t border-slate-100 pt-4">
           <h3 class="text-xs font-bold text-slate-700 mb-2">符合條件之明細清單：</h3>
-          <div class="overflow-x-auto max-h-96">
+          <div class="overflow-x-auto max-h-96 custom-scrollbar">
             <table class="w-full text-left text-xs border-collapse">
               <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 sticky top-0">
                 <tr>
@@ -532,7 +548,7 @@
           </div>
           <div>
             <label class="text-slate-600 font-semibold block mb-0.5">圍欄名稱</label>
-            <input id="new-fence-zone-name" type="text" placeholder="例如：藍田 / 秀茂坪 / 北角" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold focus:ring-1 focus:ring-purple-500">
+            <input id="new-fence-zone-name" type="text" placeholder="例如：新圍欄名稱" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold focus:ring-1 focus:ring-purple-500">
           </div>
         </div>
         <button onclick="saveNewZoneFence()" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold transition shadow-sm">確認建立新圍欄</button>
@@ -540,12 +556,12 @@
 
       <div class="space-y-3 text-xs">
         <div>
-          <h4 class="font-bold text-blue-700 mb-1.5 flex items-center gap-1">📍 觀塘區現有圍欄：</h4>
-          <div id="m1-kt-list" class="space-y-1.5 max-h-32 overflow-y-auto"></div>
+          <h4 class="font-bold text-blue-700 mb-1.5 flex items-center gap-1">📍 觀塘區現有圍欄 (15個)：</h4>
+          <div id="m1-kt-list" class="space-y-1.5 max-h-40 overflow-y-auto custom-scrollbar"></div>
         </div>
         <div>
-          <h4 class="font-bold text-indigo-700 mb-1.5 flex items-center gap-1">📍 東區現有圍欄：</h4>
-          <div id="m1-east-list" class="space-y-1.5 max-h-32 overflow-y-auto"></div>
+          <h4 class="font-bold text-indigo-700 mb-1.5 flex items-center gap-1">📍 東區現有圍欄 (38個)：</h4>
+          <div id="m1-east-list" class="space-y-1.5 max-h-40 overflow-y-auto custom-scrollbar"></div>
         </div>
       </div>
 
@@ -555,7 +571,7 @@
     </div>
   </div>
 
-  <!-- ==================== 快捷彈窗 2：區域分工與排班 (全面分開 觀塘 & 東區，自由新增步兵/圍欄/次序) ==================== -->
+  <!-- ==================== 快捷彈窗 2：區域分工與排班 (全面分開 觀塘 & 東區) ==================== -->
   <div id="modal-assignments" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-3xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -591,7 +607,7 @@
           </div>
           <div>
             <label class="font-bold text-slate-700 block mb-0.5">負責圍欄</label>
-            <input id="new-assign-fence-input" type="text" placeholder="例如：麗港城 / KOKO / 北角" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold focus:ring-1 focus:ring-blue-500">
+            <select id="new-assign-fence-select" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold focus:ring-1 focus:ring-blue-500"></select>
           </div>
           <div>
             <label class="font-bold text-slate-700 block mb-0.5">作業先後次序</label>
@@ -612,13 +628,13 @@
 
       <!-- 分工排班列表 -->
       <div class="space-y-2 text-xs">
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto custom-scrollbar">
           <table class="w-full text-left text-xs border-collapse">
             <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
               <tr>
                 <th class="py-2.5 px-3">作業順位</th>
                 <th class="py-2.5 px-3">步兵姓名 (ID)</th>
-                <th class="py-2.5 px-3">所屬隊伍</th>
+                <th class="py-2.5 px-3">所屬組別</th>
                 <th class="py-2.5 px-3">負責圍欄</th>
                 <th class="py-2.5 px-3 text-right">操作</th>
               </tr>
@@ -639,11 +655,11 @@
     <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
         <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-          <i data-lucide="boxes" class="w-5 h-5 text-blue-600"></i> 3- 觀塘區圍欄數量
+          <i data-lucide="boxes" class="w-5 h-5 text-blue-600"></i> 3- 觀塘區圍欄數量 (15個)
         </h3>
         <button onclick="closeModal3()" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-      <div class="space-y-2 text-xs" id="m3-counts-container"></div>
+      <div class="space-y-2 text-xs custom-scrollbar max-h-[60vh] overflow-y-auto" id="m3-counts-container"></div>
       <div class="flex justify-end pt-2">
         <button onclick="saveModal3()" id="m3-save-btn" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition">儲存數量</button>
         <button onclick="closeModal3()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold ml-2">關閉</button>
@@ -651,16 +667,16 @@
     </div>
   </div>
 
-  <!-- ==================== 快捷彈窗 4：東區圍欄數量 (只限 Mia, 隊長A, 隊長B) ==================== -->
+  <!-- ==================== 快捷彈窗 4：東區圍欄數量 ==================== -->
   <div id="modal-east-counts" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
         <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-          <i data-lucide="boxes" class="w-5 h-5 text-indigo-600"></i> 4- 東區圍欄數量
+          <i data-lucide="boxes" class="w-5 h-5 text-indigo-600"></i> 4- 東區圍欄數量 (38個)
         </h3>
         <button onclick="closeModal4()" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-      <div class="space-y-2 text-xs" id="m4-counts-container"></div>
+      <div class="space-y-2 text-xs custom-scrollbar max-h-[60vh] overflow-y-auto" id="m4-counts-container"></div>
       <div class="flex justify-end pt-2">
         <button onclick="saveModal4()" id="m4-save-btn" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition">儲存數量</button>
         <button onclick="closeModal4()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold ml-2">關閉</button>
@@ -715,7 +731,7 @@
 
         <div class="border-t border-slate-100 pt-3">
           <h4 class="font-bold text-slate-700 mb-1.5">已提交之翌日報更一覽：</h4>
-          <div id="shift-reports-list" class="space-y-1.5 max-h-36 overflow-y-auto"></div>
+          <div id="shift-reports-list" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar"></div>
         </div>
       </div>
 
@@ -754,7 +770,7 @@
           </div>
           <div>
             <label class="font-bold text-slate-700 block mb-0.5">送達圍欄</label>
-            <input id="new-truck-fence" type="text" placeholder="例如：麗港城 / KOKO" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold">
+            <input id="new-truck-fence" type="text" placeholder="例如：01E Koko Hills" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold">
           </div>
           <div>
             <label class="font-bold text-slate-700 block mb-0.5">出發順序</label>
@@ -772,7 +788,7 @@
 
       <div class="space-y-2 text-xs">
         <h4 class="font-bold text-slate-700">今日車線發車順序一覽表：</h4>
-        <div id="truck-routes-list" class="space-y-1.5 max-h-48 overflow-y-auto"></div>
+        <div id="truck-routes-list" class="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar"></div>
       </div>
 
       <div class="flex justify-end pt-2">
@@ -833,13 +849,13 @@
         </div>
 
         <div>
-          <label class="font-bold text-slate-700 block mb-1">歸屬隊伍</label>
+          <label class="font-bold text-slate-700 block mb-1">歸屬分組</label>
           <select id="new-rider-team" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold focus:ring-2 focus:ring-blue-500">
-            <option value="Mia自營隊">⭐ Mia 自營隊 (自動派發 KM001+)</option>
-            <option value="景鴻隊">A 隊 (景鴻隊 - 自動派發 A002+)</option>
-            <option value="詠豪隊">B 隊 (詠豪隊 - 自動派發 B002+)</option>
-            <option value="俊華隊">C 隊 (俊華隊 - 自動派發 C002+)</option>
-            <option value="自由步兵">🌟 自由步兵 (無專屬隊伍 - 自動派發 D02+)</option>
+            <option value="Mia自營組">⭐ Mia 自營組 (自動派發 KM001+)</option>
+            <option value="A組">A 組 (自動派發 A002+)</option>
+            <option value="B組">B 組 (自動派發 B002+)</option>
+            <option value="C組">C 組 (自動派發 C002+)</option>
+            <option value="自由步兵">🌟 自由步兵 (自動派發 D02+)</option>
           </select>
         </div>
 
@@ -914,69 +930,127 @@
       { key: 'eastern', name: '東區', defaultPrice: 4 }
     ];
 
-    // 自訂分區圍欄資料庫 (觀塘區 vs 東區)
+    // 自訂分區圍欄資料庫 (觀塘 15 個 + 東區 38 個)
     const defaultZoneFences = {
-      kt: [ { id: 'kt_1', name: '麗港城一期' }, { id: 'kt_2', name: '麗港城二期' }, { id: 'kt_3', name: 'KOKO HILLS' }, { id: 'kt_4', name: '觀塘開源道工商' } ],
-      east: [ { id: 'east_1', name: '北角區' }, { id: 'east_2', name: '鰂魚涌區' }, { id: 'east_3', name: '太古城區' }, { id: 'east_4', name: '柴灣區' } ]
+      kt: [
+        { id: '01E', name: '01E Koko Hills' },
+        { id: '02E', name: '02E 觀塘工商區1號' },
+        { id: '03E', name: '03E 觀塘工商區2號' },
+        { id: '04E', name: '04E 觀塘工商區3號' },
+        { id: '05E', name: '05E 觀塘工商區4號' },
+        { id: '06E', name: '06E 觀塘工商區5號' },
+        { id: '07E', name: '07E 觀塘工商區6號' },
+        { id: '08E', name: '08E 觀塘工商區7號' },
+        { id: '09E', name: '09E 觀塘工商區8號' },
+        { id: '10E', name: '10E 鴻圖道+勵業街' },
+        { id: '11E', name: '11E 麗港城-1號托' },
+        { id: '12E', name: '12E 麗港城-2號托' },
+        { id: '13E', name: '13E 麗港城-3號托' },
+        { id: '14E', name: '14E 麗港城-4號托' },
+        { id: '15E', name: '15E 麗港城-5號托' }
+      ],
+      east: [
+        { id: '03F', name: '03F 東旭苑' },
+        { id: '06F', name: '06F 東濤苑' },
+        { id: '09F', name: '09F 富怡花園' },
+        { id: '12F', name: '12F 杏花邨1號' },
+        { id: '13F', name: '13F 杏花邨3號' },
+        { id: '14F', name: '14F 杏花邨4號' },
+        { id: '17F', name: '17F 香島' },
+        { id: '18F', name: '18F 曉翠苑' },
+        { id: '19F', name: '19F 漁灣邨' },
+        { id: '21F', name: '21F 杏翠苑+翠灣邨' },
+        { id: '22F', name: '22F 峰華邨+景翠苑' },
+        { id: '26F', name: '26F 興華（1）邨' },
+        { id: '27F', name: '27F 興華（2）邨' },
+        { id: '28F', name: '28F 興民邨' },
+        { id: '29F', name: '29F 山翠苑' },
+        { id: '30F', name: '30F 新翠花園' },
+        { id: '31F', name: '31F 環翠邨' },
+        { id: '39F', name: '39F 柴灣地鐵站工業區' },
+        { id: '40F', name: '40F 小西灣工業區' },
+        { id: '41F', name: '41F 小西灣邨-1號托' },
+        { id: '42F', name: '42F 小西灣邨-2號托' },
+        { id: '43F', name: '43F 小西灣邨-3號托' },
+        { id: '44F', name: '44F 樂軒+宏德+怡翠' },
+        { id: '45F', name: '45F 柴灣+蝶翠+康平街' },
+        { id: '46F', name: '46F 高威+康翠+灣景園' },
+        { id: '47F', name: '47F 澤鑾閣暫存點' },
+        { id: '60F', name: '60F 藍灣半島' },
+        { id: '61F', name: '61F 富欣花園' },
+        { id: '62F', name: '62F 愛蝶灣' },
+        { id: '64F', name: '64F 愛東邨' },
+        { id: '65F', name: '65F 富景花園' },
+        { id: '67F', name: '67F 杏花園' },
+        { id: '68F', name: '68F 東大街板A' },
+        { id: '69F', name: '69F 峻峰花園' },
+        { id: '70F', name: '70F 筲箕灣道板-1號托' },
+        { id: '72F', name: '72F 形薈' },
+        { id: '73F', name: '73F 東區樂翠台暫存點' },
+        { id: '74F', name: '74F 東區醫院暫存點' },
+        { id: '76F', name: '76F 常安街簡約公屋暫存點' },
+        { id: '15F', name: '15F 明華A-E座' },
+        { id: '16F', name: '16F 明華1&2座' }
+      ]
     };
 
     // 初始基底名單
     const initialAccounts = [
-      { id: 'ADMIN', name: '總管理員 Mia', role: '管理員', team: 'Mia自營隊', prefix: 'ADMIN', password: 'mia888',
+      { id: 'ADMIN', name: '總管理員 Mia', role: '管理員', team: 'Mia自營組', prefix: 'ADMIN', password: 'mia888',
         counts: { laguna: 0, koko: 0, industrial: 0, eastern: 0 },
         prices: { laguna: 4, koko: 4, industrial: 5, eastern: 4 },
         assignedFence: '全區總巡', assignedOrder: '指揮調度',
         signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '',
         payday: '月結', commission: 0, penalty: 0, comp: 0, deduct: 0, advance: 0, paidToday: 0, payoutStatus: '待轉帳' },
 
-      { id: 'A001', name: '隊長 A (景鴻)', role: '隊長', team: '景鴻隊', prefix: 'A', password: '100',
+      { id: 'A001', name: 'A001', role: '組長', team: 'A組', prefix: 'A', password: '100',
         counts: { laguna: 0, koko: 0, industrial: 0, eastern: 0 },
         prices: { laguna: 4, koko: 4, industrial: 5, eastern: 4 },
-        assignedFence: '麗港城一期', assignedOrder: '第 1 順位',
+        assignedFence: '11E 麗港城-1號托', assignedOrder: '第 1 順位',
         signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '',
         payday: '隔日結算', commission: 0, penalty: 0, comp: 0, deduct: 0, advance: 0, paidToday: 0, payoutStatus: '待轉帳' },
       
-      { id: 'B001', name: '隊長 B (詠豪)', role: '隊長', team: '詠豪隊', prefix: 'B', password: '201',
+      { id: 'B001', name: 'B001', role: '組長', team: 'B組', prefix: 'B', password: '201',
         counts: { laguna: 0, koko: 0, industrial: 0, eastern: 0 },
         prices: { laguna: 4, koko: 4, industrial: 5, eastern: 4 },
-        assignedFence: 'KOKO HILLS', assignedOrder: '第 1 順位',
+        assignedFence: '01E Koko Hills', assignedOrder: '第 1 順位',
         signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '',
         payday: '隔日結算', commission: 0, penalty: 0, comp: 0, deduct: 0, advance: 0, paidToday: 0, payoutStatus: '待轉帳' },
       
-      { id: 'C001', name: '隊長 C (俊華)', role: '隊長', team: '俊華隊', prefix: 'C', password: '303',
+      { id: 'C001', name: 'C001', role: '組長', team: 'C組', prefix: 'C', password: '303',
         counts: { laguna: 0, koko: 0, industrial: 0, eastern: 0 },
         prices: { laguna: 4, koko: 4, industrial: 4.5, eastern: 4 },
-        assignedFence: '觀塘開源道工商', assignedOrder: '第 1 順位',
+        assignedFence: '02E 觀塘工商區1號', assignedOrder: '第 1 順位',
         signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '',
         payday: '隔日結算', commission: 0, penalty: 0, comp: 0, deduct: 0, advance: 0, paidToday: 0, payoutStatus: '待轉帳' },
 
       { id: 'D01', name: '自由步兵 D01', role: '普通步兵', team: '自由步兵', prefix: 'D', password: '0023',
         counts: { laguna: 0, koko: 0, industrial: 0, eastern: 0 },
         prices: { laguna: 4, koko: 4, industrial: 5, eastern: 4 },
-        assignedFence: '彈性支援/待排班', assignedOrder: '第 2 順位',
+        assignedFence: '03F 東旭苑', assignedOrder: '第 1 順位',
         signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '',
         payday: '隔日結算', commission: 0, penalty: 0, comp: 0, deduct: 0, advance: 0, paidToday: 0, payoutStatus: '待轉帳' }
     ];
 
-    // 初始獨立分工名冊（分開 觀塘 與 東區）
+    // 初始獨立分工名冊
     const defaultZoneAssignments = {
       kt: [
-        { id: 'A001', name: '隊長 A (景鴻)', team: '景鴻隊', fence: '麗港城一期', order: '第 1 順位' },
-        { id: 'B001', name: '隊長 B (詠豪)', team: '詠豪隊', fence: 'KOKO HILLS', order: '第 1 順位' },
-        { id: 'C001', name: '隊長 C (俊華)', team: '俊華隊', fence: '開源道工商', order: '第 1 順位' }
+        { id: 'A001', name: 'A001', team: 'A組', fence: '11E 麗港城-1號托', order: '第 1 順位' },
+        { id: 'B001', name: 'B001', team: 'B組', fence: '01E Koko Hills', order: '第 1 順位' },
+        { id: 'C001', name: 'C001', team: 'C組', fence: '02E 觀塘工商區1號', order: '第 1 順位' }
       ],
       east: [
-        { id: 'D01', name: '自由步兵 D01', team: '自由步兵', fence: '北角區', order: '第 1 順位' }
+        { id: 'D01', name: '自由步兵 D01', team: '自由步兵', fence: '03F 東旭苑', order: '第 1 順位' }
       ]
     };
 
     const defaultTruckRoutes = [
-      { id: 'tr_1', time: '08:30', fence: '麗港城一期', driver: '陳司機', order: '第 1 班車' },
-      { id: 'tr_2', time: '09:00', fence: 'KOKO HILLS', driver: '李司機', order: '第 2 班車' },
-      { id: 'tr_3', time: '09:30', fence: '開源道工商', driver: '張司機', order: '第 3 班車' }
+      { id: 'tr_1', time: '08:30', fence: '11E 麗港城-1號托', driver: '陳司機', order: '第 1 班車' },
+      { id: 'tr_2', time: '09:00', fence: '01E Koko Hills', driver: '李司機', order: '第 2 班車' },
+      { id: 'tr_3', time: '09:30', fence: '02E 觀塘工商區1號', driver: '張司機', order: '第 3 班車' }
     ];
 
-    const DB_PREFIX = 'MIA_PERMANENT_PERSIST_2026_V3_';
+    const DB_PREFIX = 'MIA_ULTRA_NO_TEAM_2026_';
 
     let zoneFences = JSON.parse(localStorage.getItem(DB_PREFIX + 'ZONE_FENCES')) || defaultZoneFences;
     let zoneFenceCounts = JSON.parse(localStorage.getItem(DB_PREFIX + 'ZONE_COUNTS')) || {};
@@ -1048,7 +1122,7 @@
         const user = accounts[userIdx];
         if (user.id.toUpperCase() === 'ADMIN') {
           loggedInUser = { role: 'admin', idx: userIdx, ...user, role: '管理員' };
-        } else if (user.role === '隊長') {
+        } else if (user.role === '組長') {
           loggedInUser = { role: 'captain', idx: userIdx, ...user };
         } else {
           loggedInUser = { role: 'rider', idx: userIdx, ...user };
@@ -1071,17 +1145,17 @@
       if (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN') {
         loggedInUser.role = 'admin';
         badge.innerText = '👑 總管理員';
-        badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-bold leading-none';
+        badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-black leading-none';
         info.innerText = 'Mia (最高全域編輯權限：可修改所有項目、圍欄、分工、車線、財務、密碼)';
         btnClearHist.classList.remove('hidden');
       } else if (loggedInUser.role === 'captain') {
-        badge.innerText = '🎖️ 隊長';
-        badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold leading-none';
+        badge.innerText = '🎖️ 組長';
+        badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-black leading-none';
         info.innerText = `${loggedInUser.name} (${loggedInUser.id})`;
         btnClearHist.classList.add('hidden');
       } else {
         badge.innerText = '🏃 普通步兵';
-        badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold leading-none';
+        badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-black leading-none';
         info.innerText = `${loggedInUser.name} (${loggedInUser.id} • ${loggedInUser.team})`;
         btnClearHist.classList.add('hidden');
       }
@@ -1114,21 +1188,21 @@
       // 入口 1: 分區圍欄
       if (isMia || isCapAorB || isCapC) {
         bar.innerHTML += `
-          <button onclick="openModal1()" class="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 transition flex items-center gap-1 whitespace-nowrap">
+          <button onclick="openModal1()" class="px-3.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 transition flex items-center gap-1 whitespace-nowrap shadow-sm">
             <i data-lucide="map-pin" class="w-3.5 h-3.5 text-purple-600"></i> 1- 分區圍欄
           </button>
         `;
       } else if (isRider) {
         bar.innerHTML += `
-          <button onclick="openModal1()" class="px-3 py-1.5 rounded-xl bg-purple-50 text-purple-800 border border-purple-200 transition flex items-center gap-1 whitespace-nowrap">
+          <button onclick="openModal1()" class="px-3.5 py-1.5 rounded-xl bg-purple-50 text-purple-800 border border-purple-200 transition flex items-center gap-1 whitespace-nowrap">
             <i data-lucide="map-pin" class="w-3.5 h-3.5 text-purple-600"></i> 各區圍欄
           </button>
         `;
       }
 
-      // 入口 2: 區域分工與排班次序 (全體可看，Mia 可增刪編輯)
+      // 入口 2: 區域分工與排班次序
       bar.innerHTML += `
-        <button onclick="openModal2()" class="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 transition flex items-center gap-1 whitespace-nowrap">
+        <button onclick="openModal2()" class="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 transition flex items-center gap-1 whitespace-nowrap shadow-sm">
           <i data-lucide="users-round" class="w-3.5 h-3.5 text-blue-600"></i> 2- 觀塘與東區分工
         </button>
       `;
@@ -1136,7 +1210,7 @@
       // 入口 3: 觀塘區圍欄數量
       if (isMia || isCapAorB) {
         bar.innerHTML += `
-          <button onclick="openModal3()" class="px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 transition flex items-center gap-1 whitespace-nowrap">
+          <button onclick="openModal3()" class="px-3.5 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 transition flex items-center gap-1 whitespace-nowrap shadow-sm">
             <i data-lucide="boxes" class="w-3.5 h-3.5 text-sky-600"></i> 3- 觀塘圍欄數量
           </button>
         `;
@@ -1145,7 +1219,7 @@
       // 入口 4: 東區圍欄數量
       if (isMia || isCapAorB) {
         bar.innerHTML += `
-          <button onclick="openModal4()" class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 transition flex items-center gap-1 whitespace-nowrap">
+          <button onclick="openModal4()" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 transition flex items-center gap-1 whitespace-nowrap shadow-sm">
             <i data-lucide="boxes" class="w-3.5 h-3.5 text-indigo-600"></i> 4- 東區圍欄數量
           </button>
         `;
@@ -1153,14 +1227,14 @@
 
       // 入口 5: 翌日報更
       bar.innerHTML += `
-        <button onclick="openModal5()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center gap-1 whitespace-nowrap shadow-sm">
+        <button onclick="openModal5()" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center gap-1 whitespace-nowrap shadow-sm active:scale-95">
           <i data-lucide="calendar-plus" class="w-3.5 h-3.5"></i> 5- 翌日同事報更
         </button>
       `;
 
       // 入口 8: 車線調度
       bar.innerHTML += `
-        <button onclick="openModal8()" class="px-3 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200 transition flex items-center gap-1 whitespace-nowrap">
+        <button onclick="openModal8()" class="px-3.5 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200 transition flex items-center gap-1 whitespace-nowrap shadow-sm">
           <i data-lucide="truck" class="w-3.5 h-3.5 text-orange-600"></i> 8- 車線調度
         </button>
       `;
@@ -1175,7 +1249,7 @@
       document.getElementById('nav-btn-stats').className = 'px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1 border border-slate-200';
 
       if (tab === 'main') {
-        document.getElementById('nav-btn-main').className = 'px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold transition flex items-center gap-1';
+        document.getElementById('nav-btn-main').className = 'px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold transition flex items-center gap-1 shadow-sm';
         if (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN') {
           document.getElementById('view-admin').classList.remove('hidden');
           renderAdminView();
@@ -1187,11 +1261,11 @@
           renderRiderView(loggedInUser.idx);
         }
       } else if (tab === 'history') {
-        document.getElementById('nav-btn-history').className = 'px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold transition flex items-center gap-1';
+        document.getElementById('nav-btn-history').className = 'px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold transition flex items-center gap-1 shadow-sm';
         document.getElementById('view-history').classList.remove('hidden');
         renderHistoryView();
       } else if (tab === 'stats') {
-        document.getElementById('nav-btn-stats').className = 'px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold transition flex items-center gap-1';
+        document.getElementById('nav-btn-stats').className = 'px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold transition flex items-center gap-1 shadow-sm';
         document.getElementById('view-stats').classList.remove('hidden');
         initStatsView();
       }
@@ -1276,9 +1350,9 @@
           const cnt = acc.counts[f.key] || 0;
           const prc = acc.prices[f.key];
           mobileFencesHTML += `
-            <div class="bg-blue-50/50 p-1.5 rounded-lg border border-blue-100 text-center">
+            <div class="bg-blue-50/50 p-2 rounded-2xl border border-blue-100 text-center">
               <div class="text-[10px] text-blue-700 font-bold">${f.name} (件)</div>
-              <input type="number" value="${cnt}" onchange="updateAccountNestedField(${idx}, 'counts', '${f.key}', this.value)" class="w-full bg-white border border-slate-200 rounded p-1 text-center font-bold text-blue-700 mt-1">
+              <input type="number" value="${cnt}" onchange="updateAccountNestedField(${idx}, 'counts', '${f.key}', this.value)" class="w-full bg-white border border-slate-200 rounded-xl p-1 text-center font-black text-blue-700 mt-1 shadow-sm">
               <div class="flex items-center justify-center gap-0.5 mt-1 text-[10px] text-blue-900 font-bold">
                 $<input type="number" step="0.5" value="${prc}" onchange="updateAccountNestedField(${idx}, 'prices', '${f.key}', this.value)" class="w-9 bg-white border border-blue-300 rounded p-0.5 text-center font-bold">/件
               </div>
@@ -1287,19 +1361,21 @@
         });
 
         const card = document.createElement('div');
-        card.className = `bg-white rounded-2xl border ${acc.pendingPickup > 0 ? 'border-amber-400 bg-amber-50/20' : 'border-slate-200/90'} p-4 shadow-sm space-y-3`;
+        card.className = `bg-white rounded-3xl border ${acc.pendingPickup > 0 ? 'border-amber-400 bg-amber-50/20' : 'border-slate-200/90'} p-4 shadow-sm space-y-3`;
         card.innerHTML = `
           <div class="flex justify-between items-start border-b border-slate-100 pb-2.5">
             <div class="flex-1 mr-2">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <input type="text" value="${acc.name}" onchange="updateAccountFieldStr(${idx}, 'name', this.value)" class="font-extrabold text-base text-slate-900 bg-transparent border-b border-transparent focus:border-blue-500 focus:bg-white px-1 py-0.5 rounded outline-none w-28">
-                <span class="text-xs px-2 py-0.5 rounded font-mono font-bold ${acc.prefix === 'D' ? 'bg-amber-50 text-amber-700 border border-amber-200' : (acc.prefix === 'KM' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-blue-50 text-blue-700 border border-blue-200')}">${acc.id}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded font-bold ${acc.role === '隊長' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-slate-100 text-slate-600'}">${acc.team}</span>
+                <input type="text" value="${acc.name}" onchange="updateAccountFieldStr(${idx}, 'name', this.value)" class="font-black text-base text-slate-900 bg-transparent border-b border-transparent focus:border-blue-500 focus:bg-white px-1 py-0.5 rounded outline-none w-28">
+                <span class="text-xs px-2.5 py-0.5 rounded-md font-mono font-black ${acc.prefix === 'D' ? 'bg-amber-50 text-amber-700 border border-amber-200' : (acc.prefix === 'KM' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-blue-50 text-blue-700 border border-blue-200')}">${acc.id}</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${acc.role === '組長' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-slate-100 text-slate-600'}">${acc.team}</span>
               </div>
-              <div class="text-[11px] text-blue-600 font-bold mt-1">指派: ${acc.assignedFence || '未排'} • ${acc.assignedOrder || '順位1'}</div>
+              <div class="text-[11px] text-blue-600 font-bold mt-1 flex items-center gap-1">
+                <i data-lucide="map-pin" class="w-3 h-3 text-blue-500"></i> ${acc.assignedFence || '未排班'} • ${acc.assignedOrder || '順位1'}
+              </div>
             </div>
             <div class="text-right flex-shrink-0 space-y-1">
-              <button onclick="openChangePasswordModal(${idx})" class="px-2 py-1 bg-amber-50 text-amber-900 border border-amber-300 rounded-lg text-xs font-mono font-bold block ml-auto">
+              <button onclick="openChangePasswordModal(${idx})" class="px-2.5 py-1 bg-amber-50 text-amber-900 border border-amber-300 rounded-xl text-xs font-mono font-bold block ml-auto shadow-sm hover:bg-amber-100">
                 🔑 ${acc.password || '8888'}
               </button>
               <div class="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">${acc.payday}</div>
@@ -1309,35 +1385,35 @@
           <div class="grid grid-cols-2 gap-1.5 text-xs">${mobileFencesHTML}</div>
 
           <div class="grid grid-cols-3 gap-1.5 text-center text-xs">
-            <div class="bg-emerald-50/60 p-1.5 rounded-xl border border-emerald-200">
+            <div class="bg-emerald-50/60 p-2 rounded-2xl border border-emerald-200">
               <div class="text-[10px] text-emerald-700 font-bold">已簽收</div>
-              <input type="number" value="${acc.signed || 0}" onchange="updateAccountField(${idx}, 'signed', this.value)" class="w-full bg-white border border-emerald-200 rounded p-1 text-center font-bold text-emerald-600 mt-1">
+              <input type="number" value="${acc.signed || 0}" onchange="updateAccountField(${idx}, 'signed', this.value)" class="w-full bg-white border border-emerald-200 rounded-lg p-1 text-center font-bold text-emerald-600 mt-1 shadow-sm">
             </div>
-            <div class="bg-rose-50/50 p-1.5 rounded-xl border border-rose-100">
+            <div class="bg-rose-50/50 p-2 rounded-2xl border border-rose-100">
               <div class="text-[10px] text-rose-700 font-bold">已退款</div>
-              <input type="number" value="${acc.refunded || 0}" onchange="updateAccountField(${idx}, 'refunded', this.value)" class="w-full bg-white border border-rose-200 rounded p-1 text-center font-bold text-rose-600 mt-1">
+              <input type="number" value="${acc.refunded || 0}" onchange="updateAccountField(${idx}, 'refunded', this.value)" class="w-full bg-white border border-rose-200 rounded-lg p-1 text-center font-bold text-rose-600 mt-1 shadow-sm">
             </div>
-            <div class="bg-amber-50/60 p-1.5 rounded-xl border border-amber-200">
+            <div class="bg-amber-50/60 p-2 rounded-2xl border border-amber-200">
               <div class="text-[10px] text-amber-800 font-bold">清場待攬收</div>
-              <input type="number" value="${acc.pendingPickup || 0}" onchange="updateAccountField(${idx}, 'pendingPickup', this.value)" class="w-full bg-white border border-amber-300 rounded p-1 text-center font-bold text-amber-700 mt-1">
+              <input type="number" value="${acc.pendingPickup || 0}" onchange="updateAccountField(${idx}, 'pendingPickup', this.value)" class="w-full bg-white border border-amber-300 rounded-lg p-1 text-center font-bold text-amber-700 mt-1 shadow-sm">
             </div>
           </div>
 
-          <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
-            <span class="text-[11px] text-slate-600 font-semibold">📋 簽收 / 退款 / 待攬收單號</span>
-            <button onclick="openTrackingModal(${idx})" class="px-2.5 py-1 bg-white border border-slate-300 text-blue-700 font-bold rounded-lg hover:bg-blue-50 text-[11px] flex items-center gap-1 shadow-sm">
-              <i data-lucide="file-text" class="w-3.5 h-3.5"></i> 查閱/修改單號
+          <div class="bg-slate-50 p-2.5 rounded-2xl border border-slate-200 flex items-center justify-between text-xs">
+            <span class="text-[11px] text-slate-600 font-bold">📋 簽收 / 退款 / 待攬收單號</span>
+            <button onclick="openTrackingModal(${idx})" class="px-3 py-1 bg-white border border-slate-300 text-blue-700 font-bold rounded-xl hover:bg-blue-50 text-[11px] flex items-center gap-1 shadow-sm">
+              <i data-lucide="file-text" class="w-3 h-3"></i> 查閱/修改單號
             </button>
           </div>
 
           <div class="grid grid-cols-2 gap-2 text-xs">
             <div>
               <label class="text-[10px] text-rose-600 font-semibold block mb-0.5">扣糧/罰款</label>
-              <input type="number" value="${deductions}" onchange="updateAccountField(${idx}, 'deduct', this.value)" class="w-full bg-slate-50 border border-slate-200 rounded p-1.5 text-center font-bold text-rose-600">
+              <input type="number" value="${deductions}" onchange="updateAccountField(${idx}, 'deduct', this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-1.5 text-center font-bold text-rose-600">
             </div>
             <div>
               <label class="text-[10px] text-orange-600 font-semibold block mb-0.5">預支借支</label>
-              <input type="number" value="${acc.advance || 0}" onchange="updateAccountField(${idx}, 'advance', this.value)" class="w-full bg-orange-50/50 border border-orange-200 rounded p-1.5 text-center font-bold text-orange-700">
+              <input type="number" value="${acc.advance || 0}" onchange="updateAccountField(${idx}, 'advance', this.value)" class="w-full bg-orange-50/50 border border-orange-200 rounded-xl p-1.5 text-center font-bold text-orange-700">
             </div>
           </div>
 
@@ -1364,10 +1440,10 @@
           const prc = acc.prices[f.key];
           deskFencesHTML += `
             <td class="py-3 px-2 text-center bg-blue-50/30">
-              <input type="number" value="${cnt}" onchange="updateAccountNestedField(${idx}, 'counts', '${f.key}', this.value)" class="w-10 bg-slate-50 border border-slate-200 rounded p-1 text-center font-bold text-blue-700">
+              <input type="number" value="${cnt}" onchange="updateAccountNestedField(${idx}, 'counts', '${f.key}', this.value)" class="w-10 bg-slate-50 border border-slate-200 rounded-lg p-1 text-center font-bold text-blue-700">
             </td>
             <td class="py-3 px-2 text-center bg-blue-100/40">
-              <input type="number" step="0.5" value="${prc}" onchange="updateAccountNestedField(${idx}, 'prices', '${f.key}', this.value)" class="w-11 bg-white border border-blue-300 rounded p-1 text-center font-black text-blue-700">
+              <input type="number" step="0.5" value="${prc}" onchange="updateAccountNestedField(${idx}, 'prices', '${f.key}', this.value)" class="w-11 bg-white border border-blue-300 rounded-lg p-1 text-center font-black text-blue-700 shadow-sm">
             </td>
           `;
         });
@@ -1383,15 +1459,15 @@
           </td>
 
           <td class="py-3 px-2 text-center bg-amber-50/50">
-            <button onclick="openChangePasswordModal(${idx})" class="px-2 py-1 bg-white border border-amber-300 rounded-lg text-amber-900 font-mono font-bold hover:bg-amber-100 text-[11px] shadow-sm">
+            <button onclick="openChangePasswordModal(${idx})" class="px-2 py-1 bg-white border border-amber-300 rounded-xl text-amber-900 font-mono font-bold hover:bg-amber-100 text-[11px] shadow-sm">
               🔑 ${acc.password || '8888'}
             </button>
           </td>
 
           <td class="py-3 px-2 text-center bg-indigo-50/40">
             <div class="flex items-center justify-center gap-1">
-              <input type="text" value="${acc.assignedFence || '全區'}" onchange="updateAccountFieldStr(${idx}, 'assignedFence', this.value)" class="w-20 bg-white border border-indigo-200 rounded p-1 text-center font-bold text-indigo-800 text-[11px]">
-              <input type="text" value="${acc.assignedOrder || '1'}" onchange="updateAccountFieldStr(${idx}, 'assignedOrder', this.value)" class="w-14 bg-white border border-indigo-200 rounded p-1 text-center font-bold text-indigo-800 text-[11px]" placeholder="次序">
+              <input type="text" value="${acc.assignedFence || '全區'}" onchange="updateAccountFieldStr(${idx}, 'assignedFence', this.value)" class="w-24 bg-white border border-indigo-200 rounded-lg p-1 text-center font-bold text-indigo-800 text-[11px]">
+              <input type="text" value="${acc.assignedOrder || '1'}" onchange="updateAccountFieldStr(${idx}, 'assignedOrder', this.value)" class="w-14 bg-white border border-indigo-200 rounded-lg p-1 text-center font-bold text-indigo-800 text-[11px]" placeholder="次序">
             </div>
           </td>
 
@@ -1401,33 +1477,33 @@
           
           <td class="py-3 px-2 text-center bg-emerald-50/30">
             <div class="flex items-center justify-center gap-1">
-              <input type="number" value="${acc.signed || 0}" onchange="updateAccountField(${idx}, 'signed', this.value)" class="w-10 bg-slate-50 border border-slate-200 rounded p-1 text-center font-bold text-emerald-600">
-              <button onclick="openTrackingModal(${idx})" title="簽收單號" class="p-1 bg-white border border-emerald-200 text-emerald-600 rounded hover:bg-emerald-50"><i data-lucide="file-text" class="w-3.5 h-3.5"></i></button>
+              <input type="number" value="${acc.signed || 0}" onchange="updateAccountField(${idx}, 'signed', this.value)" class="w-10 bg-slate-50 border border-slate-200 rounded-lg p-1 text-center font-bold text-emerald-600">
+              <button onclick="openTrackingModal(${idx})" title="簽收單號" class="p-1 bg-white border border-emerald-200 text-emerald-600 rounded-lg hover:bg-emerald-50"><i data-lucide="file-text" class="w-3.5 h-3.5"></i></button>
             </div>
           </td>
 
           <td class="py-3 px-2 text-center bg-rose-50/30">
             <div class="flex items-center justify-center gap-1">
-              <input type="number" value="${acc.refunded || 0}" onchange="updateAccountField(${idx}, 'refunded', this.value)" class="w-10 bg-white border border-rose-300 rounded p-1 text-center font-bold text-rose-600">
-              <button onclick="openTrackingModal(${idx})" title="退款單號" class="p-1 bg-white border border-rose-200 text-rose-600 rounded hover:bg-rose-50"><i data-lucide="file-text" class="w-3.5 h-3.5"></i></button>
+              <input type="number" value="${acc.refunded || 0}" onchange="updateAccountField(${idx}, 'refunded', this.value)" class="w-10 bg-white border border-rose-300 rounded-lg p-1 text-center font-bold text-rose-600">
+              <button onclick="openTrackingModal(${idx})" title="退款單號" class="p-1 bg-white border border-rose-200 text-rose-600 rounded-lg hover:bg-rose-50"><i data-lucide="file-text" class="w-3.5 h-3.5"></i></button>
             </div>
           </td>
 
           <td class="py-3 px-2 text-center bg-amber-50/40">
             <div class="flex items-center justify-center gap-1">
-              <input type="number" value="${acc.pendingPickup || 0}" onchange="updateAccountField(${idx}, 'pendingPickup', this.value)" class="w-10 bg-white border ${acc.pendingPickup > 0 ? 'border-amber-500 bg-amber-50 text-amber-700 font-black' : 'border-slate-200'} rounded p-1 text-center font-bold">
-              <button onclick="openTrackingModal(${idx})" title="清場待攬收單號" class="p-1 bg-white border border-amber-300 text-amber-700 rounded hover:bg-amber-50"><i data-lucide="file-text" class="w-3.5 h-3.5"></i></button>
+              <input type="number" value="${acc.pendingPickup || 0}" onchange="updateAccountField(${idx}, 'pendingPickup', this.value)" class="w-10 bg-white border ${acc.pendingPickup > 0 ? 'border-amber-500 bg-amber-50 text-amber-700 font-black' : 'border-slate-200'} rounded-lg p-1 text-center font-bold">
+              <button onclick="openTrackingModal(${idx})" title="清場待攬收單號" class="p-1 bg-white border border-amber-300 text-amber-700 rounded-lg hover:bg-amber-50"><i data-lucide="file-text" class="w-3.5 h-3.5"></i></button>
             </div>
           </td>
 
           <td class="py-3 px-2 text-center font-bold text-slate-800">$${gross}</td>
           
           <td class="py-3 px-2 text-center">
-            <input type="number" value="${deductions}" onchange="updateAccountField(${idx}, 'deduct', this.value)" class="w-11 bg-slate-50 border border-slate-200 rounded p-1 text-center font-bold text-rose-600">
+            <input type="number" value="${deductions}" onchange="updateAccountField(${idx}, 'deduct', this.value)" class="w-11 bg-slate-50 border border-slate-200 rounded-lg p-1 text-center font-bold text-rose-600">
           </td>
 
           <td class="py-3 px-2 text-center bg-orange-50/40">
-            <input type="number" value="${acc.advance || 0}" onchange="updateAccountField(${idx}, 'advance', this.value)" class="w-12 bg-white border border-orange-300 rounded p-1 text-center font-bold text-orange-700">
+            <input type="number" value="${acc.advance || 0}" onchange="updateAccountField(${idx}, 'advance', this.value)" class="w-12 bg-white border border-orange-300 rounded-lg p-1 text-center font-bold text-orange-700">
           </td>
 
           <td class="py-3 px-3 text-center font-black text-emerald-600 text-sm bg-emerald-50/50 whitespace-nowrap">
@@ -1435,19 +1511,19 @@
           </td>
 
           <td class="py-3 px-3 text-center bg-indigo-50/40">
-            <input type="number" value="${acc.paidToday || 0}" onchange="updateAccountField(${idx}, 'paidToday', this.value)" class="w-14 bg-white border border-indigo-300 rounded p-1 text-center font-black text-indigo-700">
+            <input type="number" value="${acc.paidToday || 0}" onchange="updateAccountField(${idx}, 'paidToday', this.value)" class="w-14 bg-white border border-indigo-300 rounded-lg p-1 text-center font-black text-indigo-700">
           </td>
 
           <td class="py-3 px-3 text-center bg-rose-50/50 whitespace-nowrap">
             ${netDebt > 0 ? `
-              <span class="px-2 py-0.5 rounded-full text-xs font-black bg-rose-600 text-white shadow-sm inline-block">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-600 text-white shadow-sm inline-block">
                 欠款 $${netDebt}
               </span>
             ` : `<span class="text-slate-400 font-medium text-[11px]">- (無欠款)</span>`}
           </td>
 
           <td class="py-3 px-2 text-center bg-purple-50/30 whitespace-nowrap">
-            <select onchange="updateAccountFieldStr(${idx}, 'payday', this.value)" class="bg-white border border-purple-200 rounded-md px-1.5 py-1 text-[11px] font-bold text-purple-800">
+            <select onchange="updateAccountFieldStr(${idx}, 'payday', this.value)" class="bg-white border border-purple-200 rounded-xl px-1.5 py-1 text-[11px] font-bold text-purple-800">
               <option value="隔日結算" ${acc.payday === '隔日結算' ? 'selected' : ''}>隔日結算</option>
               <option value="日結 (即日)" ${acc.payday === '日結 (即日)' ? 'selected' : ''}>日結 (即日)</option>
               <option value="逢週五 (週結)" ${acc.payday === '逢週五 (週結)' ? 'selected' : ''}>逢週五 (週結)</option>
@@ -1457,10 +1533,10 @@
           </td>
 
           <td class="py-3 px-4 text-right whitespace-nowrap flex items-center justify-end gap-1.5">
-            <button onclick="payFullWage(${idx}, ${netWage})" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
+            <button onclick="payFullWage(${idx}, ${netWage})" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm">
               全額實出
             </button>
-            <button onclick="deleteAccount(${idx})" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg border border-rose-200" title="刪除此帳戶">
+            <button onclick="deleteAccount(${idx})" class="p-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl border border-rose-200" title="刪除此帳戶">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>
           </td>
@@ -1496,7 +1572,7 @@
       renderAdminView();
     }
 
-    // ==================== 2. 隊長專屬工作台 ====================
+    // ==================== 2. 組長專屬工作台 ====================
     function renderCaptainView(capId) {
       const cap = accounts.find(a => a.id === capId);
       document.getElementById('cap-name-display').innerText = `${cap.name} (${cap.id})`;
@@ -1525,7 +1601,7 @@
 
       thead.innerHTML = `
         <tr>
-          <th class="py-3 px-4 sticky left-0 bg-slate-100/90 z-10">隊員姓名 (ID)</th>
+          <th class="py-3 px-4 sticky left-0 bg-slate-100/90 z-10">姓名 (ID)</th>
           <th class="py-3 px-3 text-center text-indigo-700 font-bold">負責圍欄與次序</th>
           ${capFenceHeadersHTML}
           <th class="py-3 px-2 text-center font-bold">總票量</th>
@@ -1555,19 +1631,19 @@
           gross += (cnt * prc);
 
           capMobileFencesHTML += `
-            <div class="bg-blue-50/50 p-1.5 rounded-lg border border-blue-100 text-center">
+            <div class="bg-blue-50/50 p-2 rounded-2xl border border-blue-100 text-center">
               <div class="text-[10px] text-blue-700 font-bold">${f.name} (件)</div>
-              <input type="number" value="${cnt}" onchange="updateAccountNestedField(${globalIdx}, 'counts', '${f.key}', this.value); renderCaptainView('${capId}');" class="w-full bg-white border border-slate-200 rounded p-1 text-center font-bold text-blue-700 mt-1">
+              <input type="number" value="${cnt}" onchange="updateAccountNestedField(${globalIdx}, 'counts', '${f.key}', this.value); renderCaptainView('${capId}');" class="w-full bg-white border border-slate-200 rounded-xl p-1 text-center font-black text-blue-700 mt-1 shadow-sm">
               <div class="mt-1 text-[10px] text-blue-900 font-bold">$<input type="number" step="0.5" value="${prc}" onchange="updateAccountNestedField(${globalIdx}, 'prices', '${f.key}', this.value); renderCaptainView('${capId}');" class="w-8 bg-white border border-blue-200 rounded text-center">/件</div>
             </div>
           `;
 
           capDeskFencesHTML += `
             <td class="py-3 px-2 text-center">
-              <input type="number" value="${cnt}" onchange="updateAccountNestedField(${globalIdx}, 'counts', '${f.key}', this.value); renderCaptainView('${capId}');" class="w-10 bg-slate-50 border border-slate-200 rounded p-1 text-center font-bold text-blue-700">
+              <input type="number" value="${cnt}" onchange="updateAccountNestedField(${globalIdx}, 'counts', '${f.key}', this.value); renderCaptainView('${capId}');" class="w-10 bg-slate-50 border border-slate-200 rounded-lg p-1 text-center font-bold text-blue-700">
             </td>
             <td class="py-3 px-2 text-center bg-blue-50/40">
-              <input type="number" step="0.5" value="${prc}" onchange="updateAccountNestedField(${globalIdx}, 'prices', '${f.key}', this.value); renderCaptainView('${capId}');" class="w-11 bg-white border border-blue-300 rounded p-1 text-center font-bold text-blue-700">
+              <input type="number" step="0.5" value="${prc}" onchange="updateAccountNestedField(${globalIdx}, 'prices', '${f.key}', this.value); renderCaptainView('${capId}');" class="w-11 bg-white border border-blue-300 rounded-lg p-1 text-center font-bold text-blue-700">
             </td>
           `;
         });
@@ -1576,13 +1652,15 @@
         const net = gross - (acc.deduct || 0);
 
         const mCard = document.createElement('div');
-        mCard.className = `bg-white rounded-2xl border ${acc.pendingPickup > 0 ? 'border-amber-400 bg-amber-50/20' : 'border-slate-200/90'} p-4 shadow-sm space-y-3`;
+        mCard.className = `bg-white rounded-3xl border ${acc.pendingPickup > 0 ? 'border-amber-400 bg-amber-50/20' : 'border-slate-200/90'} p-4 shadow-sm space-y-3`;
         mCard.innerHTML = `
           <div class="flex justify-between items-center border-b border-slate-100 pb-2">
             <div>
-              <span class="font-extrabold text-sm text-slate-900">${acc.name}</span>
-              <span class="text-xs px-2 py-0.5 rounded font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">${acc.id}</span>
-              <div class="text-[10px] text-indigo-700 font-bold mt-0.5">${acc.assignedFence || '未編排'} • ${acc.assignedOrder || '順位1'}</div>
+              <span class="font-black text-sm text-slate-900">${acc.name}</span>
+              <span class="text-xs px-2 py-0.5 rounded font-mono font-black bg-blue-50 text-blue-700 border border-blue-200">${acc.id}</span>
+              <div class="text-[10px] text-indigo-700 font-bold mt-0.5 flex items-center gap-0.5">
+                <i data-lucide="map-pin" class="w-3 h-3"></i> ${acc.assignedFence || '未編排'} • ${acc.assignedOrder || '順位1'}
+              </div>
             </div>
             <div class="text-[10px] text-slate-500 font-bold">${acc.payday}</div>
           </div>
@@ -1615,7 +1693,7 @@
           <td class="py-3 px-3 text-center font-bold text-amber-700">${acc.pendingPickup || 0}</td>
           <td class="py-3 px-3 text-center font-bold text-emerald-600">$${net}</td>
           <td class="py-3 px-3 text-center">
-            <button onclick="openTrackingModal(${globalIdx})" class="px-2.5 py-1 bg-blue-50 text-blue-700 font-bold rounded-lg border border-blue-200 hover:bg-blue-100 flex items-center gap-1 mx-auto text-xs">
+            <button onclick="openTrackingModal(${globalIdx})" class="px-2.5 py-1 bg-blue-50 text-blue-700 font-bold rounded-xl border border-blue-200 hover:bg-blue-100 flex items-center gap-1 mx-auto text-xs">
               <i data-lucide="file-text" class="w-3.5 h-3.5"></i> 查看單號
             </button>
           </td>
@@ -1629,15 +1707,15 @@
 
     function renderCaptainFenceCounts() {
       const container = document.getElementById('cap-fences-summary-container');
-      let ktHTML = '<div class="space-y-1"><b class="text-blue-700 text-xs">📍 觀塘區圍欄數量：</b>';
+      let ktHTML = '<div class="space-y-1.5"><b class="text-blue-700 text-xs flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 觀塘區圍欄數量：</b>';
       zoneFences.kt.forEach(f => {
-        ktHTML += `<div class="flex justify-between bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100 text-xs"><span>${f.name}</span><b class="text-sky-800">${zoneFenceCounts[f.id] || 0} 件</b></div>`;
+        ktHTML += `<div class="flex justify-between bg-sky-50/70 px-3 py-1.5 rounded-xl border border-sky-100 text-xs"><span>${f.name}</span><b class="text-sky-900 font-black">${zoneFenceCounts[f.id] || 0} 件</b></div>`;
       });
       ktHTML += '</div>';
 
-      let eastHTML = '<div class="space-y-1"><b class="text-indigo-700 text-xs">📍 東區圍欄數量：</b>';
+      let eastHTML = '<div class="space-y-1.5"><b class="text-indigo-700 text-xs flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 東區圍欄數量：</b>';
       zoneFences.east.forEach(f => {
-        eastHTML += `<div class="flex justify-between bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100 text-xs"><span>${f.name}</span><b class="text-indigo-800">${zoneFenceCounts[f.id] || 0} 件</b></div>`;
+        eastHTML += `<div class="flex justify-between bg-indigo-50/70 px-3 py-1.5 rounded-xl border border-indigo-100 text-xs"><span>${f.name}</span><b class="text-indigo-900 font-black">${zoneFenceCounts[f.id] || 0} 件</b></div>`;
       });
       eastHTML += '</div>';
 
@@ -1651,10 +1729,9 @@
       acc.prices = acc.prices || {};
 
       document.getElementById('rider-name-display').innerHTML = `${acc.name} <span id="rider-id-badge" class="text-xs px-2 py-0.5 ${acc.prefix === 'D' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200'} rounded-md font-mono font-bold">${acc.id}</span>`;
-      document.getElementById('rider-team-display').innerText = `所屬隊伍：${acc.team}`;
+      document.getElementById('rider-team-display').innerText = `所屬分組：${acc.team}`;
       document.getElementById('rider-payday-display').innerText = `糧期: ${acc.payday}`;
 
-      // 檢查當日分工
       let assignedTxt = '待總管理員編排';
       let orderTxt = '第 1 順位';
 
@@ -1685,7 +1762,7 @@
         const cnt = acc.counts[f.key] || 0;
 
         badgesContainer.innerHTML += `
-          <div class="bg-blue-50 border border-blue-200 text-blue-800 p-1.5 rounded-xl font-bold">
+          <div class="bg-blue-50 border border-blue-200 text-blue-800 p-2 rounded-2xl font-bold text-xs shadow-sm">
             ${f.name}: $${prc}/件
           </div>
         `;
@@ -1695,7 +1772,7 @@
             <label class="text-xs font-bold text-blue-800">📍 ${f.name} ($${prc}/件)</label>
             <div class="flex items-center gap-1">
               <span class="text-[11px] text-slate-500 font-medium">件數:</span>
-              <input id="inp-fence-${f.key}" type="number" value="${cnt}" oninput="recalcRiderTally()" class="w-16 bg-white border border-blue-300 rounded-lg p-1.5 text-center font-bold text-blue-700 text-sm">
+              <input id="inp-fence-${f.key}" type="number" value="${cnt}" oninput="recalcRiderTally()" class="w-16 bg-white border border-blue-300 rounded-xl p-1.5 text-center font-black text-blue-700 text-sm shadow-sm">
             </div>
           </div>
         `;
@@ -1833,18 +1910,18 @@
 
       zoneFences.kt.forEach((f, idx) => {
         ktList.innerHTML += `
-          <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-200">
             <span class="font-bold text-slate-800">${f.name}</span>
-            ${isMia ? `<button onclick="deleteZoneFence('kt', ${idx})" class="text-rose-600 hover:bg-rose-50 p-1 rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
+            ${isMia ? `<button onclick="deleteZoneFence('kt', ${idx})" class="text-rose-600 hover:bg-rose-50 p-1.5 rounded-xl"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
           </div>
         `;
       });
 
       zoneFences.east.forEach((f, idx) => {
         eastList.innerHTML += `
-          <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-200">
             <span class="font-bold text-slate-800">${f.name}</span>
-            ${isMia ? `<button onclick="deleteZoneFence('east', ${idx})" class="text-rose-600 hover:bg-rose-50 p-1 rounded"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
+            ${isMia ? `<button onclick="deleteZoneFence('east', ${idx})" class="text-rose-600 hover:bg-rose-50 p-1.5 rounded-xl"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>` : ''}
           </div>
         `;
       });
@@ -1872,13 +1949,14 @@
       }
     }
 
-    // ==================== 快捷彈窗 2：分區排班分工 (觀塘區 / 東區 獨立動態添加) ====================
+    // ==================== 快捷彈窗 2：分區排班分工 ====================
     function openModal2() {
       const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
       const addBox = document.getElementById('m2-admin-add-box');
       if (isMia) {
         addBox.classList.remove('hidden');
         populateRiderSelectDropdown();
+        populateFenceSelectDropdown();
       } else {
         addBox.classList.add('hidden');
       }
@@ -1902,6 +1980,15 @@
       });
     }
 
+    function populateFenceSelectDropdown() {
+      const sel = document.getElementById('new-assign-fence-select');
+      sel.innerHTML = '';
+      const fences = zoneFences[currentAssignTab] || [];
+      fences.forEach(f => {
+        sel.innerHTML += `<option value="${f.name}">${f.name}</option>`;
+      });
+    }
+
     function switchAssignmentTab(zone) {
       currentAssignTab = zone;
       const btnKt = document.getElementById('tab-assign-kt');
@@ -1918,6 +2005,7 @@
         if (label) label.innerText = '【📍 東區】';
       }
 
+      populateFenceSelectDropdown();
       renderAssignmentsTable();
     }
 
@@ -1938,15 +2026,15 @@
 
       list.forEach((item, idx) => {
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50';
+        tr.className = 'hover:bg-slate-50 transition';
         tr.innerHTML = `
-          <td class="py-2.5 px-3 font-extrabold text-blue-700 bg-blue-50/40 rounded-l-xl">${item.order}</td>
+          <td class="py-2.5 px-3 font-black text-blue-700 bg-blue-50/40 rounded-l-xl">${item.order}</td>
           <td class="py-2.5 px-3 font-bold text-slate-900">${item.name} <span class="font-mono text-blue-600 text-[11px]">(${item.id})</span></td>
           <td class="py-2.5 px-3 text-slate-500">${item.team}</td>
-          <td class="py-2.5 px-3 font-bold text-indigo-700">📍 ${item.fence}</td>
+          <td class="py-2.5 px-3 font-black text-indigo-700">📍 ${item.fence}</td>
           <td class="py-2.5 px-3 text-right rounded-r-xl">
             ${isMia ? `
-              <button onclick="deleteAssignmentRow('${currentAssignTab}', ${idx})" class="p-1 text-rose-600 hover:bg-rose-50 rounded">
+              <button onclick="deleteAssignmentRow('${currentAssignTab}', ${idx})" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-xl">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
               </button>
             ` : '<span class="text-slate-400">唯讀</span>'}
@@ -1959,7 +2047,7 @@
 
     function saveNewAssignmentRow() {
       const riderId = document.getElementById('new-assign-rider-select').value;
-      const fence = document.getElementById('new-assign-fence-input').value.trim();
+      const fence = document.getElementById('new-assign-fence-select').value.trim();
       const order = document.getElementById('new-assign-order-select').value;
 
       if (!fence) { alert('請填寫負責圍欄！'); return; }
@@ -1975,12 +2063,10 @@
         order: order
       });
 
-      // 同步更新步兵身上的當日指派
       targetAcc.assignedFence = `${currentAssignTab === 'kt' ? '觀塘' : '東區'} • ${fence}`;
       targetAcc.assignedOrder = order;
 
       saveData();
-      document.getElementById('new-assign-fence-input').value = '';
       renderAssignmentsTable();
       alert(`✅ 成功新增 ${targetAcc.name} 至【${currentAssignTab === 'kt' ? '觀塘區' : '東區'}】${order} (圍欄: ${fence})！`);
       if (loggedInUser && loggedInUser.role === 'admin') renderAdminView();
@@ -2006,11 +2092,11 @@
       zoneFences.kt.forEach(f => {
         const val = zoneFenceCounts[f.id] || 0;
         container.innerHTML += `
-          <div class="flex justify-between items-center p-2.5 rounded-xl bg-sky-50/50 border border-sky-100">
+          <div class="flex justify-between items-center p-2.5 rounded-2xl bg-sky-50/50 border border-sky-100">
             <span class="font-bold text-slate-800">${f.name}</span>
             <div class="flex items-center gap-1">
               <span class="text-slate-500">數量:</span>
-              <input id="inp-zcount-${f.id}" type="number" value="${val}" ${isMia ? '' : 'disabled'} class="w-16 bg-white border border-sky-300 rounded p-1 text-center font-bold text-sky-800">
+              <input id="inp-zcount-${f.id}" type="number" value="${val}" ${isMia ? '' : 'disabled'} class="w-16 bg-white border border-sky-300 rounded-xl p-1 text-center font-black text-sky-800 shadow-sm">
             </div>
           </div>
         `;
@@ -2045,11 +2131,11 @@
       zoneFences.east.forEach(f => {
         const val = zoneFenceCounts[f.id] || 0;
         container.innerHTML += `
-          <div class="flex justify-between items-center p-2.5 rounded-xl bg-indigo-50/50 border border-indigo-100">
+          <div class="flex justify-between items-center p-2.5 rounded-2xl bg-indigo-50/50 border border-indigo-100">
             <span class="font-bold text-slate-800">${f.name}</span>
             <div class="flex items-center gap-1">
               <span class="text-slate-500">數量:</span>
-              <input id="inp-zcount-${f.id}" type="number" value="${val}" ${isMia ? '' : 'disabled'} class="w-16 bg-white border border-indigo-300 rounded p-1 text-center font-bold text-indigo-800">
+              <input id="inp-zcount-${f.id}" type="number" value="${val}" ${isMia ? '' : 'disabled'} class="w-16 bg-white border border-indigo-300 rounded-xl p-1 text-center font-black text-indigo-800 shadow-sm">
             </div>
           </div>
         `;
@@ -2135,10 +2221,10 @@
       }
       shiftReports.slice(0, 10).forEach(s => {
         cont.innerHTML += `
-          <div class="p-2 rounded-xl bg-slate-50 border border-slate-200 flex justify-between items-center text-[11px]">
+          <div class="p-2.5 rounded-2xl bg-slate-50 border border-slate-200 flex justify-between items-center text-[11px]">
             <div>
               <b class="text-slate-900">${s.name}</b> <span class="text-blue-600 font-mono">(${s.id})</span>
-              <span class="ml-1 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-bold">${s.zone}</span>
+              <span class="ml-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold">${s.zone}</span>
               <span class="text-slate-500 ml-1">⏰ ${s.time}</span>
             </div>
             <div class="text-right text-slate-500">
@@ -2150,7 +2236,7 @@
       });
     }
 
-    // ==================== 快捷彈窗 8：車線調度 (司機派車順序) ====================
+    // ==================== 快捷彈窗 8：車線調度 ====================
     function openModal8() {
       const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
       const box = document.getElementById('m8-admin-box');
@@ -2181,14 +2267,14 @@
 
       truckRoutes.forEach((tr, idx) => {
         cont.innerHTML += `
-          <div class="p-2.5 rounded-xl bg-orange-50/50 border border-orange-200 flex justify-between items-center">
+          <div class="p-3 rounded-2xl bg-orange-50/50 border border-orange-200 flex justify-between items-center shadow-sm">
             <div>
-              <span class="font-extrabold text-orange-950">${tr.order}</span>
-              <span class="text-xs text-slate-500 ml-1.5">⏰ ${tr.time}</span>
+              <span class="font-black text-orange-950 text-xs">${tr.order}</span>
+              <span class="text-[11px] text-slate-500 ml-1.5">⏰ ${tr.time}</span>
               <div class="text-xs text-slate-700 mt-0.5">司機: <b class="text-slate-900">${tr.driver}</b> ➜ 圍欄: <b class="text-blue-700">${tr.fence}</b></div>
             </div>
             ${isMia ? `
-              <button onclick="deleteTruckRoute(${idx})" class="p-1 text-rose-600 hover:bg-rose-50 rounded">
+              <button onclick="deleteTruckRoute(${idx})" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-xl">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
               </button>
             ` : ''}
@@ -2252,7 +2338,7 @@
         }).join(', ');
 
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50/80';
+        tr.className = 'hover:bg-slate-50/80 transition';
         tr.innerHTML = `
           <td class="py-3 px-3 font-mono font-bold text-slate-700">${r.date}</td>
           <td class="py-3 px-3 font-bold text-slate-900">${r.name} <span class="font-mono text-blue-600">(${r.id})</span></td>
@@ -2265,7 +2351,7 @@
           <td class="py-3 px-3 text-right font-bold text-slate-900">$${r.gross || 0}</td>
           <td class="py-3 px-3 text-right font-black text-emerald-600">$${r.netWage || 0}</td>
           <td class="py-3 px-3 text-center">
-            <button onclick="viewHistoryNos('${encodeURIComponent(r.signedNos || '')}', '${encodeURIComponent(r.refundedNos || '')}', '${encodeURIComponent(r.pendingPickupNos || '')}', '${r.name}')" class="px-2 py-1 bg-slate-100 hover:bg-blue-50 text-blue-700 rounded font-semibold text-xs">
+            <button onclick="viewHistoryNos('${encodeURIComponent(r.signedNos || '')}', '${encodeURIComponent(r.refundedNos || '')}', '${encodeURIComponent(r.pendingPickupNos || '')}', '${r.name}')" class="px-2.5 py-1 bg-slate-100 hover:bg-blue-50 text-blue-700 rounded-xl font-bold text-xs shadow-sm">
               查單號
             </button>
           </td>
@@ -2412,7 +2498,7 @@
         list.innerHTML += `
           <div>
             <label class="font-bold text-slate-700 block mb-0.5">${f.name} 票價 ($)</label>
-            <input id="new-rider-p-${f.key}" type="number" step="0.5" value="${f.defaultPrice}" class="w-full bg-white border border-blue-200 rounded-lg p-2 font-bold focus:ring-1 focus:ring-blue-500">
+            <input id="new-rider-p-${f.key}" type="number" step="0.5" value="${f.defaultPrice}" class="w-full bg-white border border-blue-200 rounded-xl p-2 font-bold focus:ring-1 focus:ring-blue-500 shadow-sm">
           </div>
         `;
       });
@@ -2441,9 +2527,9 @@
       let prefix = 'KM';
       let role = '普通步兵';
 
-      if (team === '景鴻隊') { prefix = 'A'; }
-      if (team === '詠豪隊') { prefix = 'B'; }
-      if (team === '俊華隊') { prefix = 'C'; }
+      if (team === 'A組') { prefix = 'A'; }
+      if (team === 'B組') { prefix = 'B'; }
+      if (team === 'C組') { prefix = 'C'; }
       if (team === '自由步兵') { prefix = 'D'; }
 
       const teamMembers = accounts.filter(a => a.team === team);
@@ -2477,7 +2563,7 @@
       });
 
       saveData();
-      alert(`✅ 成功建立步兵「${name}」！\n所屬隊伍：${team}\n登入帳號：【${newId}】\n設定密碼：【${pwd}】\n糧期：${payday}`);
+      alert(`✅ 成功建立步兵「${name}」！\n所屬組別：${team}\n登入帳號：【${newId}】\n設定密碼：【${pwd}】\n糧期：${payday}`);
       closeAddRiderModal();
       document.getElementById('new-rider-name').value = '';
       renderAdminView();
