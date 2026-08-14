@@ -1,24 +1,3 @@
-呢份係100% 完整、無缺漏嘅全功能最新代碼！
-📋 完整功能清單確認：
- * 分區圍欄管理 (入口 1)：標題為「分區圍欄」，可建立新圍欄（觀塘區 / 東區），不需單價。
- * 區域分工名冊 (入口 2)：分為「東區分工」與「觀塘分工」。
- * 觀塘區圍欄數量 (入口 3)：自訂圍欄數量（Mia 可編輯，隊長唯讀，隊長C與步兵隱藏）。
- * 東區圍欄數量 (入口 4)：自訂圍欄數量（只限 Mia、隊長A、隊長B 可見；隊長C與步兵隱藏）。
- * 翌日同事上班報更 (入口 5)：上班區域三選一（東區 / 觀塘 / 兩個區都可以）＋ 上班時間 ＋ 負責圍欄（Mia編排）＋ 排班備註。
- * 每日報數端 (步兵登入後)：
-   * 4 大指定圍欄件數＋單價（麗港城、KOKO、工商、東區）
-   * ✅ 今日已簽收件（件數 ＋ 簽收單號）
-   * 🔄 今日已退款件（件數 ＋ 退款單號）
-   * ⚠️ 圍欄清場仍有待攬收（件數 ＋ 待攬收單號）
-   * 預支借支、工單扣糧、實出/剩餘工資即時試算
- * 6- 紀錄 (過往報數) & 7- 數據 (統計分析) 完整保留在頁頂。
- * 角色操作權限分級：
-   * 👑 Mia (ADMIN / mia888)：最高全域編輯權限、密碼全覽修改。
-   * 🎖️ 隊長 A (100) & B (201)：可看入口 1-5（入口 4 可看），唯獨【入口 5 報更】可操作，可幫隊員報數。
-   * 🎖️ 隊長 C (303)：看不見圍欄數量（入口 3 & 4 隱藏），唯獨【入口 5 報更】可操作。
-   * 🏃 普通步兵：只看【區域分工】、【各區圍欄】、【翌日報更】，只有報更與自己的每日報數可操作。
-   * 所有人可改自己密碼，Mia 可改全部人密碼。
-🚀 請點擊代碼框右上角「Copy」複製整份代碼：
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
@@ -504,7 +483,7 @@
 
   </div>
 
-  <!-- ==================== 快捷彈窗 1：分區圍欄 (建立新圍欄 - 觀塘區 / 東區，不需單價) ==================== -->
+  <!-- ==================== 快捷彈窗 1：分區圍欄 ==================== -->
   <div id="modal-fences-zone" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -878,6 +857,15 @@
       const errBox = document.getElementById('login-error-msg');
       errBox.classList.add('hidden');
 
+      if (u === 'ADMIN') {
+        let adm = accounts.find(a => a.id.toUpperCase() === 'ADMIN');
+        if (adm && adm.password === p) {
+          loggedInUser = { role: 'admin', idx: accounts.indexOf(adm), ...adm, role: '管理員' };
+          enterApp();
+          return;
+        }
+      }
+
       const userIdx = accounts.findIndex(a => a.id.toUpperCase() === u && a.password === p);
 
       if (userIdx !== -1) {
@@ -904,7 +892,8 @@
       const info = document.getElementById('header-user-info');
       const btnClearHist = document.getElementById('btn-clear-history');
 
-      if (loggedInUser.role === 'admin') {
+      if (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN') {
+        loggedInUser.role = 'admin';
         badge.innerText = '👑 總管理員';
         badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-bold leading-none';
         info.innerText = 'Mia (最高權限：可修改所有欄位、圍欄、分工、財務、密碼)';
@@ -941,7 +930,7 @@
       const bar = document.getElementById('quick-action-bar');
       bar.innerHTML = '';
 
-      const isMia = loggedInUser && loggedInUser.role === 'admin';
+      const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
       const isCapAorB = loggedInUser && loggedInUser.role === 'captain' && (loggedInUser.id === 'A001' || loggedInUser.id === 'B001');
       const isCapC = loggedInUser && loggedInUser.role === 'captain' && loggedInUser.id === 'C001';
       const isRider = loggedInUser && loggedInUser.role === 'rider';
@@ -1004,7 +993,7 @@
 
       if (tab === 'main') {
         document.getElementById('nav-btn-main').className = 'px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold transition flex items-center gap-1';
-        if (loggedInUser.role === 'admin') {
+        if (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN') {
           document.getElementById('view-admin').classList.remove('hidden');
           renderAdminView();
         } else if (loggedInUser.role === 'captain') {
@@ -1576,12 +1565,12 @@
 
     // ==================== 快捷彈窗 1：分區圍欄 ====================
     function openModal1() {
-      const isMia = loggedInUser && loggedInUser.role === 'admin';
+      const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
       const box = document.getElementById('m1-admin-create-box');
       if (isMia) {
         box.classList.remove('hidden');
       } else {
-        box.classList.add('hidden'); // 隊長與步兵唯讀無權編輯
+        box.classList.add('hidden');
       }
 
       renderZoneFencesLists();
@@ -1594,7 +1583,7 @@
     }
 
     function renderZoneFencesLists() {
-      const isMia = loggedInUser && loggedInUser.role === 'admin';
+      const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
       const ktList = document.getElementById('m1-kt-list');
       const eastList = document.getElementById('m1-east-list');
       ktList.innerHTML = '';
@@ -1674,7 +1663,7 @@
 
     // ==================== 快捷彈窗 3：觀塘區圍欄數量 ====================
     function openModal3() {
-      const isMia = loggedInUser && loggedInUser.role === 'admin';
+      const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
       const container = document.getElementById('m3-counts-container');
       container.innerHTML = '';
 
@@ -1711,9 +1700,9 @@
       closeModal3();
     }
 
-    // ==================== 快捷彈窗 4：東區圍欄數量 ====================
+    // ==================== 快捷彈窗 4：東區圍欄數量 (只限 Mia, 隊長A, 隊長B) ====================
     function openModal4() {
-      const isMia = loggedInUser && loggedInUser.role === 'admin';
+      const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
       const container = document.getElementById('m4-counts-container');
       container.innerHTML = '';
 
@@ -2087,7 +2076,7 @@
 
     // ==================== 修改密碼彈窗 ====================
     function openChangePasswordModal(idx) {
-      const isMia = loggedInUser && loggedInUser.role === 'admin';
+      const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
       if (!isMia && loggedInUser.idx !== idx) {
         alert('你沒有權限修改其他人的密碼！');
         return;
@@ -2117,14 +2106,14 @@
       saveData();
       alert(`✅ 帳號【${accounts[pwdTargetIdx].id}】密碼已更新為：${newPwd}`);
       closeChangePasswordModal();
-      if (loggedInUser && loggedInUser.role === 'admin') renderAdminView();
+      if (loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN')) renderAdminView();
     }
 
     // ==================== 單號查看與編輯 ====================
     function openTrackingModal(idx) {
       editingTrackIdx = idx;
       const acc = accounts[idx];
-      const isMia = loggedInUser && loggedInUser.role === 'admin';
+      const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
       const isSelf = loggedInUser && loggedInUser.idx === idx;
 
       document.getElementById('modal-track-title').innerText = `${acc.name} (${acc.id}) 快件單號明細`;
@@ -2152,7 +2141,7 @@
         accounts[editingTrackIdx].refundedNos = document.getElementById('modal-inp-refunded-nos').value.trim();
         accounts[editingTrackIdx].pendingPickupNos = document.getElementById('modal-inp-pending-pickup-nos').value.trim();
         saveData();
-        if (loggedInUser.role === 'admin') renderAdminView();
+        if (loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN')) renderAdminView();
       }
       closeTrackingModal();
     }
@@ -2183,4 +2172,3 @@
   </script>
 </body>
 </html>
-
