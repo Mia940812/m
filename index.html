@@ -36,7 +36,7 @@
       <div class="space-y-4 text-xs">
         <div>
           <label class="font-bold text-slate-700 block mb-1.5">登入帳號 / 步兵編號 (ID)</label>
-          <input id="login-username" type="text" placeholder="例如 ADMIN / A001 / KM001" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition uppercase">
+          <input id="login-username" type="text" placeholder="例如 ADMIN / A001 / D01" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition uppercase">
         </div>
 
         <div>
@@ -82,16 +82,20 @@
           </div>
         </div>
 
-        <!-- 頂部功能入口 -->
+        <!-- 頂部功能入口 ＋ 日期選擇器 -->
         <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+          <div class="flex items-center bg-slate-100 px-2.5 py-1 rounded-xl border border-slate-200 text-xs font-bold text-slate-700">
+            <i data-lucide="calendar" class="w-3.5 h-3.5 mr-1.5 text-blue-600"></i>
+            <input id="global-system-date" type="date" onchange="onDateChanged(this.value)" class="bg-transparent font-bold outline-none cursor-pointer text-slate-800 text-xs">
+          </div>
           <button id="nav-btn-main" onclick="switchNavTab('main')" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold transition flex items-center gap-1">
             <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i> 主工作台
           </button>
           <button id="nav-btn-history" onclick="switchNavTab('history')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1 border border-slate-200">
-            <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-600"></i> 6- 紀錄 (過往報數)
+            <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-600"></i> 6- 紀錄
           </button>
           <button id="nav-btn-stats" onclick="switchNavTab('stats')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1 border border-slate-200">
-            <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-emerald-600"></i> 7- 數據 (統計分析)
+            <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-emerald-600"></i> 7- 數據
           </button>
           <button id="nav-btn-pwd" onclick="openSelfPasswordModal()" class="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition flex items-center gap-1 border border-amber-200">
             <i data-lucide="key" class="w-3.5 h-3.5 text-amber-600"></i> 改密碼
@@ -104,11 +108,9 @@
       </div>
     </header>
 
-    <!-- 🌟 快捷操作入口導航列 (1 - 5 號入口，動態權限過濾) -->
+    <!-- 🌟 快捷操作入口導航列 (1 - 5 號 + 8 號車線入口，動態權限過濾) -->
     <section class="bg-slate-50 border-b border-slate-200 px-4 sm:px-6 py-2.5">
-      <div class="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto pb-1 text-xs font-bold" id="quick-action-bar">
-        <!-- 由 JS 根據角色權限動態生成 -->
-      </div>
+      <div class="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto pb-1 text-xs font-bold" id="quick-action-bar"></div>
     </section>
 
     <!-- ==================== 1. 總管理員全盤大表 (Mia 最高權限) ==================== -->
@@ -167,17 +169,21 @@
             <option value="景鴻隊">A 隊 (A001 景鴻隊)</option>
             <option value="詠豪隊">B 隊 (B001 詠豪隊)</option>
             <option value="俊華隊">C 隊 (C001 俊華隊)</option>
+            <option value="自由步兵">🌟 自由步兵 (無專屬隊伍)</option>
           </select>
         </div>
 
         <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           <button onclick="openModal1()" class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition active:scale-95">
-            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 1- 分區圍欄管理
+            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 1- 分區圍欄
           </button>
-          <button onclick="openAddRiderModal()" class="flex-1 sm:flex-initial justify-center px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition active:scale-95">
+          <button onclick="openModal2()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition active:scale-95">
+            <i data-lucide="users-round" class="w-3.5 h-3.5"></i> 2- 排班與分工調度
+          </button>
+          <button onclick="openAddRiderModal()" class="flex-1 sm:flex-initial justify-center px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition active:scale-95">
             <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> ＋ 新增普通步兵
           </button>
-          <button onclick="saveTodayToHistory()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition active:scale-95">
+          <button onclick="saveTodayToHistory()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition active:scale-95">
             <i data-lucide="archive" class="w-3.5 h-3.5"></i> 封存今日報數
           </button>
         </div>
@@ -191,13 +197,12 @@
         <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
           <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="px-2 py-0.5 bg-blue-600 text-white rounded text-xs font-black">Mia組</span>
-            全體派貨員薪酬結算、4大指定圍欄、單號與密碼全覽
+            全體派貨員薪酬結算、4大指定圍欄、單號與密碼全覽（所有欄位均可直接修改）
           </h2>
-          <span class="text-xs text-slate-400">總管理員 Mia 具最高權限，所有欄位均可直接修改與查看密碼</span>
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs border-collapse min-w-[2400px]" id="admin-main-table">
+          <table class="w-full text-left text-xs border-collapse min-w-[2500px]" id="admin-main-table">
             <thead class="bg-slate-100/70 text-slate-600 font-semibold border-b border-slate-200 text-[11px]" id="admin-table-head"></thead>
             <tbody id="admin-table-body" class="divide-y divide-slate-100 text-slate-700"></tbody>
           </table>
@@ -205,7 +210,7 @@
       </div>
     </main>
 
-    <!-- ==================== 2. 隊長工作台 ==================== -->
+    <!-- ==================== 2. 隊長工作台 (A/B 可見當日觀塘及東區圍欄數量) ==================== -->
     <main id="view-captain" class="flex-1 p-3 sm:p-6 space-y-4 max-w-6xl w-full mx-auto hidden tab-content">
       <div class="bg-gradient-to-r from-blue-700 to-indigo-700 rounded-3xl p-5 sm:p-6 text-white shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
@@ -217,6 +222,14 @@
           <div class="text-xs text-blue-200">本隊今日總派票量</div>
           <div id="cap-team-tickets" class="text-xl font-black mt-0.5">0 票</div>
         </div>
+      </div>
+
+      <!-- 隊長 A/B 專屬：當日圍欄數量總覽區塊 (隊長 C 自動隱藏) -->
+      <div id="cap-fence-counts-overview" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3 hidden">
+        <h3 class="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+          <i data-lucide="boxes" class="w-4 h-4 text-blue-600"></i> 今日全區圍欄數量總覽 (觀塘區 & 東區)
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="cap-fences-summary-container"></div>
       </div>
 
       <div id="captain-mobile-cards" class="block md:hidden space-y-3"></div>
@@ -236,7 +249,7 @@
       </div>
     </main>
 
-    <!-- ==================== 3. 步兵獨立每日報數端 (4大指定圍欄 + 單號) ==================== -->
+    <!-- ==================== 3. 步兵獨立每日報數端 (含今日個人分工展示) ==================== -->
     <main id="view-rider" class="flex-1 p-3.5 hidden flex justify-center items-start pt-2 sm:pt-6 tab-content">
       <div class="w-full max-w-lg bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
         
@@ -257,6 +270,17 @@
             <div id="rider-payday-display" class="text-[10px] text-purple-700 font-bold bg-purple-50 px-2 py-0.5 rounded border border-purple-200 mt-1 inline-block">
               糧期: 隔日結算
             </div>
+          </div>
+        </div>
+
+        <!-- 🌟 今日個人分工與先後次序提示卡片 -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-3.5 rounded-2xl border border-blue-200 space-y-1">
+          <div class="text-[11px] font-bold text-blue-900 flex items-center gap-1">
+            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-blue-600"></i> 今日指派分工與優先次序：
+          </div>
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-slate-600">負責圍欄：<b id="rider-assigned-fence-txt" class="text-blue-700 font-bold">待總管理員編排</b></span>
+            <span class="text-slate-600">作業順位：<b id="rider-assigned-order-txt" class="text-indigo-700 font-bold">第 1 順位</b></span>
           </div>
         </div>
 
@@ -400,7 +424,7 @@
           <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
             <i data-lucide="bar-chart-3" class="w-5 h-5 text-emerald-600"></i> 7- 數據 - 區間統計與總量分析
           </h2>
-          <p class="text-xs text-slate-500">可自選日期區間（幾多號到幾多號）、指定特定步兵或特定圍欄區域進行總量分析</p>
+          <p class="text-xs text-slate-500">可自選日期區間、指定特定步兵或特定圍欄區域進行總量分析</p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200/80 text-xs">
@@ -488,7 +512,7 @@
     <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
         <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-          <i data-lucide="map-pin" class="w-5 h-5 text-purple-600"></i> 分區圍欄
+          <i data-lucide="map-pin" class="w-5 h-5 text-purple-600"></i> 1- 分區圍欄管理
         </h3>
         <button onclick="closeModal1()" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
@@ -531,29 +555,44 @@
     </div>
   </div>
 
-  <!-- ==================== 快捷彈窗 2：區域分工 (東區分工 & 觀塘分工) ==================== -->
+  <!-- ==================== 快捷彈窗 2：排班與分工調度 (Mia可編輯排班圍欄與先後次序，步兵可查閱) ==================== -->
   <div id="modal-assignments" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-2xl w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-        <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-          <i data-lucide="users-round" class="w-5 h-5 text-blue-600"></i> 2- 區域分工名冊
-        </h3>
+        <div>
+          <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+            <i data-lucide="users-round" class="w-5 h-5 text-blue-600"></i> 2- 區域分工與排班次序調度
+          </h3>
+          <p class="text-xs text-slate-500">總管理員 Mia 可安排步兵負責圍欄與先後順序；步兵每日登入可查閱分工</p>
+        </div>
         <button onclick="closeModal2()" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
       <div class="space-y-4 text-xs">
         <div>
-          <h4 class="font-bold text-blue-800 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-200 mb-2">📍 觀塘分工人員清單</h4>
-          <div id="m2-kt-workers" class="space-y-1"></div>
-        </div>
-        <div>
-          <h4 class="font-bold text-indigo-800 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-200 mb-2">📍 東區分工人員清單</h4>
-          <div id="m2-east-workers" class="space-y-1"></div>
+          <h4 class="font-bold text-blue-800 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-200 mb-2">📍 全體步兵負責圍欄與作業先後次序表</h4>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">步兵姓名 (ID)</th>
+                  <th class="py-2.5 px-3">所屬隊伍</th>
+                  <th class="py-2.5 px-3">安排負責圍欄</th>
+                  <th class="py-2.5 px-3 text-center">先後作業次序</th>
+                </tr>
+              </thead>
+              <tbody id="m2-workers-table-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <div class="flex justify-end pt-2">
-        <button onclick="closeModal2()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">關閉</button>
+      <div class="flex justify-between items-center pt-2">
+        <div id="m2-save-tip" class="text-[11px] text-emerald-600 font-bold hidden">✅ 排班修改已即時同步儲存！</div>
+        <div class="flex gap-2 ml-auto">
+          <button onclick="saveModal2Assignments()" id="m2-save-btn" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition">儲存分工設定</button>
+          <button onclick="closeModal2()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">關閉</button>
+        </div>
       </div>
     </div>
   </div>
@@ -649,6 +688,62 @@
     </div>
   </div>
 
+  <!-- ==================== 快捷彈窗 8：車線調度 (司機派車順序) ==================== -->
+  <div id="modal-truck-routes" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div>
+          <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+            <i data-lucide="truck" class="w-5 h-5 text-orange-600"></i> 8- 車線調度與司機派車順序
+          </h3>
+          <p class="text-xs text-slate-500">每日出車時間、圍欄指派、負責司機與出發順序</p>
+        </div>
+        <button onclick="closeModal8()" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <!-- Mia 專屬新增車線表單 -->
+      <div id="m8-admin-box" class="bg-orange-50/60 p-3.5 rounded-2xl border border-orange-200 space-y-2 text-xs">
+        <div class="font-bold text-orange-900 flex items-center gap-1">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-orange-600"></i> ＋ 新增派車車線記錄
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">出車時間</label>
+            <input id="new-truck-time" type="time" value="08:30" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold">
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">負責司機</label>
+            <input id="new-truck-driver" type="text" placeholder="例如：陳司機 / 輝哥" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold">
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">送達圍欄</label>
+            <input id="new-truck-fence" type="text" placeholder="例如：麗港城 / KOKO" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold">
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">出發順序</label>
+            <select id="new-truck-order" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold">
+              <option value="第 1 班車">第 1 班車 (首發)</option>
+              <option value="第 2 班車">第 2 班車</option>
+              <option value="第 3 班車">第 3 班車</option>
+              <option value="第 4 班車">第 4 班車</option>
+              <option value="第 5 班車">第 5 班車</option>
+            </select>
+          </div>
+        </div>
+        <button onclick="saveNewTruckRoute()" class="w-full py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold transition shadow-sm">確認新增車線</button>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <h4 class="font-bold text-slate-700">今日車線發車順序一覽表：</h4>
+        <div id="truck-routes-list" class="space-y-1.5 max-h-48 overflow-y-auto"></div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button onclick="closeModal8()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">關閉</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== 單號明細彈窗 ==================== -->
   <div id="modal-tracking-numbers" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
@@ -707,6 +802,7 @@
             <option value="景鴻隊">A 隊 (景鴻隊 - 自動派發 A002+)</option>
             <option value="詠豪隊">B 隊 (詠豪隊 - 自動派發 B002+)</option>
             <option value="俊華隊">C 隊 (俊華隊 - 自動派發 C002+)</option>
+            <option value="自由步兵">🌟 自由步兵 (無專屬隊伍 - 自動派發 D02+)</option>
           </select>
         </div>
 
@@ -781,48 +877,69 @@
       { key: 'eastern', name: '東區', defaultPrice: 4 }
     ];
 
-    // 自訂分區圍欄資料庫 (觀塘區 vs 東區，不需要單價)
+    // 自訂分區圍欄資料庫 (觀塘區 vs 東區)
     const defaultZoneFences = {
       kt: [ { id: 'kt_1', name: '麗港城一期' }, { id: 'kt_2', name: '麗港城二期' }, { id: 'kt_3', name: 'KOKO HILLS' }, { id: 'kt_4', name: '觀塘開源道工商' } ],
       east: [ { id: 'east_1', name: '北角區' }, { id: 'east_2', name: '鰂魚涌區' }, { id: 'east_3', name: '太古城區' }, { id: 'east_4', name: '柴灣區' } ]
     };
 
-    // 初始名單：Mia 總管理員 + 3位隊長 (景鴻、詠豪、俊華)
+    // 初始名單：Mia 總管理員 + 3位隊長 + 自由步兵 D01 (密碼0023)
     const initialAccounts = [
       { id: 'ADMIN', name: '總管理員 Mia', role: '管理員', team: 'Mia自營隊', prefix: 'ADMIN', password: 'mia888',
         counts: { laguna: 0, koko: 0, industrial: 0, eastern: 0 },
         prices: { laguna: 4, koko: 4, industrial: 5, eastern: 4 },
+        assignedFence: '全區總巡', assignedOrder: '指揮調度',
         signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '',
         payday: '月結', commission: 0, penalty: 0, comp: 0, deduct: 0, advance: 0, paidToday: 0, payoutStatus: '待轉帳' },
 
       { id: 'A001', name: '隊長 A (景鴻)', role: '隊長', team: '景鴻隊', prefix: 'A', password: '100',
         counts: { laguna: 0, koko: 0, industrial: 0, eastern: 0 },
         prices: { laguna: 4, koko: 4, industrial: 5, eastern: 4 },
+        assignedFence: '麗港城一期', assignedOrder: '第 1 順位',
         signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '',
         payday: '隔日結算', commission: 0, penalty: 0, comp: 0, deduct: 0, advance: 0, paidToday: 0, payoutStatus: '待轉帳' },
       
       { id: 'B001', name: '隊長 B (詠豪)', role: '隊長', team: '詠豪隊', prefix: 'B', password: '201',
         counts: { laguna: 0, koko: 0, industrial: 0, eastern: 0 },
         prices: { laguna: 4, koko: 4, industrial: 5, eastern: 4 },
+        assignedFence: 'KOKO HILLS', assignedOrder: '第 1 順位',
         signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '',
         payday: '隔日結算', commission: 0, penalty: 0, comp: 0, deduct: 0, advance: 0, paidToday: 0, payoutStatus: '待轉帳' },
       
       { id: 'C001', name: '隊長 C (俊華)', role: '隊長', team: '俊華隊', prefix: 'C', password: '303',
         counts: { laguna: 0, koko: 0, industrial: 0, eastern: 0 },
         prices: { laguna: 4, koko: 4, industrial: 4.5, eastern: 4 },
+        assignedFence: '觀塘開源道工商', assignedOrder: '第 1 順位',
+        signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '',
+        payday: '隔日結算', commission: 0, penalty: 0, comp: 0, deduct: 0, advance: 0, paidToday: 0, payoutStatus: '待轉帳' },
+
+      { id: 'D01', name: '自由步兵 D01', role: '普通步兵', team: '自由步兵', prefix: 'D', password: '0023',
+        counts: { laguna: 0, koko: 0, industrial: 0, eastern: 0 },
+        prices: { laguna: 4, koko: 4, industrial: 5, eastern: 4 },
+        assignedFence: '彈性支援/待排班', assignedOrder: '第 2 順位',
         signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '',
         payday: '隔日結算', commission: 0, penalty: 0, comp: 0, deduct: 0, advance: 0, paidToday: 0, payoutStatus: '待轉帳' }
     ];
 
-    const DB_PREFIX = 'MIA_ENTERPRISE_2026_';
+    const defaultTruckRoutes = [
+      { id: 'tr_1', time: '08:30', fence: '麗港城一期', driver: '陳司機', order: '第 1 班車' },
+      { id: 'tr_2', time: '09:00', fence: 'KOKO HILLS', driver: '李司機', order: '第 2 班車' },
+      { id: 'tr_3', time: '09:30', fence: '開源道工商', driver: '張司機', order: '第 3 班車' }
+    ];
+
+    const DB_PREFIX = 'MIA_ENTERPRISE_2026_V2_';
 
     let zoneFences = JSON.parse(localStorage.getItem(DB_PREFIX + 'ZONE_FENCES')) || defaultZoneFences;
     let zoneFenceCounts = JSON.parse(localStorage.getItem(DB_PREFIX + 'ZONE_COUNTS')) || {};
     let accounts = JSON.parse(localStorage.getItem(DB_PREFIX + 'ACCOUNTS')) || initialAccounts;
     let historyRecords = JSON.parse(localStorage.getItem(DB_PREFIX + 'HIST')) || [];
     let shiftReports = JSON.parse(localStorage.getItem(DB_PREFIX + 'SHIFTS')) || [];
+    let truckRoutes = JSON.parse(localStorage.getItem(DB_PREFIX + 'TRUCKS')) || defaultTruckRoutes;
 
-    // 強制校正 ADMIN
+    // 校正 D01 及 ADMIN
+    if (!accounts.find(a => a.id.toUpperCase() === 'D01')) {
+      accounts.push({ ...initialAccounts[4] });
+    }
     let adminIdx = accounts.findIndex(a => a.id.toUpperCase() === 'ADMIN');
     if (adminIdx === -1) {
       accounts.unshift({ ...initialAccounts[0] });
@@ -843,6 +960,12 @@
       localStorage.setItem(DB_PREFIX + 'ACCOUNTS', JSON.stringify(accounts));
       localStorage.setItem(DB_PREFIX + 'HIST', JSON.stringify(historyRecords));
       localStorage.setItem(DB_PREFIX + 'SHIFTS', JSON.stringify(shiftReports));
+      localStorage.setItem(DB_PREFIX + 'TRUCKS', JSON.stringify(truckRoutes));
+    }
+
+    function onDateChanged(newDate) {
+      document.getElementById('stat-start-date').value = newDate;
+      document.getElementById('stat-end-date').value = newDate;
     }
 
     function quickAdminLogin() {
@@ -896,7 +1019,7 @@
         loggedInUser.role = 'admin';
         badge.innerText = '👑 總管理員';
         badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-bold leading-none';
-        info.innerText = 'Mia (最高權限：可修改所有欄位、圍欄、分工、財務、密碼)';
+        info.innerText = 'Mia (最高全域編輯權限：可修改所有項目、圍欄、分工、車線、財務、密碼)';
         btnClearHist.classList.remove('hidden');
       } else if (loggedInUser.role === 'captain') {
         badge.innerText = '🎖️ 隊長';
@@ -925,7 +1048,7 @@
       lucide.createIcons();
     }
 
-    // ==================== 動態生成 1-5 號快捷操作入口 ====================
+    // ==================== 動態生成 1-5 號 ＋ 8 號車線快捷入口 ====================
     function renderQuickActionBar() {
       const bar = document.getElementById('quick-action-bar');
       bar.innerHTML = '';
@@ -935,7 +1058,7 @@
       const isCapC = loggedInUser && loggedInUser.role === 'captain' && loggedInUser.id === 'C001';
       const isRider = loggedInUser && loggedInUser.role === 'rider';
 
-      // 入口 1: 分區圍欄 (Mia, 隊長A, B, C可看；普通步兵看【各區圍欄】)
+      // 入口 1: 分區圍欄
       if (isMia || isCapAorB || isCapC) {
         bar.innerHTML += `
           <button onclick="openModal1()" class="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 transition flex items-center gap-1 whitespace-nowrap">
@@ -950,10 +1073,10 @@
         `;
       }
 
-      // 入口 2: 區域分工 (全體可看)
+      // 入口 2: 區域分工與排班次序 (全體可看，Mia 可編輯)
       bar.innerHTML += `
         <button onclick="openModal2()" class="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 transition flex items-center gap-1 whitespace-nowrap">
-          <i data-lucide="users-round" class="w-3.5 h-3.5 text-blue-600"></i> 2- 區域分工
+          <i data-lucide="users-round" class="w-3.5 h-3.5 text-blue-600"></i> 2- 區域分工與次序
         </button>
       `;
 
@@ -979,6 +1102,13 @@
       bar.innerHTML += `
         <button onclick="openModal5()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center gap-1 whitespace-nowrap shadow-sm">
           <i data-lucide="calendar-plus" class="w-3.5 h-3.5"></i> 5- 翌日同事報更
+        </button>
+      `;
+
+      // 🌟 入口 8: 車線調度 (司機派車順序 - 全體可看，Mia 可編輯)
+      bar.innerHTML += `
+        <button onclick="openModal8()" class="px-3 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200 transition flex items-center gap-1 whitespace-nowrap">
+          <i data-lucide="truck" class="w-3.5 h-3.5 text-orange-600"></i> 8- 車線調度
         </button>
       `;
 
@@ -1037,6 +1167,7 @@
         <tr>
           <th class="py-3 px-4 sticky left-0 bg-slate-100/90 backdrop-blur-sm z-10">步兵姓名 (ID)</th>
           <th class="py-3 px-2 text-center text-amber-800 bg-amber-50/70 font-bold">密碼 (點擊改)</th>
+          <th class="py-3 px-3 text-center text-indigo-800 bg-indigo-50/60 font-bold">指派圍欄與次序</th>
           ${fenceHeadersHTML}
           <th class="py-3 px-2 text-center font-bold">總票量</th>
           <th class="py-3 px-2 text-center text-emerald-700">已簽收 (件/單號)</th>
@@ -1109,10 +1240,10 @@
             <div class="flex-1 mr-2">
               <div class="flex items-center gap-1.5 flex-wrap">
                 <input type="text" value="${acc.name}" onchange="updateAccountFieldStr(${idx}, 'name', this.value)" class="font-extrabold text-base text-slate-900 bg-transparent border-b border-transparent focus:border-blue-500 focus:bg-white px-1 py-0.5 rounded outline-none w-28">
-                <span class="text-xs px-2 py-0.5 rounded font-mono font-bold ${acc.prefix === 'KM' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-blue-50 text-blue-700 border border-blue-200'}">${acc.id}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded font-bold ${acc.role === '隊長' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-slate-100 text-slate-600'}">${acc.role}</span>
+                <span class="text-xs px-2 py-0.5 rounded font-mono font-bold ${acc.prefix === 'D' ? 'bg-amber-50 text-amber-700 border border-amber-200' : (acc.prefix === 'KM' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-blue-50 text-blue-700 border border-blue-200')}">${acc.id}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded font-bold ${acc.role === '隊長' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-slate-100 text-slate-600'}">${acc.team}</span>
               </div>
-              <div class="text-[11px] text-slate-400 mt-0.5">${acc.team}</div>
+              <div class="text-[11px] text-blue-600 font-bold mt-1">指派: ${acc.assignedFence || '未排'} • ${acc.assignedOrder || '順位1'}</div>
             </div>
             <div class="text-right flex-shrink-0 space-y-1">
               <button onclick="openChangePasswordModal(${idx})" class="px-2 py-1 bg-amber-50 text-amber-900 border border-amber-300 rounded-lg text-xs font-mono font-bold block ml-auto">
@@ -1195,13 +1326,20 @@
             <div class="flex items-center gap-1">
               <input type="text" value="${acc.name}" onchange="updateAccountFieldStr(${idx}, 'name', this.value)" class="font-bold text-slate-900 bg-transparent border-b border-transparent focus:border-blue-500 focus:bg-slate-50 px-1 py-0.5 rounded outline-none w-28">
             </div>
-            <div class="text-[10px] text-slate-400 font-mono"><b class="${acc.prefix === 'KM' ? 'text-indigo-600' : 'text-blue-600'}">${acc.id}</b> • ${acc.team} • ${acc.role}</div>
+            <div class="text-[10px] text-slate-400 font-mono"><b class="${acc.prefix === 'D' ? 'text-amber-600' : 'text-blue-600'}">${acc.id}</b> • ${acc.team} • ${acc.role}</div>
           </td>
 
           <td class="py-3 px-2 text-center bg-amber-50/50">
             <button onclick="openChangePasswordModal(${idx})" class="px-2 py-1 bg-white border border-amber-300 rounded-lg text-amber-900 font-mono font-bold hover:bg-amber-100 text-[11px] shadow-sm">
               🔑 ${acc.password || '8888'}
             </button>
+          </td>
+
+          <td class="py-3 px-2 text-center bg-indigo-50/40">
+            <div class="flex items-center justify-center gap-1">
+              <input type="text" value="${acc.assignedFence || '全區'}" onchange="updateAccountFieldStr(${idx}, 'assignedFence', this.value)" class="w-20 bg-white border border-indigo-200 rounded p-1 text-center font-bold text-indigo-800 text-[11px]">
+              <input type="text" value="${acc.assignedOrder || '1'}" onchange="updateAccountFieldStr(${idx}, 'assignedOrder', this.value)" class="w-14 bg-white border border-indigo-200 rounded p-1 text-center font-bold text-indigo-800 text-[11px]" placeholder="次序">
+            </div>
           </td>
 
           ${deskFencesHTML}
@@ -1316,6 +1454,15 @@
       tbody.innerHTML = '';
       mobileCards.innerHTML = '';
 
+      // 隊長 A/B 顯示當日圍欄數量總覽；隊長 C 隱藏
+      const capOverview = document.getElementById('cap-fence-counts-overview');
+      if (capId === 'A001' || capId === 'B001') {
+        capOverview.classList.remove('hidden');
+        renderCaptainFenceCounts();
+      } else {
+        capOverview.classList.add('hidden');
+      }
+
       let capFenceHeadersHTML = '';
       coreFences.forEach(f => {
         capFenceHeadersHTML += `
@@ -1327,6 +1474,7 @@
       thead.innerHTML = `
         <tr>
           <th class="py-3 px-4 sticky left-0 bg-slate-100/90 z-10">隊員姓名 (ID)</th>
+          <th class="py-3 px-3 text-center text-indigo-700 font-bold">負責圍欄與次序</th>
           ${capFenceHeadersHTML}
           <th class="py-3 px-2 text-center font-bold">總票量</th>
           <th class="py-3 px-2 text-center text-emerald-700">簽收 (件)</th>
@@ -1382,6 +1530,7 @@
             <div>
               <span class="font-extrabold text-sm text-slate-900">${acc.name}</span>
               <span class="text-xs px-2 py-0.5 rounded font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">${acc.id}</span>
+              <div class="text-[10px] text-indigo-700 font-bold mt-0.5">${acc.assignedFence || '未編排'} • ${acc.assignedOrder || '順位1'}</div>
             </div>
             <div class="text-[10px] text-slate-500 font-bold">${acc.payday}</div>
           </div>
@@ -1404,6 +1553,9 @@
           <td class="py-3 px-4 font-bold text-slate-900 whitespace-nowrap sticky left-0 bg-white shadow-sm z-10">
             ${acc.name} <span class="text-xs px-2 py-0.5 rounded font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">${acc.id}</span>
           </td>
+          <td class="py-3 px-3 text-center font-bold text-indigo-800 bg-indigo-50/40 text-[11px] whitespace-nowrap">
+            ${acc.assignedFence || '未編排'} (${acc.assignedOrder || '順位1'})
+          </td>
           ${capDeskFencesHTML}
           <td class="py-3 px-2 text-center font-bold text-slate-900">${tCount} 票</td>
           <td class="py-3 px-2 text-center font-bold text-emerald-600">${acc.signed || 0}</td>
@@ -1423,15 +1575,35 @@
       lucide.createIcons();
     }
 
+    function renderCaptainFenceCounts() {
+      const container = document.getElementById('cap-fences-summary-container');
+      let ktHTML = '<div class="space-y-1"><b class="text-blue-700 text-xs">📍 觀塘區圍欄數量：</b>';
+      zoneFences.kt.forEach(f => {
+        ktHTML += `<div class="flex justify-between bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100 text-xs"><span>${f.name}</span><b class="text-sky-800">${zoneFenceCounts[f.id] || 0} 件</b></div>`;
+      });
+      ktHTML += '</div>';
+
+      let eastHTML = '<div class="space-y-1"><b class="text-indigo-700 text-xs">📍 東區圍欄數量：</b>';
+      zoneFences.east.forEach(f => {
+        eastHTML += `<div class="flex justify-between bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100 text-xs"><span>${f.name}</span><b class="text-indigo-800">${zoneFenceCounts[f.id] || 0} 件</b></div>`;
+      });
+      eastHTML += '</div>';
+
+      container.innerHTML = ktHTML + eastHTML;
+    }
+
     // ==================== 3. 步兵每日報數端 ====================
     function renderRiderView(idx) {
       const acc = accounts[idx];
       acc.counts = acc.counts || {};
       acc.prices = acc.prices || {};
 
-      document.getElementById('rider-name-display').innerHTML = `${acc.name} <span id="rider-id-badge" class="text-xs px-2 py-0.5 ${acc.prefix === 'KM' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-blue-50 text-blue-700 border-blue-200'} rounded-md font-mono font-bold">${acc.id}</span>`;
+      document.getElementById('rider-name-display').innerHTML = `${acc.name} <span id="rider-id-badge" class="text-xs px-2 py-0.5 ${acc.prefix === 'D' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200'} rounded-md font-mono font-bold">${acc.id}</span>`;
       document.getElementById('rider-team-display').innerText = `所屬隊伍：${acc.team}`;
       document.getElementById('rider-payday-display').innerText = `糧期: ${acc.payday}`;
+
+      document.getElementById('rider-assigned-fence-txt').innerText = acc.assignedFence || '待總管理員編排';
+      document.getElementById('rider-assigned-order-txt').innerText = acc.assignedOrder || '第 1 順位';
 
       const badgesContainer = document.getElementById('rider-fence-badges');
       const inputsContainer = document.getElementById('rider-fence-inputs');
@@ -1530,7 +1702,7 @@
       acc.advance = Number(document.getElementById('inp-rider-advance').value) || 0;
       acc.deduct = Number(document.getElementById('inp-rider-deduct').value) || 0;
 
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
 
       historyRecords.unshift({
         date: todayStr,
@@ -1630,27 +1802,34 @@
       }
     }
 
-    // ==================== 快捷彈窗 2：區域分工 ====================
+    // ==================== 快捷彈窗 2：排班與分工次序調度 ====================
     function openModal2() {
-      const ktCont = document.getElementById('m2-kt-workers');
-      const eastCont = document.getElementById('m2-east-workers');
-      ktCont.innerHTML = '';
-      eastCont.innerHTML = '';
+      const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
+      const tbody = document.getElementById('m2-workers-table-body');
+      tbody.innerHTML = '';
 
-      accounts.forEach(acc => {
+      document.getElementById('m2-save-btn').style.display = isMia ? 'inline-block' : 'none';
+
+      accounts.forEach((acc, idx) => {
         if (acc.id === 'ADMIN') return;
-        ktCont.innerHTML += `
-          <div class="flex justify-between items-center p-2 rounded-xl bg-slate-50 border border-slate-200">
-            <div><b class="text-slate-900">${acc.name}</b> <span class="font-mono text-blue-600">(${acc.id})</span></div>
-            <div class="text-[11px] text-slate-500 font-semibold">${acc.team} • 觀塘分工</div>
-          </div>
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 font-bold text-slate-900">${acc.name} <span class="font-mono text-blue-600">(${acc.id})</span></td>
+          <td class="py-2.5 px-3 text-slate-500">${acc.team}</td>
+          <td class="py-2.5 px-3">
+            <input id="m2-fence-${idx}" type="text" value="${acc.assignedFence || ''}" placeholder="指派圍欄" ${isMia ? '' : 'disabled'} class="w-full bg-slate-50 border border-slate-200 rounded-lg p-1.5 font-bold text-slate-800">
+          </td>
+          <td class="py-2.5 px-3 text-center">
+            <select id="m2-order-${idx}" ${isMia ? '' : 'disabled'} class="bg-slate-50 border border-slate-200 rounded-lg p-1.5 font-bold text-indigo-800 text-xs">
+              <option value="第 1 順位" ${acc.assignedOrder === '第 1 順位' ? 'selected' : ''}>第 1 順位 (首位)</option>
+              <option value="第 2 順位" ${acc.assignedOrder === '第 2 順位' ? 'selected' : ''}>第 2 順位</option>
+              <option value="第 3 順位" ${acc.assignedOrder === '第 3 順位' ? 'selected' : ''}>第 3 順位</option>
+              <option value="第 4 順位" ${acc.assignedOrder === '第 4 順位' ? 'selected' : ''}>第 4 順位</option>
+              <option value="彈性支援" ${acc.assignedOrder === '彈性支援' ? 'selected' : ''}>彈性支援</option>
+            </select>
+          </td>
         `;
-        eastCont.innerHTML += `
-          <div class="flex justify-between items-center p-2 rounded-xl bg-slate-50 border border-slate-200">
-            <div><b class="text-slate-900">${acc.name}</b> <span class="font-mono text-indigo-600">(${acc.id})</span></div>
-            <div class="text-[11px] text-slate-500 font-semibold">${acc.team} • 東區分工</div>
-          </div>
-        `;
+        tbody.appendChild(tr);
       });
 
       document.getElementById('modal-assignments').classList.remove('hidden');
@@ -1659,6 +1838,22 @@
 
     function closeModal2() {
       document.getElementById('modal-assignments').classList.add('hidden');
+    }
+
+    function saveModal2Assignments() {
+      accounts.forEach((acc, idx) => {
+        if (acc.id === 'ADMIN') return;
+        const fInp = document.getElementById(`m2-fence-${idx}`);
+        const oInp = document.getElementById(`m2-order-${idx}`);
+        if (fInp) acc.assignedFence = fInp.value.trim();
+        if (oInp) acc.assignedOrder = oInp.value;
+      });
+      saveData();
+      document.getElementById('m2-save-tip').classList.remove('hidden');
+      setTimeout(() => document.getElementById('m2-save-tip').classList.add('hidden'), 2500);
+      alert('✅ 步兵圍欄指派與作業先後次序已儲存！');
+      if (loggedInUser && loggedInUser.role === 'admin') renderAdminView();
+      closeModal2();
     }
 
     // ==================== 快捷彈窗 3：觀塘區圍欄數量 ====================
@@ -1816,6 +2011,78 @@
       });
     }
 
+    // ==================== 快捷彈窗 8：車線調度 (司機派車順序) ====================
+    function openModal8() {
+      const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
+      const box = document.getElementById('m8-admin-box');
+      if (isMia) {
+        box.classList.remove('hidden');
+      } else {
+        box.classList.add('hidden');
+      }
+
+      renderTruckRoutesList();
+      document.getElementById('modal-truck-routes').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeModal8() {
+      document.getElementById('modal-truck-routes').classList.add('hidden');
+    }
+
+    function renderTruckRoutesList() {
+      const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
+      const cont = document.getElementById('truck-routes-list');
+      cont.innerHTML = '';
+
+      if (truckRoutes.length === 0) {
+        cont.innerHTML = '<div class="text-slate-400 text-center py-2">目前尚無車線安排記錄</div>';
+        return;
+      }
+
+      truckRoutes.forEach((tr, idx) => {
+        cont.innerHTML += `
+          <div class="p-2.5 rounded-xl bg-orange-50/50 border border-orange-200 flex justify-between items-center">
+            <div>
+              <span class="font-extrabold text-orange-950">${tr.order}</span>
+              <span class="text-xs text-slate-500 ml-1.5">⏰ ${tr.time}</span>
+              <div class="text-xs text-slate-700 mt-0.5">司機: <b class="text-slate-900">${tr.driver}</b> ➜ 圍欄: <b class="text-blue-700">${tr.fence}</b></div>
+            </div>
+            ${isMia ? `
+              <button onclick="deleteTruckRoute(${idx})" class="p-1 text-rose-600 hover:bg-rose-50 rounded">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            ` : ''}
+          </div>
+        `;
+      });
+      lucide.createIcons();
+    }
+
+    function saveNewTruckRoute() {
+      const time = document.getElementById('new-truck-time').value;
+      const driver = document.getElementById('new-truck-driver').value.trim();
+      const fence = document.getElementById('new-truck-fence').value.trim();
+      const order = document.getElementById('new-truck-order').value;
+
+      if (!driver || !fence) { alert('請填寫司機與圍欄！'); return; }
+
+      truckRoutes.push({ id: 'tr_' + Date.now(), time: time, driver: driver, fence: fence, order: order });
+      saveData();
+      document.getElementById('new-truck-driver').value = '';
+      document.getElementById('new-truck-fence').value = '';
+      renderTruckRoutesList();
+      alert(`✅ 成功新增車線順序：${order} - ${driver} (${fence})`);
+    }
+
+    function deleteTruckRoute(idx) {
+      if (confirm('確定刪除此車線記錄嗎？')) {
+        truckRoutes.splice(idx, 1);
+        saveData();
+        renderTruckRoutesList();
+      }
+    }
+
     // ==================== 4. 歷史報數紀錄 (History) ====================
     function renderHistoryView() {
       const tbody = document.getElementById('history-table-body');
@@ -1887,7 +2154,7 @@
     }
 
     function saveTodayToHistory() {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
       accounts.forEach(acc => {
         if (acc.id === 'ADMIN') return;
         let tot = 0, gross = 0;
@@ -1918,12 +2185,12 @@
         });
       });
       saveData();
-      alert(`✅ 成功將今日全體報數封存至【過往報數紀錄】！`);
+      alert(`✅ 成功將今日 (${todayStr}) 全體報數封存至【過往報數紀錄】！`);
     }
 
     // ==================== 5. 數據統計 (Stats) ====================
     function initStatsView() {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
       document.getElementById('stat-start-date').value = todayStr;
       document.getElementById('stat-end-date').value = todayStr;
 
@@ -2038,10 +2305,11 @@
       if (team === '景鴻隊') { prefix = 'A'; }
       if (team === '詠豪隊') { prefix = 'B'; }
       if (team === '俊華隊') { prefix = 'C'; }
+      if (team === '自由步兵') { prefix = 'D'; }
 
       const teamMembers = accounts.filter(a => a.team === team);
       const nextSeq = teamMembers.length + 1;
-      const newId = prefix + String(nextSeq).padStart(3, '0');
+      const newId = prefix + String(nextSeq).padStart(2, '0');
 
       let riderPrices = {};
       let riderCounts = {};
@@ -2060,6 +2328,8 @@
         password: pwd,
         counts: riderCounts,
         prices: riderPrices,
+        assignedFence: '未分配',
+        assignedOrder: '第 1 順位',
         signed: 0, signedNos: '',
         refunded: 0, refundedNos: '',
         pendingPickup: 0, pendingPickupNos: '',
@@ -2166,6 +2436,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      const dateInp = document.getElementById('global-system-date');
+      if (dateInp) dateInp.value = today;
       saveData();
       lucide.createIcons();
     });
