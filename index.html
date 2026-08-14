@@ -108,7 +108,7 @@
       </div>
     </header>
 
-    <!-- 🌟 快捷操作入口導航列 (1 - 5 號 + 8 號車線入口，動態權限過濾) -->
+    <!-- 🌟 快捷操作入口導航列 (1 - 5 號 ＋ 8 號車線入口，動態權限過濾) -->
     <section class="bg-slate-50 border-b border-slate-200 px-4 sm:px-6 py-2.5">
       <div class="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto pb-1 text-xs font-bold" id="quick-action-bar"></div>
     </section>
@@ -178,7 +178,7 @@
             <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 1- 分區圍欄
           </button>
           <button onclick="openModal2()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition active:scale-95">
-            <i data-lucide="users-round" class="w-3.5 h-3.5"></i> 2- 排班與分工調度
+            <i data-lucide="users-round" class="w-3.5 h-3.5"></i> 2- 觀塘與東區排班分工
           </button>
           <button onclick="openAddRiderModal()" class="flex-1 sm:flex-initial justify-center px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition active:scale-95">
             <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> ＋ 新增普通步兵
@@ -210,7 +210,7 @@
       </div>
     </main>
 
-    <!-- ==================== 2. 隊長工作台 (A/B 可見當日觀塘及東區圍欄數量) ==================== -->
+    <!-- ==================== 2. 隊長工作台 ==================== -->
     <main id="view-captain" class="flex-1 p-3 sm:p-6 space-y-4 max-w-6xl w-full mx-auto hidden tab-content">
       <div class="bg-gradient-to-r from-blue-700 to-indigo-700 rounded-3xl p-5 sm:p-6 text-white shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
@@ -224,7 +224,7 @@
         </div>
       </div>
 
-      <!-- 隊長 A/B 專屬：當日圍欄數量總覽區塊 (隊長 C 自動隱藏) -->
+      <!-- 隊長 A/B 專屬：當日圍欄數量總覽區塊 -->
       <div id="cap-fence-counts-overview" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3 hidden">
         <h3 class="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
           <i data-lucide="boxes" class="w-4 h-4 text-blue-600"></i> 今日全區圍欄數量總覽 (觀塘區 & 東區)
@@ -249,7 +249,7 @@
       </div>
     </main>
 
-    <!-- ==================== 3. 步兵獨立每日報數端 (含今日個人分工展示) ==================== -->
+    <!-- ==================== 3. 步兵獨立每日報數端 ==================== -->
     <main id="view-rider" class="flex-1 p-3.5 hidden flex justify-center items-start pt-2 sm:pt-6 tab-content">
       <div class="w-full max-w-lg bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
         
@@ -273,13 +273,13 @@
           </div>
         </div>
 
-        <!-- 🌟 今日個人分工與先後次序提示卡片 -->
+        <!-- 今日個人分工與先後次序提示卡片 -->
         <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-3.5 rounded-2xl border border-blue-200 space-y-1">
           <div class="text-[11px] font-bold text-blue-900 flex items-center gap-1">
-            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-blue-600"></i> 今日指派分工與優先次序：
+            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-blue-600"></i> 今日指派分工與作業次序：
           </div>
           <div class="flex justify-between items-center text-xs">
-            <span class="text-slate-600">負責圍欄：<b id="rider-assigned-fence-txt" class="text-blue-700 font-bold">待總管理員編排</b></span>
+            <span class="text-slate-600">區域與圍欄：<b id="rider-assigned-fence-txt" class="text-blue-700 font-bold">待總管理員編排</b></span>
             <span class="text-slate-600">作業順位：<b id="rider-assigned-order-txt" class="text-indigo-700 font-bold">第 1 順位</b></span>
           </div>
         </div>
@@ -555,44 +555,81 @@
     </div>
   </div>
 
-  <!-- ==================== 快捷彈窗 2：排班與分工調度 (Mia可編輯排班圍欄與先後次序，步兵可查閱) ==================== -->
+  <!-- ==================== 快捷彈窗 2：區域分工與排班 (全面分開 觀塘 & 東區，自由新增步兵/圍欄/次序) ==================== -->
   <div id="modal-assignments" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-2xl w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-3xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
         <div>
           <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-            <i data-lucide="users-round" class="w-5 h-5 text-blue-600"></i> 2- 區域分工與排班次序調度
+            <i data-lucide="users-round" class="w-5 h-5 text-blue-600"></i> 2- 觀塘與東區分工排班名冊
           </h3>
-          <p class="text-xs text-slate-500">總管理員 Mia 可安排步兵負責圍欄與先後順序；步兵每日登入可查閱分工</p>
+          <p class="text-xs text-slate-500">分開東區與觀塘獨立排班，總管理員 Mia 可自由增刪人員、圍欄與作業先後次序</p>
         </div>
         <button onclick="closeModal2()" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
-      <div class="space-y-4 text-xs">
-        <div>
-          <h4 class="font-bold text-blue-800 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-200 mb-2">📍 全體步兵負責圍欄與作業先後次序表</h4>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
-              <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                <tr>
-                  <th class="py-2.5 px-3">步兵姓名 (ID)</th>
-                  <th class="py-2.5 px-3">所屬隊伍</th>
-                  <th class="py-2.5 px-3">安排負責圍欄</th>
-                  <th class="py-2.5 px-3 text-center">先後作業次序</th>
-                </tr>
-              </thead>
-              <tbody id="m2-workers-table-body" class="divide-y divide-slate-100"></tbody>
-            </table>
+      <!-- 分區切換選單 -->
+      <div class="flex gap-2 border-b border-slate-200 pb-2 text-xs font-bold">
+        <button type="button" onclick="switchAssignmentTab('kt')" id="tab-assign-kt" class="px-4 py-2 rounded-xl bg-blue-600 text-white shadow-sm transition flex items-center gap-1.5">
+          📍 觀塘區分工排班 (<span id="count-assign-kt">0</span>)
+        </button>
+        <button type="button" onclick="switchAssignmentTab('east')" id="tab-assign-east" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex items-center gap-1.5">
+          📍 東區分工排班 (<span id="count-assign-east">0</span>)
+        </button>
+      </div>
+
+      <!-- Mia 專屬：新增分工排班行表單 -->
+      <div id="m2-admin-add-box" class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2 text-xs">
+        <div class="font-bold text-slate-800 flex items-center justify-between">
+          <span class="flex items-center gap-1"><i data-lucide="user-plus" class="w-4 h-4 text-blue-600"></i> ＋ 新增排班人員至當前分區</span>
+          <span id="m2-current-zone-label" class="text-blue-600 font-bold">【觀塘區】</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">選擇步兵/同事</label>
+            <select id="new-assign-rider-select" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold focus:ring-1 focus:ring-blue-500"></select>
           </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">負責圍欄</label>
+            <input id="new-assign-fence-input" type="text" placeholder="例如：麗港城 / KOKO / 北角" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold focus:ring-1 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">作業先後次序</label>
+            <select id="new-assign-order-select" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold focus:ring-1 focus:ring-blue-500">
+              <option value="第 1 順位">第 1 順位 (首位)</option>
+              <option value="第 2 順位">第 2 順位</option>
+              <option value="第 3 順位">第 3 順位</option>
+              <option value="第 4 順位">第 4 順位</option>
+              <option value="第 5 順位">第 5 順位</option>
+              <option value="彈性支援">彈性支援 / 機動</option>
+            </select>
+          </div>
+        </div>
+        <button onclick="saveNewAssignmentRow()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition shadow-sm">
+          確認加入此分工排班
+        </button>
+      </div>
+
+      <!-- 分工排班列表 -->
+      <div class="space-y-2 text-xs">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+              <tr>
+                <th class="py-2.5 px-3">作業順位</th>
+                <th class="py-2.5 px-3">步兵姓名 (ID)</th>
+                <th class="py-2.5 px-3">所屬隊伍</th>
+                <th class="py-2.5 px-3">負責圍欄</th>
+                <th class="py-2.5 px-3 text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody id="m2-assignment-table-body" class="divide-y divide-slate-100"></tbody>
+          </table>
         </div>
       </div>
 
-      <div class="flex justify-between items-center pt-2">
-        <div id="m2-save-tip" class="text-[11px] text-emerald-600 font-bold hidden">✅ 排班修改已即時同步儲存！</div>
-        <div class="flex gap-2 ml-auto">
-          <button onclick="saveModal2Assignments()" id="m2-save-btn" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition">儲存分工設定</button>
-          <button onclick="closeModal2()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">關閉</button>
-        </div>
+      <div class="flex justify-end pt-2">
+        <button onclick="closeModal2()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">關閉</button>
       </div>
     </div>
   </div>
@@ -883,7 +920,7 @@
       east: [ { id: 'east_1', name: '北角區' }, { id: 'east_2', name: '鰂魚涌區' }, { id: 'east_3', name: '太古城區' }, { id: 'east_4', name: '柴灣區' } ]
     };
 
-    // 初始名單：Mia 總管理員 + 3位隊長 + 自由步兵 D01 (密碼0023)
+    // 初始基底名單
     const initialAccounts = [
       { id: 'ADMIN', name: '總管理員 Mia', role: '管理員', team: 'Mia自營隊', prefix: 'ADMIN', password: 'mia888',
         counts: { laguna: 0, koko: 0, industrial: 0, eastern: 0 },
@@ -921,22 +958,37 @@
         payday: '隔日結算', commission: 0, penalty: 0, comp: 0, deduct: 0, advance: 0, paidToday: 0, payoutStatus: '待轉帳' }
     ];
 
+    // 初始獨立分工名冊（分開 觀塘 與 東區）
+    const defaultZoneAssignments = {
+      kt: [
+        { id: 'A001', name: '隊長 A (景鴻)', team: '景鴻隊', fence: '麗港城一期', order: '第 1 順位' },
+        { id: 'B001', name: '隊長 B (詠豪)', team: '詠豪隊', fence: 'KOKO HILLS', order: '第 1 順位' },
+        { id: 'C001', name: '隊長 C (俊華)', team: '俊華隊', fence: '開源道工商', order: '第 1 順位' }
+      ],
+      east: [
+        { id: 'D01', name: '自由步兵 D01', team: '自由步兵', fence: '北角區', order: '第 1 順位' }
+      ]
+    };
+
     const defaultTruckRoutes = [
       { id: 'tr_1', time: '08:30', fence: '麗港城一期', driver: '陳司機', order: '第 1 班車' },
       { id: 'tr_2', time: '09:00', fence: 'KOKO HILLS', driver: '李司機', order: '第 2 班車' },
       { id: 'tr_3', time: '09:30', fence: '開源道工商', driver: '張司機', order: '第 3 班車' }
     ];
 
-    const DB_PREFIX = 'MIA_ENTERPRISE_2026_V2_';
+    const DB_PREFIX = 'MIA_PERMANENT_PERSIST_2026_V3_';
 
     let zoneFences = JSON.parse(localStorage.getItem(DB_PREFIX + 'ZONE_FENCES')) || defaultZoneFences;
     let zoneFenceCounts = JSON.parse(localStorage.getItem(DB_PREFIX + 'ZONE_COUNTS')) || {};
+    let zoneAssignments = JSON.parse(localStorage.getItem(DB_PREFIX + 'ZONE_ASSIGN')) || defaultZoneAssignments;
     let accounts = JSON.parse(localStorage.getItem(DB_PREFIX + 'ACCOUNTS')) || initialAccounts;
     let historyRecords = JSON.parse(localStorage.getItem(DB_PREFIX + 'HIST')) || [];
     let shiftReports = JSON.parse(localStorage.getItem(DB_PREFIX + 'SHIFTS')) || [];
     let truckRoutes = JSON.parse(localStorage.getItem(DB_PREFIX + 'TRUCKS')) || defaultTruckRoutes;
 
-    // 校正 D01 及 ADMIN
+    let currentAssignTab = 'kt';
+
+    // 確保 D01 及 ADMIN
     if (!accounts.find(a => a.id.toUpperCase() === 'D01')) {
       accounts.push({ ...initialAccounts[4] });
     }
@@ -957,6 +1009,7 @@
     function saveData() {
       localStorage.setItem(DB_PREFIX + 'ZONE_FENCES', JSON.stringify(zoneFences));
       localStorage.setItem(DB_PREFIX + 'ZONE_COUNTS', JSON.stringify(zoneFenceCounts));
+      localStorage.setItem(DB_PREFIX + 'ZONE_ASSIGN', JSON.stringify(zoneAssignments));
       localStorage.setItem(DB_PREFIX + 'ACCOUNTS', JSON.stringify(accounts));
       localStorage.setItem(DB_PREFIX + 'HIST', JSON.stringify(historyRecords));
       localStorage.setItem(DB_PREFIX + 'SHIFTS', JSON.stringify(shiftReports));
@@ -1073,14 +1126,14 @@
         `;
       }
 
-      // 入口 2: 區域分工與排班次序 (全體可看，Mia 可編輯)
+      // 入口 2: 區域分工與排班次序 (全體可看，Mia 可增刪編輯)
       bar.innerHTML += `
         <button onclick="openModal2()" class="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 transition flex items-center gap-1 whitespace-nowrap">
-          <i data-lucide="users-round" class="w-3.5 h-3.5 text-blue-600"></i> 2- 區域分工與次序
+          <i data-lucide="users-round" class="w-3.5 h-3.5 text-blue-600"></i> 2- 觀塘與東區分工
         </button>
       `;
 
-      // 入口 3: 觀塘區圍欄數量 (Mia, 隊長A, 隊長B可看；隊長C與步兵隱藏)
+      // 入口 3: 觀塘區圍欄數量
       if (isMia || isCapAorB) {
         bar.innerHTML += `
           <button onclick="openModal3()" class="px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 transition flex items-center gap-1 whitespace-nowrap">
@@ -1089,7 +1142,7 @@
         `;
       }
 
-      // 入口 4: 東區圍欄數量 (只限 Mia, 隊長A, 隊長B)
+      // 入口 4: 東區圍欄數量
       if (isMia || isCapAorB) {
         bar.innerHTML += `
           <button onclick="openModal4()" class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 transition flex items-center gap-1 whitespace-nowrap">
@@ -1098,14 +1151,14 @@
         `;
       }
 
-      // 入口 5: 翌日報更 (全體可看可操作)
+      // 入口 5: 翌日報更
       bar.innerHTML += `
         <button onclick="openModal5()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center gap-1 whitespace-nowrap shadow-sm">
           <i data-lucide="calendar-plus" class="w-3.5 h-3.5"></i> 5- 翌日同事報更
         </button>
       `;
 
-      // 🌟 入口 8: 車線調度 (司機派車順序 - 全體可看，Mia 可編輯)
+      // 入口 8: 車線調度
       bar.innerHTML += `
         <button onclick="openModal8()" class="px-3 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200 transition flex items-center gap-1 whitespace-nowrap">
           <i data-lucide="truck" class="w-3.5 h-3.5 text-orange-600"></i> 8- 車線調度
@@ -1273,7 +1326,7 @@
           <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
             <span class="text-[11px] text-slate-600 font-semibold">📋 簽收 / 退款 / 待攬收單號</span>
             <button onclick="openTrackingModal(${idx})" class="px-2.5 py-1 bg-white border border-slate-300 text-blue-700 font-bold rounded-lg hover:bg-blue-50 text-[11px] flex items-center gap-1 shadow-sm">
-              <i data-lucide="file-text" class="w-3 h-3"></i> 查閱/修改單號
+              <i data-lucide="file-text" class="w-3.5 h-3.5"></i> 查閱/修改單號
             </button>
           </div>
 
@@ -1407,7 +1460,7 @@
             <button onclick="payFullWage(${idx}, ${netWage})" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
               全額實出
             </button>
-            <button onclick="deleteAccount(${idx})" class="p-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg border border-rose-200" title="刪除此帳戶">
+            <button onclick="deleteAccount(${idx})" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg border border-rose-200" title="刪除此帳戶">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>
           </td>
@@ -1454,7 +1507,6 @@
       tbody.innerHTML = '';
       mobileCards.innerHTML = '';
 
-      // 隊長 A/B 顯示當日圍欄數量總覽；隊長 C 隱藏
       const capOverview = document.getElementById('cap-fence-counts-overview');
       if (capId === 'A001' || capId === 'B001') {
         capOverview.classList.remove('hidden');
@@ -1602,8 +1654,26 @@
       document.getElementById('rider-team-display').innerText = `所屬隊伍：${acc.team}`;
       document.getElementById('rider-payday-display').innerText = `糧期: ${acc.payday}`;
 
-      document.getElementById('rider-assigned-fence-txt').innerText = acc.assignedFence || '待總管理員編排';
-      document.getElementById('rider-assigned-order-txt').innerText = acc.assignedOrder || '第 1 順位';
+      // 檢查當日分工
+      let assignedTxt = '待總管理員編排';
+      let orderTxt = '第 1 順位';
+
+      const ktFind = zoneAssignments.kt.find(x => x.id === acc.id);
+      const eastFind = zoneAssignments.east.find(x => x.id === acc.id);
+
+      if (ktFind) {
+        assignedTxt = `【觀塘區】${ktFind.fence}`;
+        orderTxt = ktFind.order;
+      } else if (eastFind) {
+        assignedTxt = `【東區】${eastFind.fence}`;
+        orderTxt = eastFind.order;
+      } else if (acc.assignedFence) {
+        assignedTxt = acc.assignedFence;
+        orderTxt = acc.assignedOrder || '第 1 順位';
+      }
+
+      document.getElementById('rider-assigned-fence-txt').innerText = assignedTxt;
+      document.getElementById('rider-assigned-order-txt').innerText = orderTxt;
 
       const badgesContainer = document.getElementById('rider-fence-badges');
       const inputsContainer = document.getElementById('rider-fence-inputs');
@@ -1802,36 +1872,18 @@
       }
     }
 
-    // ==================== 快捷彈窗 2：排班與分工次序調度 ====================
+    // ==================== 快捷彈窗 2：分區排班分工 (觀塘區 / 東區 獨立動態添加) ====================
     function openModal2() {
       const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
-      const tbody = document.getElementById('m2-workers-table-body');
-      tbody.innerHTML = '';
+      const addBox = document.getElementById('m2-admin-add-box');
+      if (isMia) {
+        addBox.classList.remove('hidden');
+        populateRiderSelectDropdown();
+      } else {
+        addBox.classList.add('hidden');
+      }
 
-      document.getElementById('m2-save-btn').style.display = isMia ? 'inline-block' : 'none';
-
-      accounts.forEach((acc, idx) => {
-        if (acc.id === 'ADMIN') return;
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="py-2.5 px-3 font-bold text-slate-900">${acc.name} <span class="font-mono text-blue-600">(${acc.id})</span></td>
-          <td class="py-2.5 px-3 text-slate-500">${acc.team}</td>
-          <td class="py-2.5 px-3">
-            <input id="m2-fence-${idx}" type="text" value="${acc.assignedFence || ''}" placeholder="指派圍欄" ${isMia ? '' : 'disabled'} class="w-full bg-slate-50 border border-slate-200 rounded-lg p-1.5 font-bold text-slate-800">
-          </td>
-          <td class="py-2.5 px-3 text-center">
-            <select id="m2-order-${idx}" ${isMia ? '' : 'disabled'} class="bg-slate-50 border border-slate-200 rounded-lg p-1.5 font-bold text-indigo-800 text-xs">
-              <option value="第 1 順位" ${acc.assignedOrder === '第 1 順位' ? 'selected' : ''}>第 1 順位 (首位)</option>
-              <option value="第 2 順位" ${acc.assignedOrder === '第 2 順位' ? 'selected' : ''}>第 2 順位</option>
-              <option value="第 3 順位" ${acc.assignedOrder === '第 3 順位' ? 'selected' : ''}>第 3 順位</option>
-              <option value="第 4 順位" ${acc.assignedOrder === '第 4 順位' ? 'selected' : ''}>第 4 順位</option>
-              <option value="彈性支援" ${acc.assignedOrder === '彈性支援' ? 'selected' : ''}>彈性支援</option>
-            </select>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
+      switchAssignmentTab('kt');
       document.getElementById('modal-assignments').classList.remove('hidden');
       lucide.createIcons();
     }
@@ -1840,20 +1892,107 @@
       document.getElementById('modal-assignments').classList.add('hidden');
     }
 
-    function saveModal2Assignments() {
-      accounts.forEach((acc, idx) => {
-        if (acc.id === 'ADMIN') return;
-        const fInp = document.getElementById(`m2-fence-${idx}`);
-        const oInp = document.getElementById(`m2-order-${idx}`);
-        if (fInp) acc.assignedFence = fInp.value.trim();
-        if (oInp) acc.assignedOrder = oInp.value;
+    function populateRiderSelectDropdown() {
+      const sel = document.getElementById('new-assign-rider-select');
+      sel.innerHTML = '';
+      accounts.forEach(a => {
+        if (a.id !== 'ADMIN') {
+          sel.innerHTML += `<option value="${a.id}">${a.name} (${a.id} • ${a.team})</option>`;
+        }
       });
+    }
+
+    function switchAssignmentTab(zone) {
+      currentAssignTab = zone;
+      const btnKt = document.getElementById('tab-assign-kt');
+      const btnEast = document.getElementById('tab-assign-east');
+      const label = document.getElementById('m2-current-zone-label');
+
+      if (zone === 'kt') {
+        btnKt.className = 'px-4 py-2 rounded-xl bg-blue-600 text-white shadow-sm transition flex items-center gap-1.5';
+        btnEast.className = 'px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex items-center gap-1.5';
+        if (label) label.innerText = '【📍 觀塘區】';
+      } else {
+        btnEast.className = 'px-4 py-2 rounded-xl bg-indigo-600 text-white shadow-sm transition flex items-center gap-1.5';
+        btnKt.className = 'px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex items-center gap-1.5';
+        if (label) label.innerText = '【📍 東區】';
+      }
+
+      renderAssignmentsTable();
+    }
+
+    function renderAssignmentsTable() {
+      const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
+      const tbody = document.getElementById('m2-assignment-table-body');
+      tbody.innerHTML = '';
+
+      document.getElementById('count-assign-kt').innerText = zoneAssignments.kt.length;
+      document.getElementById('count-assign-east').innerText = zoneAssignments.east.length;
+
+      const list = zoneAssignments[currentAssignTab] || [];
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">目前${currentAssignTab === 'kt' ? '觀塘區' : '東區'}尚無排班分工記錄，點擊上方可新增！</td></tr>`;
+        return;
+      }
+
+      list.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50';
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 font-extrabold text-blue-700 bg-blue-50/40 rounded-l-xl">${item.order}</td>
+          <td class="py-2.5 px-3 font-bold text-slate-900">${item.name} <span class="font-mono text-blue-600 text-[11px]">(${item.id})</span></td>
+          <td class="py-2.5 px-3 text-slate-500">${item.team}</td>
+          <td class="py-2.5 px-3 font-bold text-indigo-700">📍 ${item.fence}</td>
+          <td class="py-2.5 px-3 text-right rounded-r-xl">
+            ${isMia ? `
+              <button onclick="deleteAssignmentRow('${currentAssignTab}', ${idx})" class="p-1 text-rose-600 hover:bg-rose-50 rounded">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            ` : '<span class="text-slate-400">唯讀</span>'}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      lucide.createIcons();
+    }
+
+    function saveNewAssignmentRow() {
+      const riderId = document.getElementById('new-assign-rider-select').value;
+      const fence = document.getElementById('new-assign-fence-input').value.trim();
+      const order = document.getElementById('new-assign-order-select').value;
+
+      if (!fence) { alert('請填寫負責圍欄！'); return; }
+
+      const targetAcc = accounts.find(a => a.id === riderId);
+      if (!targetAcc) return;
+
+      zoneAssignments[currentAssignTab].push({
+        id: targetAcc.id,
+        name: targetAcc.name,
+        team: targetAcc.team,
+        fence: fence,
+        order: order
+      });
+
+      // 同步更新步兵身上的當日指派
+      targetAcc.assignedFence = `${currentAssignTab === 'kt' ? '觀塘' : '東區'} • ${fence}`;
+      targetAcc.assignedOrder = order;
+
       saveData();
-      document.getElementById('m2-save-tip').classList.remove('hidden');
-      setTimeout(() => document.getElementById('m2-save-tip').classList.add('hidden'), 2500);
-      alert('✅ 步兵圍欄指派與作業先後次序已儲存！');
+      document.getElementById('new-assign-fence-input').value = '';
+      renderAssignmentsTable();
+      alert(`✅ 成功新增 ${targetAcc.name} 至【${currentAssignTab === 'kt' ? '觀塘區' : '東區'}】${order} (圍欄: ${fence})！`);
       if (loggedInUser && loggedInUser.role === 'admin') renderAdminView();
-      closeModal2();
+    }
+
+    function deleteAssignmentRow(zone, idx) {
+      if (confirm('確定刪除此排班分工記錄嗎？')) {
+        zoneAssignments[zone].splice(idx, 1);
+        saveData();
+        renderAssignmentsTable();
+        if (loggedInUser && loggedInUser.role === 'admin') renderAdminView();
+      }
     }
 
     // ==================== 快捷彈窗 3：觀塘區圍欄數量 ====================
@@ -1895,7 +2034,7 @@
       closeModal3();
     }
 
-    // ==================== 快捷彈窗 4：東區圍欄數量 (只限 Mia, 隊長A, 隊長B) ====================
+    // ==================== 快捷彈窗 4：東區圍欄數量 ====================
     function openModal4() {
       const isMia = loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'ADMIN');
       const container = document.getElementById('m4-counts-container');
