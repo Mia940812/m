@@ -15,14 +15,14 @@
     button, input, select, textarea { touch-action: manipulation; }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased overflow-x-hidden">
 
   <!-- 登入門禁 -->
   <div id="view-login" class="flex-1 flex items-center justify-center p-4 min-h-screen bg-slate-900">
     <div class="w-full max-w-sm bg-white rounded-3xl p-6 space-y-4 shadow-2xl">
       <div class="text-center space-y-1">
         <div class="inline-flex px-4 py-1.5 rounded-xl bg-blue-600 text-white font-black text-lg">Mia組</div>
-        <h2 class="text-base font-extrabold text-slate-900">派件報數與排更結算系統</h2>
+        <h2 class="text-base font-extrabold text-slate-900">派件報數與薪酬結算系統</h2>
       </div>
       <div class="space-y-3 text-xs">
         <div>
@@ -49,7 +49,9 @@
 
   <!-- 系統主體 -->
   <div id="app-container" class="hidden flex-1 flex flex-col min-h-screen">
-    <header class="bg-white border-b border-slate-200 px-4 py-2.5 sticky top-0 z-30 shadow-sm">
+    
+    <!-- 頂部全域導航列 -->
+    <header class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2.5 sticky top-0 z-40 shadow-sm">
       <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-2 cursor-pointer" onclick="switchNavTab('main')">
           <div class="h-8 px-3 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-sm">Mia組</div>
@@ -57,39 +59,80 @@
         </div>
         <div class="flex items-center gap-1.5 flex-wrap text-xs font-bold">
           <input id="global-system-date" type="date" class="bg-slate-100 border rounded-xl px-2 py-1 text-xs">
-          <button onclick="switchNavTab('main')" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white">主工作台</button>
-          <button onclick="openModal2()" class="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 border border-blue-200">2- 分區排更</button>
-          <button onclick="openUniversalExportModal('shift_truck')" class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white">📲 匯出排更</button>
-          <button onclick="openUniversalExportModal('ALL')" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white">📤 匯出中心</button>
+          <button onclick="switchNavTab('main')" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white shadow-sm">主工作台</button>
+          <button onclick="openModal5()" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white shadow-sm">⏰ 5- 報更</button>
+          <button id="nav-btn-recruits" onclick="openRecruitsModal()" class="px-3 py-1.5 rounded-xl bg-purple-600 text-white shadow-sm hidden">📋 預約新人</button>
+          <button onclick="openProgressModal()" class="px-3 py-1.5 rounded-xl bg-teal-600 text-white shadow-sm">📌 工作進度</button>
+          <button onclick="openTicketsModal()" class="px-3 py-1.5 rounded-xl bg-rose-600 text-white shadow-sm">🚨 工單 (<span id="header-ticket-count">37</span>)</button>
+          <button onclick="openModal8()" class="px-3 py-1.5 rounded-xl bg-orange-600 text-white shadow-sm">🚗 車線調度</button>
+          <button onclick="openModalSettlement()" class="px-3 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm">9- 埋數/物資</button>
+          <button onclick="openUniversalExportModal('ALL')" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white shadow-sm">📤 匯出中心</button>
           <button onclick="handleLogout()" class="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-xl">登出</button>
         </div>
       </div>
     </header>
 
-    <!-- 主管理台 -->
-    <main id="view-admin" class="flex-1 p-4 max-w-7xl w-full mx-auto space-y-4 tab-content hidden">
-      <div class="flex justify-between items-center bg-white p-3.5 rounded-2xl border">
-        <span class="text-sm font-extrabold text-slate-900">總管理員全盤大表</span>
-        <button onclick="openModal2()" class="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl">2- 進入分區排班看板</button>
+    <!-- 快捷操作列 -->
+    <section class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2 shadow-sm">
+      <div class="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto pb-0.5 text-xs font-bold custom-scrollbar">
+        <button onclick="openUniversalExportModal('shift_truck')" class="px-3 py-1 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap">📲 匯出分區排更</button>
+        <button onclick="openModal1()" class="px-3 py-1 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 whitespace-nowrap">1- 分區圍欄</button>
+        <button onclick="openModal2()" class="px-3 py-1 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">2- 區域排班分工</button>
+        <button onclick="openModal3()" class="px-3 py-1 rounded-xl bg-sky-50 text-sky-700 border border-sky-200 whitespace-nowrap">3- 觀塘貨量</button>
+        <button onclick="openModal4()" class="px-3 py-1 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap">4- 東區貨量</button>
+        <button onclick="openModalStCounts()" class="px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">4b- 沙田貨量</button>
+      </div>
+    </section>
+
+    <!-- 總管理員工作台 -->
+    <main id="view-admin" class="flex-1 p-3 sm:p-6 space-y-4 max-w-7xl w-full mx-auto tab-content hidden">
+      <div class="flex justify-between items-center bg-white p-4 rounded-3xl border shadow-sm">
+        <div>
+          <h2 class="text-sm sm:text-base font-black text-slate-900">總管理員全盤大表</h2>
+          <p class="text-xs text-slate-500">全體派貨員薪酬結算、圍欄件數、單號與密碼全覽</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="openModal2()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm">2- 分區排班看板</button>
+        </div>
       </div>
       <div id="admin-cards" class="space-y-3"></div>
     </main>
 
-    <!-- 組長 / 步兵台 -->
-    <main id="view-user" class="flex-1 p-4 max-w-lg w-full mx-auto space-y-4 tab-content hidden">
-      <div class="bg-white p-5 rounded-3xl border space-y-3">
-        <h3 id="user-name-title" class="font-black text-base text-slate-900">步兵工作台</h3>
-        <p class="text-xs text-slate-500">今日已分配圍欄：<b id="user-fence-display" class="text-blue-600">-</b></p>
-        <button onclick="openModal2()" class="w-full py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold">查看分區排班分工</button>
+    <!-- 組長工作台 -->
+    <main id="view-captain" class="flex-1 p-3 sm:p-6 space-y-4 max-w-6xl w-full mx-auto tab-content hidden">
+      <div class="bg-blue-600 rounded-3xl p-5 text-white space-y-1 shadow-md">
+        <h2 id="cap-name-display" class="text-lg font-black">組長工作台</h2>
+        <p class="text-xs text-blue-100">查閱轄下組員排班與報數</p>
+      </div>
+      <div id="captain-cards" class="space-y-3"></div>
+    </main>
+
+    <!-- 步兵工作台 -->
+    <main id="view-rider" class="flex-1 p-3.5 max-w-lg w-full mx-auto tab-content hidden">
+      <div class="bg-white rounded-3xl p-5 border shadow-sm space-y-4">
+        <div>
+          <h3 id="rider-name-display" class="text-base font-black text-slate-900">步兵姓名</h3>
+          <p class="text-xs text-slate-500">所屬組別：<span id="rider-team-display">-</span></p>
+        </div>
+        <div class="p-3 bg-blue-50 rounded-2xl border border-blue-200 text-xs">
+          <b>今日負責圍欄：</b> <span id="rider-fence-display" class="text-blue-700 font-bold">-</span>
+        </div>
+        <div class="space-y-3">
+          <button onclick="openModal2()" class="w-full py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-sm">查看區域排班看板</button>
+          <button onclick="openModal5()" class="w-full py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-sm">⏰ 填寫翌日報更</button>
+        </div>
       </div>
     </main>
   </div>
 
-  <!-- 2- 分區排更視窗 -->
+  <!-- 2- 分區排班分工核心視窗 -->
   <div id="modal-assignments" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-3 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-4xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto custom-scrollbar">
+    <div class="bg-white rounded-3xl p-4 sm:p-6 max-w-5xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-3">
-        <h3 class="font-extrabold text-base text-slate-900">2- 分區排班分工名冊</h3>
+        <div>
+          <h3 class="font-extrabold text-base sm:text-lg text-slate-900">2- 觀塘、東區與沙田 分工排班名冊</h3>
+          <p class="text-xs text-slate-500">支援「按圍欄看 (1圍欄多同事)」與「按同事看 (1人多圍欄)」雙向切換</p>
+        </div>
         <button onclick="closeModal2()" class="p-1 font-bold text-slate-400">✕</button>
       </div>
 
@@ -103,6 +146,7 @@
           <button type="button" onclick="setAssignmentViewMode('byFence')" id="btn-view-by-fence" class="px-2.5 py-1 rounded-lg bg-white text-blue-700 shadow-sm">🏢 按圍欄檢視</button>
           <button type="button" onclick="setAssignmentViewMode('byRider')" id="btn-view-by-rider" class="px-2.5 py-1 rounded-lg text-slate-600">👤 按同事檢視</button>
         </div>
+        <button onclick="openUniversalExportModal('shift_truck')" class="px-3 py-1.5 bg-indigo-600 text-white rounded-xl">📲 匯出排更</button>
       </div>
 
       <div class="bg-blue-50/70 p-3 rounded-2xl border border-blue-200 text-xs space-y-2">
@@ -128,18 +172,103 @@
     </div>
   </div>
 
-  <!-- 匯出視窗 -->
-  <div id="modal-universal-export" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
+  <!-- 匯出資料中心視窗 -->
+  <div id="modal-universal-export" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-3 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 max-w-2xl w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-sm text-slate-900">📤 匯出資料中心</h3>
+        <h3 class="font-bold text-sm text-slate-900">📤 全模組資料匯出中心</h3>
         <button onclick="closeUniversalExportModal()" class="p-1 font-bold">✕</button>
       </div>
-      <textarea id="universal-export-textarea" rows="10" readonly class="w-full bg-slate-50 border rounded-xl p-3 font-mono text-xs"></textarea>
+      <textarea id="universal-export-textarea" rows="12" readonly class="w-full bg-slate-50 border rounded-xl p-3 font-mono text-xs"></textarea>
       <div class="flex gap-2">
         <button onclick="copyUniversalWhatsAppText()" class="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold">一鍵複製 WhatsApp</button>
         <button onclick="closeUniversalExportModal()" class="px-4 py-2.5 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 其他彈窗 (1, 3, 4, 4b, 5, 8, 9, 工單, 新人, 進度) -->
+  <div id="modal-fences-zone" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">1- 分區圍欄</h3><button onclick="closeModal1()">✕</button></div>
+      <div id="m1-list" class="space-y-1 max-h-60 overflow-y-auto text-xs font-bold"></div>
+      <button onclick="closeModal1()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
+
+  <div id="modal-kt-counts" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">3- 觀塘貨量</h3><button onclick="closeModal3()">✕</button></div>
+      <div id="m3-list" class="space-y-1.5 max-h-60 overflow-y-auto text-xs"></div>
+      <button onclick="closeModal3()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
+
+  <div id="modal-east-counts" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">4- 東區貨量</h3><button onclick="closeModal4()">✕</button></div>
+      <div id="m4-list" class="space-y-1.5 max-h-60 overflow-y-auto text-xs"></div>
+      <button onclick="closeModal4()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
+
+  <div id="modal-st-counts" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">4b- 沙田貨量</h3><button onclick="closeModalStCounts()">✕</button></div>
+      <div id="mst-list" class="space-y-1.5 max-h-60 overflow-y-auto text-xs"></div>
+      <button onclick="closeModalStCounts()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
+
+  <div id="modal-shift-reporting" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">5- 翌日報更</h3><button onclick="closeModal5()">✕</button></div>
+      <div class="space-y-2 text-xs">
+        <input id="shift-time-inp" type="time" value="09:00" class="w-full border rounded-xl p-2 font-bold">
+        <input id="shift-fence-inp" type="text" placeholder="負責圍欄 (選填)" class="w-full border rounded-xl p-2">
+        <button onclick="submitShiftReport()" class="w-full py-2.5 bg-emerald-600 text-white rounded-xl font-bold">確認提交</button>
+      </div>
+      <button onclick="closeModal5()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
+
+  <div id="modal-truck-routes" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">8- 車線調度</h3><button onclick="closeModal8()">✕</button></div>
+      <div id="truck-list" class="space-y-1.5 max-h-60 overflow-y-auto text-xs"></div>
+      <button onclick="closeModal8()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
+
+  <div id="modal-settlement" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">9- 每日埋數/物資</h3><button onclick="closeModalSettlement()">✕</button></div>
+      <div class="p-3 bg-amber-50 rounded-2xl text-xs font-bold text-amber-900">總營運成本統計中</div>
+      <button onclick="closeModalSettlement()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
+
+  <div id="modal-tickets-view" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-3 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 max-w-2xl w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-rose-700">🚨 異常工單 (37 宗)</h3><button onclick="closeTicketsModal()">✕</button></div>
+      <div id="tickets-container" class="space-y-2 text-xs max-h-80 overflow-y-auto"></div>
+      <button onclick="closeTicketsModal()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
+
+  <div id="modal-recruits-view" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 max-w-lg w-full shadow-2xl space-y-3">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">📋 預約新人檔案</h3><button onclick="closeRecruitsModal()">✕</button></div>
+      <div id="recruits-list" class="space-y-2 text-xs"></div>
+      <button onclick="closeRecruitsModal()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
+
+  <div id="modal-work-progress" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">📌 每日工作進度</h3><button onclick="closeProgressModal()">✕</button></div>
+      <div id="progress-list" class="space-y-1.5 text-xs max-h-60 overflow-y-auto"></div>
+      <button onclick="closeProgressModal()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
     </div>
   </div>
 
@@ -168,7 +297,12 @@
       st: [{ id: 'KM03', name: '周健', team: 'Mia自營步兵', fence: 'ST_01 沙田第一城', order: '第 1 順位' }]
     };
 
-    const DB_KEY = 'MIA_APP_DATA_FINAL_2026_';
+    const rawTickets = [
+      { id: 1, tracking: 'JT0025007121305', address: '筲箕灣東大街2號', courier: '梁軒銘', issue: '送錯單元，重派', fine: '$100' },
+      { id: 2, tracking: 'JT0025004238936', address: '峻峰花園D座2603室', courier: '吳嘉榮', issue: '送錯門口，重派', fine: '$50' }
+    ];
+
+    const DB_KEY = 'MIA_COMPLETE_FINAL_2026_';
     let zoneFences = JSON.parse(localStorage.getItem(DB_KEY + 'FENCES')) || defaultZoneFences;
     let accounts = JSON.parse(localStorage.getItem(DB_KEY + 'ACCOUNTS')) || initialAccounts;
     let zoneAssignments = JSON.parse(localStorage.getItem(DB_KEY + 'ASSIGNS')) || defaultAssignments;
@@ -217,6 +351,13 @@
       document.getElementById('app-container').classList.remove('hidden');
       document.getElementById('header-user-info').innerText = `${loggedInUser.name} (${loggedInUser.id} • ${loggedInUser.role})`;
 
+      const btnRecruits = document.getElementById('nav-btn-recruits');
+      if (loggedInUser.role === '管理員' || loggedInUser.role === '組長') {
+        btnRecruits.classList.remove('hidden');
+      } else {
+        btnRecruits.classList.add('hidden');
+      }
+
       switchNavTab('main');
     }
 
@@ -232,9 +373,12 @@
         if (loggedInUser.role === '管理員') {
           document.getElementById('view-admin').classList.remove('hidden');
           renderAdminView();
+        } else if (loggedInUser.role === '組長') {
+          document.getElementById('view-captain').classList.remove('hidden');
+          renderCaptainView();
         } else {
-          document.getElementById('view-user').classList.remove('hidden');
-          renderUserView();
+          document.getElementById('view-rider').classList.remove('hidden');
+          renderRiderView();
         }
       }
     }
@@ -245,7 +389,7 @@
       accounts.forEach(acc => {
         if (acc.id === 'KM001') return;
         const div = document.createElement('div');
-        div.className = 'bg-white p-3.5 rounded-2xl border flex justify-between items-center text-xs';
+        div.className = 'bg-white p-3.5 rounded-2xl border flex justify-between items-center text-xs shadow-sm';
         div.innerHTML = `
           <div>
             <b class="text-slate-900">${acc.name}</b> <span class="text-blue-600 font-mono">(${acc.id})</span>
@@ -257,15 +401,28 @@
       });
     }
 
-    function renderUserView() {
-      document.getElementById('user-name-title').innerText = `${loggedInUser.name} (${loggedInUser.id}) 工作台`;
+    function renderCaptainView() {
+      document.getElementById('cap-name-display').innerText = `${loggedInUser.name} (${loggedInUser.id}) 組長工作台`;
+      const container = document.getElementById('captain-cards');
+      container.innerHTML = '';
+      accounts.filter(a => a.team === loggedInUser.team).forEach(acc => {
+        const div = document.createElement('div');
+        div.className = 'bg-white p-3 rounded-2xl border text-xs flex justify-between';
+        div.innerHTML = `<b>${acc.name}</b> <span>${acc.role}</span>`;
+        container.appendChild(div);
+      });
+    }
+
+    function renderRiderView() {
+      document.getElementById('rider-name-display').innerText = `${loggedInUser.name} (${loggedInUser.id})`;
+      document.getElementById('rider-team-display').innerText = loggedInUser.team;
       const myFences = [];
       ['kt', 'east', 'st'].forEach(z => {
         (zoneAssignments[z] || []).filter(a => a.id === loggedInUser.id).forEach(a => {
           myFences.push(a.fence);
         });
       });
-      document.getElementById('user-fence-display').innerText = myFences.length ? myFences.join('、') : '暫未編排';
+      document.getElementById('rider-fence-display').innerText = myFences.length ? myFences.join('、') : '暫未編排';
     }
 
     function openModal2() {
@@ -277,10 +434,7 @@
       switchAssignmentTab(currentAssignTab);
       document.getElementById('modal-assignments').classList.remove('hidden');
     }
-
-    function closeModal2() {
-      document.getElementById('modal-assignments').classList.add('hidden');
-    }
+    function closeModal2() { document.getElementById('modal-assignments').classList.add('hidden'); }
 
     function setAssignmentViewMode(mode) {
       currentAssignmentViewMode = mode;
@@ -437,16 +591,42 @@
       document.getElementById('modal-universal-export').classList.remove('hidden');
     }
 
-    function closeUniversalExportModal() {
-      document.getElementById('modal-universal-export').classList.add('hidden');
-    }
-
+    function closeUniversalExportModal() { document.getElementById('modal-universal-export').classList.add('hidden'); }
     function copyUniversalWhatsAppText() {
       const txt = document.getElementById('universal-export-textarea');
       txt.select();
       navigator.clipboard.writeText(txt.value);
       alert('已複製到剪貼簿！');
     }
+
+    function openModal1() { document.getElementById('modal-fences-zone').classList.remove('hidden'); }
+    function closeModal1() { document.getElementById('modal-fences-zone').classList.add('hidden'); }
+    function openModal3() { document.getElementById('modal-kt-counts').classList.remove('hidden'); }
+    function closeModal3() { document.getElementById('modal-kt-counts').classList.add('hidden'); }
+    function openModal4() { document.getElementById('modal-east-counts').classList.remove('hidden'); }
+    function closeModal4() { document.getElementById('modal-east-counts').classList.add('hidden'); }
+    function openModalStCounts() { document.getElementById('modal-st-counts').classList.remove('hidden'); }
+    function closeModalStCounts() { document.getElementById('modal-st-counts').classList.add('hidden'); }
+    function openModal5() { document.getElementById('modal-shift-reporting').classList.remove('hidden'); }
+    function closeModal5() { document.getElementById('modal-shift-reporting').classList.add('hidden'); }
+    function submitShiftReport() { alert('報更已提交！'); closeModal5(); }
+    function openModal8() { document.getElementById('modal-truck-routes').classList.remove('hidden'); }
+    function closeModal8() { document.getElementById('modal-truck-routes').classList.add('hidden'); }
+    function openModalSettlement() { document.getElementById('modal-settlement').classList.remove('hidden'); }
+    function closeModalSettlement() { document.getElementById('modal-settlement').classList.add('hidden'); }
+    function openTicketsModal() {
+      const c = document.getElementById('tickets-container');
+      c.innerHTML = '';
+      rawTickets.forEach(t => {
+        c.innerHTML += `<div class="p-2 border rounded-xl bg-slate-50"><b>${t.tracking}</b> ➜ ${t.courier} (${t.fine})<br>${t.address} - ${t.issue}</div>`;
+      });
+      document.getElementById('modal-tickets-view').classList.remove('hidden');
+    }
+    function closeTicketsModal() { document.getElementById('modal-tickets-view').classList.add('hidden'); }
+    function openRecruitsModal() { document.getElementById('modal-recruits-view').classList.remove('hidden'); }
+    function closeRecruitsModal() { document.getElementById('modal-recruits-view').classList.add('hidden'); }
+    function openProgressModal() { document.getElementById('modal-work-progress').classList.remove('hidden'); }
+    function closeProgressModal() { document.getElementById('modal-work-progress').classList.add('hidden'); }
 
     document.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
