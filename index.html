@@ -35,7 +35,7 @@
           Mia組
         </div>
         <h2 class="text-lg font-extrabold text-slate-900">派件報數與薪酬結算系統</h2>
-        <p class="text-xs text-slate-500">觀塘 • 東區 • 沙田 營運與工單即時派發平台</p>
+        <p class="text-xs text-slate-500">觀塘 • 東區 • 沙田 營運與即時協作平台</p>
       </div>
 
       <div class="space-y-4 text-xs">
@@ -99,6 +99,10 @@
           <button id="nav-btn-main" onclick="switchNavTab('main')" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold transition flex items-center gap-1 shadow-sm">
             <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i> 主工作台
           </button>
+          <!-- 功能七：工作進度表 -->
+          <button onclick="openProgressModal()" class="px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition flex items-center gap-1 shadow-sm">
+            <i data-lucide="check-square" class="w-3.5 h-3.5"></i> 📌 工作進度
+          </button>
           <button id="nav-btn-tickets" onclick="openTicketsModal()" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition flex items-center gap-1 shadow-sm">
             <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> 🚨 工單與投訴 (<span id="header-ticket-count">37</span>)
           </button>
@@ -110,6 +114,10 @@
           </button>
           <button id="nav-btn-stats" onclick="switchNavTab('stats')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1 border border-slate-200">
             <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-emerald-600"></i> 7- 數據
+          </button>
+          <!-- 功能五：匯出今日報數 -->
+          <button onclick="openExportTallyModal()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1 shadow-sm">
+            <i data-lucide="share-2" class="w-3.5 h-3.5"></i> 📤 匯出報數
           </button>
           <button id="nav-btn-pwd" onclick="openSelfPasswordModal()" class="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition flex items-center gap-1 border border-amber-200">
             <i data-lucide="key" class="w-3.5 h-3.5 text-amber-600"></i> 改密碼
@@ -180,11 +188,20 @@
         </div>
       </div>
 
-      <!-- 管理員操作列 -->
+      <!-- 管理員操作列 ＋ 功能三：代理操作選單 -->
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-white p-3.5 rounded-3xl border border-slate-200/80 shadow-sm">
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-bold text-slate-700 whitespace-nowrap">分類篩選:</span>
-          <select id="adm-filter-team" onchange="renderAdminView()" class="w-full sm:w-auto bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none"></select>
+        <div class="flex items-center gap-2 flex-wrap">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-bold text-slate-700 whitespace-nowrap">分類篩選:</span>
+            <select id="adm-filter-team" onchange="renderAdminView()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none"></select>
+          </div>
+          <!-- 功能三：管理員/組長代操作 -->
+          <div class="flex items-center gap-1.5 bg-blue-50/80 px-2.5 py-1 rounded-xl border border-blue-200">
+            <span class="text-[11px] font-black text-blue-900">👤 代步兵操作:</span>
+            <select id="admin-impersonate-select" onchange="impersonateRider(this.value)" class="bg-white border border-blue-300 rounded-lg px-2 py-1 text-xs font-bold text-blue-800">
+              <option value="">選擇要代操作的步兵...</option>
+            </select>
+          </div>
         </div>
 
         <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
@@ -198,7 +215,7 @@
             <i data-lucide="users-round" class="w-3.5 h-3.5"></i> 2- 區域排班分工
           </button>
           <button onclick="openAddRiderModal()" class="flex-1 sm:flex-initial justify-center px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition active:scale-95">
-            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> ＋ 新增步兵 (自動ID)
+            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> ＋ 新增人員 (選身份/自動ID)
           </button>
           <button onclick="saveTodayToHistory()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition active:scale-95">
             <i data-lucide="archive" class="w-3.5 h-3.5"></i> 封存今日報數
@@ -206,17 +223,17 @@
         </div>
       </div>
 
-      <!-- 手機端卡片流 -->
+      <!-- 手機端卡片流 (功能四：移除冗餘項目) -->
       <div id="admin-mobile-cards" class="block md:hidden space-y-3"></div>
 
-      <!-- 電腦端寬螢幕表格 -->
+      <!-- 電腦端寬螢幕表格 (功能二：支援即點即改身份與組別) -->
       <div class="hidden md:block bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
           <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="px-2.5 py-0.5 bg-blue-600 text-white rounded-lg text-xs font-black">Mia組</span>
-            全體派貨員薪酬結算、5大核心圍欄（含沙田）、組別隨時改、單號與密碼全覽
+            全體派貨員薪酬結算、5大核心圍欄（含沙田）、組別/身份隨時改、單號與密碼全覽
           </h2>
-          <span class="text-xs text-slate-400">所有欄位直接點擊即可即時修改</span>
+          <span class="text-xs text-slate-400">所有欄位（包括身份、組別、糧期）直接點擊即可即時修改</span>
         </div>
 
         <div class="overflow-x-auto custom-scrollbar">
@@ -236,9 +253,18 @@
           <h2 id="cap-name-display" class="text-xl sm:text-2xl font-black mt-1">工作台</h2>
           <p class="text-xs text-blue-100 mt-1">檢視轄下組員報數、圍欄件數、簽收單號與清場待攬收單號。</p>
         </div>
-        <div class="w-full sm:w-auto bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 text-left sm:text-right">
-          <div class="text-xs text-blue-200">今日總派票量</div>
-          <div id="cap-team-tickets" class="text-xl font-black mt-0.5">0 票</div>
+        <div class="flex items-center gap-3">
+          <!-- 功能三：組長代組員操作 -->
+          <div class="bg-white/20 backdrop-blur-md px-3 py-2 rounded-2xl border border-white/30 text-xs">
+            <span class="text-white font-bold block mb-0.5">👤 代本組步兵操作：</span>
+            <select id="captain-impersonate-select" onchange="impersonateRider(this.value)" class="bg-white text-slate-800 rounded-lg px-2 py-1 font-bold text-xs">
+              <option value="">選擇組員...</option>
+            </select>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 text-right">
+            <div class="text-xs text-blue-200">今日總派票量</div>
+            <div id="cap-team-tickets" class="text-xl font-black mt-0.5">0 票</div>
+          </div>
         </div>
       </div>
 
@@ -274,6 +300,7 @@
           <div>
             <div class="text-[11px] text-slate-400 font-medium flex items-center gap-1">
               <span class="font-bold text-blue-600">Mia組</span> • 步兵個人每日報數
+              <span id="impersonate-badge" class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-bold text-[10px] hidden">代操作模式</span>
             </div>
             <h3 id="rider-name-display" class="text-lg font-extrabold text-slate-900 mt-0.5">
               步兵姓名 <span id="rider-id-badge" class="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md font-mono font-bold">ID</span>
@@ -319,54 +346,69 @@
           <!-- 5大圍欄件數輸入 -->
           <div class="space-y-2" id="rider-fence-inputs"></div>
 
-          <!-- 簽收件數 ＋ 簽收快件單號 (強制綁定與醒目提示) -->
+          <!-- 功能九：簽收件數 ＋ 快捷填單號 -->
           <div class="p-3 bg-emerald-50/60 rounded-2xl border border-emerald-200 space-y-2" id="box-signed">
             <div class="flex justify-between items-center">
               <label class="text-xs font-bold text-emerald-800 flex items-center gap-1">
                 <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i> ✅ 今日已簽收件 (件)
               </label>
-              <input id="inp-signed" type="number" value="0" oninput="recalcRiderTally()" class="w-20 bg-white border border-emerald-300 rounded-lg p-1.5 text-center font-bold text-emerald-700 text-sm">
+              <div class="flex items-center gap-1.5">
+                <input id="inp-signed" type="number" value="0" oninput="recalcRiderTally()" class="w-20 bg-white border border-emerald-300 rounded-lg p-1.5 text-center font-bold text-emerald-700 text-sm">
+                <button type="button" onclick="openQuickTrackingModal('signed')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
+                  📝 填單號
+                </button>
+              </div>
             </div>
             <div>
               <div class="flex justify-between items-center mb-1">
-                <span class="text-[10px] text-slate-500 font-semibold">快件單號列表：</span>
+                <span class="text-[10px] text-slate-500 font-semibold">簽收單號預覽：</span>
                 <span id="hint-signed-count" class="text-[10px] font-bold text-emerald-700 hidden">請輸入簽收單號</span>
               </div>
-              <textarea id="inp-signed-nos" rows="2" placeholder="請在此輸入/貼上【已簽收件】的快件單號..." class="w-full bg-white border border-emerald-200 rounded-xl p-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"></textarea>
+              <textarea id="inp-signed-nos" rows="2" placeholder="快件單號將記錄在此處..." class="w-full bg-white border border-emerald-200 rounded-xl p-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"></textarea>
             </div>
           </div>
 
-          <!-- 已退款件 ＋ 退款快件單號 (強制綁定與醒目提示) -->
+          <!-- 功能九：已退款件 ＋ 快捷填單號 -->
           <div class="p-3 bg-rose-50/60 rounded-2xl border border-rose-200 space-y-2" id="box-refunded">
             <div class="flex justify-between items-center">
               <label class="text-xs font-bold text-rose-700 flex items-center gap-1">
                 <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-rose-600"></i> 🔄 今日已退款件 (件)
               </label>
-              <input id="inp-refunded" type="number" value="0" oninput="recalcRiderTally()" class="w-20 bg-white border border-rose-200 rounded-lg p-1.5 text-center font-bold text-rose-600 text-sm">
+              <div class="flex items-center gap-1.5">
+                <input id="inp-refunded" type="number" value="0" oninput="recalcRiderTally()" class="w-20 bg-white border border-rose-200 rounded-lg p-1.5 text-center font-bold text-rose-600 text-sm">
+                <button type="button" onclick="openQuickTrackingModal('refunded')" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
+                  📝 填單號
+                </button>
+              </div>
             </div>
             <div>
               <div class="flex justify-between items-center mb-1">
-                <span class="text-[10px] text-slate-500 font-semibold">退款單號列表：</span>
+                <span class="text-[10px] text-slate-500 font-semibold">退款單號預覽：</span>
                 <span id="hint-refunded-count" class="text-[10px] font-bold text-rose-700 hidden">請輸入退款單號</span>
               </div>
-              <textarea id="inp-refunded-nos" rows="2" placeholder="請在此輸入/貼上【已退款件】的快件單號..." class="w-full bg-white border border-rose-200 rounded-xl p-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-rose-500 transition"></textarea>
+              <textarea id="inp-refunded-nos" rows="2" placeholder="快件單號將記錄在此處..." class="w-full bg-white border border-rose-200 rounded-xl p-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-rose-500 transition"></textarea>
             </div>
           </div>
 
-          <!-- 圍欄清場仍有待攬收 ＋ 單號 (強制綁定與醒目提示) -->
+          <!-- 功能九：清場待攬收 ＋ 快捷填單號 -->
           <div class="p-3 bg-amber-50/60 rounded-2xl border border-amber-200/80 space-y-2" id="box-pending-pickup">
             <div class="flex justify-between items-center">
               <label class="text-xs font-bold text-amber-900 block flex items-center gap-1">
                 <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-600"></i> ⚠️ 當天圍欄已清場，但仍有待攬收 (件)
               </label>
-              <input id="inp-pending-pickup" type="number" value="0" oninput="recalcRiderTally()" class="w-20 bg-white border border-amber-300 rounded-lg p-1.5 text-center font-bold text-amber-800 text-sm">
+              <div class="flex items-center gap-1.5">
+                <input id="inp-pending-pickup" type="number" value="0" oninput="recalcRiderTally()" class="w-20 bg-white border border-amber-300 rounded-lg p-1.5 text-center font-bold text-amber-800 text-sm">
+                <button type="button" onclick="openQuickTrackingModal('pendingPickup')" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition shadow-sm">
+                  📝 填單號
+                </button>
+              </div>
             </div>
             <div>
               <div class="flex justify-between items-center mb-1">
-                <span class="text-[10px] text-slate-500 font-semibold">待攬收單號列表：</span>
+                <span class="text-[10px] text-slate-500 font-semibold">待攬收單號預覽：</span>
                 <span id="hint-pending-count" class="text-[10px] font-bold text-amber-800 hidden">請輸入待攬收單號</span>
               </div>
-              <textarea id="inp-pending-pickup-nos" rows="2" placeholder="請在此輸入/貼上【已清場仍待攬收】的快件單號..." class="w-full bg-white border border-amber-200 rounded-xl p-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-500 transition"></textarea>
+              <textarea id="inp-pending-pickup-nos" rows="2" placeholder="快件單號將記錄在此處..." class="w-full bg-white border border-amber-200 rounded-xl p-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-500 transition"></textarea>
             </div>
           </div>
 
@@ -547,7 +589,87 @@
 
   </div>
 
-  <!-- ==================== 🚨 彈窗 1：步兵登入即時彈出客訴提醒 ==================== -->
+  <!-- ==================== 🚨 功能七：每日各區工作進度即時看板 ==================== -->
+  <div id="modal-work-progress" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-2xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div>
+          <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
+            <i data-lucide="check-square" class="w-5 h-5 text-teal-600"></i> 每日各區工作進度看板 (打剔互助)
+          </h3>
+          <p class="text-xs text-slate-500">完成該圍欄派送後點擊打剔，標註完成者姓名，方便同事提早支援！</p>
+        </div>
+        <button onclick="closeProgressModal()" class="p-1"><i data-lucide="x" class="w-5 h-5 text-slate-400"></i></button>
+      </div>
+
+      <!-- 進度切換區域 -->
+      <div class="flex gap-2 border-b pb-2 text-xs font-bold">
+        <button onclick="renderProgressTab('kt')" id="prog-tab-kt" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white">觀塘區</button>
+        <button onclick="renderProgressTab('east')" id="prog-tab-east" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700">東區</button>
+        <button onclick="renderProgressTab('st')" id="prog-tab-st" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700">沙田區</button>
+      </div>
+
+      <div id="progress-fences-list" class="space-y-2 text-xs"></div>
+
+      <div class="flex justify-end pt-2 border-t">
+        <button onclick="closeProgressModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">關閉看板</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 🚨 功能五：當日報數匯出 (WhatsApp / CSV) ==================== -->
+  <div id="modal-export-tally" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+          <i data-lucide="share-2" class="w-5 h-5 text-emerald-600"></i> 匯出今日結算與單號紀錄
+        </h3>
+        <button onclick="closeExportTallyModal()" class="p-1"><i data-lucide="x" class="w-5 h-5 text-slate-400"></i></button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">WhatsApp 格式預覽（點擊下方按鈕一鍵複製）：</label>
+          <textarea id="export-whatsapp-text" rows="8" readonly class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-mono text-xs"></textarea>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="copyWhatsAppTallyText()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5">
+          <i data-lucide="copy" class="w-4 h-4"></i> 一鍵複製發送到 WhatsApp 群組
+        </button>
+        <button onclick="downloadTallyCSV()" class="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-md flex items-center gap-1">
+          <i data-lucide="download" class="w-4 h-4"></i> 下載 Excel/CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 🚨 功能九：快件單號快捷輸入視窗 ==================== -->
+  <div id="modal-quick-input-nos" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 id="quick-input-title" class="font-bold text-base text-slate-900 flex items-center gap-2">
+          <i data-lucide="edit-3" class="w-5 h-5 text-blue-600"></i> 快捷錄入快件單號
+        </h3>
+        <button onclick="closeQuickTrackingModal()" class="p-1"><i data-lucide="x" class="w-5 h-5 text-slate-400"></i></button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <p class="text-slate-500">可逐行貼上或以逗號隔開多個快件單號：</p>
+        <textarea id="quick-input-textarea" rows="5" placeholder="例如：
+JT0025007121305
+JT0025006606703" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-mono text-xs focus:ring-2 focus:ring-blue-500 focus:bg-white"></textarea>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button onclick="saveQuickTrackingInput()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-md">
+          確認儲存並更新件數
+        </button>
+        <button onclick="closeQuickTrackingModal()" class="px-4 py-3 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 🚨 彈窗 1：步兵客訴提醒 ==================== -->
   <div id="modal-rider-alert-popup" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 border-2 border-rose-500">
       <div class="flex items-center gap-3 text-rose-600">
@@ -566,7 +688,7 @@
     </div>
   </div>
 
-  <!-- ==================== 🚨 彈窗 2：全量異常工單管理視窗 (單一清晰 -9, -10, -11 入口) ==================== -->
+  <!-- ==================== 🚨 彈窗 2：全量異常工單管理視窗 (功能八：上傳派發至指定步兵) ==================== -->
   <div id="modal-tickets-view" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50 hidden">
     <div class="bg-white rounded-3xl p-4 sm:p-6 max-w-6xl w-full shadow-2xl space-y-4 max-h-[94vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-start border-b border-slate-100 pb-3">
@@ -583,6 +705,42 @@
         </div>
         <button onclick="closeTicketsModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100">
           <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- 功能八：管理員新增/派發工單表單 -->
+      <div id="ticket-admin-add-box" class="bg-rose-50/70 p-3.5 rounded-2xl border border-rose-200 space-y-2 text-xs">
+        <div class="font-bold text-rose-900 flex items-center gap-1">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-rose-600"></i> ＋ 新增/派發異常工單至指定步兵帳戶
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">快件單號</label>
+            <input id="new-ticket-tracking" type="text" placeholder="JT00..." class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold font-mono">
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">客人地址</label>
+            <input id="new-ticket-address" type="text" placeholder="送貨地址" class="w-full bg-white border border-slate-200 rounded-xl p-2">
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">客人電話</label>
+            <input id="new-ticket-phone" type="text" placeholder="電話號碼" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-mono">
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">指派責任步兵</label>
+            <select id="new-ticket-rider-select" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold text-rose-800"></select>
+          </div>
+          <div class="sm:col-span-3">
+            <label class="font-bold text-slate-700 block mb-0.5">問題說明 / 投訴事項</label>
+            <input id="new-ticket-issue" type="text" placeholder="例如：送錯單元，加急取回重派" class="w-full bg-white border border-slate-200 rounded-xl p-2">
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">罰款/理賠金額 ($)</label>
+            <input id="new-ticket-fine" type="number" placeholder="50" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold text-rose-600">
+          </div>
+        </div>
+        <button onclick="saveNewDispatchedTicket()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold transition shadow-sm">
+          確認派發此工單
         </button>
       </div>
 
@@ -647,10 +805,25 @@
     </div>
   </div>
 
-  <!-- 其餘 1-9 號快捷彈窗完整保留 -->
+  <!-- ==================== 1- 分區圍欄管理 (功能一：支援按同事過濾) ==================== -->
   <div id="modal-fences-zone" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b border-slate-100 pb-3"><h3 class="font-bold text-base text-slate-900">1- 分區圍欄管理 (觀塘 / 東區 / 沙田)</h3><button onclick="closeModal1()" class="p-1"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+          <i data-lucide="map-pin" class="w-5 h-5 text-purple-600"></i> 1- 分區圍欄管理 (按同事過濾)
+        </h3>
+        <button onclick="closeModal1()" class="p-1"><i data-lucide="x" class="w-5 h-5 text-slate-400"></i></button>
+      </div>
+
+      <!-- 功能一：同事過濾器 -->
+      <div class="bg-purple-50 p-3 rounded-2xl border border-purple-200 space-y-1.5 text-xs">
+        <label class="font-bold text-purple-900 block">🔍 選擇同事，清晰查看當天要去邊幾個圍欄：</label>
+        <select id="fence-rider-filter-select" onchange="renderZoneFencesByRider(this.value)" class="w-full bg-white border border-purple-300 rounded-xl p-2 font-bold text-purple-800">
+          <option value="ALL">顯示全部圍欄</option>
+        </select>
+        <div id="rider-fences-highlight-box" class="p-2.5 bg-white rounded-xl border border-purple-200 text-purple-950 font-bold hidden"></div>
+      </div>
+
       <div id="m1-admin-create-box" class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2 text-xs">
         <div class="grid grid-cols-2 gap-2">
           <div><label class="font-bold text-slate-600 block mb-0.5">圍欄區域</label><select id="new-fence-zone-select" class="w-full bg-white border rounded-xl p-2 font-bold"><option value="kt">觀塘區</option><option value="east">東區</option><option value="st">沙田區</option></select></div>
@@ -667,14 +840,31 @@
     </div>
   </div>
 
+  <!-- ==================== 2- 區域排班 (功能六：排更一鍵導出 WhatsApp 發群組) ==================== -->
   <div id="modal-assignments" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-3xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b border-slate-100 pb-3"><h3 class="font-bold text-base text-slate-900">2- 觀塘、東區與沙田分工排班名冊</h3><button onclick="closeModal2()" class="p-1"><i data-lucide="x" class="w-5 h-5"></i></button></div>
-      <div class="flex gap-2 border-b border-slate-200 pb-2 text-xs font-bold">
-        <button type="button" onclick="switchAssignmentTab('kt')" id="tab-assign-kt" class="px-3.5 py-2 rounded-xl bg-blue-600 text-white shadow-sm transition">📍 觀塘區 (<span id="count-assign-kt">0</span>)</button>
-        <button type="button" onclick="switchAssignmentTab('east')" id="tab-assign-east" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition">📍 東區 (<span id="count-assign-east">0</span>)</button>
-        <button type="button" onclick="switchAssignmentTab('st')" id="tab-assign-st" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition">📍 沙田區 (<span id="count-assign-st">0</span>)</button>
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div>
+          <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+            <i data-lucide="users-round" class="w-5 h-5 text-blue-600"></i> 2- 觀塘、東區與沙田分工排班名冊
+          </h3>
+          <p class="text-xs text-slate-500">獨立分區排班，總管理員 Mia 可自由增刪人員、圍欄與作業先後次序</p>
+        </div>
+        <button onclick="closeModal2()" class="p-1"><i data-lucide="x" class="w-5 h-5 text-slate-400"></i></button>
       </div>
+
+      <!-- 功能六：排更導出發群組按鈕 -->
+      <div class="flex justify-between items-center flex-wrap gap-2">
+        <div class="flex gap-2 text-xs font-bold">
+          <button type="button" onclick="switchAssignmentTab('kt')" id="tab-assign-kt" class="px-3.5 py-2 rounded-xl bg-blue-600 text-white shadow-sm transition">📍 觀塘區 (<span id="count-assign-kt">0</span>)</button>
+          <button type="button" onclick="switchAssignmentTab('east')" id="tab-assign-east" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition">📍 東區 (<span id="count-assign-east">0</span>)</button>
+          <button type="button" onclick="switchAssignmentTab('st')" id="tab-assign-st" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition">📍 沙田區 (<span id="count-assign-st">0</span>)</button>
+        </div>
+        <button onclick="exportShiftToWhatsApp()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm">
+          <i data-lucide="send" class="w-3.5 h-3.5"></i> 📲 匯出排更發到群組 (WhatsApp)
+        </button>
+      </div>
+
       <div id="m2-admin-add-box" class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2 text-xs">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div><label class="font-bold text-slate-700 block mb-0.5">選擇步兵/同事</label><select id="new-assign-rider-select" class="w-full bg-white border border-slate-200 rounded-xl p-2 font-bold"></select></div>
@@ -769,30 +959,41 @@
     </div>
   </div>
 
-  <!-- ==================== 新增步兵帳戶 (下拉組別與自動生成前綴 ID) ==================== -->
+  <!-- ==================== 新增人員帳戶 (功能二：自訂身份角色 + 自動生成前綴 ID) ==================== -->
   <div id="modal-add-rider" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-3">
         <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-          <i data-lucide="user-plus" class="w-5 h-5 text-blue-600"></i> 新增步兵帳戶 (自動產生 ID)
+          <i data-lucide="user-plus" class="w-5 h-5 text-blue-600"></i> 新增人員 (設定身份/組別/自動ID)
         </h3>
         <button onclick="closeAddRiderModal()" class="p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <div class="space-y-3 text-xs">
-        <div>
-          <label class="font-bold text-slate-700 block mb-1">選擇所屬組別</label>
-          <select id="new-rider-team-select" onchange="autoGenerateRiderID()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold focus:ring-2 focus:ring-blue-500">
-            <option value="Mia自營步兵" selected>Mia自營步兵 (前綴: KM)</option>
-            <option value="A組">A組 (前綴: A)</option>
-            <option value="B組">B組 (前綴: B)</option>
-            <option value="C組">C組 (前綴: C)</option>
-            <option value="其他自由步兵">其他自由步兵 (前綴: D)</option>
-          </select>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">身份角色</label>
+            <select id="new-rider-role-select" onchange="autoGenerateRiderID()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold focus:ring-2 focus:ring-blue-500">
+              <option value="自營步兵" selected>自營步兵</option>
+              <option value="組長">組長</option>
+              <option value="普通步兵">普通步兵</option>
+              <option value="管理員">管理員</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">所屬組別</label>
+            <select id="new-rider-team-select" onchange="autoGenerateRiderID()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-bold focus:ring-2 focus:ring-blue-500">
+              <option value="Mia自營步兵" selected>Mia自營步兵 (KM)</option>
+              <option value="A組">A組 (A)</option>
+              <option value="B組">B組 (B)</option>
+              <option value="C組">C組 (C)</option>
+              <option value="其他自由步兵">其他自由步兵 (D)</option>
+            </select>
+          </div>
         </div>
 
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="font-bold text-slate-700 block mb-1">步兵名字</label>
+            <label class="font-bold text-slate-700 block mb-1">人員名字</label>
             <input id="new-rider-name" type="text" placeholder="例如：新同事" class="w-full border rounded-xl p-2 font-bold focus:ring-2 focus:ring-blue-500">
           </div>
           <div>
@@ -831,7 +1032,7 @@
         </div>
       </div>
       <div class="flex gap-2 pt-2">
-        <button onclick="saveNewRider()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-md">確認建立步兵</button>
+        <button onclick="saveNewRider()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-md">確認建立人員</button>
         <button onclick="closeAddRiderModal()" class="px-4 py-3 bg-slate-100 text-slate-600 rounded-xl text-xs">取消</button>
       </div>
     </div>
@@ -887,7 +1088,6 @@
       ]
     };
 
-    // 完整的 37 筆異常工單資料庫 (內建責任步兵映射)
     const rawTicketsData = [
       { id: 1, date: "8月4日", tracking: "JT0025007121305 / JT0025006606703", entryCode: "68F", address: "筲箕灣東大街2號麗東海景豪園2座20樓F室", phone: "90895379", issue: "同客戶兩件反饋送錯單元，盡快取回重派", courier: "觀塘（嘉）-MS 梁軒銘", riderName: "梁軒銘", result: "已派回", fineText: "罰$50x2", fineAmount: 100, isDone: true },
       { id: 2, date: "8月4日", tracking: "JT0025004238936", entryCode: "69F", address: "筲箕灣寶文街1號峻峰花園D座2603室", phone: "92361296", issue: "未收到包裹，疑似送錯門口，加急取回重派", courier: "東區（嘉）-吳嘉榮", riderName: "吳嘉榮", result: "已派回", fineText: "罰$50", fineAmount: 50, isDone: true },
@@ -928,15 +1128,14 @@
       { id: 37, date: "8月8日", tracking: "JT0025061039326", entryCode: "03E", address: "海濱道181號 One Harbour square 8樓3室", phone: "97285373", issue: "送錯地址，請盡快核實", courier: "觀塘（嘉）-MS 周健", riderName: "周健", result: "待跟進", fineText: "-", fineAmount: 0, isDone: false }
     ];
 
-    // 🌟 預設步兵身份重構
     const initialAccounts = [
       { id: 'KM001', name: 'Mia', role: '管理員', team: 'Mia自營步兵', prefix: 'KM', password: 'mia888', counts: {}, prices: {}, assignedFence: '全區總巡', assignedOrder: '指揮調度', signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '', payday: '扣數 (100%)', advance: 0, deduct: 0, paidToday: 0 },
       { id: 'A001', name: '景鴻', role: '組長', team: 'A組', prefix: 'A', password: '100', counts: {}, prices: {}, assignedFence: '11E 麗港城-1號托', assignedOrder: '第 1 順位', signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '', payday: '隔日結算', advance: 0, deduct: 0, paidToday: 0 },
       { id: 'B001', name: '詠豪', role: '組長', team: 'B組', prefix: 'B', password: '201', counts: {}, prices: {}, assignedFence: '01E Koko Hills', assignedOrder: '第 1 順位', signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '', payday: '隔日結算', advance: 0, deduct: 0, paidToday: 0 },
       { id: 'C001', name: '俊華', role: '普通步兵', team: 'C組', prefix: 'C', password: '303', counts: {}, prices: {}, assignedFence: '02E 觀塘工商區1號', assignedOrder: '第 1 順位', signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '', payday: '隔日結算', advance: 0, deduct: 0, paidToday: 0 },
-      { id: 'KM02', name: '吳嘉榮', role: '普通步兵', team: 'Mia自營步兵', prefix: 'KM', password: '123', counts: {}, prices: {}, assignedFence: '69F 峻峰花園', assignedOrder: '第 1 順位', signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '', payday: '隔日結算', advance: 0, deduct: 0, paidToday: 0 },
-      { id: 'KM03', name: '王利民', role: '普通步兵', team: 'Mia自營步兵', prefix: 'KM', password: '123', counts: {}, prices: {}, assignedFence: 'ST_01 沙田第一城', assignedOrder: '第 1 順位', signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '', payday: '隔日結算', advance: 0, deduct: 0, paidToday: 0 },
-      { id: 'KM005', name: '盧智聰', role: '普通步兵', team: 'Mia自營步兵', prefix: 'KM', password: '123', counts: {}, prices: {}, assignedFence: '05E 觀塘工商區4號', assignedOrder: '第 1 順位', signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '', payday: '隔日結算', advance: 0, deduct: 0, paidToday: 0 },
+      { id: 'KM02', name: '吳嘉榮', role: '自營步兵', team: 'Mia自營步兵', prefix: 'KM', password: '123', counts: {}, prices: {}, assignedFence: '69F 峻峰花園', assignedOrder: '第 1 順位', signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '', payday: '隔日結算', advance: 0, deduct: 0, paidToday: 0 },
+      { id: 'KM03', name: '王利民', role: '自營步兵', team: 'Mia自營步兵', prefix: 'KM', password: '123', counts: {}, prices: {}, assignedFence: 'ST_01 沙田第一城', assignedOrder: '第 1 順位', signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '', payday: '隔日結算', advance: 0, deduct: 0, paidToday: 0 },
+      { id: 'KM005', name: '盧智聰', role: '自營步兵', team: 'Mia自營步兵', prefix: 'KM', password: '123', counts: {}, prices: {}, assignedFence: '05E 觀塘工商區4號', assignedOrder: '第 1 順位', signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '', payday: '隔日結算', advance: 0, deduct: 0, paidToday: 0 },
       { id: 'D01', name: '自由步兵 D01', role: '普通步兵', team: '其他自由步兵', prefix: 'D', password: '0023', counts: {}, prices: {}, assignedFence: '03F 東旭苑', assignedOrder: '第 1 順位', signed: 0, signedNos: '', refunded: 0, refundedNos: '', pendingPickup: 0, pendingPickupNos: '', payday: '隔日結算', advance: 0, deduct: 0, paidToday: 0 }
     ];
 
@@ -964,7 +1163,7 @@
       { id: 'exp_1', date: new Date().toISOString().split('T')[0], name: '買封箱大膠紙 (6卷)', amount: 120, buyer: 'Mia', remark: '日常包裝耗材' }
     ];
 
-    const DB_PREFIX = 'MIA_ULTRA_FLEX_2026_V2_';
+    const DB_PREFIX = 'MIA_ULTRA_FLEX_2026_V3_';
 
     let zoneFences = JSON.parse(localStorage.getItem(DB_PREFIX + 'ZONE_FENCES')) || defaultZoneFences;
     let zoneFenceCounts = JSON.parse(localStorage.getItem(DB_PREFIX + 'ZONE_COUNTS')) || {};
@@ -975,13 +1174,17 @@
     let truckRoutes = JSON.parse(localStorage.getItem(DB_PREFIX + 'TRUCKS')) || defaultTruckRoutes;
     let expensesList = JSON.parse(localStorage.getItem(DB_PREFIX + 'EXPENSES')) || defaultExpenses;
     let ticketsList = JSON.parse(localStorage.getItem(DB_PREFIX + 'TICKETS')) || rawTicketsData;
+    let workProgress = JSON.parse(localStorage.getItem(DB_PREFIX + 'PROGRESS')) || {};
 
     let currentAssignTab = 'kt';
     let currentTicketEntry = 'ALL';
     let loggedInUser = null;
+    let originalUser = null;
     let currentShiftZone = 'both';
     let editingTrackIdx = -1;
     let pwdTargetIdx = -1;
+    let quickInputTargetType = '';
+    let currentProgressZone = 'kt';
 
     function saveData() {
       localStorage.setItem(DB_PREFIX + 'ZONE_FENCES', JSON.stringify(zoneFences));
@@ -993,6 +1196,7 @@
       localStorage.setItem(DB_PREFIX + 'TRUCKS', JSON.stringify(truckRoutes));
       localStorage.setItem(DB_PREFIX + 'EXPENSES', JSON.stringify(expensesList));
       localStorage.setItem(DB_PREFIX + 'TICKETS', JSON.stringify(ticketsList));
+      localStorage.setItem(DB_PREFIX + 'PROGRESS', JSON.stringify(workProgress));
     }
 
     // 頁籤切換
@@ -1000,10 +1204,10 @@
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
 
       if (tabName === 'main') {
-        if (loggedInUser.role === 'admin') {
+        if (loggedInUser.role === '管理員') {
           document.getElementById('view-admin').classList.remove('hidden');
           renderAdminView();
-        } else if (loggedInUser.role === 'captain') {
+        } else if (loggedInUser.role === '組長') {
           document.getElementById('view-captain').classList.remove('hidden');
           renderCaptainView(loggedInUser.id);
         } else {
@@ -1040,7 +1244,8 @@
       if (u === 'KM001' || u === 'ADMIN') {
         let adm = accounts.find(a => a.id.toUpperCase() === 'KM001' || a.id.toUpperCase() === 'ADMIN');
         if (adm && adm.password === p) {
-          loggedInUser = { role: 'admin', idx: accounts.indexOf(adm), ...adm, role: '管理員' };
+          loggedInUser = { role: '管理員', idx: accounts.indexOf(adm), ...adm };
+          originalUser = { ...loggedInUser };
           enterApp();
           return;
         }
@@ -1050,13 +1255,8 @@
 
       if (userIdx !== -1) {
         const user = accounts[userIdx];
-        if (user.id.toUpperCase() === 'KM001' || user.id.toUpperCase() === 'ADMIN') {
-          loggedInUser = { role: 'admin', idx: userIdx, ...user, role: '管理員' };
-        } else if (user.role === '組長') {
-          loggedInUser = { role: 'captain', idx: userIdx, ...user };
-        } else {
-          loggedInUser = { role: 'rider', idx: userIdx, ...user };
-        }
+        loggedInUser = { role: user.role, idx: userIdx, ...user };
+        originalUser = { ...loggedInUser };
         enterApp();
         return;
       }
@@ -1072,19 +1272,20 @@
       const info = document.getElementById('header-user-info');
       const btnClearHist = document.getElementById('btn-clear-history');
 
-      if (loggedInUser.role === 'admin' || loggedInUser.id.toUpperCase() === 'KM001') {
-        loggedInUser.role = 'admin';
+      if (loggedInUser.role === '管理員') {
         badge.innerText = '👑 總管理員';
         badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-black leading-none';
-        info.innerText = 'Mia (KM001 - 最高權限大表、全盤管理、工單追蹤)';
+        info.innerText = `${loggedInUser.name} (${loggedInUser.id}) - 最高權限大表、全盤管理、工單追蹤`;
         btnClearHist.classList.remove('hidden');
+        populateImpersonateDropdowns();
       } else if (loggedInUser.role === '組長') {
         badge.innerText = '🎖️ 組長';
         badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-black leading-none';
         info.innerText = `${loggedInUser.name} (${loggedInUser.id})`;
         btnClearHist.classList.add('hidden');
+        populateImpersonateDropdowns();
       } else {
-        badge.innerText = '🏃 普通步兵';
+        badge.innerText = loggedInUser.role === '自營步兵' ? '🚀 自營步兵' : '🏃 普通步兵';
         badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-black leading-none';
         info.innerText = `${loggedInUser.name} (${loggedInUser.id} • ${loggedInUser.team})`;
         btnClearHist.classList.add('hidden');
@@ -1093,7 +1294,7 @@
       renderQuickActionBar();
       switchNavTab('main');
 
-      if (loggedInUser.role === 'rider') {
+      if (loggedInUser.role === '自營步兵' || loggedInUser.role === '普通步兵') {
         checkAndShowRiderTicketsPopup(loggedInUser.name, loggedInUser.id);
       }
 
@@ -1102,12 +1303,48 @@
 
     function handleLogout() {
       loggedInUser = null;
+      originalUser = null;
       document.getElementById('login-username').value = '';
       document.getElementById('login-password').value = '';
       document.getElementById('login-error-msg').classList.add('hidden');
       document.getElementById('app-container').classList.add('hidden');
       document.getElementById('view-login').classList.remove('hidden');
       lucide.createIcons();
+    }
+
+    // ==================== 🌟 功能三：組長與管理員代理操作 ====================
+    function populateImpersonateDropdowns() {
+      const admSel = document.getElementById('admin-impersonate-select');
+      const capSel = document.getElementById('captain-impersonate-select');
+      if (admSel) {
+        admSel.innerHTML = '<option value="">選擇要代操作的步兵...</option>';
+        accounts.forEach(a => {
+          if (a.id !== 'KM001' && a.id !== 'ADMIN') {
+            admSel.innerHTML += `<option value="${a.id}">${a.name} (${a.id} • ${a.team})</option>`;
+          }
+        });
+      }
+      if (capSel && loggedInUser && loggedInUser.role === '組長') {
+        capSel.innerHTML = '<option value="">選擇組員...</option>';
+        accounts.filter(a => a.team === loggedInUser.team && a.id !== loggedInUser.id).forEach(a => {
+          capSel.innerHTML += `<option value="${a.id}">${a.name} (${a.id})</option>`;
+        });
+      }
+    }
+
+    function impersonateRider(riderId) {
+      if (!riderId) return;
+      const targetIdx = accounts.findIndex(a => a.id === riderId);
+      if (targetIdx === -1) return;
+
+      const targetAcc = accounts[targetIdx];
+      loggedInUser = { role: targetAcc.role, idx: targetIdx, ...targetAcc };
+      
+      document.getElementById('impersonate-badge').classList.remove('hidden');
+      document.getElementById('impersonate-badge').innerText = `由 ${originalUser.name} 代理操作中`;
+
+      switchNavTab('main');
+      alert(`✅ 已切換至【${targetAcc.name} (${targetAcc.id})】帳戶，可為其代報數、報更或填寫單號！`);
     }
 
     // 步兵客訴彈窗
@@ -1208,6 +1445,12 @@
     function renderQuickActionBar() {
       const bar = document.getElementById('quick-action-bar');
       bar.innerHTML = `
+        <button onclick="openProgressModal()" class="px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 transition flex items-center gap-1 whitespace-nowrap shadow-sm">
+          <i data-lucide="check-square" class="w-3.5 h-3.5 text-teal-600"></i> 📌 每日工作進度
+        </button>
+        <button onclick="openExportTallyModal()" class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition flex items-center gap-1 whitespace-nowrap shadow-sm">
+          <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-600"></i> 📤 匯出報數
+        </button>
         <button onclick="openTicketsModal()" class="px-3.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 transition flex items-center gap-1 whitespace-nowrap shadow-sm">
           <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-600"></i> 🚨 異常工單 (37)
         </button>
@@ -1239,9 +1482,293 @@
       lucide.createIcons();
     }
 
-    // 工單全量彈窗 (單一清晰 -9 入口)
+    // ==================== 🌟 功能七：每日各區工作進度即時看板 ====================
+    function openProgressModal() {
+      renderProgressTab(currentProgressZone);
+      document.getElementById('modal-work-progress').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeProgressModal() {
+      document.getElementById('modal-work-progress').classList.add('hidden');
+    }
+
+    function renderProgressTab(zone) {
+      currentProgressZone = zone;
+      document.getElementById('prog-tab-kt').className = zone === 'kt' ? 'px-3 py-1.5 rounded-xl bg-blue-600 text-white font-bold' : 'px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold';
+      document.getElementById('prog-tab-east').className = zone === 'east' ? 'px-3 py-1.5 rounded-xl bg-indigo-600 text-white font-bold' : 'px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold';
+      document.getElementById('prog-tab-st').className = zone === 'st' ? 'px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-bold' : 'px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold';
+
+      const container = document.getElementById('progress-fences-list');
+      container.innerHTML = '';
+
+      const fences = zoneFences[zone] || [];
+      fences.forEach(f => {
+        const item = workProgress[f.id] || { isDone: false, by: '', time: '' };
+        const div = document.createElement('div');
+        div.className = `p-3 rounded-2xl border flex items-center justify-between transition ${item.isDone ? 'bg-emerald-50/80 border-emerald-300' : 'bg-slate-50 border-slate-200'}`;
+        div.innerHTML = `
+          <div>
+            <span class="font-black text-sm text-slate-900">${f.name}</span>
+            <div class="text-[11px] mt-0.5 ${item.isDone ? 'text-emerald-700 font-bold' : 'text-slate-400'}">
+              ${item.isDone ? `✔ 已由 <b>${item.by}</b> 於 ${item.time} 完成` : '⏳ 派送中 / 未完成'}
+            </div>
+          </div>
+          <div>
+            <button onclick="toggleFenceProgress('${f.id}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-sm ${item.isDone ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100'}">
+              ${item.isDone ? '✅ 已完成' : '⭕ 標記完成'}
+            </button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function toggleFenceProgress(fenceId) {
+      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const current = workProgress[fenceId] || { isDone: false };
+      
+      if (!current.isDone) {
+        workProgress[fenceId] = {
+          isDone: true,
+          by: loggedInUser ? loggedInUser.name : '同事',
+          time: now
+        };
+      } else {
+        workProgress[fenceId] = { isDone: false, by: '', time: '' };
+      }
+      saveData();
+      renderProgressTab(currentProgressZone);
+    }
+
+    // ==================== 🌟 功能五：當日報數與單號匯出 (WhatsApp / CSV) ====================
+    function openExportTallyModal() {
+      const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
+      let msg = `📦 【Mia組】當日結算與派件總報表 (${today})\n===========================\n`;
+
+      let totalT = 0, totalNet = 0;
+      accounts.forEach(acc => {
+        if (acc.id === 'KM001' || acc.id === 'ADMIN') return;
+        let tCount = 0, gross = 0;
+        coreFences.forEach(f => {
+          const cnt = acc.counts[f.key] || 0;
+          const prc = acc.prices[f.key] || f.defaultPrice;
+          tCount += cnt;
+          gross += (cnt * prc);
+        });
+        const net = gross - (acc.deduct || 0);
+        totalT += tCount;
+        totalNet += net;
+
+        if (tCount > 0 || acc.signed > 0 || acc.refunded > 0 || acc.pendingPickup > 0) {
+          msg += `\n👤 步兵：${acc.name} (${acc.id} • ${acc.team})\n`;
+          msg += `  - 派送票量：${tCount} 票 | 應發金額：$${net}\n`;
+          msg += `  - ✅ 已簽收：${acc.signed || 0} 件 ${acc.signedNos ? `\n    [單號]: ${acc.signedNos}` : ''}\n`;
+          msg += `  - 🔄 已退款：${acc.refunded || 0} 件 ${acc.refundedNos ? `\n    [單號]: ${acc.refundedNos}` : ''}\n`;
+          msg += `  - ⚠️ 清場待攬收：${acc.pendingPickup || 0} 件 ${acc.pendingPickupNos ? `\n    [單號]: ${acc.pendingPickupNos}` : ''}\n`;
+        }
+      });
+
+      msg += `\n===========================\n📊 今日全體總量：${totalT} 票 | 應發總額：$${totalNet}`;
+      document.getElementById('export-whatsapp-text').value = msg;
+      document.getElementById('modal-export-tally').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeExportTallyModal() {
+      document.getElementById('modal-export-tally').classList.add('hidden');
+    }
+
+    function copyWhatsAppTallyText() {
+      const txt = document.getElementById('export-whatsapp-text');
+      txt.select();
+      navigator.clipboard.writeText(txt.value);
+      alert('✅ 已複製 WhatsApp 格式總報表！可直接至 WhatsApp 群組中貼上。');
+    }
+
+    function downloadTallyCSV() {
+      const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+      csvContent += "日期,姓名,ID,組別,總票量,簽收件數,簽收單號,退款件數,退款單號,清場待攬收件數,待攬收單號,實出工資\n";
+
+      accounts.forEach(acc => {
+        if (acc.id === 'KM001' || acc.id === 'ADMIN') return;
+        let tCount = 0, gross = 0;
+        coreFences.forEach(f => {
+          tCount += (acc.counts[f.key] || 0);
+          gross += (acc.counts[f.key] || 0) * (acc.prices[f.key] || f.defaultPrice);
+        });
+        const net = gross - (acc.deduct || 0);
+        csvContent += `"${today}","${acc.name}","${acc.id}","${acc.team}","${tCount}","${acc.signed||0}","${(acc.signedNos||'').replace(/\n/g, ' ')}","${acc.refunded||0}","${(acc.refundedNos||'').replace(/\n/g, ' ')}","${acc.pendingPickup||0}","${(acc.pendingPickupNos||'').replace(/\n/g, ' ')}","${net}"\n`;
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Mia組_每日結算與單號_${today}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // ==================== 🌟 功能六：排更表一鍵匯出發 WhatsApp 群組 ====================
+    function exportShiftToWhatsApp() {
+      const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
+      let msg = `📅 【Mia組】區域分工與排更表 (${today})\n===========================\n`;
+
+      ['kt', 'east', 'st'].forEach(z => {
+        const zName = z === 'kt' ? '📍 觀塘區' : (z === 'east' ? '📍 東區' : '📍 沙田區');
+        msg += `\n【${zName}】\n`;
+        const list = zoneAssignments[z] || [];
+        if (list.length === 0) {
+          msg += `  (暫無排班)\n`;
+        } else {
+          list.forEach(item => {
+            msg += `  • ${item.order}：${item.name} (${item.id}) ➜ 負責圍欄：${item.fence}\n`;
+          });
+        }
+      });
+
+      msg += `\n===========================\n請各位同事準時到崗，派送完畢後請在系統打剔回報進度！💪`;
+      navigator.clipboard.writeText(msg);
+      alert('✅ 區域排更表已成功複製！可直接至 WhatsApp 群組中發布。');
+    }
+
+    // ==================== 🌟 功能九：單號快捷錄入彈窗 ====================
+    function openQuickTrackingModal(type) {
+      quickInputTargetType = type;
+      const titleMap = {
+        signed: '✅ 快捷錄入【已簽收件】單號',
+        refunded: '🔄 快捷錄入【已退款件】單號',
+        pendingPickup: '⚠️ 快捷錄入【清場仍待攬收】單號'
+      };
+      document.getElementById('quick-input-title').innerText = titleMap[type] || '快捷錄入單號';
+      
+      const currentVal = (type === 'signed' ? document.getElementById('inp-signed-nos').value : (type === 'refunded' ? document.getElementById('inp-refunded-nos').value : document.getElementById('inp-pending-pickup-nos').value));
+      document.getElementById('quick-input-textarea').value = currentVal;
+      document.getElementById('modal-quick-input-nos').classList.remove('hidden');
+    }
+
+    function closeQuickTrackingModal() {
+      document.getElementById('modal-quick-input-nos').classList.add('hidden');
+    }
+
+    function saveQuickTrackingInput() {
+      const raw = document.getElementById('quick-input-textarea').value.trim();
+      const count = raw ? raw.split(/[\n,]+/).filter(Boolean).length : 0;
+
+      if (quickInputTargetType === 'signed') {
+        document.getElementById('inp-signed-nos').value = raw;
+        document.getElementById('inp-signed').value = count;
+      } else if (quickInputTargetType === 'refunded') {
+        document.getElementById('inp-refunded-nos').value = raw;
+        document.getElementById('inp-refunded').value = count;
+      } else if (quickInputTargetType === 'pendingPickup') {
+        document.getElementById('inp-pending-pickup-nos').value = raw;
+        document.getElementById('inp-pending-pickup').value = count;
+      }
+
+      recalcRiderTally();
+      closeQuickTrackingModal();
+      alert(`✅ 已成功錄入 ${count} 條單號，並已自動同步件數！`);
+    }
+
+    // ==================== 🌟 功能八：上傳/派發新工單 ====================
+    function populateNewTicketRiders() {
+      const sel = document.getElementById('new-ticket-rider-select');
+      if (!sel) return;
+      sel.innerHTML = '';
+      accounts.forEach(a => {
+        if (a.id !== 'KM001' && a.id !== 'ADMIN') {
+          sel.innerHTML += `<option value="${a.name}">${a.name} (${a.id} • ${a.team})</option>`;
+        }
+      });
+    }
+
+    function saveNewDispatchedTicket() {
+      const tracking = document.getElementById('new-ticket-tracking').value.trim();
+      const address = document.getElementById('new-ticket-address').value.trim();
+      const phone = document.getElementById('new-ticket-phone').value.trim();
+      const riderName = document.getElementById('new-ticket-rider-select').value;
+      const issue = document.getElementById('new-ticket-issue').value.trim();
+      const fine = Number(document.getElementById('new-ticket-fine').value) || 0;
+      const today = document.getElementById('global-system-date').value || '8月15日';
+
+      if (!tracking || !address) {
+        alert('請填寫工單號及客人地址！');
+        return;
+      }
+
+      const newT = {
+        id: Date.now(),
+        date: today,
+        tracking: tracking,
+        entryCode: "-9",
+        address: address,
+        phone: phone,
+        issue: issue,
+        courier: riderName,
+        riderName: riderName,
+        result: "待跟進重派",
+        fineText: fine > 0 ? `罰$${fine}` : "-",
+        fineAmount: fine,
+        isDone: false
+      };
+
+      ticketsList.unshift(newT);
+      saveData();
+      renderTicketTable();
+      alert(`✅ 工單已成功派發給步兵【${riderName}】！該步兵登入時將會收到即時彈窗提醒。`);
+
+      document.getElementById('new-ticket-tracking').value = '';
+      document.getElementById('new-ticket-address').value = '';
+      document.getElementById('new-ticket-phone').value = '';
+      document.getElementById('new-ticket-issue').value = '';
+      document.getElementById('new-ticket-fine').value = '';
+    }
+
+    // ==================== 🌟 功能一：按同事過濾圍欄 ====================
+    function populateFenceRiderFilter() {
+      const sel = document.getElementById('fence-rider-filter-select');
+      if (!sel) return;
+      sel.innerHTML = '<option value="ALL">顯示全部圍欄</option>';
+      accounts.forEach(a => {
+        if (a.id !== 'KM001' && a.id !== 'ADMIN') {
+          sel.innerHTML += `<option value="${a.id}">${a.name} (${a.id})</option>`;
+        }
+      });
+    }
+
+    function renderZoneFencesByRider(riderId) {
+      const highlightBox = document.getElementById('rider-fences-highlight-box');
+      if (riderId === 'ALL') {
+        highlightBox.classList.add('hidden');
+        renderZoneFencesLists();
+        return;
+      }
+
+      const acc = accounts.find(a => a.id === riderId);
+      if (!acc) return;
+
+      const myFences = [];
+      ['kt', 'east', 'st'].forEach(z => {
+        (zoneAssignments[z] || []).filter(x => x.id === riderId).forEach(x => {
+          myFences.push(`${z === 'kt' ? '觀塘' : (z === 'east' ? '東區' : '沙田')} • ${x.fence} (${x.order})`);
+        });
+      });
+
+      highlightBox.classList.remove('hidden');
+      if (myFences.length > 0) {
+        highlightBox.innerHTML = `📍 <b>${acc.name}</b> 當天負責圍欄：<br>${myFences.map(f => `• ${f}`).join('<br>')}`;
+      } else {
+        highlightBox.innerHTML = `📍 <b>${acc.name}</b> 當天暫未排定特定圍欄。`;
+      }
+    }
+
+    // 工單全量彈窗
     function openTicketsModal() {
       populateTicketCourierDropdown();
+      populateNewTicketRiders();
       renderTicketTable();
       document.getElementById('modal-tickets-view').classList.remove('hidden');
       lucide.createIcons();
@@ -1357,7 +1884,8 @@
       thead.innerHTML = `
         <tr>
           <th class="py-3 px-4 sticky left-0 bg-slate-100/90 z-10">步兵姓名 (ID)</th>
-          <th class="py-3 px-3 text-center text-slate-800 bg-slate-200/60 font-bold">所屬組別 (點擊改)</th>
+          <th class="py-3 px-3 text-center text-slate-800 bg-slate-200/60 font-bold">身份角色 (點擊改)</th>
+          <th class="py-3 px-3 text-center text-slate-800 bg-slate-100 font-bold">所屬組別 (點擊改)</th>
           <th class="py-3 px-2 text-center text-amber-800 bg-amber-50/70 font-bold">密碼 (點擊改)</th>
           <th class="py-3 px-3 text-center text-indigo-800 bg-indigo-50/60 font-bold">指派圍欄與次序</th>
           ${fenceHeadersHTML}
@@ -1432,9 +1960,16 @@
               <input type="text" value="${acc.name}" onchange="updateAccountFieldStr(${idx}, 'name', this.value)" class="font-bold text-slate-900 bg-transparent border-b border-transparent focus:border-blue-500 px-1 py-0.5 rounded outline-none w-24">
               <input type="text" value="${acc.id}" onchange="updateAccountFieldStr(${idx}, 'id', this.value)" class="text-[11px] font-mono font-bold text-blue-600 w-14">
             </div>
-            <div class="text-[10px] text-slate-400 font-mono">${acc.role}</div>
           </td>
-          <td class="py-3 px-3 text-center bg-slate-50/80"><input type="text" value="${acc.team}" onchange="updateAccountFieldStr(${idx}, 'team', this.value)" class="w-28 bg-white border rounded-lg p-1 text-center font-bold text-xs"></td>
+          <td class="py-3 px-2 text-center">
+            <select onchange="updateAccountFieldStr(${idx}, 'role', this.value)" class="border rounded p-1 text-[11px] font-bold text-blue-800 bg-blue-50">
+              <option value="自營步兵" ${acc.role === '自營步兵' ? 'selected' : ''}>自營步兵</option>
+              <option value="組長" ${acc.role === '組長' ? 'selected' : ''}>組長</option>
+              <option value="普通步兵" ${acc.role === '普通步兵' ? 'selected' : ''}>普通步兵</option>
+              <option value="管理員" ${acc.role === '管理員' ? 'selected' : ''}>管理員</option>
+            </select>
+          </td>
+          <td class="py-3 px-2 text-center bg-slate-50/80"><input type="text" value="${acc.team}" onchange="updateAccountFieldStr(${idx}, 'team', this.value)" class="w-24 bg-white border rounded-lg p-1 text-center font-bold text-xs"></td>
           <td class="py-3 px-2 text-center bg-amber-50/50"><button onclick="openChangePasswordModal(${idx})" class="px-2 py-1 bg-white border border-amber-300 rounded-xl text-amber-900 font-mono font-bold text-[11px]">🔑 ${acc.password || '123'}</button></td>
           <td class="py-3 px-2 text-center bg-indigo-50/40"><div class="flex gap-1 justify-center"><input type="text" value="${acc.assignedFence || '全區'}" onchange="updateAccountFieldStr(${idx}, 'assignedFence', this.value)" class="w-24 bg-white border rounded p-1 text-[11px] font-bold"><input type="text" value="${acc.assignedOrder || '1'}" onchange="updateAccountFieldStr(${idx}, 'assignedOrder', this.value)" class="w-12 bg-white border rounded p-1 text-[11px] font-bold"></div></td>
           ${deskFencesHTML}
@@ -1598,7 +2133,7 @@
       recalcRiderTally();
     }
 
-    // 🌟 單號必填提示與動態高亮綁定
+    // 單號必填提示與動態高亮綁定
     function recalcRiderTally() {
       if (!loggedInUser) return;
       const acc = accounts[loggedInUser.idx];
@@ -1620,8 +2155,6 @@
       const advance = Number(document.getElementById('inp-rider-advance').value) || 0;
       const deduct = Number(document.getElementById('inp-rider-deduct').value) || 0;
 
-      // 簽收單號高亮提示
-      const boxSigned = document.getElementById('box-signed');
       const hintSigned = document.getElementById('hint-signed-count');
       const inpSignedNos = document.getElementById('inp-signed-nos');
       if (signed > 0) {
@@ -1633,8 +2166,6 @@
         inpSignedNos.classList.remove('ring-2', 'ring-emerald-400', 'bg-emerald-50/30');
       }
 
-      // 退款單號高亮提示
-      const boxRefunded = document.getElementById('box-refunded');
       const hintRefunded = document.getElementById('hint-refunded-count');
       const inpRefundedNos = document.getElementById('inp-refunded-nos');
       if (refunded > 0) {
@@ -1646,8 +2177,6 @@
         inpRefundedNos.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-50/30');
       }
 
-      // 待攬收單號高亮提示
-      const boxPending = document.getElementById('box-pending-pickup');
       const hintPending = document.getElementById('hint-pending-count');
       const inpPendingNos = document.getElementById('inp-pending-pickup-nos');
       if (pendingPickup > 0) {
@@ -1713,7 +2242,12 @@
     }
 
     // 快捷彈窗 1 - 9 函數
-    function openModal1() { document.getElementById('modal-fences-zone').classList.remove('hidden'); renderZoneFencesLists(); lucide.createIcons(); }
+    function openModal1() {
+      populateFenceRiderFilter();
+      document.getElementById('modal-fences-zone').classList.remove('hidden');
+      renderZoneFencesLists();
+      lucide.createIcons();
+    }
     function closeModal1() { document.getElementById('modal-fences-zone').classList.add('hidden'); }
     function renderZoneFencesLists() {
       const ktList = document.getElementById('m1-kt-list'), eastList = document.getElementById('m1-east-list'), stList = document.getElementById('m1-st-list');
@@ -1819,7 +2353,6 @@
     function closeTrackingModal() { document.getElementById('modal-tracking-numbers').classList.add('hidden'); }
     function saveTrackingModal() { if (editingTrackIdx >= 0) { accounts[editingTrackIdx].signedNos = document.getElementById('modal-inp-signed-nos').value; accounts[editingTrackIdx].refundedNos = document.getElementById('modal-inp-refunded-nos').value; accounts[editingTrackIdx].pendingPickupNos = document.getElementById('modal-inp-pending-pickup-nos').value; saveData(); } closeTrackingModal(); }
 
-    // 🌟 自動根據所選組別生成前綴 ID (KM, A, B, C, D)
     function autoGenerateRiderID() {
       const team = document.getElementById('new-rider-team-select').value;
       let prefix = 'KM';
@@ -1844,10 +2377,11 @@
     function saveNewRider() {
       const name = document.getElementById('new-rider-name').value.trim();
       const id = document.getElementById('new-rider-id-custom').value.trim().toUpperCase();
+      const role = document.getElementById('new-rider-role-select').value;
       const team = document.getElementById('new-rider-team-select').value;
       const pwd = document.getElementById('new-rider-password').value.trim() || '123';
       const payday = document.getElementById('new-rider-payday').value;
-      if (!name || !id) { alert('請填寫步兵姓名！'); return; }
+      if (!name || !id) { alert('請填寫人員姓名！'); return; }
 
       let prefix = 'KM';
       if (team === 'A組') prefix = 'A';
@@ -1859,13 +2393,13 @@
       coreFences.forEach(f => { prices[f.key] = Number(document.getElementById(`new-rider-p-${f.key}`).value) || f.defaultPrice; });
 
       accounts.push({
-        id: id, name: name, role: '普通步兵', team: team, prefix: prefix, password: pwd,
+        id: id, name: name, role: role, team: team, prefix: prefix, password: pwd,
         counts: {}, prices: prices, assignedFence: '未分配', assignedOrder: '第 1 順位',
         signed: 0, refunded: 0, pendingPickup: 0, payday: payday, deduct: 0, advance: 0, paidToday: 0
       });
 
       saveData();
-      alert(`✅ 步兵【${name} (${id})】已成功建立！\n組別：${team}\n糧期/扣數模式：${payday}`);
+      alert(`✅ 人員【${name} (${id})】已成功建立！\n角色：${role}\n組別：${team}\n糧期/扣數模式：${payday}`);
       closeAddRiderModal();
       document.getElementById('new-rider-name').value = '';
       renderAdminView();
