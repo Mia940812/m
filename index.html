@@ -68,7 +68,7 @@
           <button onclick="openModal5()" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white shadow-sm">⏰ 5- 報更</button>
           <button id="nav-btn-recruits" onclick="openRecruitsModal()" class="px-3 py-1.5 rounded-xl bg-purple-600 text-white shadow-sm hidden">📋 預約新人</button>
           <button onclick="openProgressModal()" class="px-3 py-1.5 rounded-xl bg-teal-600 text-white shadow-sm">📌 工作進度</button>
-          <button onclick="openTicketsModal()" class="px-3 py-1.5 rounded-xl bg-rose-600 text-white shadow-sm">🚨 工單 (<span id="header-ticket-count">37</span>)</button>
+          <button onclick="openTicketsModal()" class="px-3 py-1.5 rounded-xl bg-rose-600 text-white shadow-sm">🚨 工單 (<span id="header-ticket-count">5</span>)</button>
           <button onclick="openModal8()" class="px-3 py-1.5 rounded-xl bg-orange-600 text-white shadow-sm">🚗 車線調度</button>
           <button onclick="openModalSettlement()" class="px-3 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm">9- 埋數/物資</button>
           <button onclick="openUniversalExportModal('ALL')" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white shadow-sm flex items-center gap-1">
@@ -140,7 +140,7 @@
     </main>
   </div>
 
-  <!-- 🌟 1- 分區圍欄管理視窗 (支援新增 + 刪除) -->
+  <!-- 🌟 1- 分區圍欄管理視窗 -->
   <div id="modal-fences-zone" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-3 sm:p-4 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
@@ -150,7 +150,6 @@
         <button onclick="closeModal1()" class="p-1 font-bold text-slate-400">✕</button>
       </div>
 
-      <!-- ➕ 新增圍欄表單 -->
       <div class="bg-purple-50/70 p-3.5 rounded-2xl border border-purple-200 space-y-2 text-xs">
         <div class="font-bold text-purple-950 flex items-center gap-1">
           <i data-lucide="plus-circle" class="w-4 h-4 text-purple-600"></i> ➕ 建立新圍欄：
@@ -174,7 +173,6 @@
         </button>
       </div>
 
-      <!-- 分區清單列表 (帶有刪除功能) -->
       <div class="space-y-3 text-xs">
         <div class="flex justify-between items-center">
           <span class="font-bold text-slate-700">各區現有圍欄列表：</span>
@@ -219,7 +217,7 @@
           <select id="new-assign-fence-select" class="bg-white border rounded-xl p-2 font-bold"></select>
           <select id="new-assign-rider-select" class="bg-white border rounded-xl p-2 font-bold"></select>
           <select id="new-assign-order-select" class="bg-white border rounded-xl p-2 font-bold">
-            <option value="第 1 順位">第 1 順位 (預設首位 - 介面直接顯示姓名)</option>
+            <option value="第 1 順位">第 1 順位 (預設首位)</option>
             <option value="第 2 順位">第 2 順位</option>
             <option value="第 3 順位">第 3 順位</option>
             <option value="彈性支援">彈性支援</option>
@@ -322,7 +320,7 @@
       <div class="flex flex-wrap gap-1.5 text-xs font-bold bg-slate-50 p-2 rounded-2xl border" id="export-module-tabs">
         <button type="button" onclick="switchExportModule('shift_truck')" id="exp-tab-shift_truck" class="px-2.5 py-1 rounded-xl bg-blue-600 text-white">🚗 分區排更與車線</button>
         <button type="button" onclick="switchExportModule('tally')" id="exp-tab-tally" class="px-2.5 py-1 rounded-xl bg-white text-slate-700 border">📦 今日報數與單號</button>
-        <button type="button" onclick="switchExportModule('tickets')" id="exp-tab-tickets" class="px-2.5 py-1 rounded-xl bg-white text-slate-700 border">🚨 異常工單 (37宗)</button>
+        <button type="button" onclick="switchExportModule('tickets')" id="exp-tab-tickets" class="px-2.5 py-1 rounded-xl bg-white text-slate-700 border">🚨 異常工單</button>
         <button type="button" onclick="switchExportModule('counts')" id="exp-tab-counts" class="px-2.5 py-1 rounded-xl bg-white text-slate-700 border">📊 各區圍欄貨量</button>
         <button type="button" onclick="switchExportModule('recruits')" id="exp-tab-recruits" class="px-2.5 py-1 rounded-xl bg-white text-slate-700 border">📋 預約新人檔案</button>
         <button type="button" onclick="switchExportModule('expenses')" id="exp-tab-expenses" class="px-2.5 py-1 rounded-xl bg-white text-slate-700 border">💰 買物資與支出</button>
@@ -382,12 +380,69 @@
     </div>
   </div>
 
-  <!-- 8- 車線調度視窗 -->
+  <!-- 🌟 8- 車線調度視窗 (支援新增、編輯與刪除車線) -->
   <div id="modal-truck-routes" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">8- 車線調度</h3><button onclick="closeModal8()">✕</button></div>
-      <div id="truck-list" class="space-y-1.5 text-xs"></div>
-      <button onclick="closeModal8()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    <div class="bg-white rounded-3xl p-5 max-w-lg w-full shadow-2xl space-y-3 max-h-[88vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-sm text-slate-900 flex items-center gap-1">
+          <i data-lucide="truck" class="w-4 h-4 text-orange-600"></i> 8- 車線調度管理
+        </h3>
+        <button onclick="closeModal8()" class="font-bold text-slate-400">✕</button>
+      </div>
+
+      <!-- ➕ 新增 / 編輯車線表單 -->
+      <div class="bg-orange-50/70 p-3 rounded-2xl border border-orange-200 text-xs space-y-2">
+        <div class="font-bold text-orange-950 flex items-center gap-1">
+          <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-orange-600"></i> <span id="truck-form-title">➕ 建立/編輯車線：</span>
+        </div>
+        <input type="hidden" id="edit-truck-id" value="">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">區域</label>
+            <select id="truck-zone-inp" onchange="updateTruckFenceOptions()" class="w-full bg-white border border-orange-300 rounded-xl p-1.5 font-bold">
+              <option value="kt">📍 觀塘區</option>
+              <option value="east">📍 東區</option>
+              <option value="st">📍 沙田區</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">到貨時間</label>
+            <input id="truck-time-inp" type="time" value="08:30" class="w-full bg-white border border-orange-300 rounded-xl p-1.5 font-bold">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">司機姓名/車牌</label>
+            <input id="truck-driver-inp" type="text" placeholder="例如：陳司機 / AB1234" class="w-full bg-white border border-orange-300 rounded-xl p-1.5 font-bold">
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">車次名稱</label>
+            <input id="truck-order-inp" type="text" placeholder="例如：第 1 班車 / 早班" class="w-full bg-white border border-orange-300 rounded-xl p-1.5 font-bold">
+          </div>
+        </div>
+        <div>
+          <label class="font-bold text-slate-700 block mb-0.5">送達圍欄 / 地點</label>
+          <select id="truck-fence-inp" class="w-full bg-white border border-orange-300 rounded-xl p-1.5 font-bold"></select>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="saveTruckRouteForm()" class="flex-1 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold shadow-sm">
+            儲存車線資料
+          </button>
+          <button id="btn-cancel-edit-truck" onclick="cancelEditTruckRoute()" class="px-3 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold hidden">
+            取消編輯
+          </button>
+        </div>
+      </div>
+
+      <!-- 車線清單 -->
+      <div class="space-y-2 text-xs">
+        <div class="font-bold text-slate-700">現有車線列表：</div>
+        <div id="truck-list" class="space-y-2"></div>
+      </div>
+
+      <div class="pt-2 border-t">
+        <button onclick="closeModal8()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+      </div>
     </div>
   </div>
 
@@ -400,10 +455,10 @@
     </div>
   </div>
 
-  <!-- 工單視窗 (37宗全量) -->
+  <!-- 工單視窗 -->
   <div id="modal-tickets-view" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-3 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 max-w-2xl w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-rose-700">🚨 異常工單 (37 宗全量追蹤)</h3><button onclick="closeTicketsModal()">✕</button></div>
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-rose-700">🚨 異常工單追蹤</h3><button onclick="closeTicketsModal()">✕</button></div>
       <div id="tickets-container" class="space-y-2 text-xs max-h-80 overflow-y-auto"></div>
       <button onclick="closeTicketsModal()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
     </div>
@@ -427,7 +482,7 @@
     </div>
   </div>
 
-  <!-- JavaScript 完整資料庫與邏輯 -->
+  <!-- JavaScript 核心 -->
   <script>
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-RG2KUcGLCVVLxEK2zfpZXwilMJc_IpzXN4-ZMCijD2stGsPZxAkb3d-VFVOsqkrUPw/exec';
 
@@ -522,6 +577,7 @@
     let currentAssignmentViewMode = 'byFence';
     let currentExportModule = 'shift_truck';
     let loggedInUser = null;
+    let isCloudLoaded = false; // 防空白覆蓋旗標
 
     async function loadCloudData() {
       if (!GOOGLE_SCRIPT_URL) return;
@@ -533,6 +589,7 @@
           if (data.accounts) accounts = data.accounts;
           if (data.zoneAssignments) zoneAssignments = data.zoneAssignments;
           if (data.zoneFenceCounts) zoneFenceCounts = data.zoneFenceCounts;
+          if (data.truckRoutes) truckRoutes = data.truckRoutes;
           if (data.shiftReports) shiftReports = data.shiftReports;
           saveLocalData();
           document.getElementById('login-sync-status').innerText = '✅ Google Sheet 雲端連線成功';
@@ -540,6 +597,8 @@
         }
       } catch (err) {
         document.getElementById('login-sync-status').innerText = '⚠️ 離線快取模式';
+      } finally {
+        isCloudLoaded = true;
       }
     }
 
@@ -548,6 +607,7 @@
       localStorage.setItem(DB_KEY + 'ACCOUNTS', JSON.stringify(accounts));
       localStorage.setItem(DB_KEY + 'ASSIGNS', JSON.stringify(zoneAssignments));
       localStorage.setItem(DB_KEY + 'COUNTS', JSON.stringify(zoneFenceCounts));
+      localStorage.setItem(DB_KEY + 'TRUCKS', JSON.stringify(truckRoutes));
       localStorage.setItem(DB_KEY + 'SHIFTS', JSON.stringify(shiftReports));
     }
 
@@ -560,6 +620,7 @@
           accounts: accounts,
           zoneAssignments: zoneAssignments,
           zoneFenceCounts: zoneFenceCounts,
+          truckRoutes: truckRoutes,
           shiftReports: shiftReports
         };
         fetch(GOOGLE_SCRIPT_URL, {
@@ -577,6 +638,7 @@
         zoneFences = defaultZoneFences;
         accounts = initialAccounts;
         zoneAssignments = defaultAssignments;
+        truckRoutes = defaultTruckRoutes;
         saveData();
         location.reload();
       }
@@ -707,21 +769,17 @@
       document.getElementById('rider-fence-display').innerText = myFences.length ? myFences.join('、') : '暫未編排';
     }
 
-    // 🌟 1- 圍欄管理：新增與刪除圍欄邏輯
+    // 1- 圍欄管理
     function openModal1() {
       renderZoneFencesList();
       document.getElementById('modal-fences-zone').classList.remove('hidden');
       lucide.createIcons();
     }
-
-    function closeModal1() {
-      document.getElementById('modal-fences-zone').classList.add('hidden');
-    }
+    function closeModal1() { document.getElementById('modal-fences-zone').classList.add('hidden'); }
 
     function renderZoneFencesList() {
       const container = document.getElementById('m1-fences-container');
       container.innerHTML = '';
-
       const zoneNames = { kt: '📍 觀塘區', east: '📍 東區', st: '📍 沙田區' };
 
       ['kt', 'east', 'st'].forEach(z => {
@@ -760,11 +818,7 @@
     function saveNewZoneFence() {
       const zone = document.getElementById('new-fence-zone-select').value;
       const name = document.getElementById('new-fence-name-input').value.trim();
-
-      if (!name) {
-        alert('請填寫圍欄名稱！');
-        return;
-      }
+      if (!name) { alert('請填寫圍欄名稱！'); return; }
 
       zoneFences[zone] = zoneFences[zone] || [];
       const newId = `${zone}_${Date.now()}`;
@@ -772,22 +826,21 @@
 
       saveData();
       renderZoneFencesList();
-      alert(`✅ 成功建立新圍欄【${name}】！已同步至排更看板與 Google Sheet。`);
+      alert(`✅ 成功建立新圍欄【${name}】！`);
       document.getElementById('new-fence-name-input').value = '';
     }
 
     function deleteZoneFence(zone, idx) {
       const fence = zoneFences[zone][idx];
-      if (confirm(`確定要刪除圍欄【${fence.name}】嗎？\n(相關的分區排更亦會同步更新)`)) {
+      if (confirm(`確定要刪除圍欄【${fence.name}】嗎？`)) {
         zoneFences[zone].splice(idx, 1);
-        // 同步清理排班名冊中該圍欄的項目
         zoneAssignments[zone] = (zoneAssignments[zone] || []).filter(item => item.fence !== fence.name);
         saveData();
         renderZoneFencesList();
       }
     }
 
-    // 🌟 新增人員相關邏輯
+    // 新增人員
     function autoGenerateRiderID() {
       const team = document.getElementById('new-rider-team-select').value;
       let prefix = 'KM';
@@ -806,10 +859,7 @@
       document.getElementById('modal-add-rider').classList.remove('hidden');
       lucide.createIcons();
     }
-
-    function closeAddRiderModal() {
-      document.getElementById('modal-add-rider').classList.add('hidden');
-    }
+    function closeAddRiderModal() { document.getElementById('modal-add-rider').classList.add('hidden'); }
 
     function saveNewRider() {
       const name = document.getElementById('new-rider-name').value.trim();
@@ -819,31 +869,17 @@
       const pwd = document.getElementById('new-rider-password').value.trim() || '123';
       const payday = document.getElementById('new-rider-payday').value;
 
-      if (!name || !id) {
-        alert('請填寫人員姓名！');
-        return;
-      }
+      if (!name || !id) { alert('請填寫人員姓名！'); return; }
 
-      accounts.push({
-        id: id,
-        name: name,
-        role: role,
-        team: team,
-        password: pwd,
-        payday: payday,
-        advance: 0,
-        deduct: 0,
-        paidToday: 0
-      });
-
+      accounts.push({ id, name, role, team, password: pwd, payday, advance: 0, deduct: 0, paidToday: 0 });
       saveData();
-      alert(`✅ 成功新增人員【${name} (${id})】！資料已實時同步至 Google Sheet。`);
+      alert(`✅ 成功新增人員【${name} (${id})】！`);
       closeAddRiderModal();
       document.getElementById('new-rider-name').value = '';
       renderAdminView();
     }
 
-    // 2- 區域排班邏輯
+    // 2- 排班邏輯
     function openModal2() {
       const rSel = document.getElementById('new-assign-rider-select');
       rSel.innerHTML = '';
@@ -1006,16 +1042,130 @@
       renderFencesBoardGrid();
     }
 
-    // 🌟 萬能匯出中心邏輯
+    // 🌟 8- 車線調度完整增刪改邏輯
+    function updateTruckFenceOptions() {
+      const zone = document.getElementById('truck-zone-inp').value;
+      const sel = document.getElementById('truck-fence-inp');
+      sel.innerHTML = '';
+      (zoneFences[zone] || []).forEach(f => {
+        sel.innerHTML += `<option value="${f.name}">${f.name}</option>`;
+      });
+    }
+
+    function openModal8() {
+      updateTruckFenceOptions();
+      renderTruckRoutesList();
+      document.getElementById('modal-truck-routes').classList.remove('hidden');
+      lucide.createIcons();
+    }
+    function closeModal8() {
+      cancelEditTruckRoute();
+      document.getElementById('modal-truck-routes').classList.add('hidden');
+    }
+
+    function renderTruckRoutesList() {
+      const c = document.getElementById('truck-list');
+      c.innerHTML = '';
+      if (!truckRoutes.length) {
+        c.innerHTML = '<div class="text-slate-400 text-xs text-center py-2">目前未有已登記的車線資料</div>';
+        return;
+      }
+      const zoneNames = { kt: '觀塘', east: '東區', st: '沙田' };
+      truckRoutes.forEach((tr, idx) => {
+        const div = document.createElement('div');
+        div.className = 'p-2.5 border rounded-2xl bg-orange-50/70 flex justify-between items-center text-xs';
+        div.innerHTML = `
+          <div>
+            <div class="font-bold text-slate-900">
+              <span class="px-1.5 py-0.5 bg-orange-200 text-orange-800 rounded font-mono text-[10px] mr-1">${zoneNames[tr.zone] || '觀塘'}</span>
+              ⏰ ${tr.time} - ${tr.order || '車次'}
+            </div>
+            <div class="text-slate-600 mt-0.5">
+              🚗 司機: <b>${tr.driver}</b> ➜ 送達: <span class="text-orange-950 font-bold">${tr.fence}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button onclick="editTruckRoute(${idx})" class="px-2 py-1 bg-blue-600 text-white rounded-lg text-[11px] font-bold shadow-xs">編輯</button>
+            <button onclick="deleteTruckRoute(${idx})" class="px-2 py-1 bg-rose-600 text-white rounded-lg text-[11px] font-bold shadow-xs">刪除</button>
+          </div>
+        `;
+        c.appendChild(div);
+      });
+    }
+
+    function saveTruckRouteForm() {
+      const editId = document.getElementById('edit-truck-id').value;
+      const zone = document.getElementById('truck-zone-inp').value;
+      const time = document.getElementById('truck-time-inp').value;
+      const driver = document.getElementById('truck-driver-inp').value.trim();
+      const order = document.getElementById('truck-order-inp').value.trim() || '正班車';
+      const fence = document.getElementById('truck-fence-inp').value;
+
+      if (!driver) {
+        alert('請填寫司機姓名或車牌！');
+        return;
+      }
+
+      if (editId !== '') {
+        // 更新現有車線
+        const idx = Number(editId);
+        truckRoutes[idx] = { ...truckRoutes[idx], zone, time, driver, order, fence };
+        alert('✅ 車線資料已成功更新！');
+      } else {
+        // 新增車線
+        truckRoutes.push({
+          id: 'tr_' + Date.now(),
+          zone: zone,
+          time: time,
+          driver: driver,
+          order: order,
+          fence: fence
+        });
+        alert('✅ 成功建立新車線！');
+      }
+
+      saveData();
+      cancelEditTruckRoute();
+      renderTruckRoutesList();
+    }
+
+    function editTruckRoute(idx) {
+      const tr = truckRoutes[idx];
+      document.getElementById('edit-truck-id').value = idx;
+      document.getElementById('truck-zone-inp').value = tr.zone || 'kt';
+      updateTruckFenceOptions();
+      document.getElementById('truck-time-inp').value = tr.time;
+      document.getElementById('truck-driver-inp').value = tr.driver;
+      document.getElementById('truck-order-inp').value = tr.order || '';
+      document.getElementById('truck-fence-inp').value = tr.fence;
+
+      document.getElementById('truck-form-title').innerText = `✏️ 編輯車線 #${idx + 1}：`;
+      document.getElementById('btn-cancel-edit-truck').classList.remove('hidden');
+    }
+
+    function cancelEditTruckRoute() {
+      document.getElementById('edit-truck-id').value = '';
+      document.getElementById('truck-driver-inp').value = '';
+      document.getElementById('truck-order-inp').value = '';
+      document.getElementById('truck-form-title').innerText = '➕ 建立/編輯車線：';
+      document.getElementById('btn-cancel-edit-truck').classList.add('hidden');
+    }
+
+    function deleteTruckRoute(idx) {
+      if (confirm(`確定要刪除此車線調度嗎？`)) {
+        truckRoutes.splice(idx, 1);
+        saveData();
+        renderTruckRoutesList();
+      }
+    }
+
+    // 萬能匯出中心
     function openUniversalExportModal(mod) {
       if (mod && mod !== 'ALL') currentExportModule = mod;
       switchExportModule(currentExportModule);
       document.getElementById('modal-universal-export').classList.remove('hidden');
     }
-
-    function closeUniversalExportModal() {
-      document.getElementById('modal-universal-export').classList.add('hidden');
-    }
+    function closeUniversalExportModal() { document.getElementById('modal-universal-export').classList.add('hidden'); }
 
     function switchExportModule(mod) {
       currentExportModule = mod;
@@ -1179,16 +1329,6 @@
       saveData(); alert('✅ 報更已成功提交並同步至 Google Sheet！'); closeModal5();
     }
 
-    function openModal8() {
-      const c = document.getElementById('truck-list');
-      c.innerHTML = '';
-      truckRoutes.forEach(tr => {
-        c.innerHTML += `<div class="p-2 border rounded-xl bg-orange-50 font-bold">⏰ ${tr.time} - 司機: ${tr.driver} (圍欄: ${tr.fence})</div>`;
-      });
-      document.getElementById('modal-truck-routes').classList.remove('hidden');
-    }
-    function closeModal8() { document.getElementById('modal-truck-routes').classList.add('hidden'); }
-
     function openModalSettlement() {
       const c = document.getElementById('expenses-list');
       c.innerHTML = '';
@@ -1229,12 +1369,12 @@
     }
     function closeProgressModal() { document.getElementById('modal-work-progress').classList.add('hidden'); }
 
+    // 初始化：先讀取雲端，移除自動覆蓋邏輯
     document.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
       const dateInp = document.getElementById('global-system-date');
       if (dateInp) dateInp.value = today;
       loadCloudData();
-      saveData();
     });
   </script>
 </body>
