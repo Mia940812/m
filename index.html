@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工單派送與罰款追蹤管理系統</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 p-4 md:p-8">
+  <div class="max-w-7xl mx-auto">
+    
+    <!-- 頁頭 -->
+    <header class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900">📦 派件異常工單與罰款管理系統</h1>
+        <p class="text-sm text-gray-500 mt-1">實時工單統計、責任步兵追蹤及入口篩選</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+          ● 數據已全面同步 (共 <span id="totalTicketsCount" class="font-bold ml-1">0</span> 筆)
+        </span>
+      </div>
+    </header>
+
+    <!-- 數據概覽卡片 -->
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+        <div class="text-xs font-semibold text-gray-500 uppercase">總工單數</div>
+        <div class="text-2xl font-bold text-gray-900 mt-1" id="statTotal">0</div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+        <div class="text-xs font-semibold text-green-600 uppercase">已完成處理</div>
+        <div class="text-2xl font-bold text-green-600 mt-1" id="statCompleted">0</div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+        <div class="text-xs font-semibold text-yellow-600 uppercase">處理中 / 待跟進</div>
+        <div class="text-2xl font-bold text-yellow-600 mt-1" id="statPending">0</div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+        <div class="text-xs font-semibold text-red-600 uppercase">罰款及理賠總額</div>
+        <div class="text-2xl font-bold text-red-600 mt-1" id="statFines">$0.00</div>
+      </div>
+    </div>
+
+    <!-- 快速入口與篩選控制面板 -->
+    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6 space-y-4">
+      <!-- 快捷入口按鈕（新增 -9, -10, -11 入口） -->
+      <div>
+        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">快速入口標記</label>
+        <div class="flex flex-wrap gap-2" id="entryButtons">
+          <button onclick="setFilter('entry', 'ALL')" class="entry-btn active px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white transition shadow-sm" data-entry="ALL">全部入口</button>
+          <!-- 新增入口 -->
+          <button onclick="setFilter('entry', '-9')" class="entry-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-entry="-9">-9 入口</button>
+          <button onclick="setFilter('entry', '-10')" class="entry-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-entry="-10">-10 入口</button>
+          <button onclick="setFilter('entry', '-11')" class="entry-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-entry="-11">-11 入口</button>
+          <span class="border-r border-gray-300 mx-1"></span>
+          <!-- 後綴代碼入口 -->
+          <button onclick="setFilter('entry', '03F')" class="entry-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-entry="03F">03F</button>
+          <button onclick="setFilter('entry', '46F')" class="entry-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-entry="46F">46F</button>
+          <button onclick="setFilter('entry', '68F')" class="entry-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-entry="68F">68F</button>
+          <button onclick="setFilter('entry', '03E')" class="entry-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-entry="03E">03E</button>
+          <button onclick="setFilter('entry', '09E')" class="entry-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-entry="09E">09E</button>
+          <button onclick="setFilter('entry', '11E')" class="entry-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-entry="11E">11E</button>
+          <button onclick="setFilter('entry', '13E')" class="entry-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition" data-entry="13E">13E</button>
+        </div>
+      </div>
+
+      <!-- 關鍵字搜尋與狀態篩選 -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-gray-100">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">關鍵字搜尋 (單號 / 地址 / 電話 / 步兵)</label>
+          <input type="text" id="searchInput" oninput="applyFilters()" placeholder="輸入關鍵字檢索..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">處理狀態</label>
+          <select id="statusFilter" onchange="applyFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <option value="ALL">全部狀態</option>
+            <option value="COMPLETED">✅ 已處理完成</option>
+            <option value="PENDING">⏳ 處理中 / 待跟進</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">區域 / 責任步兵</label>
+          <select id="courierFilter" onchange="applyFilters()" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <option value="ALL">全部人員 / 途徑</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 工單數據表格 -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase">
+              <th class="p-3">日期</th>
+              <th class="p-3">工單號 / 代碼</th>
+              <th class="p-3">客人地址</th>
+              <th class="p-3">電話</th>
+              <th class="p-3">判責 / 反饋說明</th>
+              <th class="p-3">責任步兵 / 途徑</th>
+              <th class="p-3">調查結果</th>
+              <th class="p-3">罰款 / 賠付</th>
+              <th class="p-3 text-center">狀態</th>
+            </tr>
+          </thead>
+          <tbody id="ticketTableBody" class="divide-y divide-gray-200">
+            <!-- 動態渲染內容 -->
+          </tbody>
+        </table>
+      </div>
+      <div id="noResults" class="hidden p-8 text-center text-gray-500">
+        沒有找到符合條件的工單。
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // 完整的已錄入工單資料庫 (包含東區及觀塘批次，共 37 條)
+    const rawTickets = [
+      // 港島東區批次
+      { id: 1, date: "8月4日", tracking: "JT0025007121305 / JT0025006606703", entryCode: "68F", address: "筲箕灣東大街2號麗東海景豪園2座20樓F室", phone: "90895379", issue: "同客戶兩件反饋送錯單元，盡快取回重派", courier: "觀塘（嘉）-MS 梁軒銘", result: "已派回", fineText: "罰$50x2", fineAmount: 100, isDone: true },
+      { id: 2, date: "8月4日", tracking: "JT0025004238936", entryCode: "69F", address: "筲箕灣寶文街1號峻峰花園D座2603室", phone: "92361296", issue: "未收到包裹，疑似送錯門口，加急取回重派", courier: "東區（嘉）-吳嘉榮", result: "已派回", fineText: "罰$50", fineAmount: 50, isDone: true },
+      { id: 3, date: "8月1日", tracking: "JT0024953202959", entryCode: "03F", address: "筲箕灣東旭苑東曉閣20樓零一室", phone: "98643772", issue: "送錯家門，取回重派並致電", courier: "中西（嘉）-MM黃傅钏", result: "錯派.現在客人已收到", fineText: "-", fineAmount: 0, isDone: true },
+      { id: 4, date: "8月2日", tracking: "JT0024973137081", entryCode: "03F", address: "東旭苑 東麗閣 7層 703", phone: "67671990", issue: "簽收家門口不對，核實是否送錯", courier: "沙田（嘉）-王利民", result: "聯絡唔到客人", fineText: "-", fineAmount: 0, isDone: false },
+      { id: 5, date: "8月2日", tracking: "JT0024958384876", entryCode: "46F", address: "康翠台 1座 10層 K室", phone: "96595396", issue: "送錯地址未收到，取回重派並回電", courier: "東區（嘉）-李健龍", result: "聯絡唔到客人", fineText: "罰$50 + 理賠$8.12", fineAmount: 58.12, isDone: true },
+      { id: 6, date: "8月5日", tracking: "JT0025018305318", entryCode: "", address: "小西灣瑞益樓10樓04室", phone: "60709790", issue: "1004派錯去了1006，盡快處理並回電", courier: "觀塘（嘉）-MS 梁軒銘", result: "已派回", fineText: "罰$50", fineAmount: 50, isDone: true },
+      { id: 7, date: "8月5日", tracking: "JT0025016268623", entryCode: "46F", address: "柴灣柴灣道111號高威阁4座19樓H室", phone: "92898525", issue: "送錯地址麻煩核實", courier: "中西（嘉）-MM黃傅钏", result: "聯絡中", fineText: "-", fineAmount: 0, isDone: false },
+      { id: 8, date: "8月4日", tracking: "JT0025001707329", entryCode: "47F", address: "筲箕灣筲箕灣東大街98-112號7-11便利店", phone: "53212627", issue: "出倉掃描無路由，核實是否漏派遺落", courier: "元朗洪水橋-羅錦榮", result: "聯絡中", fineText: "132.25港幣 + 罰$50", fineAmount: 182.25, isDone: false },
+      { id: 9, date: "8月9日", tracking: "JT0025072811679", entryCode: "48F", address: "筲箕灣愛東邨愛逸樓35樓3518室", phone: "62246352", issue: "司機交接件，派送時務必致電聯繫", courier: "司機交接-小台", result: "已按要求派送", fineText: "-", fineAmount: 0, isDone: true },
+      { id: 10, date: "8月7日", tracking: "JT0025048231383", entryCode: "49F", address: "柴灣漁灣邨漁順樓366室", phone: "63070575", issue: "送錯地址核實", courier: "中西（嘉）-MM黃傅钏", result: "聯絡中", fineText: "-", fineAmount: 0, isDone: false },
+      { id: 11, date: "8月4日", tracking: "JT0025016268623", entryCode: "50F", address: "柴灣小西灣瑞發樓802", phone: "95358768", issue: "802派到902，核實並回電", courier: "中西（嘉）-MM鄺家昊", result: "已跟進確認", fineText: "$176.51港幣 + 罰$50", fineAmount: 226.51, isDone: true },
+      { id: 12, date: "8月10日", tracking: "JT0025099061327", entryCode: "15F", address: "筲箕湾阿公岩道17號明華大廈E座512", phone: "57821942", issue: "512派到513/515門口，核實並回電", courier: "中西（嘉）-MM鄺家昊", result: "已重派完成", fineText: "-", fineAmount: 0, isDone: true },
+      { id: 13, date: "8月11日", tracking: "JT0025090292722", entryCode: "", address: "筲箕灣東旭苑東麗閣28樓2室", phone: "98794706", issue: "送錯家門口，取回重新派送", courier: "觀塘（嘉）-MS 梁軒銘", result: "已重派", fineText: "-", fineAmount: 0, isDone: true },
+      { id: 14, date: "8月11日", tracking: "JT0025072826397", entryCode: "03F", address: "筲箕灣愛賢街8號東旭苑東麗閣35樓01室", phone: "94304990", issue: "簽收圖片位置不對，核實並回電", courier: "觀塘（嘉）-MS 梁軒銘", result: "已處理完畢", fineText: "-", fineAmount: 0, isDone: true },
+      { id: 15, date: "8月11日", tracking: "JT0025036940105", entryCode: "68F", address: "東區 東大街59-99 東威大廈第二座2113室", phone: "60771210", issue: "核實是否漏派或遺落現場", courier: "觀塘（嘉）-MS 梁軒銘", result: "已核實結案", fineText: "$102.65港幣 + 罰$50", fineAmount: 152.65, isDone: true },
+      { id: 16, date: "8月11日", tracking: "JT0025072453969", entryCode: "03F", address: "筲箕灣東旭苑東麗閣40樓01室", phone: "97795191", issue: "送錯門口，取回重派並回電", courier: "觀塘（嘉）-MS 梁軒銘", result: "已取回重派", fineText: "-", fineAmount: 0, isDone: true },
+
+      // 九龍觀塘批次
+      { id: 17, date: "8月4日", tracking: "JT0025008741284", entryCode: "12E", address: "藍田麗港城10座25樓C室", phone: "68416887", issue: "送錯地址未收到包裹，需取回重派", courier: "帳戶李偉文（康用）", result: "待跟進", fineText: "-", fineAmount: 0, isDone: false },
+      { id: 18, date: "7月29日", tracking: "JT0024881775924", entryCode: "03E", address: "觀塘 香港企業大廈 11層 1106室", phone: "63883887", issue: "簽收未收到，簽收圖片不規範", courier: "MM NG KA WING（銘用）", result: "步兵錯派 包裹已送回比客人", fineText: "罰$50", fineAmount: 50, isDone: true },
+      { id: 19, date: "8月1日", tracking: "JT0024959334154", entryCode: "03E", address: "偉業街142號 達通大廈6樓1室", phone: "97706733", issue: "簽收未收到，簽收圖片不符", courier: "MM NG KA WING", result: "步兵錯派 包裹已送回比客人", fineText: "罰$50", fineAmount: 50, isDone: true },
+      { id: 20, date: "8月3日", tracking: "JT0024989081566", entryCode: "06E", address: "觀塘鴻圖道41号華鴻工贸中心7樓702A室", phone: "62238444", issue: "客戶反饋簽收未收到，核實並回電", courier: "沙田（嘉）-王利民", result: "客人未返到誤會未收到貨，已確認收到", fineText: "-", fineAmount: 0, isDone: true },
+      { id: 21, date: "8月1日", tracking: "JT0024956449821", entryCode: "14E", address: "麗港城 30座 5層 H室", phone: "98208665", issue: "簽收未收到，簽收圖片不符", courier: "東區（嘉）-MM姜嘉敏", result: "壞lift.客人冇Whatapp.步兵信息通知放管理處", fineText: "-", fineAmount: 0, isDone: true },
+      { id: 22, date: "7月31日", tracking: "JT0024894042809", entryCode: "13E", address: "茶果嶺麗港城1期21座6F室", phone: "95886920", issue: "司機小香取件後無路由，核實包裹", courier: "司機交接（小香）", result: "倉庫同單號出2份件，30號已派，已提交訊息", fineText: "-", fineAmount: 0, isDone: true },
+      { id: 23, date: "8月6日", tracking: "JT0025030208899", entryCode: "09E", address: "觀塘道472-474號 觀塘工業中心一期9樓F室", phone: "91608979", issue: "非市民包裹且聯絡不上，需取回答退倉", courier: "沙田（嘉）-王利民", result: "步兵錯派 包裹已送回比客人", fineText: "罰$50", fineAmount: 50, isDone: true },
+      { id: 24, date: "8月3日", tracking: "JT0024980932155", entryCode: "10E", address: "啟匯 啟匯 6層 全層室", phone: "60939997", issue: "司機徐耀明交接後無路由，核實包裹", courier: "司機交接（徐耀明）", result: "清場仍有待攬 當晚已上報", fineText: "-", fineAmount: 0, isDone: true },
+      { id: 25, date: "8月5日", tracking: "JT0025020955723", entryCode: "13E", address: "麗港城19座2E", phone: "93632954", issue: "送錯家門口，取回重派並電聯客戶", courier: "觀塘（嘉）-吳瑋儒", result: "步兵錯派 包裹已送回比客人", fineText: "罰$50", fineAmount: 50, isDone: true },
+      { id: 26, date: "8月5日", tracking: "JT0025014538716", entryCode: "05E", address: "創紀之城5期 UC層 3号室(再睡五分鐘)", phone: "94066636", issue: "簽收未收到，送達照片不規範", courier: "九龍（嘉）-盧志聰", result: "已處理完畢", fineText: "-", fineAmount: 0, isDone: true },
+      { id: 27, date: "8月7日", tracking: "JT0025050829672", entryCode: "", address: "觀塘駿業里10號業運工業大廈2樓A室", phone: "91848844", issue: "客戶反饋少了一箱芒果，核實是否遺漏", courier: "九龍（嘉）-盧志聰", result: "貨物得1箱芒果，所有貨已清已交相", fineText: "-", fineAmount: 0, isDone: true },
+      { id: 28, date: "8月3日", tracking: "JT0024984596851", entryCode: "11E", address: "麗港城1期2座21樓E室", phone: "97818255", issue: "司機徐耀明交接後無路由，核實是否漏派", courier: "司機交接（徐耀明）", result: "清場仍有待攬 當晚已上報", fineText: "-", fineAmount: 0, isDone: true },
+      { id: 29, date: "8月8日", tracking: "JT0024813782284", entryCode: "09E", address: "觀塘工業中心三期12樓V室v7房", phone: "61042515", issue: "不認識送達位置意向棄件，核實情況", courier: "觀塘（嘉）-MS 周健", result: "地址正確但嚴重臭味漏水，客人要求棄件", fineText: "-", fineAmount: 0, isDone: true },
+      { id: 30, date: "8月9日", tracking: "JT0025075941793等6單", entryCode: "09E", address: "觀塘工業中心二期一樓J8室", phone: "56213447", issue: "同一客戶6件同時簽收但未收到", courier: "觀塘（嘉）-MS 周健", result: "步兵派J室(J8要轉彎)，客人已自行取回", fineText: "-", fineAmount: 0, isDone: true },
+      { id: 31, date: "8月4日", tracking: "JT0025001607329", entryCode: "", address: "筲箕灣東大街98-112號7-11便利店", phone: "53212627", issue: "出倉掃描羅錦榮，核實是否漏派遺落", courier: "出倉掃描（羅錦榮）", result: "待跟進", fineText: "-", fineAmount: 0, isDone: false },
+      { id: 32, date: "8月8日", tracking: "JT0025070159311", entryCode: "03E", address: "駿業街43-45號創匯廣場11樓06室", phone: "97460619", issue: "送錯地址，盡快核實", courier: "九龍（嘉）-MM NG KA WING", result: "已處理完畢", fineText: "-", fineAmount: 0, isDone: true },
+      { id: 33, date: "8月7日", tracking: "JT0025051215648", entryCode: "03E", address: "One Harbour Square 19層 全室", phone: "95565102", issue: "反饋未收到，核實是否送錯", courier: "觀塘（嘉）-MS 周健", result: "處理中", fineText: "-", fineAmount: 0, isDone: false },
+      { id: 34, date: "8月8日", tracking: "JT0025057380466", entryCode: "05E", address: "觀塘巧明街116號萬年工業大廈6樓A座B3", phone: "93002536", issue: "送錯地址，安排重派並電聯", courier: "觀塘（嘉）-吳瑋儒", result: "處理中", fineText: "-", fineAmount: 0, isDone: false },
+      { id: 35, date: "8月8日", tracking: "JT0025062262591", entryCode: "09E", address: "觀塘工業中心二期1樓J5", phone: "95417858", issue: "司機小魚交接後無路由，核實漏派遺落", courier: "司機交接（小魚）", result: "待跟進", fineText: "-", fineAmount: 0, isDone: false },
+      { id: 36, date: "8月3日", tracking: "JT0024984596851", entryCode: "11E", address: "麗港城1期2座21樓E室 (重複記錄)", phone: "97818255", issue: "司機徐耀明交接件", courier: "司機交接", result: "清場上報", fineText: "-", fineAmount: 0, isDone: true },
+      { id: 37, date: "8月8日", tracking: "JT0025061039326", entryCode: "03E", address: "海濱道181號 One Harbour square 8樓3室", phone: "97285373", issue: "送錯地址，請盡快核實", courier: "觀塘（嘉）-MS 周健", result: "待跟進", fineText: "-", fineAmount: 0, isDone: false }
+    ];
+
+    let currentEntry = 'ALL';
+
+    // 初始化頁面
+    function init() {
+      populateCouriers();
+      applyFilters();
+    }
+
+    // 填充人員下拉列表
+    function populateCouriers() {
+      const select = document.getElementById('courierFilter');
+      const couriers = [...new Set(rawTickets.map(t => t.courier).filter(Boolean))];
+      couriers.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        select.appendChild(opt);
+      });
+    }
+
+    // 設定入口過濾（支援 -9, -10, -11 等）
+    function setFilter(type, value) {
+      if (type === 'entry') {
+        currentEntry = value;
+        document.querySelectorAll('.entry-btn').forEach(btn => {
+          if (btn.getAttribute('data-entry') === value) {
+            btn.className = 'entry-btn active px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white transition shadow-sm';
+          } else {
+            btn.className = 'entry-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition';
+          }
+        });
+        applyFilters();
+      }
+    }
+
+    // 執行綜合篩選與渲染
+    function applyFilters() {
+      const search = document.getElementById('searchInput').value.trim().toLowerCase();
+      const status = document.getElementById('statusFilter').value;
+      const courier = document.getElementById('courierFilter').value;
+
+      const filtered = rawTickets.filter(t => {
+        // 入口篩選（包含 -9, -10, -11 或 09E, 10E, 11E 等後綴）
+        if (currentEntry !== 'ALL') {
+          if (currentEntry === '-9' && !(t.entryCode.includes('09') || t.entryCode.includes('9'))) return false;
+          if (currentEntry === '-10' && !(t.entryCode.includes('10'))) return false;
+          if (currentEntry === '-11' && !(t.entryCode.includes('11'))) return false;
+          if (!['-9', '-10', '-11'].includes(currentEntry) && t.entryCode !== currentEntry) return false;
+        }
+
+        // 狀態篩選
+        if (status === 'COMPLETED' && !t.isDone) return false;
+        if (status === 'PENDING' && t.isDone) return false;
+
+        // 責任人篩選
+        if (courier !== 'ALL' && t.courier !== courier) return false;
+
+        // 關鍵字搜尋
+        if (search) {
+          const match = t.tracking.toLowerCase().includes(search) ||
+                        t.address.toLowerCase().includes(search) ||
+                        t.phone.includes(search) ||
+                        t.courier.toLowerCase().includes(search) ||
+                        t.issue.toLowerCase().includes(search);
+          if (!match) return false;
+        }
+
+        return true;
+      });
+
+      renderTable(filtered);
+      updateStats(filtered);
+    }
+
+    // 渲染表格
+    function renderTable(tickets) {
+      const tbody = document.getElementById('ticketTableBody');
+      const noResults = document.getElementById('noResults');
+      tbody.innerHTML = '';
+
+      if (tickets.length === 0) {
+        noResults.classList.remove('hidden');
+        return;
+      }
+      noResults.classList.add('hidden');
+
+      tickets.forEach(t => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50 transition border-b border-gray-100';
+
+        tr.innerHTML = `
+          <td class="p-3 text-xs text-gray-500 whitespace-nowrap">${t.date}</td>
+          <td class="p-3 font-mono text-xs">
+            <div class="font-bold text-gray-900">${t.tracking}</div>
+            ${t.entryCode ? `<span class="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-[11px] font-semibold">${t.entryCode}</span>` : ''}
+          </td>
+          <td class="p-3 text-xs text-gray-700 max-w-xs break-words">${t.address}</td>
+          <td class="p-3 text-xs font-mono text-gray-600">${t.phone}</td>
+          <td class="p-3 text-xs text-gray-600 max-w-xs">${t.issue}</td>
+          <td class="p-3 text-xs font-medium text-gray-800 whitespace-nowrap">${t.courier || '-'}</td>
+          <td class="p-3 text-xs text-gray-600">${t.result || '-'}</td>
+          <td class="p-3 text-xs font-semibold ${t.fineAmount > 0 ? 'text-red-600' : 'text-gray-400'}">${t.fineText}</td>
+          <td class="p-3 text-center whitespace-nowrap">
+            ${t.isDone 
+              ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">✅ 已完成</span>' 
+              : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">⏳ 跟進中</span>'}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 更新面板數據統計
+    function updateStats(tickets) {
+      document.getElementById('totalTicketsCount').textContent = rawTickets.length;
+      document.getElementById('statTotal').textContent = tickets.length;
+      document.getElementById('statCompleted').textContent = tickets.filter(t => t.isDone).length;
+      document.getElementById('statPending').textContent = tickets.filter(t => !t.isDone).length;
+
+      const totalFines = tickets.reduce((sum, t) => sum + (t.fineAmount || 0), 0);
+      document.getElementById('statFines').textContent = `$${totalFines.toFixed(2)} HKD`;
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
