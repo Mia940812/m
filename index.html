@@ -227,7 +227,7 @@
         </div>
       </div>
 
-      <!-- 手機端卡片流 -->
+      <!-- 🌟 手機端專屬步兵卡片流 (已完整補齊) -->
       <div id="admin-mobile-cards" class="block md:hidden space-y-3"></div>
 
       <!-- 電腦端寬螢幕表格 -->
@@ -295,7 +295,7 @@
       </div>
     </main>
 
-    <!-- ==================== 3. 步兵獨立每日報數端 (含回倉件及快捷鍵) ==================== -->
+    <!-- ==================== 3. 步兵獨立每日報數端 ==================== -->
     <main id="view-rider" class="flex-1 p-3.5 hidden flex justify-center items-start pt-2 sm:pt-6 tab-content">
       <div class="w-full max-w-lg bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
         
@@ -415,7 +415,7 @@
             </div>
           </div>
 
-          <!-- 🌟 全新新增：回倉件 ＋ 快捷填單號按鈕 -->
+          <!-- 🌟 回倉件 ＋ 快捷填單號按鈕 -->
           <div class="p-3 bg-indigo-50/60 rounded-2xl border border-indigo-200 space-y-2" id="box-returned">
             <div class="flex justify-between items-center">
               <label class="text-xs font-bold text-indigo-900 block flex items-center gap-1">
@@ -911,7 +911,7 @@ JT0025006606703" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-
       { id: 'exp_1', date: new Date().toISOString().split('T')[0], name: '買封箱大膠紙 (6卷)', amount: 120, buyer: 'Mia', remark: '日常包裝耗材' }
     ];
 
-    const DB_PREFIX = 'MIA_ULTRA_FLEX_2026_FINAL_V3_';
+    const DB_PREFIX = 'MIA_ULTRA_FLEX_2026_FINAL_V4_';
 
     let zoneFences = JSON.parse(localStorage.getItem(DB_PREFIX + 'ZONE_FENCES')) || defaultZoneFences;
     let zoneFenceCounts = JSON.parse(localStorage.getItem(DB_PREFIX + 'ZONE_COUNTS')) || {};
@@ -1494,7 +1494,7 @@ JT0025006606703" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-
       alert('✅ 區域排更表已成功複製！可直接至 WhatsApp 群組中發布。');
     }
 
-    // 快捷單號錄入彈窗 (支援回倉件)
+    // 快捷單號錄入彈窗
     function openQuickTrackingModal(type) {
       quickInputTargetType = type;
       const titleMap = {
@@ -1735,7 +1735,7 @@ JT0025006606703" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-
       }
     }
 
-    // 總管理員全盤大表
+    // 🌟 總管理員全盤大表（含手機端卡片流）
     function renderAdminView() {
       updateFilterDropdown();
       const filter = document.getElementById('adm-filter-team').value;
@@ -1765,7 +1765,7 @@ JT0025006606703" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-
           <th class="py-3 px-2 text-center font-bold">總票量</th>
           <th class="py-3 px-2 text-center text-emerald-700">已簽收</th>
           <th class="py-3 px-2 text-center text-rose-700 font-bold">已退款</th>
-          <th class="py-3 px-2 text-center text-amber-700 font-bold">清場待攬收</th>
+          <th class="py-3 px-2 text-center text-amber-700 font-bold">圍欄清場待攬收</th>
           <th class="py-3 px-2 text-center text-indigo-700 font-bold">回倉件</th>
           <th class="py-3 px-2 text-center font-bold">總金額(毛)</th>
           <th class="py-3 px-2 text-center text-rose-600 font-medium">工單罰款/扣糧</th>
@@ -1778,7 +1778,7 @@ JT0025006606703" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-
         </tr>
       `;
 
-      let totalTickets = 0, totalSigned = 0, totalRefunded = 0, totalPendingPickup = 0, pendingPickupRidersCount = 0;
+      let totalTickets = 0, totalSigned = 0, totalRefunded = 0, totalPendingPickup = 0, totalReturned = 0, pendingPickupRidersCount = 0;
       let totalNetWage = 0, totalPaidToday = 0, totalDebt = 0;
 
       accounts.forEach((acc, idx) => {
@@ -1806,12 +1806,115 @@ JT0025006606703" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-
         totalSigned += (acc.signed || 0);
         totalRefunded += (acc.refunded || 0);
         totalPendingPickup += (acc.pendingPickup || 0);
+        totalReturned += (acc.returned || 0);
         if (acc.pendingPickup > 0) pendingPickupRidersCount++;
 
         totalNetWage += netWage;
         totalPaidToday += (acc.paidToday || 0);
         if (netDebt > 0) totalDebt += netDebt;
 
+        // 手機端圍欄輸入 HTML
+        let mobileFencesHTML = '';
+        coreFences.forEach(f => {
+          const cnt = acc.counts[f.key] || 0;
+          const prc = acc.prices[f.key];
+          mobileFencesHTML += `
+            <div class="bg-blue-50/50 p-2 rounded-2xl border border-blue-100 text-center">
+              <div class="text-[10px] text-blue-700 font-bold">${f.name} (件)</div>
+              <input type="number" value="${cnt}" onchange="updateAccountNestedField(${idx}, 'counts', '${f.key}', this.value)" class="w-full bg-white border border-slate-200 rounded-xl p-1 text-center font-black text-blue-700 mt-1 shadow-sm">
+              <div class="flex items-center justify-center gap-0.5 mt-1 text-[10px] text-blue-900 font-bold">
+                $<input type="number" step="0.5" value="${prc}" onchange="updateAccountNestedField(${idx}, 'prices', '${f.key}', this.value)" class="w-9 bg-white border border-blue-300 rounded p-0.5 text-center font-bold">/件
+              </div>
+            </div>
+          `;
+        });
+
+        // 🌟 手機端專屬步兵卡片
+        const card = document.createElement('div');
+        card.className = `bg-white rounded-3xl border ${acc.pendingPickup > 0 ? 'border-amber-400 bg-amber-50/20' : 'border-slate-200/90'} p-4 shadow-sm space-y-3`;
+        card.innerHTML = `
+          <div class="flex justify-between items-start border-b border-slate-100 pb-2.5">
+            <div class="flex-1 mr-2">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <input type="text" value="${acc.name}" onchange="updateAccountFieldStr(${idx}, 'name', this.value)" class="font-black text-base text-slate-900 bg-transparent border-b border-transparent focus:border-blue-500 focus:bg-white px-1 py-0.5 rounded outline-none w-24">
+                <input type="text" value="${acc.id}" onchange="updateAccountFieldStr(${idx}, 'id', this.value)" class="text-xs px-2 py-0.5 rounded font-mono font-black bg-blue-50 text-blue-700 border border-blue-200 w-16 text-center">
+                <select onchange="updateAccountFieldStr(${idx}, 'role', this.value)" class="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                  <option value="自營步兵" ${acc.role === '自營步兵' ? 'selected' : ''}>自營步兵</option>
+                  <option value="組長" ${acc.role === '組長' ? 'selected' : ''}>組長</option>
+                  <option value="普通步兵" ${acc.role === '普通步兵' ? 'selected' : ''}>普通步兵</option>
+                  <option value="管理員" ${acc.role === '管理員' ? 'selected' : ''}>管理員</option>
+                </select>
+                <input type="text" value="${acc.team}" onchange="updateAccountFieldStr(${idx}, 'team', this.value)" title="修改組別" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-100 text-slate-700 border border-slate-200 w-24 text-center">
+              </div>
+              <div class="text-[11px] text-blue-600 font-bold mt-1 flex items-center gap-1">
+                <i data-lucide="map-pin" class="w-3 h-3 text-blue-500"></i> ${acc.assignedFence || '未排班'} • ${acc.assignedOrder || '順位1'}
+              </div>
+            </div>
+            <div class="text-right flex-shrink-0 space-y-1">
+              <button onclick="openChangePasswordModal(${idx})" class="px-2.5 py-1 bg-amber-50 text-amber-900 border border-amber-300 rounded-xl text-xs font-mono font-bold block ml-auto shadow-sm hover:bg-amber-100">
+                🔑 ${acc.password || '123'}
+              </button>
+              <div class="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">${acc.payday}</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs">${mobileFencesHTML}</div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-center text-xs">
+            <div class="bg-emerald-50/60 p-2 rounded-2xl border border-emerald-200">
+              <div class="text-[10px] text-emerald-700 font-bold">已簽收</div>
+              <input type="number" value="${acc.signed || 0}" onchange="updateAccountField(${idx}, 'signed', this.value)" class="w-full bg-white border border-emerald-200 rounded-lg p-1 text-center font-bold text-emerald-600 mt-1 shadow-sm">
+            </div>
+            <div class="bg-rose-50/50 p-2 rounded-2xl border border-rose-100">
+              <div class="text-[10px] text-rose-700 font-bold">已退款</div>
+              <input type="number" value="${acc.refunded || 0}" onchange="updateAccountField(${idx}, 'refunded', this.value)" class="w-full bg-white border border-rose-200 rounded-lg p-1 text-center font-bold text-rose-600 mt-1 shadow-sm">
+            </div>
+            <div class="bg-amber-50/60 p-2 rounded-2xl border border-amber-200">
+              <div class="text-[10px] text-amber-800 font-bold">待攬收</div>
+              <input type="number" value="${acc.pendingPickup || 0}" onchange="updateAccountField(${idx}, 'pendingPickup', this.value)" class="w-full bg-white border border-amber-300 rounded-lg p-1 text-center font-bold text-amber-700 mt-1 shadow-sm">
+            </div>
+            <div class="bg-indigo-50/60 p-2 rounded-2xl border border-indigo-200">
+              <div class="text-[10px] text-indigo-800 font-bold">回倉件</div>
+              <input type="number" value="${acc.returned || 0}" onchange="updateAccountField(${idx}, 'returned', this.value)" class="w-full bg-white border border-indigo-300 rounded-lg p-1 text-center font-bold text-indigo-700 mt-1 shadow-sm">
+            </div>
+          </div>
+
+          <div class="bg-slate-50 p-2.5 rounded-2xl border border-slate-200 flex items-center justify-between text-xs">
+            <span class="text-[11px] text-slate-600 font-bold">📋 簽收 / 退款 / 待攬收 / 回倉單號</span>
+            <button onclick="openTrackingModal(${idx})" class="px-3 py-1 bg-white border border-slate-300 text-blue-700 font-bold rounded-xl hover:bg-blue-50 text-[11px] flex items-center gap-1 shadow-sm">
+              <i data-lucide="file-text" class="w-3 h-3"></i> 查閱/修改單號
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <label class="text-[10px] text-rose-600 font-semibold block mb-0.5">扣糧/罰款</label>
+              <input type="number" value="${deductions}" onchange="updateAccountField(${idx}, 'deduct', this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-1.5 text-center font-bold text-rose-600">
+            </div>
+            <div>
+              <label class="text-[10px] text-orange-600 font-semibold block mb-0.5">預支借支</label>
+              <input type="number" value="${acc.advance || 0}" onchange="updateAccountField(${idx}, 'advance', this.value)" class="w-full bg-orange-50/50 border border-orange-200 rounded-xl p-1.5 text-center font-bold text-orange-700">
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-100 flex justify-between items-center">
+            <div>
+              <div class="text-[10px] text-slate-400">總票量: <b class="text-slate-800">${ticketCount} 票</b></div>
+              <div class="text-base font-black text-emerald-600">應發工資: $${netWage}</div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button onclick="payFullWage(${idx}, ${netWage})" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm">
+                全額實出
+              </button>
+              <button onclick="deleteAccount(${idx})" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl border border-rose-200">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+        `;
+        mobileContainer.appendChild(card);
+
+        // 電腦端表格行
         let deskFencesHTML = '';
         coreFences.forEach(f => {
           const cnt = acc.counts[f.key] || 0;
@@ -2011,7 +2114,6 @@ JT0025006606703" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-
       recalcRiderTally();
     }
 
-    // 動態單號計數與防呆高亮提示 (支援回倉件)
     function recalcRiderTally() {
       if (!loggedInUser) return;
       const acc = accounts[loggedInUser.idx];
@@ -2034,7 +2136,6 @@ JT0025006606703" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-
       const advance = Number(document.getElementById('inp-rider-advance').value) || 0;
       const deduct = Number(document.getElementById('inp-rider-deduct').value) || 0;
 
-      // 簽收
       const hintSigned = document.getElementById('hint-signed-count');
       const inpSignedNos = document.getElementById('inp-signed-nos');
       if (signed > 0) {
@@ -2046,7 +2147,6 @@ JT0025006606703" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-
         inpSignedNos.classList.remove('ring-2', 'ring-emerald-400', 'bg-emerald-50/30');
       }
 
-      // 退款
       const hintRefunded = document.getElementById('hint-refunded-count');
       const inpRefundedNos = document.getElementById('inp-refunded-nos');
       if (refunded > 0) {
@@ -2058,7 +2158,6 @@ JT0025006606703" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-
         inpRefundedNos.classList.remove('ring-2', 'ring-rose-400', 'bg-rose-50/30');
       }
 
-      // 待攬收
       const hintPending = document.getElementById('hint-pending-count');
       const inpPendingNos = document.getElementById('inp-pending-pickup-nos');
       if (pendingPickup > 0) {
@@ -2070,7 +2169,6 @@ JT0025006606703" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-
         inpPendingNos.classList.remove('ring-2', 'ring-amber-400', 'bg-amber-50/30');
       }
 
-      // 回倉件
       const hintReturned = document.getElementById('hint-returned-count');
       const inpReturnedNos = document.getElementById('inp-returned-nos');
       if (returned > 0) {
@@ -2250,7 +2348,6 @@ JT0025006606703" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-
       saveData(); alert('✅ 報更提交成功！'); closeModal5();
     }
 
-    // 8- 車線調度
     function openModal8() { renderTruckRoutesList(); document.getElementById('modal-truck-routes').classList.remove('hidden'); }
     function closeModal8() { document.getElementById('modal-truck-routes').classList.add('hidden'); }
     function renderTruckRoutesList() {
