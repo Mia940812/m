@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Mia組 - 派貨員獨立報數與對數結算系統 (全功能全匯出雲端版)</title>
+  <title>Mia組 - 派貨員報數與薪酬結算系統 (雲端完整版)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -22,7 +22,7 @@
     <div class="w-full max-w-sm bg-white rounded-3xl p-6 space-y-4 shadow-2xl">
       <div class="text-center space-y-1">
         <div class="inline-flex px-4 py-1.5 rounded-xl bg-blue-600 text-white font-black text-lg">Mia組</div>
-        <h2 class="text-base font-extrabold text-slate-900">全功能全匯出雲端系統</h2>
+        <h2 class="text-base font-extrabold text-slate-900">派件報數與薪酬結算系統</h2>
         <p class="text-xs text-slate-400" id="login-sync-status">Google Sheet 雲端資料庫連線中...</p>
       </div>
       <div class="space-y-3 text-xs">
@@ -41,7 +41,7 @@
           登入系統
         </button>
         <div class="pt-2 text-center border-t text-[11px] text-slate-400 flex justify-between">
-          <span class="text-emerald-600 font-bold">☁️ 100% 全模組支援匯出</span>
+          <span class="text-emerald-600 font-bold">☁️ 雲端實時同步</span>
           <button onclick="resetSystemData()" type="button" class="text-rose-600 font-bold">重置預設圍欄</button>
         </div>
       </div>
@@ -55,11 +55,17 @@
         <div class="flex items-center gap-2 cursor-pointer" onclick="switchNavTab('main')">
           <div class="h-8 px-3 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-sm">Mia組</div>
           <span id="header-user-info" class="text-xs font-bold text-slate-700">登入中</span>
-          <span id="sync-indicator" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">☁️ 雲端同步</span>
+          <span id="sync-indicator" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">☁️ 雲端連線</span>
         </div>
         <div class="flex items-center gap-1.5 flex-wrap text-xs font-bold">
           <input id="global-system-date" type="date" class="bg-slate-100 border rounded-xl px-2 py-1 text-xs">
           <button onclick="switchNavTab('main')" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white shadow-sm">主工作台</button>
+          
+          <!-- 🌟 頂部：新增人員按鈕 -->
+          <button id="nav-btn-add-rider" onclick="openAddRiderModal()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-1 hidden">
+            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> ＋ 新增人員
+          </button>
+
           <button onclick="openModal5()" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white shadow-sm">⏰ 5- 報更</button>
           <button id="nav-btn-recruits" onclick="openRecruitsModal()" class="px-3 py-1.5 rounded-xl bg-purple-600 text-white shadow-sm hidden">📋 預約新人</button>
           <button onclick="openProgressModal()" class="px-3 py-1.5 rounded-xl bg-teal-600 text-white shadow-sm">📌 工作進度</button>
@@ -67,7 +73,7 @@
           <button onclick="openModal8()" class="px-3 py-1.5 rounded-xl bg-orange-600 text-white shadow-sm">🚗 車線調度</button>
           <button onclick="openModalSettlement()" class="px-3 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm">9- 埋數/物資</button>
           <button onclick="openUniversalExportModal('ALL')" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white shadow-sm flex items-center gap-1">
-            <i data-lucide="share-2" class="w-3.5 h-3.5"></i> 📤 萬能匯出中心
+            <i data-lucide="share-2" class="w-3.5 h-3.5"></i> 📤 匯出中心
           </button>
           <button onclick="handleLogout()" class="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-xl">登出</button>
         </div>
@@ -76,7 +82,7 @@
 
     <section class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2 shadow-sm">
       <div class="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto pb-0.5 text-xs font-bold custom-scrollbar">
-        <button onclick="openUniversalExportModal('shift_truck')" class="px-3 py-1 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap">📲 匯出排更與車線</button>
+        <button onclick="openUniversalExportModal('shift_truck')" class="px-3 py-1 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap">📲 匯出分區排更</button>
         <button onclick="openUniversalExportModal('tally')" class="px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">📦 匯出報數結算</button>
         <button onclick="openModal1()" class="px-3 py-1 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 whitespace-nowrap">1- 分區圍欄</button>
         <button onclick="openModal2()" class="px-3 py-1 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">2- 區域排班分工</button>
@@ -88,13 +94,16 @@
 
     <!-- 總管理員全盤大表 -->
     <main id="view-admin" class="flex-1 p-3 sm:p-6 space-y-4 max-w-7xl w-full mx-auto tab-content hidden">
-      <div class="flex justify-between items-center bg-white p-4 rounded-3xl border shadow-sm">
+      <div class="flex justify-between items-center bg-white p-4 rounded-3xl border shadow-sm flex-wrap gap-2">
         <div>
           <h2 class="text-sm sm:text-base font-black text-slate-900">總管理員全盤大表</h2>
-          <p class="text-xs text-slate-500">全區圍欄、排更、工資即時試算與雲端儲存</p>
+          <p class="text-xs text-slate-500">所有人員管理、改密碼、設定票價與排更</p>
         </div>
-        <div class="flex gap-2">
-          <button onclick="openUniversalExportModal('tally')" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm">📤 匯出全體工資大表</button>
+        <div class="flex gap-2 flex-wrap">
+          <!-- 🌟 大表上方：新增人員按鈕 -->
+          <button onclick="openAddRiderModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1">
+            <i data-lucide="user-plus" class="w-4 h-4"></i> ＋ 新增人員帳戶
+          </button>
           <button onclick="openModal2()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm">2- 分區排班看板</button>
         </div>
       </div>
@@ -128,7 +137,79 @@
     </main>
   </div>
 
-  <!-- 2- 分區排班分工核心視窗 (支援雙向模式 + 一圍欄多同事) -->
+  <!-- 🌟 新增人員視窗 -->
+  <div id="modal-add-rider" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-3 sm:p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-base text-slate-900 flex items-center gap-1.5">
+          <i data-lucide="user-plus" class="w-5 h-5 text-emerald-600"></i> 新增人員 / 步兵帳戶
+        </h3>
+        <button onclick="closeAddRiderModal()" class="p-1 font-bold text-slate-400">✕</button>
+      </div>
+
+      <div class="space-y-2.5 text-xs">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">身份角色</label>
+            <select id="new-rider-role-select" onchange="autoGenerateRiderID()" class="w-full bg-slate-50 border rounded-xl p-2 font-bold">
+              <option value="自營步兵" selected>自營步兵</option>
+              <option value="組長">組長</option>
+              <option value="普通步兵">普通步兵</option>
+              <option value="管理員">管理員</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">所屬組別</label>
+            <select id="new-rider-team-select" onchange="autoGenerateRiderID()" class="w-full bg-slate-50 border rounded-xl p-2 font-bold">
+              <option value="Mia自營步兵" selected>Mia自營步兵 (KM)</option>
+              <option value="A組">A組 (A)</option>
+              <option value="B組">B組 (B)</option>
+              <option value="C組">C組 (C)</option>
+              <option value="其他自由步兵">其他自由步兵 (D)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">人員姓名</label>
+            <input id="new-rider-name" type="text" placeholder="例如：新同事" class="w-full border rounded-xl p-2 font-bold">
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">自動生成 ID</label>
+            <input id="new-rider-id-custom" type="text" readonly class="w-full bg-slate-100 border rounded-xl p-2 font-mono font-bold text-blue-700 text-center">
+          </div>
+        </div>
+
+        <div>
+          <label class="font-bold text-slate-700 block mb-0.5">登入密碼</label>
+          <input id="new-rider-password" type="text" value="123" class="w-full border rounded-xl p-2 font-mono font-bold bg-amber-50 text-amber-900">
+        </div>
+
+        <div>
+          <label class="font-bold text-slate-700 block mb-0.5">出糧糧期 / 結算模式</label>
+          <select id="new-rider-payday" class="w-full border rounded-xl p-2 font-bold text-purple-900">
+            <option value="隔日結算" selected>隔日結算</option>
+            <option value="扣數 (100%)">扣數 (100%)</option>
+            <option value="扣數 (50%)">扣數 (50%)</option>
+            <option value="半月糧 (7號)">半月糧 (7號)</option>
+            <option value="日結 (即日)">日結 (即日)</option>
+            <option value="逢週五 (週結)">逢週五 (週結)</option>
+            <option value="每月 7 號 (月結)">每月 7 號 (月結)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2 border-t">
+        <button onclick="saveNewRider()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md">
+          確認建立此人員
+        </button>
+        <button onclick="closeAddRiderModal()" class="px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2- 分區排班分工核心視窗 -->
   <div id="modal-assignments" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-3 z-50 hidden">
     <div class="bg-white rounded-3xl p-4 sm:p-6 max-w-5xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-3">
@@ -175,7 +256,7 @@
     </div>
   </div>
 
-  <!-- 🌟 萬能全模組資料匯出中心 (支援全部模組匯出 WhatsApp + Excel/CSV) -->
+  <!-- 萬能全模組資料匯出中心 -->
   <div id="modal-universal-export" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-3 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 max-w-3xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
@@ -186,7 +267,6 @@
         <button onclick="closeUniversalExportModal()" class="p-1 font-bold">✕</button>
       </div>
 
-      <!-- 快速選擇模組標籤 -->
       <div class="flex flex-wrap gap-1.5 text-xs font-bold bg-slate-50 p-2 rounded-2xl border" id="export-module-tabs">
         <button type="button" onclick="switchExportModule('shift_truck')" id="exp-tab-shift_truck" class="px-2.5 py-1 rounded-xl bg-blue-600 text-white">🚗 分區排更與車線</button>
         <button type="button" onclick="switchExportModule('tally')" id="exp-tab-tally" class="px-2.5 py-1 rounded-xl bg-white text-slate-700 border">📦 今日報數與單號</button>
@@ -308,7 +388,6 @@
   <script>
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-RG2KUcGLCVVLxEK2zfpZXwilMJc_IpzXN4-ZMCijD2stGsPZxAkb3d-VFVOsqkrUPw/exec';
 
-    // 🌟 100% 完整全區圍欄資料庫 (含東區 41 個完整圍欄)
     const defaultZoneFences = {
       kt: [
         { id: '01E', name: '01E Koko Hills' }, { id: '02E', name: '02E 觀塘工商區1號' }, { id: '03E', name: '03E 觀塘工商區2號' },
@@ -386,7 +465,7 @@
       { id: 'exp_1', date: '2026-08-16', name: '買封箱大膠紙 (6卷)', amount: 120, buyer: 'Mia', remark: '日常耗材' }
     ];
 
-    const DB_KEY = 'MIA_FULL_CLOUD_SYNC_V4_';
+    const DB_KEY = 'MIA_FULL_CLOUD_SYNC_V5_';
     let zoneFences = JSON.parse(localStorage.getItem(DB_KEY + 'FENCES')) || defaultZoneFences;
     let accounts = JSON.parse(localStorage.getItem(DB_KEY + 'ACCOUNTS')) || initialAccounts;
     let zoneAssignments = JSON.parse(localStorage.getItem(DB_KEY + 'ASSIGNS')) || defaultAssignments;
@@ -488,10 +567,18 @@
       document.getElementById('header-user-info').innerText = `${loggedInUser.name} (${loggedInUser.id} • ${loggedInUser.role})`;
 
       const btnRecruits = document.getElementById('nav-btn-recruits');
+      const btnAddRider = document.getElementById('nav-btn-add-rider');
+      
       if (loggedInUser.role === '管理員' || loggedInUser.role === '組長') {
         btnRecruits.classList.remove('hidden');
       } else {
         btnRecruits.classList.add('hidden');
+      }
+
+      if (loggedInUser.role === '管理員') {
+        btnAddRider.classList.remove('hidden');
+      } else {
+        btnAddRider.classList.add('hidden');
       }
 
       switchNavTab('main');
@@ -527,7 +614,7 @@
     function renderAdminView() {
       const container = document.getElementById('admin-cards');
       container.innerHTML = '';
-      accounts.forEach(acc => {
+      accounts.forEach((acc, idx) => {
         if (acc.id === 'KM001') return;
         const div = document.createElement('div');
         div.className = 'bg-white p-3.5 rounded-2xl border flex justify-between items-center text-xs shadow-sm';
@@ -536,10 +623,21 @@
             <b class="text-slate-900 text-sm">${acc.name}</b> <span class="text-blue-600 font-mono font-bold">(${acc.id})</span>
             <span class="text-slate-400 ml-1">${acc.team} • ${acc.role}</span>
           </div>
-          <span class="text-slate-500 font-mono">🔑 密碼: <b>${acc.password}</b></span>
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 font-mono">🔑 密碼: <b>${acc.password}</b></span>
+            <button onclick="deleteAccountRow(${idx})" class="p-1 text-rose-600 font-bold hover:bg-rose-50 rounded">✕ 刪除</button>
+          </div>
         `;
         container.appendChild(div);
       });
+    }
+
+    function deleteAccountRow(idx) {
+      if (confirm(`確定要刪除此人員帳戶嗎？`)) {
+        accounts.splice(idx, 1);
+        saveData();
+        renderAdminView();
+      }
     }
 
     function renderCaptainView() {
@@ -564,6 +662,62 @@
         });
       });
       document.getElementById('rider-fence-display').innerText = myFences.length ? myFences.join('、') : '暫未編排';
+    }
+
+    // 🌟 新增人員相關邏輯
+    function autoGenerateRiderID() {
+      const team = document.getElementById('new-rider-team-select').value;
+      let prefix = 'KM';
+      if (team === 'A組') prefix = 'A';
+      else if (team === 'B組') prefix = 'B';
+      else if (team === 'C組') prefix = 'C';
+      else if (team === '其他自由步兵') prefix = 'D';
+
+      const existing = accounts.filter(a => a.id.startsWith(prefix)).length + 1;
+      const genId = prefix + String(existing).padStart(existing < 10 && prefix === 'KM' ? 2 : 3, '0');
+      document.getElementById('new-rider-id-custom').value = genId;
+    }
+
+    function openAddRiderModal() {
+      autoGenerateRiderID();
+      document.getElementById('modal-add-rider').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeAddRiderModal() {
+      document.getElementById('modal-add-rider').classList.add('hidden');
+    }
+
+    function saveNewRider() {
+      const name = document.getElementById('new-rider-name').value.trim();
+      const id = document.getElementById('new-rider-id-custom').value.trim().toUpperCase();
+      const role = document.getElementById('new-rider-role-select').value;
+      const team = document.getElementById('new-rider-team-select').value;
+      const pwd = document.getElementById('new-rider-password').value.trim() || '123';
+      const payday = document.getElementById('new-rider-payday').value;
+
+      if (!name || !id) {
+        alert('請填寫人員姓名！');
+        return;
+      }
+
+      accounts.push({
+        id: id,
+        name: name,
+        role: role,
+        team: team,
+        password: pwd,
+        payday: payday,
+        advance: 0,
+        deduct: 0,
+        paidToday: 0
+      });
+
+      saveData();
+      alert(`✅ 成功新增人員【${name} (${id})】！資料已實時同步至 Google Sheet。`);
+      closeAddRiderModal();
+      document.getElementById('new-rider-name').value = '';
+      renderAdminView();
     }
 
     function openModal2() {
@@ -728,7 +882,7 @@
       renderFencesBoardGrid();
     }
 
-    // 🌟 全模組萬能匯出切換與產生
+    // 🌟 全模組萬能匯出
     function openUniversalExportModal(mod) {
       if (mod && mod !== 'ALL') currentExportModule = mod;
       switchExportModule(currentExportModule);
