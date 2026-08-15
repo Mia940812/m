@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Mia組 - 派貨員報數與薪酬結算系統 (雲端完整版)</title>
+  <title>Mia組 - 派貨員報數與薪酬結算系統 (圍欄完整增刪版)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -61,7 +61,6 @@
           <input id="global-system-date" type="date" class="bg-slate-100 border rounded-xl px-2 py-1 text-xs">
           <button onclick="switchNavTab('main')" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white shadow-sm">主工作台</button>
           
-          <!-- 🌟 頂部：新增人員按鈕 -->
           <button id="nav-btn-add-rider" onclick="openAddRiderModal()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-1 hidden">
             <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> ＋ 新增人員
           </button>
@@ -84,7 +83,9 @@
       <div class="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto pb-0.5 text-xs font-bold custom-scrollbar">
         <button onclick="openUniversalExportModal('shift_truck')" class="px-3 py-1 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap">📲 匯出分區排更</button>
         <button onclick="openUniversalExportModal('tally')" class="px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">📦 匯出報數結算</button>
-        <button onclick="openModal1()" class="px-3 py-1 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 whitespace-nowrap">1- 分區圍欄</button>
+        <button onclick="openModal1()" class="px-3 py-1 rounded-xl bg-purple-600 text-white shadow-sm whitespace-nowrap flex items-center gap-1 font-bold">
+          <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 1- 圍欄管理 (增/刪)
+        </button>
         <button onclick="openModal2()" class="px-3 py-1 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">2- 區域排班分工</button>
         <button onclick="openModal3()" class="px-3 py-1 rounded-xl bg-sky-50 text-sky-700 border border-sky-200 whitespace-nowrap">3- 觀塘貨量</button>
         <button onclick="openModal4()" class="px-3 py-1 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap">4- 東區貨量 (41個)</button>
@@ -100,7 +101,9 @@
           <p class="text-xs text-slate-500">所有人員管理、改密碼、設定票價與排更</p>
         </div>
         <div class="flex gap-2 flex-wrap">
-          <!-- 🌟 大表上方：新增人員按鈕 -->
+          <button onclick="openModal1()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1">
+            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 1- 增刪分區圍欄
+          </button>
           <button onclick="openAddRiderModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1">
             <i data-lucide="user-plus" class="w-4 h-4"></i> ＋ 新增人員帳戶
           </button>
@@ -137,7 +140,103 @@
     </main>
   </div>
 
-  <!-- 🌟 新增人員視窗 -->
+  <!-- 🌟 1- 分區圍欄管理視窗 (支援新增 + 刪除) -->
+  <div id="modal-fences-zone" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-3 sm:p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-1.5">
+          <i data-lucide="map-pin" class="w-5 h-5 text-purple-600"></i> 1- 分區圍欄管理 (新增 / 刪除)
+        </h3>
+        <button onclick="closeModal1()" class="p-1 font-bold text-slate-400">✕</button>
+      </div>
+
+      <!-- ➕ 新增圍欄表單 -->
+      <div class="bg-purple-50/70 p-3.5 rounded-2xl border border-purple-200 space-y-2 text-xs">
+        <div class="font-bold text-purple-950 flex items-center gap-1">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-purple-600"></i> ➕ 建立新圍欄：
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">選擇所屬區域</label>
+            <select id="new-fence-zone-select" class="w-full bg-white border border-purple-300 rounded-xl p-2 font-bold">
+              <option value="kt">📍 觀塘區</option>
+              <option value="east">📍 東區</option>
+              <option value="st">📍 沙田區</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">圍欄名稱 / 代碼</label>
+            <input id="new-fence-name-input" type="text" placeholder="例如：80F 某某花園" class="w-full bg-white border border-purple-300 rounded-xl p-2 font-bold">
+          </div>
+        </div>
+        <button onclick="saveNewZoneFence()" class="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold transition shadow-sm">
+          確認新增圍欄
+        </button>
+      </div>
+
+      <!-- 分區清單列表 (帶有刪除功能) -->
+      <div class="space-y-3 text-xs">
+        <div class="flex justify-between items-center">
+          <span class="font-bold text-slate-700">各區現有圍欄列表：</span>
+          <span class="text-[11px] text-slate-400">點擊 🗑️ 可直接刪除圍欄</span>
+        </div>
+        <div id="m1-fences-container" class="space-y-3"></div>
+      </div>
+
+      <div class="flex justify-end pt-2 border-t">
+        <button onclick="closeModal1()" class="px-5 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2- 分區排班分工核心視窗 -->
+  <div id="modal-assignments" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-3 z-50 hidden">
+    <div class="bg-white rounded-3xl p-4 sm:p-6 max-w-5xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b pb-3">
+        <div>
+          <h3 class="font-extrabold text-base sm:text-lg text-slate-900">2- 觀塘、東區與沙田 分工排班名冊</h3>
+          <p class="text-xs text-slate-500">支援「按圍欄看 (1圍欄多同事)」與「按同事看 (1人多圍欄)」雙向切換</p>
+        </div>
+        <button onclick="closeModal2()" class="p-1 font-bold text-slate-400">✕</button>
+      </div>
+
+      <div class="flex justify-between items-center flex-wrap gap-2 text-xs font-bold">
+        <div class="flex gap-1.5">
+          <button type="button" onclick="switchAssignmentTab('kt')" id="tab-assign-kt" class="px-3.5 py-1.5 rounded-xl bg-blue-600 text-white">📍 觀塘區 (<span id="count-assign-kt">0</span>)</button>
+          <button type="button" onclick="switchAssignmentTab('east')" id="tab-assign-east" class="px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-700">📍 東區 (<span id="count-assign-east">0</span>)</button>
+          <button type="button" onclick="switchAssignmentTab('st')" id="tab-assign-st" class="px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-700">📍 沙田區 (<span id="count-assign-st">0</span>)</button>
+        </div>
+        <div class="flex bg-slate-100 p-1 rounded-xl border">
+          <button type="button" onclick="setAssignmentViewMode('byFence')" id="btn-view-by-fence" class="px-2.5 py-1 rounded-lg bg-white text-blue-700 shadow-sm">🏢 按圍欄檢視</button>
+          <button type="button" onclick="setAssignmentViewMode('byRider')" id="btn-view-by-rider" class="px-2.5 py-1 rounded-lg text-slate-600">👤 按同事檢視</button>
+        </div>
+        <button onclick="openUniversalExportModal('shift_truck')" class="px-3 py-1.5 bg-indigo-600 text-white rounded-xl">📲 匯出排更</button>
+      </div>
+
+      <div class="bg-blue-50/70 p-3 rounded-2xl border border-blue-200 text-xs space-y-2">
+        <div class="font-bold text-blue-950">快速指派排班：</div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <select id="new-assign-fence-select" class="bg-white border rounded-xl p-2 font-bold"></select>
+          <select id="new-assign-rider-select" class="bg-white border rounded-xl p-2 font-bold"></select>
+          <select id="new-assign-order-select" class="bg-white border rounded-xl p-2 font-bold">
+            <option value="第 1 順位">第 1 順位 (預設首位 - 介面直接顯示姓名)</option>
+            <option value="第 2 順位">第 2 順位</option>
+            <option value="第 3 順位">第 3 順位</option>
+            <option value="彈性支援">彈性支援</option>
+          </select>
+        </div>
+        <button onclick="saveNewAssignmentRow()" class="w-full py-2 bg-blue-600 text-white rounded-xl font-bold">確認加入排班</button>
+      </div>
+
+      <div id="m2-fences-board-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+
+      <div class="flex justify-end pt-2 border-t">
+        <button onclick="closeModal2()" class="px-5 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增人員視窗 -->
   <div id="modal-add-rider" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-3 sm:p-4 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-2">
@@ -209,59 +308,12 @@
     </div>
   </div>
 
-  <!-- 2- 分區排班分工核心視窗 -->
-  <div id="modal-assignments" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-3 z-50 hidden">
-    <div class="bg-white rounded-3xl p-4 sm:p-6 max-w-5xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-3">
-        <div>
-          <h3 class="font-extrabold text-base sm:text-lg text-slate-900">2- 觀塘、東區與沙田 分工排班名冊</h3>
-          <p class="text-xs text-slate-500">支援「按圍欄看 (1圍欄多同事)」與「按同事看 (1人多圍欄)」雙向切換</p>
-        </div>
-        <button onclick="closeModal2()" class="p-1 font-bold text-slate-400">✕</button>
-      </div>
-
-      <div class="flex justify-between items-center flex-wrap gap-2 text-xs font-bold">
-        <div class="flex gap-1.5">
-          <button type="button" onclick="switchAssignmentTab('kt')" id="tab-assign-kt" class="px-3.5 py-1.5 rounded-xl bg-blue-600 text-white">📍 觀塘區 (<span id="count-assign-kt">0</span>)</button>
-          <button type="button" onclick="switchAssignmentTab('east')" id="tab-assign-east" class="px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-700">📍 東區 (<span id="count-assign-east">0</span>)</button>
-          <button type="button" onclick="switchAssignmentTab('st')" id="tab-assign-st" class="px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-700">📍 沙田區 (<span id="count-assign-st">0</span>)</button>
-        </div>
-        <div class="flex bg-slate-100 p-1 rounded-xl border">
-          <button type="button" onclick="setAssignmentViewMode('byFence')" id="btn-view-by-fence" class="px-2.5 py-1 rounded-lg bg-white text-blue-700 shadow-sm">🏢 按圍欄檢視</button>
-          <button type="button" onclick="setAssignmentViewMode('byRider')" id="btn-view-by-rider" class="px-2.5 py-1 rounded-lg text-slate-600">👤 按同事檢視</button>
-        </div>
-        <button onclick="openUniversalExportModal('shift_truck')" class="px-3 py-1.5 bg-indigo-600 text-white rounded-xl">📲 匯出排更</button>
-      </div>
-
-      <div class="bg-blue-50/70 p-3 rounded-2xl border border-blue-200 text-xs space-y-2">
-        <div class="font-bold text-blue-950">快速指派排班：</div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <select id="new-assign-fence-select" class="bg-white border rounded-xl p-2 font-bold"></select>
-          <select id="new-assign-rider-select" class="bg-white border rounded-xl p-2 font-bold"></select>
-          <select id="new-assign-order-select" class="bg-white border rounded-xl p-2 font-bold">
-            <option value="第 1 順位">第 1 順位 (預設首位 - 介面直接顯示姓名)</option>
-            <option value="第 2 順位">第 2 順位</option>
-            <option value="第 3 順位">第 3 順位</option>
-            <option value="彈性支援">彈性支援</option>
-          </select>
-        </div>
-        <button onclick="saveNewAssignmentRow()" class="w-full py-2 bg-blue-600 text-white rounded-xl font-bold">確認加入排班</button>
-      </div>
-
-      <div id="m2-fences-board-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
-
-      <div class="flex justify-end pt-2 border-t">
-        <button onclick="closeModal2()" class="px-5 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">關閉</button>
-      </div>
-    </div>
-  </div>
-
   <!-- 萬能全模組資料匯出中心 -->
   <div id="modal-universal-export" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-3 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 max-w-3xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
         <div>
-          <h3 class="font-extrabold text-base text-slate-900">📤 全模組資料匯出中心 (100% 支援全部功能)</h3>
+          <h3 class="font-extrabold text-base text-slate-900">📤 全模組資料匯出中心</h3>
           <p class="text-[11px] text-slate-500">點選下方模組標籤，即可切換產生 WhatsApp 文字或下載 CSV 表格</p>
         </div>
         <button onclick="closeUniversalExportModal()" class="p-1 font-bold">✕</button>
@@ -285,15 +337,6 @@
         <button onclick="downloadUniversalCSV()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm">下載 Excel/CSV</button>
         <button onclick="closeUniversalExportModal()" class="px-4 py-2.5 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
       </div>
-    </div>
-  </div>
-
-  <!-- 1- 分區圍欄視窗 -->
-  <div id="modal-fences-zone" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">1- 分區圍欄全清單</h3><button onclick="closeModal1()">✕</button></div>
-      <div id="m1-list" class="space-y-1 text-xs font-bold"></div>
-      <button onclick="closeModal1()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
     </div>
   </div>
 
@@ -465,7 +508,7 @@
       { id: 'exp_1', date: '2026-08-16', name: '買封箱大膠紙 (6卷)', amount: 120, buyer: 'Mia', remark: '日常耗材' }
     ];
 
-    const DB_KEY = 'MIA_FULL_CLOUD_SYNC_V5_';
+    const DB_KEY = 'MIA_FULL_CLOUD_SYNC_V6_';
     let zoneFences = JSON.parse(localStorage.getItem(DB_KEY + 'FENCES')) || defaultZoneFences;
     let accounts = JSON.parse(localStorage.getItem(DB_KEY + 'ACCOUNTS')) || initialAccounts;
     let zoneAssignments = JSON.parse(localStorage.getItem(DB_KEY + 'ASSIGNS')) || defaultAssignments;
@@ -664,6 +707,86 @@
       document.getElementById('rider-fence-display').innerText = myFences.length ? myFences.join('、') : '暫未編排';
     }
 
+    // 🌟 1- 圍欄管理：新增與刪除圍欄邏輯
+    function openModal1() {
+      renderZoneFencesList();
+      document.getElementById('modal-fences-zone').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeModal1() {
+      document.getElementById('modal-fences-zone').classList.add('hidden');
+    }
+
+    function renderZoneFencesList() {
+      const container = document.getElementById('m1-fences-container');
+      container.innerHTML = '';
+
+      const zoneNames = { kt: '📍 觀塘區', east: '📍 東區', st: '📍 沙田區' };
+
+      ['kt', 'east', 'st'].forEach(z => {
+        const fences = zoneFences[z] || [];
+        const box = document.createElement('div');
+        box.className = 'bg-slate-50 p-3 rounded-2xl border space-y-2';
+
+        let itemsHTML = '';
+        if (fences.length === 0) {
+          itemsHTML = '<div class="text-[11px] text-slate-400 italic">暫無圍欄</div>';
+        } else {
+          itemsHTML = '<div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">';
+          fences.forEach((f, idx) => {
+            itemsHTML += `
+              <div class="p-2 bg-white rounded-xl border flex items-center justify-between shadow-xs">
+                <span class="font-bold text-slate-800">${f.name}</span>
+                <button onclick="deleteZoneFence('${z}', ${idx})" title="刪除此圍欄" class="p-1 text-rose-600 hover:bg-rose-50 rounded font-bold text-xs">
+                  🗑️
+                </button>
+              </div>
+            `;
+          });
+          itemsHTML += '</div>';
+        }
+
+        box.innerHTML = `
+          <div class="flex justify-between items-center border-b pb-1">
+            <span class="font-black text-xs text-blue-700">${zoneNames[z]} (${fences.length}個)</span>
+          </div>
+          ${itemsHTML}
+        `;
+        container.appendChild(box);
+      });
+    }
+
+    function saveNewZoneFence() {
+      const zone = document.getElementById('new-fence-zone-select').value;
+      const name = document.getElementById('new-fence-name-input').value.trim();
+
+      if (!name) {
+        alert('請填寫圍欄名稱！');
+        return;
+      }
+
+      zoneFences[zone] = zoneFences[zone] || [];
+      const newId = `${zone}_${Date.now()}`;
+      zoneFences[zone].push({ id: newId, name: name });
+
+      saveData();
+      renderZoneFencesList();
+      alert(`✅ 成功建立新圍欄【${name}】！已同步至排更看板與 Google Sheet。`);
+      document.getElementById('new-fence-name-input').value = '';
+    }
+
+    function deleteZoneFence(zone, idx) {
+      const fence = zoneFences[zone][idx];
+      if (confirm(`確定要刪除圍欄【${fence.name}】嗎？\n(相關的分區排更亦會同步更新)`)) {
+        zoneFences[zone].splice(idx, 1);
+        // 同步清理排班名冊中該圍欄的項目
+        zoneAssignments[zone] = (zoneAssignments[zone] || []).filter(item => item.fence !== fence.name);
+        saveData();
+        renderZoneFencesList();
+      }
+    }
+
     // 🌟 新增人員相關邏輯
     function autoGenerateRiderID() {
       const team = document.getElementById('new-rider-team-select').value;
@@ -720,6 +843,7 @@
       renderAdminView();
     }
 
+    // 2- 區域排班邏輯
     function openModal2() {
       const rSel = document.getElementById('new-assign-rider-select');
       rSel.innerHTML = '';
@@ -882,7 +1006,7 @@
       renderFencesBoardGrid();
     }
 
-    // 🌟 全模組萬能匯出
+    // 🌟 萬能匯出中心邏輯
     function openUniversalExportModal(mod) {
       if (mod && mod !== 'ALL') currentExportModule = mod;
       switchExportModule(currentExportModule);
@@ -1003,21 +1127,6 @@
       link.click();
       document.body.removeChild(link);
     }
-
-    // 彈窗渲染邏輯
-    function openModal1() {
-      const c = document.getElementById('m1-list');
-      c.innerHTML = '';
-      ['kt', 'east', 'st'].forEach(z => {
-        const zName = z === 'kt' ? '觀塘區' : (z === 'east' ? '東區 (41個圍欄)' : '沙田區');
-        c.innerHTML += `<div class="font-black text-blue-700 mt-2">${zName}：</div>`;
-        (zoneFences[z] || []).forEach(f => {
-          c.innerHTML += `<div class="p-1 bg-slate-50 border rounded text-xs">${f.name}</div>`;
-        });
-      });
-      document.getElementById('modal-fences-zone').classList.remove('hidden');
-    }
-    function closeModal1() { document.getElementById('modal-fences-zone').classList.add('hidden'); }
 
     function openModal3() {
       const c = document.getElementById('m3-list');
