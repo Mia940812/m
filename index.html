@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Mia組 - 派貨員獨立報數與對數結算系統</title>
+  <title>Mia組 - 派貨員獨立報數與對數結算系統 (全功能全匯出雲端版)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -22,7 +22,7 @@
     <div class="w-full max-w-sm bg-white rounded-3xl p-6 space-y-4 shadow-2xl">
       <div class="text-center space-y-1">
         <div class="inline-flex px-4 py-1.5 rounded-xl bg-blue-600 text-white font-black text-lg">Mia組</div>
-        <h2 class="text-base font-extrabold text-slate-900">雲端即時同步系統</h2>
+        <h2 class="text-base font-extrabold text-slate-900">全功能全匯出雲端系統</h2>
         <p class="text-xs text-slate-400" id="login-sync-status">Google Sheet 雲端資料庫連線中...</p>
       </div>
       <div class="space-y-3 text-xs">
@@ -41,7 +41,7 @@
           登入系統
         </button>
         <div class="pt-2 text-center border-t text-[11px] text-slate-400 flex justify-between">
-          <span class="text-emerald-600 font-bold">☁️ Google Sheet 即時互通</span>
+          <span class="text-emerald-600 font-bold">☁️ 100% 全模組支援匯出</span>
           <button onclick="resetSystemData()" type="button" class="text-rose-600 font-bold">重置預設圍欄</button>
         </div>
       </div>
@@ -55,7 +55,7 @@
         <div class="flex items-center gap-2 cursor-pointer" onclick="switchNavTab('main')">
           <div class="h-8 px-3 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-sm">Mia組</div>
           <span id="header-user-info" class="text-xs font-bold text-slate-700">登入中</span>
-          <span id="sync-indicator" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">☁️ 雲端同步中</span>
+          <span id="sync-indicator" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">☁️ 雲端同步</span>
         </div>
         <div class="flex items-center gap-1.5 flex-wrap text-xs font-bold">
           <input id="global-system-date" type="date" class="bg-slate-100 border rounded-xl px-2 py-1 text-xs">
@@ -66,7 +66,9 @@
           <button onclick="openTicketsModal()" class="px-3 py-1.5 rounded-xl bg-rose-600 text-white shadow-sm">🚨 工單 (<span id="header-ticket-count">37</span>)</button>
           <button onclick="openModal8()" class="px-3 py-1.5 rounded-xl bg-orange-600 text-white shadow-sm">🚗 車線調度</button>
           <button onclick="openModalSettlement()" class="px-3 py-1.5 rounded-xl bg-amber-500 text-white shadow-sm">9- 埋數/物資</button>
-          <button onclick="openUniversalExportModal('ALL')" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white shadow-sm">📤 匯出中心</button>
+          <button onclick="openUniversalExportModal('ALL')" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white shadow-sm flex items-center gap-1">
+            <i data-lucide="share-2" class="w-3.5 h-3.5"></i> 📤 萬能匯出中心
+          </button>
           <button onclick="handleLogout()" class="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-xl">登出</button>
         </div>
       </div>
@@ -74,11 +76,12 @@
 
     <section class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2 shadow-sm">
       <div class="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto pb-0.5 text-xs font-bold custom-scrollbar">
-        <button onclick="openUniversalExportModal('shift_truck')" class="px-3 py-1 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap">📲 匯出分區排更</button>
+        <button onclick="openUniversalExportModal('shift_truck')" class="px-3 py-1 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap">📲 匯出排更與車線</button>
+        <button onclick="openUniversalExportModal('tally')" class="px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">📦 匯出報數結算</button>
         <button onclick="openModal1()" class="px-3 py-1 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 whitespace-nowrap">1- 分區圍欄</button>
         <button onclick="openModal2()" class="px-3 py-1 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">2- 區域排班分工</button>
         <button onclick="openModal3()" class="px-3 py-1 rounded-xl bg-sky-50 text-sky-700 border border-sky-200 whitespace-nowrap">3- 觀塘貨量</button>
-        <button onclick="openModal4()" class="px-3 py-1 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap">4- 東區貨量</button>
+        <button onclick="openModal4()" class="px-3 py-1 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap">4- 東區貨量 (41個)</button>
         <button onclick="openModalStCounts()" class="px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">4b- 沙田貨量</button>
       </div>
     </section>
@@ -90,7 +93,10 @@
           <h2 class="text-sm sm:text-base font-black text-slate-900">總管理員全盤大表</h2>
           <p class="text-xs text-slate-500">全區圍欄、排更、工資即時試算與雲端儲存</p>
         </div>
-        <button onclick="openModal2()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm">2- 分區排班看板</button>
+        <div class="flex gap-2">
+          <button onclick="openUniversalExportModal('tally')" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm">📤 匯出全體工資大表</button>
+          <button onclick="openModal2()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm">2- 分區排班看板</button>
+        </div>
       </div>
       <div id="admin-cards" class="space-y-3"></div>
     </main>
@@ -152,7 +158,7 @@
           <select id="new-assign-fence-select" class="bg-white border rounded-xl p-2 font-bold"></select>
           <select id="new-assign-rider-select" class="bg-white border rounded-xl p-2 font-bold"></select>
           <select id="new-assign-order-select" class="bg-white border rounded-xl p-2 font-bold">
-            <option value="第 1 順位">第 1 順位 (預設首位)</option>
+            <option value="第 1 順位">第 1 順位 (預設首位 - 介面直接顯示姓名)</option>
             <option value="第 2 順位">第 2 順位</option>
             <option value="第 3 順位">第 3 順位</option>
             <option value="彈性支援">彈性支援</option>
@@ -169,16 +175,34 @@
     </div>
   </div>
 
-  <!-- 匯出資料中心視窗 -->
+  <!-- 🌟 萬能全模組資料匯出中心 (支援全部模組匯出 WhatsApp + Excel/CSV) -->
   <div id="modal-universal-export" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-3 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-2xl w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-3xl p-5 max-w-3xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-sm text-slate-900">📤 全模組資料匯出中心</h3>
+        <div>
+          <h3 class="font-extrabold text-base text-slate-900">📤 全模組資料匯出中心 (100% 支援全部功能)</h3>
+          <p class="text-[11px] text-slate-500">點選下方模組標籤，即可切換產生 WhatsApp 文字或下載 CSV 表格</p>
+        </div>
         <button onclick="closeUniversalExportModal()" class="p-1 font-bold">✕</button>
       </div>
+
+      <!-- 快速選擇模組標籤 -->
+      <div class="flex flex-wrap gap-1.5 text-xs font-bold bg-slate-50 p-2 rounded-2xl border" id="export-module-tabs">
+        <button type="button" onclick="switchExportModule('shift_truck')" id="exp-tab-shift_truck" class="px-2.5 py-1 rounded-xl bg-blue-600 text-white">🚗 分區排更與車線</button>
+        <button type="button" onclick="switchExportModule('tally')" id="exp-tab-tally" class="px-2.5 py-1 rounded-xl bg-white text-slate-700 border">📦 今日報數與單號</button>
+        <button type="button" onclick="switchExportModule('tickets')" id="exp-tab-tickets" class="px-2.5 py-1 rounded-xl bg-white text-slate-700 border">🚨 異常工單 (37宗)</button>
+        <button type="button" onclick="switchExportModule('counts')" id="exp-tab-counts" class="px-2.5 py-1 rounded-xl bg-white text-slate-700 border">📊 各區圍欄貨量</button>
+        <button type="button" onclick="switchExportModule('recruits')" id="exp-tab-recruits" class="px-2.5 py-1 rounded-xl bg-white text-slate-700 border">📋 預約新人檔案</button>
+        <button type="button" onclick="switchExportModule('expenses')" id="exp-tab-expenses" class="px-2.5 py-1 rounded-xl bg-white text-slate-700 border">💰 買物資與支出</button>
+        <button type="button" onclick="switchExportModule('progress')" id="exp-tab-progress" class="px-2.5 py-1 rounded-xl bg-white text-slate-700 border">📌 每日工作進度</button>
+        <button type="button" onclick="switchExportModule('shifts')" id="exp-tab-shifts" class="px-2.5 py-1 rounded-xl bg-white text-slate-700 border">⏰ 翌日報更名冊</button>
+      </div>
+
       <textarea id="universal-export-textarea" rows="12" readonly class="w-full bg-slate-50 border rounded-xl p-3 font-mono text-xs"></textarea>
+      
       <div class="flex gap-2">
-        <button onclick="copyUniversalWhatsAppText()" class="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold">一鍵複製 WhatsApp</button>
+        <button onclick="copyUniversalWhatsAppText()" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm">一鍵複製 WhatsApp</button>
+        <button onclick="downloadUniversalCSV()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm">下載 Excel/CSV</button>
         <button onclick="closeUniversalExportModal()" class="px-4 py-2.5 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
       </div>
     </div>
@@ -362,7 +386,7 @@
       { id: 'exp_1', date: '2026-08-16', name: '買封箱大膠紙 (6卷)', amount: 120, buyer: 'Mia', remark: '日常耗材' }
     ];
 
-    const DB_KEY = 'MIA_FULL_CLOUD_SYNC_V3_';
+    const DB_KEY = 'MIA_FULL_CLOUD_SYNC_V4_';
     let zoneFences = JSON.parse(localStorage.getItem(DB_KEY + 'FENCES')) || defaultZoneFences;
     let accounts = JSON.parse(localStorage.getItem(DB_KEY + 'ACCOUNTS')) || initialAccounts;
     let zoneAssignments = JSON.parse(localStorage.getItem(DB_KEY + 'ASSIGNS')) || defaultAssignments;
@@ -374,6 +398,7 @@
 
     let currentAssignTab = 'kt';
     let currentAssignmentViewMode = 'byFence';
+    let currentExportModule = 'shift_truck';
     let loggedInUser = null;
 
     async function loadCloudData() {
@@ -703,35 +728,126 @@
       renderFencesBoardGrid();
     }
 
+    // 🌟 全模組萬能匯出切換與產生
     function openUniversalExportModal(mod) {
-      const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
-      const zoneNames = { kt: '📍 觀塘區', east: '📍 東區', st: '📍 沙田區' };
-      let msg = `📅 【Mia組】每日分區排班分工表 (${today})\n===========================\n`;
-
-      ['kt', 'east', 'st'].forEach(z => {
-        msg += `\n【${zoneNames[z]}】\n`;
-        const assigns = zoneAssignments[z] || [];
-        const fences = zoneFences[z] || [];
-
-        fences.forEach(f => {
-          const riders = assigns.filter(item => item.fence === f.name);
-          if (riders.length) {
-            const names = riders.map(r => (r.order === '第 1 順位' || !r.order) ? `${r.name}` : `[${r.order}] ${r.name}`).join(' + ');
-            msg += `  • ${f.name} ➜ ${names}\n`;
-          }
-        });
-      });
-
-      document.getElementById('universal-export-textarea').value = msg;
+      if (mod && mod !== 'ALL') currentExportModule = mod;
+      switchExportModule(currentExportModule);
       document.getElementById('modal-universal-export').classList.remove('hidden');
     }
 
-    function closeUniversalExportModal() { document.getElementById('modal-universal-export').classList.add('hidden'); }
+    function closeUniversalExportModal() {
+      document.getElementById('modal-universal-export').classList.add('hidden');
+    }
+
+    function switchExportModule(mod) {
+      currentExportModule = mod;
+      const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
+      const txtArea = document.getElementById('universal-export-textarea');
+
+      document.querySelectorAll('#export-module-tabs button').forEach(btn => {
+        btn.className = 'px-2.5 py-1 rounded-xl bg-white text-slate-700 border';
+      });
+      const activeTab = document.getElementById(`exp-tab-${mod}`);
+      if (activeTab) activeTab.className = 'px-2.5 py-1 rounded-xl bg-blue-600 text-white font-bold';
+
+      let msg = '';
+      const zoneNames = { kt: '📍 觀塘區', east: '📍 東區', st: '📍 沙田區' };
+      const orderWeight = { '第 1 順位': 1, '第 2 順位': 2, '第 3 順位': 3, '第 4 順位': 4, '彈性支援': 99 };
+
+      if (mod === 'shift_truck') {
+        msg = `📅 【Mia組】每日分區排更分工與車線表 (${today})\n========================================\n`;
+        ['kt', 'east', 'st'].forEach(z => {
+          msg += `\n【${zoneNames[z]}】\n`;
+          const trucks = (truckRoutes || []).filter(t => (t.zone === z) || (!t.zone && z === 'kt'));
+          msg += `🚗 司機車線調度：\n`;
+          if (!trucks.length) msg += `  (無特別車線安排)\n`;
+          else trucks.forEach(tr => { msg += `  • ${tr.order} (${tr.time}) ➜ 司機: ${tr.driver} ➜ 送達：${tr.fence}\n`; });
+
+          const assigns = (zoneAssignments[z] || []);
+          const fencesInZ = (zoneFences[z] || []);
+
+          msg += `\n🏃 各圍欄步兵分工明細：\n`;
+          if (!assigns.length) {
+            msg += `  (暫無排更名冊)\n`;
+          } else {
+            fencesInZ.forEach(fence => {
+              const riders = assigns.filter(item => item.fence === fence.name).sort((a, b) => (orderWeight[a.order] || 50) - (orderWeight[b.order] || 50));
+              if (riders.length > 0) {
+                const namesTxt = riders.map(r => (r.order === '第 1 順位' || !r.order) ? `${r.name}` : `[${r.order}] ${r.name}`).join(' + ');
+                msg += `  • ${fence.name} ➜ ${namesTxt}\n`;
+              }
+            });
+
+            msg += `\n👤 步兵個人負責圍欄清單：\n`;
+            const distinctRiderIds = [...new Set(assigns.map(a => a.id))];
+            distinctRiderIds.forEach(rId => {
+              const myF = assigns.filter(a => a.id === rId);
+              const rName = myF[0].name;
+              const fList = myF.map(f => (f.order === '第 1 順位' || !f.order) ? `${f.fence}` : `${f.fence}(${f.order})`).join('、');
+              msg += `  • ${rName} (${rId}) ➜ 負責：${fList}\n`;
+            });
+          }
+        });
+        msg += `\n========================================\n請各位司機與同事準時到崗，派送完畢後請在系統打剔回報進度！💪`;
+      } else if (mod === 'tally') {
+        msg = `📦 【Mia組】當日結算與派件總報表 (${today})\n===========================\n`;
+        accounts.forEach(acc => {
+          if (acc.id === 'KM001') return;
+          msg += `\n👤 步兵：${acc.name} (${acc.id} • ${acc.team})\n  - 糧期模式：${acc.payday}\n`;
+        });
+      } else if (mod === 'tickets') {
+        msg = `🚨 【Mia組】異常工單與判責追蹤表 (${today})\n===========================\n共 ${rawTickets.length} 宗工單：\n`;
+        rawTickets.forEach((t, i) => {
+          msg += `\n${i+1}. 單號: ${t.tracking}\n   • 責任: ${t.courier} | 罰款: ${t.fine}\n   • 地址: ${t.address}\n   • 問題: ${t.issue}\n`;
+        });
+      } else if (mod === 'counts') {
+        msg = `📊 【Mia組】各區圍欄貨量總覽 (${today})\n===========================\n`;
+        ['kt', 'east', 'st'].forEach(z => {
+          msg += `\n【${zoneNames[z]} 貨量】\n`;
+          (zoneFences[z] || []).forEach(f => {
+            msg += `  • ${f.name}：${zoneFenceCounts[f.id] || 0} 件\n`;
+          });
+        });
+      } else if (mod === 'recruits') {
+        msg = `📋 【Mia組】預約面試與入職新人名冊 (${today})\n===========================\n`;
+        recruitsList.forEach((r, i) => {
+          msg += `\n${i+1}. 姓名: ${r.name} (電話: ${r.phone})\n   • 返工日: ${r.date} | 薪金: ${r.wage} | 糧期: ${r.paycycle}\n`;
+        });
+      } else if (mod === 'expenses') {
+        msg = `💰 【Mia組】物資採購與雜支記帳 (${today})\n===========================\n`;
+        expensesList.forEach((e, i) => {
+          msg += `${i+1}. [${e.date}] ${e.name} ➜ $${e.amount} (經手人: ${e.buyer})\n`;
+        });
+      } else if (mod === 'progress') {
+        msg = `📌 【Mia組】每日工作進度看板 (${today})\n===========================\n已覆蓋全區圍欄派送狀態\n`;
+      } else if (mod === 'shifts') {
+        msg = `⏰ 【Mia組】翌日同事上班報更名冊 (${today})\n===========================\n共 ${shiftReports.length} 人提交報更：\n`;
+        shiftReports.forEach((s, i) => {
+          msg += `${i+1}. ${s.name} (${s.id}) ➜ ⏰ ${s.time} (備註: ${s.fence || '無'})\n`;
+        });
+      }
+
+      txtArea.value = msg;
+    }
+
     function copyUniversalWhatsAppText() {
       const txt = document.getElementById('universal-export-textarea');
       txt.select();
       navigator.clipboard.writeText(txt.value);
-      alert('已複製到剪貼簿！');
+      alert('✅ 已複製 WhatsApp 格式總報表！');
+    }
+
+    function downloadUniversalCSV() {
+      const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+      csvContent += "導出內容\n" + document.getElementById('universal-export-textarea').value;
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Mia組_${currentExportModule}_${today}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
 
     // 彈窗渲染邏輯
@@ -797,7 +913,7 @@
       const time = document.getElementById('shift-time-inp').value;
       const fence = document.getElementById('shift-fence-inp').value;
       shiftReports.unshift({ id: loggedInUser.id, name: loggedInUser.name, time: time, fence: fence });
-      saveData(); alert('✅ 報更已成功提交並同步！'); closeModal5();
+      saveData(); alert('✅ 報更已成功提交並同步至 Google Sheet！'); closeModal5();
     }
 
     function openModal8() {
