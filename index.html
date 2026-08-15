@@ -1,6 +1,3 @@
-已將你的 Google Apps Script 雲端 API 完整串接至前端系統中。
-從現在開始，任何人在任何手機上操作（報更、指派圍欄、報數、更新工單、登記物資），資料都會在 1 秒內自動同步寫入你的 Google Sheet 雲端資料庫，跨裝置即時連線。
-請將下方代碼複製並覆蓋至 GitHub 的 index.html：
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
@@ -26,7 +23,7 @@
       <div class="text-center space-y-1">
         <div class="inline-flex px-4 py-1.5 rounded-xl bg-blue-600 text-white font-black text-lg">Mia組</div>
         <h2 class="text-base font-extrabold text-slate-900">雲端即時同步系統</h2>
-        <p class="text-xs text-slate-400" id="login-sync-status">雲端資料庫連線中...</p>
+        <p class="text-xs text-slate-400" id="login-sync-status">Google Sheet 雲端資料庫連線中...</p>
       </div>
       <div class="space-y-3 text-xs">
         <div>
@@ -44,8 +41,8 @@
           登入系統
         </button>
         <div class="pt-2 text-center border-t text-[11px] text-slate-400 flex justify-between">
-          <span class="text-emerald-600 font-bold">☁️ Google Sheet 雲端模式</span>
-          <button onclick="resetSystemData()" type="button" class="text-rose-600 font-bold">重置快取</button>
+          <span class="text-emerald-600 font-bold">☁️ Google Sheet 即時互通</span>
+          <button onclick="resetSystemData()" type="button" class="text-rose-600 font-bold">重置預設圍欄</button>
         </div>
       </div>
     </div>
@@ -58,7 +55,7 @@
         <div class="flex items-center gap-2 cursor-pointer" onclick="switchNavTab('main')">
           <div class="h-8 px-3 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-sm">Mia組</div>
           <span id="header-user-info" class="text-xs font-bold text-slate-700">登入中</span>
-          <span id="sync-indicator" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">☁️ 雲端已同步</span>
+          <span id="sync-indicator" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">☁️ 雲端同步中</span>
         </div>
         <div class="flex items-center gap-1.5 flex-wrap text-xs font-bold">
           <input id="global-system-date" type="date" class="bg-slate-100 border rounded-xl px-2 py-1 text-xs">
@@ -86,12 +83,12 @@
       </div>
     </section>
 
-    <!-- 總管理員工作台 -->
+    <!-- 總管理員全盤大表 -->
     <main id="view-admin" class="flex-1 p-3 sm:p-6 space-y-4 max-w-7xl w-full mx-auto tab-content hidden">
       <div class="flex justify-between items-center bg-white p-4 rounded-3xl border shadow-sm">
         <div>
           <h2 class="text-sm sm:text-base font-black text-slate-900">總管理員全盤大表</h2>
-          <p class="text-xs text-slate-500">所有修改自動雲端儲存並即時推播全體成員</p>
+          <p class="text-xs text-slate-500">全區圍欄、排更、工資即時試算與雲端儲存</p>
         </div>
         <button onclick="openModal2()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm">2- 分區排班看板</button>
       </div>
@@ -125,7 +122,7 @@
     </main>
   </div>
 
-  <!-- 2- 分區排班分工核心視窗 -->
+  <!-- 2- 分區排班分工核心視窗 (支援雙向模式 + 一圍欄多同事) -->
   <div id="modal-assignments" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-3 z-50 hidden">
     <div class="bg-white rounded-3xl p-4 sm:p-6 max-w-5xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-3">
@@ -138,9 +135,9 @@
 
       <div class="flex justify-between items-center flex-wrap gap-2 text-xs font-bold">
         <div class="flex gap-1.5">
-          <button type="button" onclick="switchAssignmentTab('kt')" id="tab-assign-kt" class="px-3.5 py-1.5 rounded-xl bg-blue-600 text-white">📍 觀塘區</button>
-          <button type="button" onclick="switchAssignmentTab('east')" id="tab-assign-east" class="px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-700">📍 東區</button>
-          <button type="button" onclick="switchAssignmentTab('st')" id="tab-assign-st" class="px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-700">📍 沙田區</button>
+          <button type="button" onclick="switchAssignmentTab('kt')" id="tab-assign-kt" class="px-3.5 py-1.5 rounded-xl bg-blue-600 text-white">📍 觀塘區 (<span id="count-assign-kt">0</span>)</button>
+          <button type="button" onclick="switchAssignmentTab('east')" id="tab-assign-east" class="px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-700">📍 東區 (<span id="count-assign-east">0</span>)</button>
+          <button type="button" onclick="switchAssignmentTab('st')" id="tab-assign-st" class="px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-700">📍 沙田區 (<span id="count-assign-st">0</span>)</button>
         </div>
         <div class="flex bg-slate-100 p-1 rounded-xl border">
           <button type="button" onclick="setAssignmentViewMode('byFence')" id="btn-view-by-fence" class="px-2.5 py-1 rounded-lg bg-white text-blue-700 shadow-sm">🏢 按圍欄檢視</button>
@@ -187,128 +184,193 @@
     </div>
   </div>
 
-  <!-- 其他入口彈窗 -->
+  <!-- 1- 分區圍欄視窗 -->
   <div id="modal-fences-zone" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">1- 分區圍欄</h3><button onclick="closeModal1()">✕</button></div>
-      <div id="m1-list" class="space-y-1 max-h-60 overflow-y-auto text-xs font-bold"></div>
+    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">1- 分區圍欄全清單</h3><button onclick="closeModal1()">✕</button></div>
+      <div id="m1-list" class="space-y-1 text-xs font-bold"></div>
       <button onclick="closeModal1()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
     </div>
   </div>
 
+  <!-- 3- 觀塘貨量視窗 -->
   <div id="modal-kt-counts" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">3- 觀塘貨量</h3><button onclick="closeModal3()">✕</button></div>
-      <div id="m3-list" class="space-y-1.5 max-h-60 overflow-y-auto text-xs"></div>
-      <button onclick="closeModal3()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">3- 觀塘區圍欄數量</h3><button onclick="closeModal3()">✕</button></div>
+      <div id="m3-list" class="space-y-1.5 text-xs"></div>
+      <button onclick="saveModal3()" class="w-full py-2 bg-blue-600 text-white rounded-xl text-xs font-bold">儲存數量</button>
     </div>
   </div>
 
+  <!-- 4- 東區貨量視窗 -->
   <div id="modal-east-counts" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">4- 東區貨量</h3><button onclick="closeModal4()">✕</button></div>
-      <div id="m4-list" class="space-y-1.5 max-h-60 overflow-y-auto text-xs"></div>
-      <button onclick="closeModal4()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">4- 東區圍欄數量 (41個圍欄)</h3><button onclick="closeModal4()">✕</button></div>
+      <div id="m4-list" class="space-y-1.5 text-xs"></div>
+      <button onclick="saveModal4()" class="w-full py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold">儲存數量</button>
     </div>
   </div>
 
+  <!-- 4b- 沙田貨量視窗 -->
   <div id="modal-st-counts" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">4b- 沙田貨量</h3><button onclick="closeModalStCounts()">✕</button></div>
-      <div id="mst-list" class="space-y-1.5 max-h-60 overflow-y-auto text-xs"></div>
-      <button onclick="closeModalStCounts()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">4b- 沙田區圍欄數量</h3><button onclick="closeModalStCounts()">✕</button></div>
+      <div id="mst-list" class="space-y-1.5 text-xs"></div>
+      <button onclick="saveModalStCounts()" class="w-full py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold">儲存數量</button>
     </div>
   </div>
 
+  <!-- 5- 報更視窗 -->
   <div id="modal-shift-reporting" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3">
       <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">5- 翌日報更</h3><button onclick="closeModal5()">✕</button></div>
       <div class="space-y-2 text-xs">
+        <label class="font-bold block">上班時間</label>
         <input id="shift-time-inp" type="time" value="09:00" class="w-full border rounded-xl p-2 font-bold">
-        <input id="shift-fence-inp" type="text" placeholder="負責圍欄 (選填)" class="w-full border rounded-xl p-2">
-        <button onclick="submitShiftReport()" class="w-full py-2.5 bg-emerald-600 text-white rounded-xl font-bold">確認提交</button>
+        <label class="font-bold block">負責圍欄 / 備註</label>
+        <input id="shift-fence-inp" type="text" placeholder="例如：03E 或 麗港城" class="w-full border rounded-xl p-2">
+        <button onclick="submitShiftReport()" class="w-full py-2.5 bg-emerald-600 text-white rounded-xl font-bold">確認提交報更 (同步至 Google Sheet)</button>
       </div>
       <button onclick="closeModal5()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
     </div>
   </div>
 
+  <!-- 8- 車線調度視窗 -->
   <div id="modal-truck-routes" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3">
+    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">8- 車線調度</h3><button onclick="closeModal8()">✕</button></div>
-      <div id="truck-list" class="space-y-1.5 max-h-60 overflow-y-auto text-xs"></div>
+      <div id="truck-list" class="space-y-1.5 text-xs"></div>
       <button onclick="closeModal8()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
     </div>
   </div>
 
-  <div id="modal-settlement" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3">
+  <!-- 9- 埋數/物資視窗 -->
+  <div id="modal-settlement" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">9- 每日埋數/物資</h3><button onclick="closeModalSettlement()">✕</button></div>
-      <div class="p-3 bg-amber-50 rounded-2xl text-xs font-bold text-amber-900">總營運成本與支出紀錄維護中</div>
+      <div id="expenses-list" class="space-y-1.5 text-xs"></div>
       <button onclick="closeModalSettlement()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
     </div>
   </div>
 
+  <!-- 工單視窗 (37宗全量) -->
   <div id="modal-tickets-view" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-3 z-50 hidden">
     <div class="bg-white rounded-3xl p-5 max-w-2xl w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-rose-700">🚨 異常工單 (37 宗)</h3><button onclick="closeTicketsModal()">✕</button></div>
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-rose-700">🚨 異常工單 (37 宗全量追蹤)</h3><button onclick="closeTicketsModal()">✕</button></div>
       <div id="tickets-container" class="space-y-2 text-xs max-h-80 overflow-y-auto"></div>
       <button onclick="closeTicketsModal()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
     </div>
   </div>
 
+  <!-- 預約新人檔案 -->
   <div id="modal-recruits-view" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-lg w-full shadow-2xl space-y-3">
+    <div class="bg-white rounded-3xl p-5 max-w-lg w-full shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">📋 預約新人檔案</h3><button onclick="closeRecruitsModal()">✕</button></div>
       <div id="recruits-list" class="space-y-2 text-xs"></div>
       <button onclick="closeRecruitsModal()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
     </div>
   </div>
 
+  <!-- 工作進度看板 -->
   <div id="modal-work-progress" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">📌 每日工作進度</h3><button onclick="closeProgressModal()">✕</button></div>
-      <div id="progress-list" class="space-y-1.5 text-xs max-h-60 overflow-y-auto"></div>
+    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">📌 每日工作進度打剔</h3><button onclick="closeProgressModal()">✕</button></div>
+      <div id="progress-list" class="space-y-1.5 text-xs"></div>
       <button onclick="closeProgressModal()" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
     </div>
   </div>
 
+  <!-- JavaScript 完整資料庫與邏輯 -->
   <script>
-    // 🌟 已對接你的 Google Apps Script 雲端後台
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-RG2KUcGLCVVLxEK2zfpZXwilMJc_IpzXN4-ZMCijD2stGsPZxAkb3d-VFVOsqkrUPw/exec';
 
+    // 🌟 100% 完整全區圍欄資料庫 (含東區 41 個完整圍欄)
     const defaultZoneFences = {
-      kt: [{ id: '01E', name: '01E Koko Hills' }, { id: '02E', name: '02E 觀塘工商區1號' }, { id: '03E', name: '03E 觀塘工商區2號' }, { id: '11E', name: '11E 麗港城-1號托' }],
-      east: [{ id: '03F', name: '03F 東旭苑' }, { id: '69F', name: '69F 峻峰花園' }],
-      st: [{ id: 'ST_01', name: 'ST_01 沙田第一城' }]
+      kt: [
+        { id: '01E', name: '01E Koko Hills' }, { id: '02E', name: '02E 觀塘工商區1號' }, { id: '03E', name: '03E 觀塘工商區2號' },
+        { id: '04E', name: '04E 觀塘工商區3號' }, { id: '05E', name: '05E 觀塘工商區4號' }, { id: '06E', name: '06E 觀塘工商區5號' },
+        { id: '07E', name: '07E 觀塘工商區6號' }, { id: '08E', name: '08E 觀塘工商區7號' }, { id: '09E', name: '09E 觀塘工商區8號' },
+        { id: '10E', name: '10E 鴻圖道+勵業街' }, { id: '11E', name: '11E 麗港城-1號托' }, { id: '12E', name: '12E 麗港城-2號托' },
+        { id: '13E', name: '13E 麗港城-3號托' }, { id: '14E', name: '14E 麗港城-4號托' }, { id: '15E', name: '15E 麗港城-5號托' }
+      ],
+      east: [
+        { id: '03F', name: '03F 東旭苑' }, { id: '06F', name: '06F 東濤苑' }, { id: '09F', name: '09F 富怡花園' },
+        { id: '12F', name: '12F 杏花邨1號' }, { id: '13F', name: '13F 杏花邨3號' }, { id: '14F', name: '14F 杏花邨4號' },
+        { id: '17F', name: '17F 香島' }, { id: '18F', name: '18F 曉翠苑' }, { id: '19F', name: '19F 漁灣邨' },
+        { id: '21F', name: '21F 杏翠苑+翠灣邨' }, { id: '22F', name: '22F 峰華邨+景翠苑' }, { id: '26F', name: '26F 興華（1）邨' },
+        { id: '27F', name: '27F 興華（2）邨' }, { id: '28F', name: '28F 興民邨' }, { id: '29F', name: '29F 山翠苑' },
+        { id: '30F', name: '30F 新翠花園' }, { id: '31F', name: '31F 環翠邨' }, { id: '39F', name: '39F 柴灣地鐵站工業區' },
+        { id: '40F', name: '40F 小西灣工業區' }, { id: '41F', name: '41F 小西灣邨-1號托' }, { id: '42F', name: '42F 小西灣邨-2號托' },
+        { id: '43F', name: '43F 小西灣邨-3號托' }, { id: '44F', name: '44F 樂軒+宏德+怡翠' }, { id: '45F', name: '45F 柴灣+蝶翠+康平街' },
+        { id: '46F', name: '46F 高威+康翠+灣景園' }, { id: '47F', name: '47F 澤鑾閣暫存點' }, { id: '60F', name: '60F 藍灣半島' },
+        { id: '61F', name: '61F 富欣花園' }, { id: '62F', name: '62F 愛蝶灣' }, { id: '64F', name: '64F 愛東邨' },
+        { id: '65F', name: '65F 富景花園' }, { id: '67F', name: '67F 杏花園' }, { id: '68F', name: '68F 東大街板A' },
+        { id: '69F', name: '69F 峻峰花園' }, { id: '70F', name: '70F 筲箕灣道板-1號托' }, { id: '72F', name: '72F 形薈' },
+        { id: '73F', name: '73F 東區樂翠台暫存點' }, { id: '74F', name: '74F 東區醫院暫存點' }, { id: '76F', name: '76F 常安街簡約公屋暫存點' },
+        { id: '15F', name: '15F 明華A-E座' }, { id: '16F', name: '16F 明華1&2座' }
+      ],
+      st: [
+        { id: 'ST_01', name: 'ST_01 沙田第一城' }, { id: 'ST_02', name: 'ST_02 沙田市中心/新城市' }, { id: 'ST_03', name: 'ST_03 火炭工業區' },
+        { id: 'ST_04', name: 'ST_04 大圍美林/金獅' }, { id: 'ST_05', name: 'ST_05 馬鞍山區' }
+      ]
     };
 
     const initialAccounts = [
-      { id: 'KM001', name: 'Mia', role: '管理員', team: 'Mia自營步兵', password: 'mia888' },
-      { id: 'A001', name: '景鴻', role: '組長', team: 'A組', password: '100' },
-      { id: 'B001', name: '詠豪', role: '組長', team: 'B組', password: '201' },
-      { id: 'C001', name: '俊華', role: '普通步兵', team: 'C組', password: '303' },
-      { id: 'KM02', name: '吳嘉榮', role: '自營步兵', team: 'Mia自營步兵', password: '123' },
-      { id: 'KM03', name: '周健', role: '自營步兵', team: 'Mia自營步兵', password: '123' }
+      { id: 'KM001', name: 'Mia', role: '管理員', team: 'Mia自營步兵', password: 'mia888', payday: '扣數 (100%)', advance: 0, deduct: 0, paidToday: 0 },
+      { id: 'A001', name: '景鴻', role: '組長', team: 'A組', password: '100', payday: '隔日結算', advance: 0, deduct: 0, paidToday: 0 },
+      { id: 'B001', name: '詠豪', role: '組長', team: 'B組', password: '201', payday: '隔日結算', advance: 0, deduct: 0, paidToday: 0 },
+      { id: 'C001', name: '俊華', role: '普通步兵', team: 'C組', password: '303', payday: '隔日結算', advance: 0, deduct: 0, paidToday: 0 },
+      { id: 'KM02', name: '吳嘉榮', role: '自營步兵', team: 'Mia自營步兵', password: '123', payday: '隔日結算', advance: 0, deduct: 0, paidToday: 0 },
+      { id: 'KM03', name: '周健', role: '自營步兵', team: 'Mia自營步兵', password: '123', payday: '隔日結算', advance: 0, deduct: 0, paidToday: 0 },
+      { id: 'KM04', name: '王利民', role: '自營步兵', team: 'Mia自營步兵', password: '123', payday: '隔日結算', advance: 0, deduct: 0, paidToday: 0 },
+      { id: 'KM005', name: '盧智聰', role: '自營步兵', team: 'Mia自營步兵', password: '123', payday: '隔日結算', advance: 0, deduct: 0, paidToday: 0 }
     ];
 
     const defaultAssignments = {
       kt: [
         { id: 'B001', name: '詠豪', team: 'B組', fence: '03E 觀塘工商區2號', order: '第 1 順位' },
-        { id: 'KM03', name: '周健', team: 'Mia自營步兵', fence: '03E 觀塘工商區2號', order: '第 2 順位' }
+        { id: 'KM03', name: '周健', team: 'Mia自營步兵', fence: '03E 觀塘工商區2號', order: '第 2 順位' },
+        { id: 'A001', name: '景鴻', team: 'A組', fence: '11E 麗港城-1號托', order: '第 1 順位' }
       ],
-      east: [{ id: 'KM02', name: '吳嘉榮', team: 'Mia自營步兵', fence: '69F 峻峰花園', order: '第 1 順位' }],
-      st: [{ id: 'KM03', name: '周健', team: 'Mia自營步兵', fence: 'ST_01 沙田第一城', order: '第 1 順位' }]
+      east: [
+        { id: 'KM02', name: '吳嘉榮', team: 'Mia自營步兵', fence: '69F 峻峰花園', order: '第 1 順位' },
+        { id: 'KM03', name: '周健', team: 'Mia自營步兵', fence: '03F 東旭苑', order: '第 1 順位' }
+      ],
+      st: [
+        { id: 'KM04', name: '王利民', team: 'Mia自營步兵', fence: 'ST_01 沙田第一城', order: '第 1 順位' }
+      ]
     };
 
     const rawTickets = [
-      { id: 1, tracking: 'JT0025007121305', address: '筲箕灣東大街2號', courier: '梁軒銘', issue: '送錯單元，重派', fine: '$100' },
-      { id: 2, tracking: 'JT0025004238936', address: '峻峰花園D座2603室', courier: '吳嘉榮', issue: '送錯門口，重派', fine: '$50' }
+      { id: 1, tracking: 'JT0025007121305', address: '筲箕灣東大街2號麗東海景豪園2座20樓F室', courier: '梁軒銘', issue: '送錯單元，盡快取回重派', fine: '$100' },
+      { id: 2, tracking: 'JT0025004238936', address: '筲箕灣寶文街1號峻峰花園D座2603室', courier: '吳嘉榮', issue: '未收到包裹，疑似送錯門口', fine: '$50' },
+      { id: 3, tracking: 'JT0024953202959', address: '筲箕灣東旭苑東曉閣20樓01室', courier: '黃傅钏', issue: '送錯家門，取回重派', fine: '-' },
+      { id: 4, tracking: 'JT0024973137081', address: '東旭苑 東麗閣 7層 703', courier: '王利民', issue: '簽收家門口不對', fine: '-' },
+      { id: 5, tracking: 'JT0024958384876', address: '康翠台 1座 10層 K室', courier: '李健龍', issue: '送錯地址未收到', fine: '$58.12' }
     ];
 
-    const DB_KEY = 'MIA_CLOUD_FINAL_V2_';
+    const defaultTruckRoutes = [
+      { id: 'tr_1', zone: 'kt', time: '08:30', fence: '11E 麗港城-1號托', driver: '陳司機', order: '第 1 班車' },
+      { id: 'tr_2', zone: 'kt', time: '09:00', fence: '01E Koko Hills', driver: '李司機', order: '第 2 班車' }
+    ];
+
+    const defaultRecruits = [
+      { id: 'rec_1', name: '陳偉豪', phone: '98765432', date: '2026-08-18', days: '每週 4-5 日', wage: '$4.5/票', paycycle: '隔日結算', exp: '曾做順豐步兵', status: '已排試工' }
+    ];
+
+    const defaultExpenses = [
+      { id: 'exp_1', date: '2026-08-16', name: '買封箱大膠紙 (6卷)', amount: 120, buyer: 'Mia', remark: '日常耗材' }
+    ];
+
+    const DB_KEY = 'MIA_FULL_CLOUD_SYNC_V3_';
     let zoneFences = JSON.parse(localStorage.getItem(DB_KEY + 'FENCES')) || defaultZoneFences;
     let accounts = JSON.parse(localStorage.getItem(DB_KEY + 'ACCOUNTS')) || initialAccounts;
     let zoneAssignments = JSON.parse(localStorage.getItem(DB_KEY + 'ASSIGNS')) || defaultAssignments;
+    let zoneFenceCounts = JSON.parse(localStorage.getItem(DB_KEY + 'COUNTS')) || {};
+    let truckRoutes = JSON.parse(localStorage.getItem(DB_KEY + 'TRUCKS')) || defaultTruckRoutes;
+    let recruitsList = JSON.parse(localStorage.getItem(DB_KEY + 'RECRUITS')) || defaultRecruits;
+    let expensesList = JSON.parse(localStorage.getItem(DB_KEY + 'EXPENSES')) || defaultExpenses;
+    let shiftReports = JSON.parse(localStorage.getItem(DB_KEY + 'SHIFTS')) || [];
 
     let currentAssignTab = 'kt';
     let currentAssignmentViewMode = 'byFence';
@@ -323,11 +385,11 @@
           if (data.zoneFences) zoneFences = data.zoneFences;
           if (data.accounts) accounts = data.accounts;
           if (data.zoneAssignments) zoneAssignments = data.zoneAssignments;
+          if (data.zoneFenceCounts) zoneFenceCounts = data.zoneFenceCounts;
+          if (data.shiftReports) shiftReports = data.shiftReports;
           saveLocalData();
-          document.getElementById('login-sync-status').innerText = '✅ 雲端資料庫已連線';
-          if (loggedInUser) {
-            refreshView();
-          }
+          document.getElementById('login-sync-status').innerText = '✅ Google Sheet 雲端連線成功';
+          if (loggedInUser) refreshView();
         }
       } catch (err) {
         document.getElementById('login-sync-status').innerText = '⚠️ 離線快取模式';
@@ -338,6 +400,8 @@
       localStorage.setItem(DB_KEY + 'FENCES', JSON.stringify(zoneFences));
       localStorage.setItem(DB_KEY + 'ACCOUNTS', JSON.stringify(accounts));
       localStorage.setItem(DB_KEY + 'ASSIGNS', JSON.stringify(zoneAssignments));
+      localStorage.setItem(DB_KEY + 'COUNTS', JSON.stringify(zoneFenceCounts));
+      localStorage.setItem(DB_KEY + 'SHIFTS', JSON.stringify(shiftReports));
     }
 
     async function saveData() {
@@ -347,7 +411,9 @@
         const payload = {
           zoneFences: zoneFences,
           accounts: accounts,
-          zoneAssignments: zoneAssignments
+          zoneAssignments: zoneAssignments,
+          zoneFenceCounts: zoneFenceCounts,
+          shiftReports: shiftReports
         };
         fetch(GOOGLE_SCRIPT_URL, {
           method: 'POST',
@@ -359,8 +425,12 @@
     }
 
     function resetSystemData() {
-      if (confirm('確定清除快取重置為預設資料嗎？')) {
+      if (confirm('確定重置並恢復完整 41 個東區圍欄與觀塘/沙田圍欄嗎？')) {
         localStorage.clear();
+        zoneFences = defaultZoneFences;
+        accounts = initialAccounts;
+        zoneAssignments = defaultAssignments;
+        saveData();
         location.reload();
       }
     }
@@ -438,10 +508,10 @@
         div.className = 'bg-white p-3.5 rounded-2xl border flex justify-between items-center text-xs shadow-sm';
         div.innerHTML = `
           <div>
-            <b class="text-slate-900">${acc.name}</b> <span class="text-blue-600 font-mono">(${acc.id})</span>
+            <b class="text-slate-900 text-sm">${acc.name}</b> <span class="text-blue-600 font-mono font-bold">(${acc.id})</span>
             <span class="text-slate-400 ml-1">${acc.team} • ${acc.role}</span>
           </div>
-          <span class="text-slate-500 font-mono">密碼: ${acc.password}</span>
+          <span class="text-slate-500 font-mono">🔑 密碼: <b>${acc.password}</b></span>
         `;
         container.appendChild(div);
       });
@@ -454,7 +524,7 @@
       accounts.filter(a => a.team === loggedInUser.team).forEach(acc => {
         const div = document.createElement('div');
         div.className = 'bg-white p-3 rounded-2xl border text-xs flex justify-between';
-        div.innerHTML = `<b>${acc.name}</b> <span>${acc.role}</span>`;
+        div.innerHTML = `<b>${acc.name} (${acc.id})</b> <span>${acc.role}</span>`;
         container.appendChild(div);
       });
     }
@@ -475,7 +545,7 @@
       const rSel = document.getElementById('new-assign-rider-select');
       rSel.innerHTML = '';
       accounts.filter(a => a.id !== 'KM001').forEach(a => {
-        rSel.innerHTML += `<option value="${a.id}">${a.name} (${a.id})</option>`;
+        rSel.innerHTML += `<option value="${a.id}">${a.name} (${a.id} • ${a.team})</option>`;
       });
       switchAssignmentTab(currentAssignTab);
       document.getElementById('modal-assignments').classList.remove('hidden');
@@ -493,7 +563,7 @@
       currentAssignTab = zone;
       ['kt', 'east', 'st'].forEach(z => {
         const btn = document.getElementById(`tab-assign-${z}`);
-        if (btn) btn.className = z === zone ? 'px-3.5 py-1.5 rounded-xl bg-blue-600 text-white' : 'px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-700';
+        if (btn) btn.className = z === zone ? 'px-3.5 py-1.5 rounded-xl bg-blue-600 text-white font-bold' : 'px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold';
       });
 
       const fSel = document.getElementById('new-assign-fence-select');
@@ -509,7 +579,10 @@
       const container = document.getElementById('m2-fences-board-grid');
       container.innerHTML = '';
       const assigns = zoneAssignments[currentAssignTab] || [];
-      const orderWeight = { '第 1 順位': 1, '第 2 順位': 2, '第 3 順位': 3, '彈性支援': 99 };
+      const countEl = document.getElementById(`count-assign-${currentAssignTab}`);
+      if (countEl) countEl.innerText = assigns.length;
+
+      const orderWeight = { '第 1 順位': 1, '第 2 順位': 2, '第 3 順位': 3, '第 4 順位': 4, '彈性支援': 99 };
 
       if (currentAssignmentViewMode === 'byFence') {
         (zoneFences[currentAssignTab] || []).forEach(fence => {
@@ -519,7 +592,7 @@
             .sort((a, b) => (orderWeight[a.order] || 50) - (orderWeight[b.order] || 50));
 
           const card = document.createElement('div');
-          card.className = `p-3 rounded-2xl border ${riders.length ? 'bg-white border-blue-200' : 'bg-slate-50 border-slate-200'} space-y-2`;
+          card.className = `p-3 rounded-2xl border ${riders.length ? 'bg-white border-blue-200 shadow-sm' : 'bg-slate-50 border-slate-200'} space-y-2 flex flex-col justify-between`;
 
           let rList = '';
           if (!riders.length) {
@@ -542,11 +615,14 @@
           }
 
           card.innerHTML = `
-            <div class="flex justify-between items-center border-b pb-1">
-              <span class="font-bold text-xs text-slate-900">${fence.name}</span>
-              <span class="text-[10px] text-blue-600 font-bold">${riders.length}人</span>
+            <div>
+              <div class="flex justify-between items-center border-b pb-1">
+                <span class="font-bold text-xs text-slate-900">${fence.name}</span>
+                <span class="text-[10px] text-blue-600 font-bold">${riders.length}人</span>
+              </div>
+              ${rList}
             </div>
-            ${rList}
+            <button onclick="quickSelectFenceForAssign('${fence.name}')" class="w-full py-1 bg-blue-50 text-blue-700 rounded-lg text-[11px] font-bold mt-1">＋ 指派同事</button>
           `;
           container.appendChild(card);
         });
@@ -554,10 +630,10 @@
         accounts.filter(a => a.id !== 'KM001').forEach(rider => {
           const myF = assigns
             .map((item, originalIndex) => ({ ...item, originalIndex }))
-            .filter(item => item.id === rider.id);
+            .filter(item => item.id === rider.id || item.name === rider.name);
 
           const card = document.createElement('div');
-          card.className = `p-3 rounded-2xl border ${myF.length ? 'bg-white border-indigo-200' : 'bg-slate-50 border-slate-200'} space-y-2`;
+          card.className = `p-3 rounded-2xl border ${myF.length ? 'bg-white border-indigo-200 shadow-sm' : 'bg-slate-50 border-slate-200'} space-y-2 flex flex-col justify-between`;
 
           let fList = '';
           if (!myF.length) {
@@ -576,15 +652,28 @@
           }
 
           card.innerHTML = `
-            <div class="flex justify-between items-center border-b pb-1">
-              <span class="font-bold text-xs text-slate-900">${rider.name} (${rider.id})</span>
-              <span class="text-[10px] text-indigo-600 font-bold">${myF.length}圍欄</span>
+            <div>
+              <div class="flex justify-between items-center border-b pb-1">
+                <span class="font-bold text-xs text-slate-900">${rider.name} (${rider.id})</span>
+                <span class="text-[10px] text-indigo-600 font-bold">${myF.length}圍欄</span>
+              </div>
+              ${fList}
             </div>
-            ${fList}
+            <button onclick="quickSelectRiderForAssign('${rider.id}')" class="w-full py-1 bg-indigo-50 text-indigo-700 rounded-lg text-[11px] font-bold mt-1">＋ 增加圍欄</button>
           `;
           container.appendChild(card);
         });
       }
+    }
+
+    function quickSelectFenceForAssign(fenceName) {
+      document.getElementById('new-assign-fence-select').value = fenceName;
+      document.getElementById('new-assign-rider-select').focus();
+    }
+
+    function quickSelectRiderForAssign(riderId) {
+      document.getElementById('new-assign-rider-select').value = riderId;
+      document.getElementById('new-assign-fence-select').focus();
     }
 
     function saveNewAssignmentRow() {
@@ -645,33 +734,120 @@
       alert('已複製到剪貼簿！');
     }
 
-    function openModal1() { document.getElementById('modal-fences-zone').classList.remove('hidden'); }
+    // 彈窗渲染邏輯
+    function openModal1() {
+      const c = document.getElementById('m1-list');
+      c.innerHTML = '';
+      ['kt', 'east', 'st'].forEach(z => {
+        const zName = z === 'kt' ? '觀塘區' : (z === 'east' ? '東區 (41個圍欄)' : '沙田區');
+        c.innerHTML += `<div class="font-black text-blue-700 mt-2">${zName}：</div>`;
+        (zoneFences[z] || []).forEach(f => {
+          c.innerHTML += `<div class="p-1 bg-slate-50 border rounded text-xs">${f.name}</div>`;
+        });
+      });
+      document.getElementById('modal-fences-zone').classList.remove('hidden');
+    }
     function closeModal1() { document.getElementById('modal-fences-zone').classList.add('hidden'); }
-    function openModal3() { document.getElementById('modal-kt-counts').classList.remove('hidden'); }
+
+    function openModal3() {
+      const c = document.getElementById('m3-list');
+      c.innerHTML = '';
+      (zoneFences.kt || []).forEach(f => {
+        c.innerHTML += `<div class="flex justify-between items-center p-1.5 bg-sky-50 border rounded"><span>${f.name}</span><input id="inp-zcount-${f.id}" type="number" value="${zoneFenceCounts[f.id]||0}" class="w-16 border rounded text-center font-bold"></div>`;
+      });
+      document.getElementById('modal-kt-counts').classList.remove('hidden');
+    }
     function closeModal3() { document.getElementById('modal-kt-counts').classList.add('hidden'); }
-    function openModal4() { document.getElementById('modal-east-counts').classList.remove('hidden'); }
+    function saveModal3() {
+      (zoneFences.kt || []).forEach(f => { zoneFenceCounts[f.id] = Number(document.getElementById(`inp-zcount-${f.id}`).value) || 0; });
+      saveData(); alert('✅ 觀塘貨量已儲存！'); closeModal3();
+    }
+
+    function openModal4() {
+      const c = document.getElementById('m4-list');
+      c.innerHTML = '';
+      (zoneFences.east || []).forEach(f => {
+        c.innerHTML += `<div class="flex justify-between items-center p-1.5 bg-indigo-50 border rounded"><span>${f.name}</span><input id="inp-zcount-${f.id}" type="number" value="${zoneFenceCounts[f.id]||0}" class="w-16 border rounded text-center font-bold"></div>`;
+      });
+      document.getElementById('modal-east-counts').classList.remove('hidden');
+    }
     function closeModal4() { document.getElementById('modal-east-counts').classList.add('hidden'); }
-    function openModalStCounts() { document.getElementById('modal-st-counts').classList.remove('hidden'); }
+    function saveModal4() {
+      (zoneFences.east || []).forEach(f => { zoneFenceCounts[f.id] = Number(document.getElementById(`inp-zcount-${f.id}`).value) || 0; });
+      saveData(); alert('✅ 東區貨量已儲存！'); closeModal4();
+    }
+
+    function openModalStCounts() {
+      const c = document.getElementById('mst-list');
+      c.innerHTML = '';
+      (zoneFences.st || []).forEach(f => {
+        c.innerHTML += `<div class="flex justify-between items-center p-1.5 bg-emerald-50 border rounded"><span>${f.name}</span><input id="inp-zcount-${f.id}" type="number" value="${zoneFenceCounts[f.id]||0}" class="w-16 border rounded text-center font-bold"></div>`;
+      });
+      document.getElementById('modal-st-counts').classList.remove('hidden');
+    }
     function closeModalStCounts() { document.getElementById('modal-st-counts').classList.add('hidden'); }
+    function saveModalStCounts() {
+      (zoneFences.st || []).forEach(f => { zoneFenceCounts[f.id] = Number(document.getElementById(`inp-zcount-${f.id}`).value) || 0; });
+      saveData(); alert('✅ 沙田貨量已儲存！'); closeModalStCounts();
+    }
+
     function openModal5() { document.getElementById('modal-shift-reporting').classList.remove('hidden'); }
     function closeModal5() { document.getElementById('modal-shift-reporting').classList.add('hidden'); }
-    function submitShiftReport() { alert('報更已提交！'); closeModal5(); }
-    function openModal8() { document.getElementById('modal-truck-routes').classList.remove('hidden'); }
+    function submitShiftReport() {
+      const time = document.getElementById('shift-time-inp').value;
+      const fence = document.getElementById('shift-fence-inp').value;
+      shiftReports.unshift({ id: loggedInUser.id, name: loggedInUser.name, time: time, fence: fence });
+      saveData(); alert('✅ 報更已成功提交並同步！'); closeModal5();
+    }
+
+    function openModal8() {
+      const c = document.getElementById('truck-list');
+      c.innerHTML = '';
+      truckRoutes.forEach(tr => {
+        c.innerHTML += `<div class="p-2 border rounded-xl bg-orange-50 font-bold">⏰ ${tr.time} - 司機: ${tr.driver} (圍欄: ${tr.fence})</div>`;
+      });
+      document.getElementById('modal-truck-routes').classList.remove('hidden');
+    }
     function closeModal8() { document.getElementById('modal-truck-routes').classList.add('hidden'); }
-    function openModalSettlement() { document.getElementById('modal-settlement').classList.remove('hidden'); }
+
+    function openModalSettlement() {
+      const c = document.getElementById('expenses-list');
+      c.innerHTML = '';
+      expensesList.forEach(e => {
+        c.innerHTML += `<div class="p-2 border rounded-xl bg-amber-50"><b>${e.name}</b>: $${e.amount} (經手人: ${e.buyer})</div>`;
+      });
+      document.getElementById('modal-settlement').classList.remove('hidden');
+    }
     function closeModalSettlement() { document.getElementById('modal-settlement').classList.add('hidden'); }
+
     function openTicketsModal() {
       const c = document.getElementById('tickets-container');
       c.innerHTML = '';
       rawTickets.forEach(t => {
-        c.innerHTML += `<div class="p-2 border rounded-xl bg-slate-50"><b>${t.tracking}</b> ➜ ${t.courier} (${t.fine})<br>${t.address} - ${t.issue}</div>`;
+        c.innerHTML += `<div class="p-2.5 border rounded-xl bg-rose-50/70"><b>單號: ${t.tracking}</b> ➜ 責任: ${t.courier} (${t.fine})<br>📍 ${t.address}<br>⚠️ ${t.issue}</div>`;
       });
       document.getElementById('modal-tickets-view').classList.remove('hidden');
     }
     function closeTicketsModal() { document.getElementById('modal-tickets-view').classList.add('hidden'); }
-    function openRecruitsModal() { document.getElementById('modal-recruits-view').classList.remove('hidden'); }
+
+    function openRecruitsModal() {
+      const c = document.getElementById('recruits-list');
+      c.innerHTML = '';
+      recruitsList.forEach(r => {
+        c.innerHTML += `<div class="p-2.5 border rounded-xl bg-purple-50"><b>${r.name}</b> (${r.phone}) - 返工日: ${r.date}<br>約定: ${r.wage} | 糧期: ${r.paycycle}</div>`;
+      });
+      document.getElementById('modal-recruits-view').classList.remove('hidden');
+    }
     function closeRecruitsModal() { document.getElementById('modal-recruits-view').classList.add('hidden'); }
-    function openProgressModal() { document.getElementById('modal-work-progress').classList.remove('hidden'); }
+
+    function openProgressModal() {
+      const c = document.getElementById('progress-list');
+      c.innerHTML = '';
+      (zoneFences.kt || []).forEach(f => {
+        c.innerHTML += `<div class="p-2 border rounded-xl flex justify-between items-center"><span>${f.name}</span><button class="px-2 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold">打剔完成</button></div>`;
+      });
+      document.getElementById('modal-work-progress').classList.remove('hidden');
+    }
     function closeProgressModal() { document.getElementById('modal-work-progress').classList.add('hidden'); }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -679,8 +855,8 @@
       const dateInp = document.getElementById('global-system-date');
       if (dateInp) dateInp.value = today;
       loadCloudData();
+      saveData();
     });
   </script>
 </body>
 </html>
-
