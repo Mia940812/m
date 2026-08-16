@@ -1,184 +1,453 @@
 <!DOCTYPE html>
-<html lang="zh-HK">
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>步兵派件管理系統</title>
+  <title>Mia Group 派送營運工作台</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 15px; background: #f4f6f9; }
-    
-    /* 登入介面樣式 */
-    #loginSection { max-width: 380px; margin: 60px auto; padding: 25px; background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
-    #loginSection h2 { margin-bottom: 20px; font-size: 20px; }
-    #loginSection input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
-    #loginSection button { width: 100%; padding: 12px; background: #007bff; color: #fff; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-    #loginSection button:hover { background: #0056b3; }
-    
-    /* 主系統介面樣式 */
-    #mainSection { display: none; }
-    .top-bar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px 20px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .logout-btn { background: #dc3545; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-    .module-card { background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .module-title { font-weight: bold; font-size: 16px; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-    
-    /* 管理員專用模組 */
-    .admin-only { display: block; }
+    :root {
+      --primary-color: #2c3e50;
+      --accent-color: #e74c3c;
+      --bg-color: #f8f9fa;
+      --card-bg: #ffffff;
+      --border-color: #e2e8f0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background-color: var(--bg-color);
+      margin: 0;
+      padding: 15px;
+      color: #333;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      border: 1px solid var(--border-color);
+    }
+    .flex-between { display: flex; justify-content: space-between; align-items: center; }
+    .btn {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn-danger { background: var(--accent-color); }
+    .btn-success { background: #27ae60; }
+    .btn-warning { background: #f39c12; }
+    .btn-block { width: 100%; display: block; margin-top: 10px; }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0 14px 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid var(--border-color); padding: 10px; text-align: left; font-size: 13px; }
+    th { background: #f1f5f9; }
+    .badge {
+      padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: white;
+    }
+    .badge-admin { background: #e74c3c; }
+    .badge-staff { background: #3498db; }
+    .modal {
+      display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.65); justify-content: center; align-items: center; z-index: 1000;
+    }
+    .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; }
+    .hidden { display: none !important; }
+    .alert-banner { background: #fff3cd; color: #856404; padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #ffeeba; }
   </style>
 </head>
 <body>
 
-  <!-- ==================== 1. 獨立登入頁面 ==================== -->
-  <div id="loginSection">
-    <h2>🔒 步兵/管理員 系統登入</h2>
-    <input type="text" id="loginId" placeholder="帳號 ID (例如: Mia, KM01, A01)" autocomplete="off">
-    <input type="password" id="loginPassword" placeholder="密碼">
-    <button onclick="handleLogin()">確認登入</button>
+<div class="container">
+  <!-- 頂部資訊列 -->
+  <div class="card flex-between">
+    <div>
+      <h2 style="margin:0;">🚚 Mia Group 派送營運工作台</h2>
+      <small id="user-display-status">正在載入系統權限...</small>
+    </div>
+    <div>
+      <button class="btn btn-warning" onclick="switchRoleModal()">🔑 切換權限</button>
+      <button class="btn btn-danger" onclick="logout()">🚪 登出</button>
+    </div>
   </div>
 
+  <!-- 定時提醒警報 Banner -->
+  <div id="hourly-alert-banner" class="alert-banner hidden">
+    🔔 <strong>整點營運提醒：</strong> 請檢查未處理之異常件及步兵派送進度！
+  </div>
 
-  <!-- ==================== 2. 主系統介面 ==================== -->
-  <div id="mainSection">
+  <!-- 管理員 Mia 專用區塊：違規龍虎榜與罰款獎池 -->
+  <div id="admin-panel" class="card hidden">
+    <div class="flex-between">
+      <h3>🏆 違規龍虎榜與罰款獎池 (Mia 專屬控制台)</h3>
+      <span class="badge badge-admin">Admin 權限</span>
+    </div>
     
-    <!-- 頂部登入者狀態欄 -->
-    <div class="top-bar">
-      <div>當前登入者：<strong id="currentUserDisplay">--</strong></div>
-      <button class="logout-btn" onclick="handleLogout()">🚪 登出</button>
+    <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 10px 0;">
+      <h4>💰 當月累計罰款獎池金額：<span id="total-jackpot-amount" style="color:#e74c3c; font-size:20px;">HK$ 0.00</span></h4>
     </div>
 
-    <!-- 模組：當月罰款獎池 ＆ 違規龍虎榜 (管理員) -->
-    <div class="module-card admin-only">
-      <div class="module-title">🏆 當月罰款獎池 ＆ 違規龍虎榜</div>
-      <p>當月累計罰款獎池總額 (Monthly Pool)：<strong>HK$ 0.00</strong></p>
-      <p style="font-size: 12px; color: #666;">🔒 僅 Mia 總管理員可錄入及刪除</p>
+    <!-- 錄入違規紀錄表單 -->
+    <h4>➕ 錄入步兵/司機違規罰款</h4>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+      <div>
+        <label>違規日期：</label>
+        <input type="date" id="lb-inp-date">
+      </div>
+      <div>
+        <label>責任人員：</label>
+        <input type="text" id="lb-inp-staff" placeholder="例如：步兵阿強">
+      </div>
     </div>
-
-    <!-- 模組：當日營運利潤核算中心 (管理員) -->
-    <div class="module-card admin-only">
-      <div class="module-title">📈 當日營運利潤核算中心</div>
-      <p>實質純利潤 (Net Profit)：<strong>HK$ 0.00</strong></p>
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px;">
+      <div>
+        <label>罰款金額 (HK$)：</label>
+        <input type="number" id="lb-inp-amount" placeholder="100">
+      </div>
+      <div>
+        <label>違規詳細原因：</label>
+        <input type="text" id="lb-inp-reason" placeholder="例如：逾時未送達、遺失包裹">
+      </div>
     </div>
+    <button class="btn btn-danger btn-block" onclick="saveNewPenaltyRecord()">新增違規罰款紀錄</button>
 
-    <!-- 模組：每日詳細分區埋數系統 -->
-    <div class="module-card">
-      <div class="module-title">💰 每日詳細分區埋數系統</div>
-      <ul>
-        <li>📍 東區 (41圍欄) - 0 票 ➜ HK$ 0.00</li>
-        <li>📍 觀塘工商區</li>
-        <li>📍 觀塘麗港城</li>
-        <li>📍 沙田 F58</li>
-      </ul>
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid var(--border-color);">
+
+    <!-- 違規紀錄清單 -->
+    <div class="flex-between">
+      <h4>📋 本月違規紀錄總覽</h4>
+      <button class="btn btn-success" onclick="exportLeaderboardWhatsApp()">📤 匯出 WhatsApp 格式</button>
     </div>
-
-    <!-- 模組：14天 (兩週) 報更系統 -->
-    <div class="module-card">
-      <div class="module-title">⏰ 14天 (兩週) 報更系統</div>
-      <p>選擇區域：東區 / 觀塘區 / 沙田區 / 全區調度</p>
-    </div>
-
-    <!-- 模組：每日車線調度安排 -->
-    <div class="module-card">
-      <div class="module-title">🚗 每日車線調度安排</div>
-      <p>📍 觀塘區 | 📍 東區 | 📍 沙田區</p>
-    </div>
-
-    <!-- 模組：分區圍欄管理與貨量 -->
-    <div class="module-card">
-      <div class="module-title">📍 分區圍欄管理 & 📦 貨量統計</div>
-      <p>🏢 東區圍欄貨量 (41圍欄) | 📦 觀塘區圍欄貨量 | 🏞️ 沙田區圍欄貨量</p>
-    </div>
-
-    <!-- 模組：人員管理 (管理員) -->
-    <div class="module-card admin-only">
-      <div class="module-title">👥 人員管理與個別專屬票價設定</div>
-      <p>可在此為每位步兵設定其專屬單價。</p>
-    </div>
-
+    <table>
+      <thead>
+        <tr>
+          <th>日期</th>
+          <th>人員</th>
+          <th>金額 (HK$)</th>
+          <th>原因</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="penalty-table-body">
+        <tr><td colspan="5" style="text-align:center;">暫無違規紀錄</td></tr>
+      </tbody>
+    </table>
   </div>
 
+  <!-- 步兵/司機 營運通用區塊 -->
+  <div class="card">
+    <div class="flex-between">
+      <h3>📝 每日營運數據與結算工作台</h3>
+      <span class="badge badge-staff" id="staff-badge">步兵/司機權限</span>
+    </div>
+    
+    <label>系統全域日期：</label>
+    <input type="date" id="global-system-date" onchange="renderLeaderboardData()">
 
-  <!-- ==================== 3. 系統 JavaScript 邏輯 ==================== -->
-  <script>
-    // 人員資料庫 (相容大寫/小寫/km001等輸入)
-    const userDatabase = [
-      { id: "Mia", name: "👑 總管理員 (Mia)", role: "admin", password: "123" },
-      { id: "A01", name: "👑 組長: 詠豪 (A01)", role: "leader", password: "123" },
-      { id: "KM01", name: "👤 步兵: KM01", role: "courier", password: "123" },
-      { id: "KM04", name: "👤 步兵: 盧智聰 (KM04)", role: "courier", password: "123" },
-      { id: "KM05", name: "👤 步兵: 姜嘉敏 KK (KM05)", role: "courier", password: "123" },
-      { id: "A03", name: "👤 步兵: 周健 (A03)", role: "courier", password: "123" },
-      { id: "A04", name: "👤 步兵: 黃奕烽 (A04)", role: "courier", password: "123" },
-      { id: "C01", name: "👤 步兵: 張兆偉 (C01)", role: "courier", password: "123" },
-      { id: "B01", name: "👤 步兵: 小肥 (B01)", role: "courier", password: "123" },
-      { id: "B02", name: "👤 步兵: 吳嘉榮 (B02)", role: "courier", password: "123" },
-      { id: "B03", name: "👑 組長: 景鴻 (B03)", role: "leader", password: "123" },
-      { id: "C02", name: "👑 組長: 俊華 (C02)", role: "leader", password: "123" },
-      { id: "KM06", name: "👤 步兵: 倪志康 (KM06)", role: "courier", password: "123" },
-      { id: "KM07", name: "👤 步兵: 吳瑋儒 (KM07)", role: "courier", password: "123" },
-      { id: "KM08", name: "👤 步兵: 王利民 (KM08)", role: "courier", password: "123" }
-    ];
+    <p style="color: #64748b; font-size: 13px;">請填寫每日實際派送件數、實收金額與索償扣款。</p>
+  </div>
+</div>
 
-    // 處理登入動作
-    function handleLogin() {
-      try {
-        const idInput = document.getElementById('loginId').value.trim();
-        const passInput = document.getElementById('loginPassword').value.trim();
+<!-- 登入 Modal 彈窗 -->
+<div id="login-modal" class="modal hidden">
+  <div class="modal-content">
+    <h3 style="margin-top:0;">🔐 身份驗證登入</h3>
+    <p style="font-size: 13px; color: #666;">預設為步兵介面；輸入總管理員密碼可解鎖 Mia 控制台。</p>
+    
+    <label>帳號：</label>
+    <input type="text" id="login-username" placeholder="請輸入帳號名稱">
+    
+    <label>密碼：</label>
+    <input type="password" id="login-password" placeholder="請輸入密碼">
+    
+    <button class="btn btn-block" onclick="processLogin()">進入系統</button>
+  </div>
+</div>
 
-        if (!idInput || !passInput) {
-          alert("請輸入帳號和密碼！");
-          return;
-        }
+<!-- 萬能匯出彈窗 (WhatsApp) -->
+<div id="modal-universal-export" class="modal hidden">
+  <div class="modal-content">
+    <h3 id="export-modal-title">📤 匯出 WhatsApp 文字</h3>
+    <textarea id="universal-export-textarea" rows="10"></textarea>
+    <button class="btn btn-success btn-block" onclick="copyUniversalWhatsAppText()">📋 複製剪貼簿</button>
+    <button class="btn btn-danger btn-block" onclick="closeModal('modal-universal-export')">關閉</button>
+  </div>
+</div>
 
-        // 清理輸入格式 (將 km001 自動轉為 km01)
-        let cleanId = idInput.toLowerCase();
-        if (cleanId === 'km001') cleanId = 'km01';
+<script>
+  // 1. 後端 Apps Script URL 串接 (請替換為你的 Web App URL)
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
 
-        // 比對帳密
-        const matchedUser = userDatabase.find(
-          u => u.id.toLowerCase() === cleanId && u.password === passInput
-        );
+  // 全域變數
+  let currentRole = 'staff'; // 預設權限
+  let currentUser = 'Guest';
+  let penaltyList = [];
 
-        if (matchedUser) {
-          sessionStorage.setItem('loggedInUser', JSON.stringify(matchedUser));
-          renderSystem(matchedUser);
-        } else {
-          alert("❌ 帳號或密碼不正確！\n(請確認帳號為 Mia 或 KM01，密碼為 123)");
-        }
-      } catch (err) {
-        alert("登入過程發生錯誤：" + err.message);
-      }
+  // 🛡️ 核心防護：每一次打開網頁，第一毫秒立刻強制清除瀏覽器儲存的權限快取！
+  // 徹底解決步兵點擊網址直接進入 Mia 管理員帳號的問題
+  localStorage.clear();
+  sessionStorage.clear();
+
+  // 初始化入口
+  document.addEventListener('DOMContentLoaded', () => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('global-system-date');
+    if (dateInput) dateInput.value = todayStr;
+    const lbDate = document.getElementById('lb-inp-date');
+    if (lbDate) lbDate.value = todayStr;
+
+    // 載入本地快照數據（若有）
+    loadData();
+
+    // 顯示登入彈窗
+    showLoginModal();
+    initHourlyTimer();
+  });
+
+  // 登入驗證處理
+  function processLogin() {
+    const u = document.getElementById('login-username').value.trim();
+    const p = document.getElementById('login-password').value.trim();
+
+    if (!u) {
+      alert('請輸入帳號！');
+      return;
     }
 
-    // 渲染登入後的系統介面與權限
-    function renderSystem(user) {
-      document.getElementById('loginSection').style.display = 'none';
-      document.getElementById('mainSection').style.display = 'block';
-      document.getElementById('currentUserDisplay').innerText = `${user.name} (${user.id})`;
-
-      // 權限控制：如果係普通步兵 (courier)，隱藏管理員專屬模組
-      const adminModules = document.querySelectorAll('.admin-only');
-      if (user.role === 'courier') {
-        adminModules.forEach(el => el.style.display = 'none');
-      } else {
-        adminModules.forEach(el => el.style.display = 'block');
-      }
+    // 驗證邏輯：只有輸入密碼 940812 才能開啟 Mia 管理員權限
+    if (p === '940812') {
+      currentUser = u || 'Mia (總管理員)';
+      currentRole = 'admin';
+    } else {
+      currentUser = u;
+      currentRole = 'staff';
     }
 
-    // 處理登出動作
-    function handleLogout() {
-      sessionStorage.removeItem('loggedInUser');
-      document.getElementById('loginSection').style.display = 'block';
-      document.getElementById('mainSection').style.display = 'none';
-      document.getElementById('loginId').value = '';
-      document.getElementById('loginPassword').value = '';
+    closeModal('login-modal');
+    renderRoleView();
+  }
+
+  function showLoginModal() {
+    document.getElementById('login-modal').classList.remove('hidden');
+  }
+
+  function switchRoleModal() {
+    showLoginModal();
+  }
+
+  function logout() {
+    localStorage.clear();
+    sessionStorage.clear();
+    alert('已成功登出系統！');
+    location.reload();
+  }
+
+  function renderRoleView() {
+    const statusText = document.getElementById('user-display-status');
+    const adminPanel = document.getElementById('admin-panel');
+
+    if (currentRole === 'admin') {
+      statusText.innerHTML = `目前身分：<strong style="color:#e74c3c;">${currentUser} (總管理員 Mia)</strong>`;
+      adminPanel.classList.remove('hidden');
+    } else {
+      statusText.innerHTML = `目前身分：<strong style="color:#3498db;">${currentUser} (步兵/司機)</strong>`;
+      adminPanel.classList.add('hidden');
+    }
+    renderLeaderboardData();
+  }
+
+  // 罰款與龍虎榜邏輯
+  function saveNewPenaltyRecord() {
+    if (currentRole !== 'admin') {
+      alert('只有總管理員 Mia 有權錄入違規罰款！');
+      return;
     }
 
-    // 頁面載入時自動檢查登入狀態
-    window.onload = function() {
-      const savedUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
-      if (savedUser) {
-        renderSystem(savedUser);
-      }
+    const date = document.getElementById('lb-inp-date').value;
+    const staff = document.getElementById('lb-inp-staff').value.trim();
+    const amount = Number(document.getElementById('lb-inp-amount').value) || 0;
+    const reason = document.getElementById('lb-inp-reason').value.trim();
+
+    if (!date || !staff || amount <= 0 || !reason) {
+      alert('請填寫完整違規日期、責任人員、金額及詳細原因！');
+      return;
+    }
+
+    const newRecord = {
+      id: `PN_${Date.now()}`,
+      date: date,
+      staff: staff,
+      amount: amount,
+      reason: reason
     };
-  </script>
+
+    penaltyList.unshift(newRecord);
+    saveData();
+    syncSingleRecord('MIA_PENALTIES_PERFECT', penaltyList);
+
+    document.getElementById('lb-inp-amount').value = '';
+    document.getElementById('lb-inp-reason').value = '';
+
+    renderLeaderboardData();
+    alert(`✅ 成功錄入 ${staff} 違規罰款 HK$ ${amount.toFixed(2)}！`);
+  }
+
+  function deletePenaltyRecord(index) {
+    if (currentRole !== 'admin') {
+      alert('只有總管理員 Mia 有權刪除違規紀錄！');
+      return;
+    }
+
+    if (confirm('確定要刪除這條違規罰款紀錄？金額將自動從獎池中扣除。')) {
+      penaltyList.splice(index, 1);
+      saveData();
+      syncSingleRecord('MIA_PENALTIES_PERFECT', penaltyList);
+      renderLeaderboardData();
+    }
+  }
+
+  function renderLeaderboardData() {
+    const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
+    const curMonth = today.substring(0, 7);
+
+    const monthPenalties = penaltyList.filter(p => p.date && p.date.startsWith(curMonth));
+    const totalJackpot = monthPenalties.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+    document.getElementById('total-jackpot-amount').textContent = `HK$ ${totalJackpot.toFixed(2)}`;
+
+    const tbody = document.getElementById('penalty-table-body');
+    if (!tbody) return;
+
+    if (monthPenalties.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">${curMonth} 月份暫無違規紀錄</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = monthPenalties.map((item, idx) => `
+      <tr>
+        <td>${item.date}</td>
+        <td><strong>${item.staff}</strong></td>
+        <td style="color:#e74c3c; font-weight:bold;">HK$ ${Number(item.amount).toFixed(2)}</td>
+        <td>${item.reason}</td>
+        <td>
+          ${currentRole === 'admin' ? `<button class="btn btn-danger" style="padding:2px 6px; font-size:12px;" onclick="deletePenaltyRecord(${idx})">刪除</button>` : '-'}
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function exportLeaderboardWhatsApp() {
+    const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
+    const curMonth = today.substring(0, 7);
+    const monthPenalties = penaltyList.filter(p => p.date && p.date.startsWith(curMonth));
+    const totalJackpot = monthPenalties.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+    const riderStats = {};
+    monthPenalties.forEach(p => {
+      if (!riderStats[p.staff]) riderStats[p.staff] = { count: 0, totalFine: 0 };
+      riderStats[p.staff].count += 1;
+      riderStats[p.staff].totalFine += Number(p.amount || 0);
+    });
+
+    const sortedRiders = Object.keys(riderStats).map(name => ({
+      name, count: riderStats[name].count, totalFine: riderStats[name].totalFine
+    })).sort((a, b) => b.count - a.count || b.totalFine - a.totalFine);
+
+    let text = `🏆 *Mia組 ${curMonth.split('-')[0]}年${curMonth.split('-')[1]}月 違規龍虎榜與罰款獎池* 🏆\n`;
+    text += `------------------------------------\n`;
+    text += `💰 *當月累計獎池總額:* HK$ ${totalJackpot.toFixed(2)}\n`;
+    text += `------------------------------------\n\n`;
+    text += `🔥 *違規排行黑名單 (由多至少):*\n`;
+
+    if (sortedRiders.length === 0) {
+      text += `🎉 本月暫無任何違規紀錄，全員表現優良！\n`;
+    } else {
+      const medals = ['🥇', '🥈', '🥉'];
+      sortedRiders.forEach((r, idx) => {
+        const medal = idx < 3 ? medals[idx] : `[第${idx + 1}名]`;
+        text += `${medal} *${r.name}*: 違規 ${r.count} 次 | 罰款 HK$ ${r.totalFine.toFixed(2)}\n`;
+      });
+    }
+
+    text += `\n📌 _請各位步兵與司機嚴格遵守派送規範，減少誤派與失件！_`;
+
+    document.getElementById('universal-export-textarea').value = text;
+    document.getElementById('export-modal-title').textContent = '📤 匯出違規龍虎榜 WhatsApp 格式';
+    openModal('modal-universal-export');
+  }
+
+  // 數據持續化與同步
+  function saveData() {
+    try {
+      localStorage.setItem('MIA_PENALTIES_PERFECT', JSON.stringify(penaltyList));
+    } catch(e) { console.error('本地儲存失敗', e); }
+  }
+
+  function loadData() {
+    try {
+      const pData = localStorage.getItem('MIA_PENALTIES_PERFECT');
+      if (pData) penaltyList = JSON.parse(pData);
+    } catch(e) { console.error('本地數據讀取失敗', e); }
+  }
+
+  function syncSingleRecord(actionType, dataPayload) {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) return;
+    fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: actionType, data: dataPayload })
+    }).catch(err => console.error('同步失敗:', err));
+  }
+
+  // 輔助 UI 控制
+  function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+  function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+  function copyUniversalWhatsAppText() {
+    const txt = document.getElementById('universal-export-textarea');
+    txt.select();
+    document.execCommand('copy');
+    alert('📋 已成功複製 WhatsApp 格式內容至剪貼簿！');
+  }
+
+  // 整點音效提醒邏輯
+  function initHourlyTimer() {
+    setInterval(() => {
+      const min = new Date().getMinutes();
+      const sec = new Date().getSeconds();
+      if (min === 0 && sec === 0) {
+        triggerAudioAlert();
+        document.getElementById('hourly-alert-banner').classList.remove('hidden');
+      }
+    }, 1000);
+  }
+
+  function triggerAudioAlert() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.5);
+    } catch(e) {}
+  }
+</script>
+
 </body>
 </html>
