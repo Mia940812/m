@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Mia組 - 派件報數與薪酬結算系統</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 4.5rem); }
@@ -19,15 +18,15 @@
   <div id="view-login" class="flex-1 flex items-center justify-center p-4 min-h-screen bg-slate-900">
     <div class="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl space-y-6">
       <div class="text-center space-y-2">
-        <div class="inline-flex px-3 py-1 bg-blue-600 text-white text-xs font-black rounded-lg">Mia Logistics</div>
+        <div class="inline-flex px-3 py-1 bg-blue-600 text-white text-xs font-black rounded-lg tracking-wider">Mia Logistics</div>
         <h1 class="text-2xl font-black text-slate-800">派件報數與薪酬系統</h1>
-        <p class="text-xs text-blue-600 font-bold">今日專區：東區 ｜ 觀塘</p>
+        <p class="text-xs text-blue-600 font-bold">東區 ｜ 觀塘 專用</p>
       </div>
 
       <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4 pt-2">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">員工編號 / 帳號</label>
-          <input type="text" id="loginUser" required placeholder="例如：KM001 或 A001" 
+          <input type="text" id="loginUser" required placeholder="例如：KM001" 
                  class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold uppercase focus:outline-none focus:ring-2 focus:ring-blue-600">
         </div>
         <div>
@@ -46,19 +45,20 @@
   <!-- 2. 主系統介面 -->
   <div id="view-main" class="hidden flex-1 flex flex-col pb-safe md:pb-6">
     
+    <!-- Header -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
       <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm">Mia</div>
           <div>
             <div class="text-sm font-black text-slate-900">派件營運結算系統</div>
-            <div class="text-[10px] text-emerald-600 font-bold">● 東區 & 觀塘 車線已就緒</div>
+            <div class="text-[10px] text-emerald-600 font-bold">● 系統運作正常</div>
           </div>
         </div>
 
+        <!-- 電腦版導航 -->
         <nav class="hidden md:flex items-center space-x-1 bg-slate-100 p-1 rounded-2xl border border-slate-200">
           <button onclick="switchTab('report')" id="d-tab-report" class="tab-btn-d px-5 py-2 rounded-xl text-xs font-black bg-white text-blue-600 shadow-sm transition">每日報數</button>
-          <button onclick="switchTab('roster')" id="d-tab-roster" class="tab-btn-d px-5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition">車線分工</button>
           <button onclick="switchTab('salary')" id="d-tab-salary" class="tab-btn-d px-5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition">薪酬結算</button>
         </nav>
 
@@ -69,11 +69,13 @@
       </div>
     </header>
 
+    <!-- 內容區 -->
     <main class="max-w-6xl mx-auto p-4 flex-1 w-full space-y-6">
 
       <!-- TAB 1: 每日報數 -->
       <section id="panel-report" class="tab-panel space-y-5">
         
+        <!-- 數據統計卡 -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
             <div class="text-xs font-bold text-slate-500">今日總票數</div>
@@ -93,40 +95,26 @@
           </div>
         </div>
 
+        <!-- 報數輸入表單 (完全自由輸入，不強加名單) -->
         <div class="bg-white p-5 md:p-6 rounded-3xl border border-slate-200 shadow-sm">
           <h2 class="text-base font-black text-slate-900 mb-4 flex items-center gap-2">
             <span class="w-2 h-4 bg-blue-600 rounded-full"></span> 提交派件報數
           </h2>
-          <form onsubmit="saveReport(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4">
+          <form onsubmit="saveReport(event)" class="grid grid-cols-1 md:grid-cols-5 gap-3 md:gap-4">
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1.5">派送日期</label>
               <input type="date" id="repDate" required class="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold">
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1.5">車線人員 (點選或自訂)</label>
-              <input list="staffList" id="repStaff" placeholder="選擇或直接輸入人員名稱" required class="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold">
-              <datalist id="staffList">
-                <option value="景鴻 (東區小西)">
-                <option value="詠豪 (東區)">
-                <option value="細佬 (東區小西)">
-                <option value="俊傑 (東區小西)">
-                <option value="星爺 (東區小西)">
-                <option value="華哥 (東區小西)">
-                <option value="文健 (東區小西)">
-                <option value="林嘉樂 (東區小西)">
-                <option value="東區支援步兵">
-                <option value="景鴻 (觀塘線)">
-                <option value="俊華 (觀塘線)">
-                <option value="文杰 (觀塘線)">
-                <option value="永業 (觀塘線)">
-                <option value="澤賢 (觀塘線)">
-                <option value="家諾 (觀塘線)">
-                <option value="越 (觀塘線)">
-                <option value="楚 (觀塘線)">
-                <option value="丹 (觀塘線)">
-                <option value="煇 (觀塘線)">
-                <option value="觀塘支援步兵">
-              </datalist>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5">所屬區域</label>
+              <select id="repArea" required class="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold">
+                <option value="東區">東區</option>
+                <option value="觀塘">觀塘</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5">司機 / 步兵 / 車線</label>
+              <input type="text" id="repStaff" placeholder="輸入人員名稱或車線" required class="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold">
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1.5">派件總票數 (票)</label>
@@ -140,9 +128,10 @@
           </form>
         </div>
 
+        <!-- 報數清單列表 -->
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
           <div class="p-4 md:p-5 border-b border-slate-100 flex items-center justify-between">
-            <h3 class="font-black text-sm text-slate-900">今日報數即時清單 (東區 & 觀塘)</h3>
+            <h3 class="font-black text-sm text-slate-900">即時報數明細清單</h3>
             <button onclick="clearAllData()" class="text-[11px] text-slate-400 hover:text-red-500 font-semibold">清空重設</button>
           </div>
           <div class="overflow-x-auto custom-scroll">
@@ -150,14 +139,15 @@
               <thead class="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
                 <tr>
                   <th class="p-4">派送日期</th>
-                  <th class="p-4">車線人員</th>
+                  <th class="p-4">區域</th>
+                  <th class="p-4">司機 / 步兵 / 車線</th>
                   <th class="p-4 text-right">票數</th>
-                  <th class="p-4 text-center">狀態</th>
+                  <th class="p-4 text-center">操作</th>
                 </tr>
               </thead>
               <tbody id="reportTableBody" class="divide-y divide-slate-100">
                 <tr>
-                  <td colspan="4" class="p-8 text-center text-slate-400">暫無記錄，請由上方表單新增。</td>
+                  <td colspan="5" class="p-8 text-center text-slate-400">暫無記錄，請由上方表單新增。</td>
                 </tr>
               </tbody>
             </table>
@@ -165,37 +155,10 @@
         </div>
       </section>
 
-      <!-- TAB 2: 車線分工 -->
-      <section id="panel-roster" class="tab-panel hidden space-y-4">
-        <div class="bg-white p-5 md:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-          <h2 class="text-base font-black text-slate-900">今日車線分工安排</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-            <div class="p-5 bg-emerald-50/50 rounded-2xl border border-emerald-200 space-y-3">
-              <div class="flex items-center justify-between">
-                <span class="font-black text-emerald-800 text-sm">📍 東區組</span>
-                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 font-bold rounded-lg text-[10px]">小西灣 / 柴灣</span>
-              </div>
-              <div class="text-xs text-slate-600 leading-relaxed">
-                主力名單：景鴻、詠豪、細佬、俊傑、星爺、華哥、文健、林嘉樂
-              </div>
-            </div>
-            <div class="p-5 bg-blue-50/50 rounded-2xl border border-blue-200 space-y-3">
-              <div class="flex items-center justify-between">
-                <span class="font-black text-blue-800 text-sm">📍 觀塘組</span>
-                <span class="px-2 py-0.5 bg-blue-100 text-blue-700 font-bold rounded-lg text-[10px]">觀塘商貿 / 九龍灣</span>
-              </div>
-              <div class="text-xs text-slate-600 leading-relaxed">
-                主力名單：景鴻、俊華、文杰、永業、澤賢、家諾、越、楚、丹、煇
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB 3: 薪酬結算 -->
+      <!-- TAB 2: 薪酬結算 -->
       <section id="panel-salary" class="tab-panel hidden space-y-4">
         <div class="bg-white p-5 md:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-          <h2 class="text-base font-black text-slate-900">薪酬與票數結算</h2>
+          <h2 class="text-base font-black text-slate-900">薪酬結算總覽</h2>
           <div class="p-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
               <div class="text-xs font-bold text-amber-800">今日應發結算總額</div>
@@ -210,12 +173,10 @@
 
     </main>
 
+    <!-- 手機端底部選單 -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-2 flex justify-around items-center z-50 shadow-lg">
       <button onclick="switchTab('report')" id="m-tab-report" class="flex flex-col items-center gap-1 text-blue-600 font-black">
         <span class="text-xs">每日報數</span>
-      </button>
-      <button onclick="switchTab('roster')" id="m-tab-roster" class="flex flex-col items-center gap-1 text-slate-400 font-bold">
-        <span class="text-xs">車線分工</span>
       </button>
       <button onclick="switchTab('salary')" id="m-tab-salary" class="flex flex-col items-center gap-1 text-slate-400 font-bold">
         <span class="text-xs">薪酬結算</span>
@@ -225,7 +186,7 @@
   </div>
 
   <script>
-    let reports = JSON.parse(localStorage.getItem('mia_reports_today') || '[]');
+    let reports = JSON.parse(localStorage.getItem('mia_reports_clean') || '[]');
 
     window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('repDate').valueAsDate = new Date();
@@ -264,7 +225,7 @@
       const activeDBtn = document.getElementById(`d-tab-${tab}`);
       if (activeDBtn) activeDBtn.className = 'tab-btn-d px-5 py-2 rounded-xl text-xs font-black bg-white text-blue-600 shadow-sm transition';
 
-      ['report', 'roster', 'salary'].forEach(t => {
+      ['report', 'salary'].forEach(t => {
         const mBtn = document.getElementById(`m-tab-${t}`);
         if (mBtn) {
           mBtn.className = t === tab ? 'flex flex-col items-center gap-1 text-blue-600 font-black' : 'flex flex-col items-center gap-1 text-slate-400 font-bold';
@@ -275,22 +236,31 @@
     function saveReport(e) {
       e.preventDefault();
       const date = document.getElementById('repDate').value;
-      const staff = document.getElementById('repStaff').value;
+      const area = document.getElementById('repArea').value;
+      const staff = document.getElementById('repStaff').value.trim();
       const count = parseInt(document.getElementById('repCount').value, 10);
 
-      reports.unshift({ date, staff, count });
-      localStorage.setItem('mia_reports_today', JSON.stringify(reports));
+      reports.unshift({ id: Date.now(), date, area, staff, count });
+      localStorage.setItem('mia_reports_clean', JSON.stringify(reports));
 
       updateAllDisplays();
       document.getElementById('repStaff').value = '';
       document.getElementById('repCount').value = '';
-      alert('已成功登記並同步！');
+      alert('已成功登記！');
+    }
+
+    function deleteItem(id) {
+      if (confirm('確定刪除此筆記錄？')) {
+        reports = reports.filter(r => r.id !== id);
+        localStorage.setItem('mia_reports_clean', JSON.stringify(reports));
+        updateAllDisplays();
+      }
     }
 
     function clearAllData() {
-      if (confirm('確定要清空今日報數記錄重新開始嗎？')) {
+      if (confirm('確定要清空所有報數記錄重新開始嗎？')) {
         reports = [];
-        localStorage.removeItem('mia_reports_today');
+        localStorage.removeItem('mia_reports_clean');
         updateAllDisplays();
       }
     }
@@ -302,20 +272,23 @@
       let ktCount = 0;
 
       if (reports.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400">暫無記錄，請由上方表單新增。</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400">暫無記錄，請由上方表單新增。</td></tr>';
       } else {
         tbody.innerHTML = reports.map(r => {
           const num = Number(r.count || 0);
           totalCount += num;
-          if (r.staff.includes('東區') || r.staff.includes('小西')) eastCount += num;
-          if (r.staff.includes('觀塘')) ktCount += num;
+          if (r.area === '東區') eastCount += num;
+          if (r.area === '觀塘') ktCount += num;
 
           return `
             <tr class="hover:bg-slate-50 transition">
               <td class="p-4 font-semibold text-slate-700">${r.date}</td>
+              <td class="p-4 font-bold text-slate-800">${r.area}</td>
               <td class="p-4 font-black text-slate-900">${r.staff}</td>
               <td class="p-4 text-right font-black text-blue-600 text-sm">${num} 票</td>
-              <td class="p-4 text-center"><span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-lg">已同步</span></td>
+              <td class="p-4 text-center">
+                <button onclick="deleteItem(${r.id})" class="text-red-500 hover:text-red-700 font-bold text-xs">刪除</button>
+              </td>
             </tr>
           `;
         }).join('');
