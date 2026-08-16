@@ -580,32 +580,27 @@
 
     async function loadCloudData() {
   const loadingEl = document.getElementById('cloud-loading-overlay') || document.querySelector('.loading-overlay');
+  
+  // 建立 2.5 秒超時機制，超時即刻解鎖畫面
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('連線超時，使用本地快取')), 2500)
+  );
+
   try {
-    if (typeof GOOGLE_SCRIPT_URL !== 'undefined' && GOOGLE_SCRIPT_URL) {
-      const res = await Promise.race([
-        fetch(GOOGLE_SCRIPT_URL),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
-      ]);
-      const data = await res.json();
-      if (data && typeof data === 'object') {
-        if (data.zoneFences) zoneFences = data.zoneFences;
-        if (data.accounts) accounts = data.accounts;
-        if (data.zoneAssigns) zoneAssigns = data.zoneAssigns;
-        if (data.zoneFenceCounts) zoneFenceCounts = data.zoneFenceCounts;
-        if (data.truckRoutes) truckRoutes = data.truckRoutes;
-        if (data.shiftReports) shiftReports = data.shiftReports;
-      }
-    }
-  } catch (err) {
-    console.warn('雲端讀取略過或超時，使用本地資料:', err);
-  } finally {
-    isCloudLoaded = true;
-    if (loadingEl) loadingEl.style.display = 'none';
-    if (typeof renderAll === 'function') renderAll();
-    if (typeof renderTruckRoutes === 'function') renderTruckRoutes();
-    if (typeof renderFences === 'function') renderFences();
-  }
-}
+    if (!GOOGLE_SCRIPT_URL) throw new Error('未設定 URL');
+
+    const fetchPromise = fetch(GOOGLE_SCRIPT_URL);
+    const res = await Promise.race([fetchPromise, timeoutPromise]);
+    const data = await res.json();
+
+    if (data && typeof data === 'object') {
+      if (data.zoneFences) zoneFences = data.zoneFences;
+      if (data.accounts) accounts = data.accounts;
+      if (data.zoneAssigns) zoneAssigns = data.zoneAssigns;
+      if (data.zoneFenceCounts) zoneFenceCounts = data.zoneFenceCounts;
+      if (data.truckRoutes) truckRoutes = data.truckRoutes;
+      if (data.shiftReports) shiftReports = data.shiftReports;
+      console.log('[Cloud] 雲端資料載入成功');
     }
   } catch (err) {
     console.warn('[Cloud] 雲端連線失敗或超時，已無縫切換本地快取:', err);
