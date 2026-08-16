@@ -1,21 +1,111 @@
-                <div class="text-[10px] text-slate-400 font-bold font-mono">罰款累計: HK$ ${r.totalFine.toFixed(2)}</div>
-            </div>
-          </div>
-        `).join('');
-      }
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mia組 派件營運全功能工作台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4">
+  <div class="max-w-md mx-auto space-y-4">
+    <!-- 頂部標題與帳號狀態列 -->
+    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 flex items-center justify-between shadow-lg">
+      <div>
+        <h1 class="text-base font-bold text-white flex items-center gap-1.5">
+          <span>📦</span> Mia組 派件營運工作台
+        </h1>
+        <div class="text-[10px] text-slate-400 mt-0.5">系統日期: <input type="date" id="global-system-date" class="bg-slate-700 text-white px-1 rounded border border-slate-600 text-[10px]"></div>
+      </div>
+      <!-- 帳號顯示與手動輸入切換區域 -->
+      <div class="text-right">
+        <div id="role-display-badge" class="text-xs font-semibold"></div>
+      </div>
+    </div>
+
+    <!-- 主要功能區塊 -->
+    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3 shadow-lg">
+      <h2 class="text-sm font-bold text-slate-200 border-b border-slate-700 pb-2 flex justify-between items-center">
+        <span>🏆 罰款獎池與龍虎榜</span>
+        <button type="button" onclick="exportLeaderboardWhatsApp()" class="text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-1 rounded font-semibold transition">📤 匯出 WhatsApp</button>
+      </h2>
+
+      <!-- 錄入罰款區塊 (僅管理員可見或操作) -->
+      <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-700/60 space-y-2">
+        <div class="text-xs font-bold text-amber-400">➕ 錄入違規罰款 (總管理員)</div>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="date" id="lb-inp-date" class="bg-slate-800 text-white text-xs p-1.5 rounded border border-slate-700">
+          <input type="text" id="lb-inp-staff" placeholder="步兵/員工名稱" class="bg-slate-800 text-white text-xs p-1.5 rounded border border-slate-700">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="number" id="lb-inp-amount" placeholder="罰款金額 (HK$)" class="bg-slate-800 text-white text-xs p-1.5 rounded border border-slate-700">
+          <input type="text" id="lb-inp-reason" placeholder="違規原因" class="bg-slate-800 text-white text-xs p-1.5 rounded border border-slate-700">
+        </div>
+        <button type="button" onclick="saveNewPenaltyRecord()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 rounded-lg transition">確認錄入獎池</button>
+      </div>
+
+      <!-- 罰款紀錄明細列表 -->
+      <div class="space-y-2">
+        <div class="text-xs font-semibold text-slate-300">📋 當月違規明細紀錄</div>
+        <div id="lb-content-records" class="space-y-1.5 max-h-48 overflow-y-auto">
+          <div class="text-center py-6 text-slate-400">暫無明細紀錄。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 通用跳出視窗 (Modal) -->
+  <div id="modal-universal-export" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-4 space-y-3 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+        <h3 id="export-modal-title" class="text-sm font-bold text-white">📤 匯出內容</h3>
+        <button type="button" onclick="closeModal('modal-universal-export')" class="text-slate-400 hover:text-white font-bold px-1.5">✕</button>
+      </div>
+      <textarea id="universal-export-textarea" class="w-full h-36 bg-slate-900 text-white text-xs p-2 rounded border border-slate-700 focus:outline-none"></textarea>
+      <button type="button" onclick="alert('已複製到剪貼簿！')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded-lg transition">一鍵複製文字</button>
+    </div>
+  </div>
+
+  <script>
+    // 系統基礎資料與狀態
+    let currentRole = 'admin';
+    let penaltyList = [
+      { id: 'PN1', date: '2026-06-01', staff: '張三', amount: 50, reason: '遲到' }
+    ];
+    let accounts = [
+      { name: '張三', category: '步兵' },
+      { name: '李四', category: '步兵' }
+    ];
+
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function saveData() {
+      // 模擬儲存動作
+    }
+
+    function renderLeaderboardData() {
+      const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
+      const curMonth = today.substring(0, 7);
+      const monthPenalties = penaltyList.filter(p => p.date && p.date.startsWith(curMonth));
+      const isAdmin = (currentRole === 'admin');
 
       const recContainer = document.getElementById('lb-content-records');
       if (monthPenalties.length === 0) {
         recContainer.innerHTML = '<div class="text-center py-6 text-slate-400">暫無明細紀錄。</div>';
       } else {
-        recContainer.innerHTML = monthPenalties.map((p, idx) => `
-          <div class="p-2.5 bg-white border rounded-xl flex items-center justify-between text-xs">
+        recContainer.innerHTML = monthPenalties.map((p) => `
+          <div class="p-2.5 bg-slate-900 border border-slate-700 rounded-xl flex items-center justify-between text-xs">
             <div>
-              <div class="font-bold text-slate-800">${p.date} - <span class="text-blue-700">${p.staff}</span></div>
-              <div class="text-[10px] text-slate-500">${p.reason}</div>
+              <div class="font-bold text-slate-200">${p.date} - <span class="text-blue-400">${p.staff}</span></div>
+              <div class="text-[10px] text-slate-400">${p.reason}</div>
             </div>
             <div class="flex items-center gap-2">
-              <span class="font-black text-rose-600 font-mono">HK$ ${Number(p.amount).toFixed(2)}</span>
+              <span class="font-black text-rose-400 font-mono">HK$ ${Number(p.amount).toFixed(2)}</span>
               ${isAdmin ? `<button type="button" onclick="deletePenaltyRecord('${p.id}')" class="text-rose-400 hover:text-rose-600 font-bold px-1">✕</button>` : ''}
             </div>
           </div>
@@ -72,18 +162,19 @@
       openModal('modal-universal-export');
     }
 
+    // 核心修改：允許步兵登入版面直接輸入/切換帳號
     function renderRoleView() {
       const badge = document.getElementById('role-display-badge');
       if (badge) {
         if (currentRole === 'admin') {
-          badge.innerHTML = '👑 總管理員 (Mia) <input type="text" id="manual-role-input" placeholder="切換/輸入帳號" onchange="handleManualRoleInput(this.value)" class="ml-2 px-1.5 py-0.5 text-[10px] text-slate-800 bg-white border border-slate-300 rounded focus:outline-none w-28">';
+          badge.innerHTML = '👑 總管理員 (Mia) <br><input type="text" id="manual-role-input" placeholder="切換/輸入帳號" onchange="handleManualRoleInput(this.value)" class="mt-1 px-1.5 py-0.5 text-[10px] text-slate-900 bg-white border border-slate-600 rounded focus:outline-none w-28">';
         } else {
-          badge.innerHTML = `👤 帳戶: <input type="text" id="manual-role-input" value="${currentRole}" placeholder="輸入帳號" onchange="handleManualRoleInput(this.value)" class="ml-1 px-1.5 py-0.5 text-[10px] text-slate-800 bg-white border border-slate-300 rounded focus:outline-none w-28">`;
+          badge.innerHTML = `👤 帳戶: <br><input type="text" id="manual-role-input" value="${currentRole}" placeholder="輸入帳號" onchange="handleManualRoleInput(this.value)" class="mt-1 px-1.5 py-0.5 text-[10px] text-slate-900 bg-white border border-slate-600 rounded focus:outline-none w-28">`;
         }
         const inp = document.getElementById('manual-role-input');
         if (inp && currentRole !== 'admin') inp.value = currentRole;
       }
-      updateStaffDropdowns();
+      renderLeaderboardData();
     }
 
     function handleManualRoleInput(val) {
@@ -91,31 +182,16 @@
       if (!trimmed) return;
       currentRole = trimmed;
       renderRoleView();
-      if (typeof renderAll === 'function') renderAll();
-    }
-
-    function updateStaffDropdowns() {
-      const select = document.getElementById('current-user-role-select');
-      if (select) {
-        let options = `<option value="admin">👑 總管理員 (Mia)</option>`;
-        accounts.forEach(a => {
-          options += `<option value="${a.name}">${a.name} (${a.category})</option>`;
-        });
-        select.innerHTML = options;
-        select.value = currentRole || 'admin';
-      }
     }
 
     window.onload = function() {
       const today = new Date().toISOString().split('T')[0];
       const dateInp = document.getElementById('global-system-date');
       if (dateInp) dateInp.value = today;
-      const repDate = document.getElementById('repDate');
-      if (repDate) repDate.value = today;
 
       if (!currentRole) currentRole = 'admin';
       renderRoleView();
-      initHourlyTimer();
+      renderLeaderboardData();
     };
   </script>
 </body>
