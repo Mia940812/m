@@ -98,14 +98,14 @@
       if (monthPenalties.length === 0) {
         recContainer.innerHTML = '<div class="text-center py-6 text-slate-400">暫無明細紀錄。</div>';
       } else {
-        recContainer.innerHTML = monthPenalties.map((p) => `
-          <div class="p-2.5 bg-slate-900 border border-slate-700 rounded-xl flex items-center justify-between text-xs">
+        recContainer.innerHTML = monthPenalties.map((p, idx) => `
+          <div class="p-2.5 bg-white border rounded-xl flex items-center justify-between text-xs">
             <div>
-              <div class="font-bold text-slate-200">${p.date} - <span class="text-blue-400">${p.staff}</span></div>
-              <div class="text-[10px] text-slate-400">${p.reason}</div>
+              <div class="font-bold text-slate-800">${p.date} - <span class="text-blue-700">${p.staff}</span></div>
+              <div class="text-[10px] text-slate-500">${p.reason}</div>
             </div>
             <div class="flex items-center gap-2">
-              <span class="font-black text-rose-400 font-mono">HK$ ${Number(p.amount).toFixed(2)}</span>
+              <span class="font-black text-rose-600 font-mono">HK$ ${Number(p.amount).toFixed(2)}</span>
               ${isAdmin ? `<button type="button" onclick="deletePenaltyRecord('${p.id}')" class="text-rose-400 hover:text-rose-600 font-bold px-1">✕</button>` : ''}
             </div>
           </div>
@@ -162,19 +162,18 @@
       openModal('modal-universal-export');
     }
 
-    // 核心修改：允許步兵登入版面直接輸入/切換帳號
     function renderRoleView() {
       const badge = document.getElementById('role-display-badge');
       if (badge) {
         if (currentRole === 'admin') {
-          badge.innerHTML = '👑 總管理員 (Mia) <br><input type="text" id="manual-role-input" placeholder="切換/輸入帳號" onchange="handleManualRoleInput(this.value)" class="mt-1 px-1.5 py-0.5 text-[10px] text-slate-900 bg-white border border-slate-600 rounded focus:outline-none w-28">';
+          badge.innerHTML = '👑 總管理員 (Mia) <input type="text" id="manual-role-input" placeholder="切換/輸入帳號" onchange="handleManualRoleInput(this.value)" class="ml-2 px-1.5 py-0.5 text-[10px] text-slate-800 bg-white border border-slate-300 rounded focus:outline-none w-28">';
         } else {
-          badge.innerHTML = `👤 帳戶: <br><input type="text" id="manual-role-input" value="${currentRole}" placeholder="輸入帳號" onchange="handleManualRoleInput(this.value)" class="mt-1 px-1.5 py-0.5 text-[10px] text-slate-900 bg-white border border-slate-600 rounded focus:outline-none w-28">`;
+          badge.innerHTML = `👤 帳戶: <input type="text" id="manual-role-input" value="${currentRole}" placeholder="輸入帳號" onchange="handleManualRoleInput(this.value)" class="ml-1 px-1.5 py-0.5 text-[10px] text-slate-800 bg-white border border-slate-300 rounded focus:outline-none w-28">`;
         }
         const inp = document.getElementById('manual-role-input');
         if (inp && currentRole !== 'admin') inp.value = currentRole;
       }
-      renderLeaderboardData();
+      updateStaffDropdowns();
     }
 
     function handleManualRoleInput(val) {
@@ -182,12 +181,27 @@
       if (!trimmed) return;
       currentRole = trimmed;
       renderRoleView();
+      if (typeof renderAll === 'function') renderAll();
+    }
+
+    function updateStaffDropdowns() {
+      const select = document.getElementById('current-user-role-select');
+      if (select) {
+        let options = `<option value="admin">👑 總管理員 (Mia)</option>`;
+        accounts.forEach(a => {
+          options += `<option value="${a.name}">${a.name} (${a.category})</option>`;
+        });
+        select.innerHTML = options;
+        select.value = currentRole || 'admin';
+      }
     }
 
     window.onload = function() {
       const today = new Date().toISOString().split('T')[0];
       const dateInp = document.getElementById('global-system-date');
       if (dateInp) dateInp.value = today;
+      const repDate = document.getElementById('repDate');
+      if (repDate) repDate.value = today;
 
       if (!currentRole) currentRole = 'admin';
       renderRoleView();
