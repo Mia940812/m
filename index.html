@@ -1,5 +1,10 @@
+// ==================== 權限隔離設定 ====================
+// 請在此填入【只有你個人能存取】的私密財務 Google Sheet ID（從該試算表網址列取得）
+// 例: https://docs.google.com/spreadsheets/d/【這一串就是_ID】/edit
+var PRIVATE_FINANCE_SPREADSHEET_ID = "YOUR_PRIVATE_FINANCE_SPREADSHEET_ID_HERE";
+
 function doPost(e) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var publicSS = SpreadsheetApp.getActiveSpreadsheet(); // 一般管理員/步兵可見的試算表
   var key = "派件報數";
   var dataStr = "";
   
@@ -20,27 +25,35 @@ function doPost(e) {
   var parsed = null;
   try { parsed = JSON.parse(dataStr); } catch(err) {}
 
-  // 1. 每日營運利潤核算表 (獨立分頁)
+  // -------------------------------------------------------------
+  // 財務敏感部分：寫入「私密財務獨立試算表」（管理員無權限查看）
+  // -------------------------------------------------------------
+  
+  // 1. 每日營運利潤核算表 (私密財務)
   if (key === "每日利潤核算" && parsed && parsed.date) {
-    var sheet = getOrCreateSheet(ss, "每日營運利潤表", [
+    var financeSS = SpreadsheetApp.openById(PRIVATE_FINANCE_SPREADSHEET_ID);
+    var sheet = getOrCreateSheet(financeSS, "每日營運利潤表", [
       "核算日期", "當天總收入", "步兵出糧總額", "當日物資支出", "當日Claim報銷", "步兵扣數還款", "實質純利潤", "記錄時間"
-    ]);
+    ], "emerald"); // 使用清新薄荷綠主題
+    
     sheet.appendRow([
       parsed.date, parsed.grossRevenue, parsed.salaryPayout, parsed.suppliesExp, parsed.claimExp, parsed.advanceRepay, parsed.netProfit, now
     ]);
     return ContentService.createTextOutput("OK");
   }
 
-  // 2. 詳細分區埋數表 (獨立分頁)
+  // 2. 詳細分區埋數表 (私密財務)
   if (key === "詳細分區埋數" && parsed && parsed.date) {
-    var sheet = getOrCreateSheet(ss, "詳細分區埋數表", [
+    var financeSS = SpreadsheetApp.openById(PRIVATE_FINANCE_SPREADSHEET_ID);
+    var sheet = getOrCreateSheet(financeSS, "詳細分區埋數表", [
       "埋數日期", "全組總票數", "我方總應收",
       "東區票數", "東區單價", "東區步兵分工",
       "觀塘工商票數", "觀塘工商單價", "觀塘工商步兵分工",
       "觀塘麗港城票數", "觀塘麗港城單價", "觀塘麗港城步兵分工",
       "沙田F58票數", "沙田F58單價", "沙田F58步兵分工",
       "總Claim報銷", "雜費支出", "埋數備註", "記錄時間"
-    ]);
+    ], "emerald"); // 使用清新薄荷綠主題
+    
     sheet.appendRow([
       parsed.date, parsed.totalPieces, parsed.totalRevenue,
       parsed.eastPieces, parsed.eastUnitPrice, parsed.eastRiders,
@@ -52,11 +65,16 @@ function doPost(e) {
     return ContentService.createTextOutput("OK");
   }
 
+  // -------------------------------------------------------------
+  // 一般營運部分：寫入「公共試算表」（一般人員/管理員可協作）
+  // -------------------------------------------------------------
+
   // 3. 步兵報數與薪酬結算
   if (key === "派件報數" && parsed && parsed.date) {
-    var sheet = getOrCreateSheet(ss, "薪酬結算與報數總表", [
+    var sheet = getOrCreateSheet(publicSS, "薪酬結算與報數總表", [
       "派送日期", "人員 / 身份", "東區票數", "麗港城票數", "觀塘工商票數", "總票數", "車津", "Claim報銷", "Bonus獎金", "罰款", "扣數還款", "實發總工資", "記錄時間"
-    ]);
+    ], "sky"); // 使用明亮天藍主題
+    
     sheet.appendRow([
       parsed.date, parsed.staff, parsed.eastCount || 0, parsed.ktLgCount || 0, parsed.ktIndCount || 0, parsed.totalCount || 0,
       parsed.carAllowance || 0, parsed.claim || 0, parsed.bonus || 0, parsed.penalty || 0, parsed.deductAmount || 0, parsed.totalSalary || 0, now
@@ -64,17 +82,45 @@ function doPost(e) {
     return ContentService.createTextOutput("OK");
   }
 
-  var defaultSheet = getOrCreateSheet(ss, "系統總紀錄", ["功能類型", "內容數據", "記錄時間"]);
+  // 4. 系統總紀錄
+  var defaultSheet = getOrCreateSheet(publicSS, "系統總紀錄", ["功能類型", "內容數據", "記錄時間"], "slate");
   defaultSheet.appendRow([key, dataStr, now]);
   return ContentService.createTextOutput("OK");
 }
 
-function getOrCreateSheet(ss, sheetName, headers) {
+/**
+ * 建立/取得分頁並套用「明亮清爽」配色
+ */
+function getOrCreateSheet(ss, sheetName, headers, themeStyle) {
   var sheet = ss.getSheetByName(sheetName);
   if (!sheet) sheet = ss.insertSheet(sheetName);
+  
   if (sheet.getLastRow() === 0) {
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    sheet.getRange(1, 1, 1, headers.length).setBackground("#1e293b").setFontColor("#ffffff").setFontWeight("bold");
+    var headerRange = sheet.getRange(1, 1, 1, headers.length);
+    headerRange.setValues([headers]);
+    
+    // 明亮配色主題設定（摒棄沉重深色）
+    var bgColor = "#F1F5F9"; // 預設淺灰
+    var fontColor = "#334155";
+    
+    if (themeStyle === "sky") {
+      bgColor = "#E0F2FE";   // 淺天藍底
+      fontColor = "#0369A1"; // 深藍字
+    } else if (themeStyle === "emerald") {
+      bgColor = "#DCFCE7";   // 淺薄荷綠底
+      fontColor = "#15803D"; // 墨綠字
+    }
+    
+    headerRange
+      .setBackground(bgColor)
+      .setFontColor(fontColor)
+      .setFontWeight("bold")
+      .setFontFamily("Arial")
+      .setFontSize(10)
+      .setHorizontalAlignment("center");
+      
+    // 凍結第一行，閱讀更清晰
+    sheet.setFrozenRows(1);
   }
   return sheet;
 }
