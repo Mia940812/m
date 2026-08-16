@@ -1,118 +1,1248 @@
-<!DOCTYPE html>
-<html lang="zh-HK">
-<head>
-  <meta charset="UTF-8">
-  <title>派件營運全功能工作台</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
-    .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; font-weight: bold; }
-    input, select, textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-    button { background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
-    button:hover { background-color: #45a049; }
-    .login-section { background: #eef2f3; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
-  </style>
-</head>
-<body>
+    if (confirm('確定刪除此項罰款記錄？')) {
+      penaltyList.splice(idx, 1);
+      saveData();
+      renderLeaderboardData();
+    }
+  }
 
-  <div class="container">
-    <h2>派件營運工作台</h2>
+  function exportLeaderboardWhatsApp() {
+    const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
+    const curMonth = today.substring(0, 7);
+    const monthPenalties = penaltyList.filter(p => p.date && p.date.startsWith(curMonth));
+    const totalJackpot = monthPenalties.reduce((sum, p) => sum + Number(p.amount || 0), 0);
 
-    <!-- 1. 登入/身分確認區 (改為文字輸入框) -->
-    <div class="login-section">
-      <div class="form-group" style="margin-bottom: 0;">
-        <label for="usernameInput">登入帳號（操作者）：</label>
-        <input type="text" id="usernameInput" placeholder="請輸入你的帳號 (例如: Mia 或 admin)" autocomplete="username">
-      </div>
-    </div>
+    const riderStats = {};
+    monthPenalties.forEach(p => {
+      if (!riderStats[p.staff]) riderStats[p.staff] = { count: 0, totalFine: 0 };
+      riderStats[p.staff].count += 1;
+      riderStats[p.staff].totalFine += Number(p.amount || 0);
+    });
 
-    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+    const sortedRiders = Object.keys(riderStats).map(name => ({
+      name, count: riderStats[name].count, totalFine: riderStats[name].totalFine
+    })).sort((a, b) => b.count - a.count || b.totalFine - a.totalFine);
 
-    <!-- 2. 罰款記錄表單範例 -->
-    <h3>錄入罰款記錄</h3>
-    <div class="form-group">
-      <label for="penaltyId">記錄 ID：</label>
-      <input type="text" id="penaltyId" placeholder="例如: P001">
-    </div>
-
-    <div class="form-group">
-      <label for="penaltyDate">日期：</label>
-      <input type="date" id="penaltyDate">
-    </div>
-
-    <div class="form-group">
-      <label for="penaltyStaff">被罰員工：</label>
-      <input type="text" id="penaltyStaff" placeholder="請輸入員工姓名">
-    </div>
-
-    <div class="form-group">
-      <label for="penaltyAmount">罰款金額：</label>
-      <input type="number" id="penaltyAmount" placeholder="請輸入金額">
-    </div>
-
-    <div class="form-group">
-      <label for="penaltyReason">罰款原因：</label>
-      <textarea id="penaltyReason" rows="3" placeholder="請輸入原因"></textarea>
-    </div>
-
-    <button type="button" onclick="submitPenalty()">提交罰款記錄</button>
-  </div>
-
-  <script>
-    // 提交罰款資料的函數
-    function submitPenalty() {
-      // 取得輸入的帳號
-      const operatorUsername = document.getElementById('usernameInput').value.trim();
-      
-      if (!operatorUsername) {
-        alert('請先在上方輸入你的登入帳號！');
-        document.getElementById('usernameInput').focus();
-        return;
-      }
-
-      // 收集表單資料
-      const payload = {
-        action: 'savePenalty',
-        operator: operatorUsername, // 將輸入的帳號傳給後端作權限驗證
-        id: document.getElementById('penaltyId').value.trim(),
-        date: document.getElementById('penaltyDate').value,
-        staff: document.getElementById('penaltyStaff').value.trim(),
-        amount: document.getElementById('penaltyAmount').value,
-        reason: document.getElementById('penaltyReason').value.trim()
-      };
-
-      // 檢查必填欄位
-      if (!payload.id || !payload.staff || !payload.amount) {
-        alert('請填寫所有必要的欄位（ID、員工、金額）！');
-        return;
-      }
-
-      // 發送請求到你的 Google Apps Script 部署網址
-      const scriptUrl = 'https://script.google.com/macros/s/AKfycbwG5x-iN6GjVd1jtdoz11Nwn79JLSLdLrIDr_xXfNCyfo1EBxfYPUFb5oW754GXf7H4fA/exec';
-
-      fetch(scriptUrl, {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      })
-      .then(response => response.json())
-      .then(result => {
-        if (result.status === 'success') {
-          alert('成功：' + result.message);
-          // 清空表單
-          document.getElementById('penaltyId').value = '';
-          document.getElementById('penaltyAmount').value = '';
-          document.getElementById('penaltyReason').value = '';
-        } else {
-          alert('操作失敗：' + result.message);
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('連線發生錯誤，請稍後再試。');
+    let text = `🏆 *Mia組 ${curMonth}月份罰款獎池 ＆ 違規龍虎榜* 🏆\n`;
+    text += `━━━━━━━━━━━━━━━━━━━\n`;
+    text += `💰 *當月累積獎池總額：HK$ ${totalJackpot.toFixed(2)}*\n\n`;
+    text += `🔥 *違規次數排行榜：*\n`;
+    if (sortedRiders.length === 0) {
+      text += `（本月暫無違規紀錄，團隊表現優異！👏）\n`;
+    } else {
+      sortedRiders.forEach((r, idx) => {
+        const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : '▪️'));
+        text += `${medal} *${r.name}*：違規 ${r.count} 次 (累計罰款 $${r.totalFine})\n`;
       });
     }
-  </script>
+    text += `━━━━━━━━━━━━━━━━━━━\n`;
+    text += `⚠️ 請各組員切記按標準規範派送，避免造成錯漏及罰款扣除！`;
 
+    openUniversalExportModalWithText('🏆 罰款獎池與龍虎榜 WhatsApp 報告', text);
+  }
+
+  function openTicketsModal() {
+    renderTicketsList();
+    const courierSelect = document.getElementById('ticket-courier-select');
+    if (courierSelect) {
+      courierSelect.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.id} - ${a.category})</option>`).join('');
+    }
+    const isAdmin = (currentRole === 'admin');
+    const assignBox = document.getElementById('admin-ticket-assign-box');
+    if (assignBox) assignBox.style.display = isAdmin ? 'block' : 'none';
+    openModal('modal-tickets-view');
+  }
+
+  function renderTicketsList() {
+    const container = document.getElementById('tickets-container');
+    if (!container) return;
+
+    const isAdmin = (currentRole === 'admin');
+    const curUser = accounts.find(a => a.name === currentRole);
+
+    let filteredTickets = ticketsList;
+    if (!isAdmin) {
+      if (curUser && curUser.category.includes('組長')) {
+        filteredTickets = ticketsList.filter(t => {
+          const u = accounts.find(a => a.name === t.courier);
+          return u && u.team === curUser.team;
+        });
+      } else {
+        filteredTickets = ticketsList.filter(t => t.courier === currentRole);
+      }
+    }
+
+    if (filteredTickets.length === 0) {
+      container.innerHTML = '<div class="text-center py-6 text-slate-400">🎉 太棒了！當前沒有任何異常工單。</div>';
+      return;
+    }
+
+    container.innerHTML = filteredTickets.map((t, idx) => {
+      const globalIdx = ticketsList.findIndex(item => item.id === t.id);
+      let statusColor = 'bg-amber-100 text-amber-800 border-amber-300';
+      if (t.status === '已解決') statusColor = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+      if (t.status === '處理中') statusColor = 'bg-blue-100 text-blue-800 border-blue-300';
+
+      return `
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="font-mono font-black text-slate-900 text-xs">${t.tracking}</span>
+              <span class="px-2 py-0.5 rounded-md border text-[10px] font-bold ${statusColor}">${t.status || '待處理'}</span>
+            </div>
+            <span class="font-bold text-rose-600 text-xs">扣款/賠付: $${t.fine || 0}</span>
+          </div>
+          <div class="text-[11px] text-slate-700 font-semibold">📍 地址: ${t.address}</div>
+          <div class="text-[11px] text-slate-600">🚨 問題: ${t.issue} | 負責人: <span class="font-bold text-slate-900">${t.courier}</span></div>
+          ${t.note ? `<div class="text-[11px] text-blue-700 bg-blue-50 p-1.5 rounded">💬 跟進備註: ${t.note}</div>` : ''}
+
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-200">
+            <div class="flex items-center gap-1.5">
+              <input type="text" id="ticket-note-${globalIdx}" placeholder="輸入處理備註..." class="p-1 bg-white border rounded text-[11px] font-semibold w-40">
+              <button type="button" onclick="updateTicketNote(${globalIdx})" class="px-2 py-1 bg-slate-800 text-white rounded text-[10px] font-bold">更新備註</button>
+            </div>
+            <div class="flex items-center gap-1">
+              <button type="button" onclick="updateTicketStatus(${globalIdx}, '處理中')" class="px-2 py-1 bg-blue-600 text-white rounded text-[10px] font-bold">處理中</button>
+              <button type="button" onclick="updateTicketStatus(${globalIdx}, '已解決')" class="px-2 py-1 bg-emerald-600 text-white rounded text-[10px] font-bold">結案</button>
+              ${isAdmin ? `<button type="button" onclick="deleteTicket(${globalIdx})" class="px-2 py-1 bg-rose-600 text-white rounded text-[10px] font-bold">刪除</button>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function addNewTicketForm() {
+    if (currentRole !== 'admin') return alert('只有總管理員 Mia 有權指派異常工單！');
+    const tracking = document.getElementById('ticket-tracking-inp').value.trim();
+    const courier = document.getElementById('ticket-courier-select').value;
+    const address = document.getElementById('ticket-address-inp').value.trim();
+    const issue = document.getElementById('ticket-issue-inp').value.trim();
+    const fine = Number(document.getElementById('ticket-fine-inp').value) || 0;
+
+    if (!tracking || !address || !issue) {
+      return alert('請完整填寫運單單號、詳細地址及問題描述！');
+    }
+
+    ticketsList.push({
+      id: 'TK' + Date.now(), tracking, address, courier, issue, fine, status: '待處理', note: '', proofPhoto: ''
+    });
+    saveData();
+    document.getElementById('ticket-tracking-inp').value = '';
+    document.getElementById('ticket-address-inp').value = '';
+    document.getElementById('ticket-issue-inp').value = '';
+    document.getElementById('ticket-fine-inp').value = '';
+    renderTicketsList();
+    alert('✅ 異常工單已成功指派！');
+  }
+
+  function updateTicketStatus(idx, newStatus) {
+    ticketsList[idx].status = newStatus;
+    saveData();
+    renderTicketsList();
+  }
+
+  function updateTicketNote(idx) {
+    const inp = document.getElementById(`ticket-note-${idx}`);
+    if (!inp) return;
+    const val = inp.value.trim();
+    if (!val) return;
+    ticketsList[idx].note = val;
+    saveData();
+    renderTicketsList();
+    alert('✅ 備註已更新！');
+  }
+
+  function deleteTicket(idx) {
+    if (currentRole !== 'admin') return alert('無權操作！');
+    if (confirm('確定刪除此工單？')) {
+      ticketsList.splice(idx, 1);
+      saveData();
+      renderTicketsList();
+    }
+  }
+
+  function openSuppliesModal() {
+    const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
+    document.getElementById('supply-date').value = today;
+    document.getElementById('supply-buyer').value = currentRole || 'Mia';
+    renderSuppliesList();
+    openModal('modal-supplies');
+  }
+
+  function renderSuppliesList() {
+    const container = document.getElementById('supplies-list');
+    if (!container) return;
+    if (suppliesList.length === 0) {
+      container.innerHTML = '<div class="text-center py-4 text-slate-400">暫無物資採購記錄</div>';
+      return;
+    }
+    container.innerHTML = suppliesList.map((s, idx) => `
+      <div class="p-2 bg-slate-50 border rounded-xl flex items-center justify-between text-xs font-semibold">
+        <div>
+          <div class="font-bold text-slate-900">${s.name} <span class="text-blue-600 font-mono">x${s.qty}</span></div>
+          <div class="text-[10px] text-slate-500">${s.date} | 採購人: ${s.buyer}</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="font-black text-slate-900 font-mono">HK$ ${s.price}</span>
+          ${currentRole === 'admin' ? `<button type="button" onclick="deleteSupply(${idx})" class="text-rose-500 hover:text-rose-700 font-bold px-1.5 py-0.5">刪除</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function saveSupplyRecord() {
+    const date = document.getElementById('supply-date').value;
+    const name = document.getElementById('supply-name').value.trim();
+    const qty = Number(document.getElementById('supply-qty').value);
+    const price = Number(document.getElementById('supply-price').value);
+    const buyer = document.getElementById('supply-buyer').value.trim();
+
+    if (!date || !name || isNaN(qty) || isNaN(price)) {
+      return alert('請完整填寫物資採購日期、名稱、數量與金額！');
+    }
+
+    suppliesList.push({ id: Date.now(), date, name, qty, price, buyer });
+    saveData();
+    document.getElementById('supply-name').value = '';
+    document.getElementById('supply-qty').value = '';
+    document.getElementById('supply-price').value = '';
+    renderSuppliesList();
+    alert('✅ 物資採購已成功登記！');
+  }
+
+  function deleteSupply(idx) {
+    if (confirm('確定刪除此記錄？')) {
+      suppliesList.splice(idx, 1);
+      saveData();
+      renderSuppliesList();
+    }
+  }
+
+  function openModalProgress() {
+    renderProgressView();
+    openModal('modal-progress-view');
+  }
+
+  function renderProgressView() {
+    const container = document.getElementById('progress-fences-list');
+    if (!container) return;
+
+    const allFences = [...zoneFences.kt, ...zoneFences.east, ...zoneFences.st];
+    if (allFences.length === 0) {
+      container.innerHTML = '<div class="text-center py-4 text-slate-400">暫無圍欄資料</div>';
+      return;
+    }
+
+    container.innerHTML = allFences.map(f => {
+      const isCleared = fenceProgressMap[f.id] || false;
+      return `
+        <div class="p-2.5 bg-slate-50 border rounded-xl flex items-center justify-between text-xs font-semibold">
+          <div class="flex items-center gap-2">
+            <span class="font-mono font-black text-slate-900">${f.id}</span>
+            <span class="text-slate-700">${f.name}</span>
+          </div>
+          <button type="button" onclick="toggleFenceProgress('${f.id}')" class="px-3 py-1 rounded-lg font-bold transition ${isCleared?'bg-emerald-600 text-white':'bg-slate-200 text-slate-700'}">
+            ${isCleared ? '✅ 已清場' : '⏳ 派送中 / 未清場'}
+          </button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function toggleFenceProgress(fenceId) {
+    fenceProgressMap[fenceId] = !fenceProgressMap[fenceId];
+    saveData();
+    renderProgressView();
+  }
+
+  function openRecruitsModal() {
+    renderRecruitsList();
+    openModal('modal-recruits-view');
+  }
+
+  function renderRecruitsList() {
+    const container = document.getElementById('recruits-list');
+    if (!container) return;
+    if (recruitsList.length === 0) {
+      container.innerHTML = '<div class="text-center py-4 text-slate-400">暫無預約新人檔案</div>';
+      return;
+    }
+    container.innerHTML = recruitsList.map((r, idx) => `
+      <div class="p-3 bg-slate-50 border rounded-xl text-xs space-y-1">
+        <div class="flex justify-between items-center">
+          <span class="font-black text-slate-900 text-sm">${r.name} <span class="text-blue-600 font-mono text-xs">(${r.phone})</span></span>
+          <span class="px-2 py-0.5 bg-blue-100 text-blue-800 font-bold rounded text-[10px]">${r.payoutCycle}</span>
+        </div>
+        <div class="text-slate-600">渠道: ${r.source} | 經驗: ${r.exp}</div>
+        <div class="flex justify-between items-center pt-1 font-bold">
+          <span class="text-slate-700">意向: ${r.days} (${r.type}) ➜ 人工: ${r.wage}</span>
+          ${currentRole === 'admin' ? `<button type="button" onclick="deleteRecruit(${idx})" class="text-rose-500 hover:text-rose-700">刪除</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function saveNewRecruitForm() {
+    const name = document.getElementById('recruit-name').value.trim();
+    const phone = document.getElementById('recruit-phone').value.trim();
+    const source = document.getElementById('recruit-source').value.trim();
+    const exp = document.getElementById('recruit-exp').value.trim();
+    const days = document.getElementById('recruit-days').value.trim();
+    const type = document.getElementById('recruit-type').value;
+    const startDate = document.getElementById('recruit-start-date').value;
+    const wage = document.getElementById('recruit-wage').value.trim();
+    const payoutCycle = document.getElementById('recruit-payout-cycle').value;
+
+    if (!name || !phone) return alert('請填寫新人姓名與聯絡電話！');
+
+    recruitsList.push({ id: Date.now(), name, phone, source, exp, days, type, startDate, wage, payoutCycle });
+    saveData();
+    document.getElementById('recruit-name').value = '';
+    document.getElementById('recruit-phone').value = '';
+    document.getElementById('recruit-source').value = '';
+    document.getElementById('recruit-exp').value = '';
+    document.getElementById('recruit-days').value = '';
+    document.getElementById('recruit-wage').value = '';
+    renderRecruitsList();
+    alert('✅ 新人檔案建立成功！');
+  }
+
+  function deleteRecruit(idx) {
+    if (confirm('確定刪除此新人檔案？')) {
+      recruitsList.splice(idx, 1);
+      saveData();
+      renderRecruitsList();
+    }
+  }
+
+  function openModal1() { renderZoneFencesModal(); openModal('modal-fences-zone'); }
+  function renderZoneFencesModal() {
+    const container = document.getElementById('m1-fences-container');
+    if (!container) return;
+    const allZones = [
+      { key: 'east', title: '📍 東區 (East)' },
+      { key: 'kt', title: '📍 觀塘區 (Kwun Tong)' },
+      { key: 'st', title: '📍 沙田區 (Sha Tin)' }
+    ];
+
+    container.innerHTML = allZones.map(z => `
+      <div class="bg-slate-50 p-2.5 rounded-xl border space-y-1.5">
+        <div class="font-bold text-slate-800 text-xs">${z.title}</div>
+        <div class="space-y-1 max-h-36 overflow-y-auto custom-scrollbar">
+          ${zoneFences[z.key].map((f, fIdx) => `
+            <div class="flex items-center justify-between bg-white p-1.5 rounded border text-xs">
+              <span class="font-mono font-bold text-slate-900">${f.id} - ${f.name}</span>
+              ${currentRole === 'admin' ? `<button type="button" onclick="deleteZoneFence('${z.key}', ${fIdx})" class="text-rose-500 font-bold px-1.5 py-0.5">刪除</button>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function saveNewZoneFence() {
+    if (currentRole !== 'admin') return alert('只有總管理員 Mia 有權修改圍欄！');
+    const zoneKey = document.getElementById('new-fence-zone-select').value;
+    const nameVal = document.getElementById('new-fence-name-input').value.trim();
+    if (!nameVal) return alert('請輸入圍欄編號或名稱！');
+
+    const newId = 'F' + Date.now().toString().slice(-4);
+    zoneFences[zoneKey].push({ id: newId, name: nameVal });
+    saveData();
+    document.getElementById('new-fence-name-input').value = '';
+    renderZoneFencesModal();
+    alert('✅ 圍欄新增成功！');
+  }
+
+  function deleteZoneFence(zoneKey, fIdx) {
+    if (currentRole !== 'admin') return alert('無權操作！');
+    if (confirm('確定刪除此圍欄？')) {
+      zoneFences[zoneKey].splice(fIdx, 1);
+      saveData();
+      renderZoneFencesModal();
+    }
+  }
+
+  function openModal2() {
+    renderAssignmentsModal();
+    openModal('modal-assignments');
+  }
+
+  function switchAssignmentTab(tab) {
+    currentAssignTab = tab;
+    ['kt', 'east', 'st'].forEach(t => {
+      const btn = document.getElementById(`tab-assign-${t}`);
+      if (btn) btn.className = (t === tab) ? 'px-3 py-1.5 rounded-lg bg-slate-900 text-white font-bold' : 'px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-bold';
+    });
+    renderAssignmentsModal();
+  }
+
+  function renderAssignmentsModal() {
+    const fenceSelect = document.getElementById('new-assign-fence-select');
+    const riderSelect = document.getElementById('new-assign-rider-select');
+    if (fenceSelect) {
+      fenceSelect.innerHTML = (zoneFences[currentAssignTab] || []).map(f => `<option value="${f.id} ${f.name}">${f.id} - ${f.name}</option>`).join('');
+    }
+    if (riderSelect) {
+      riderSelect.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.category})</option>`).join('');
+    }
+
+    const grid = document.getElementById('m2-fences-board-grid');
+    if (!grid) return;
+    const list = zoneAssignments[currentAssignTab] || [];
+    if (list.length === 0) {
+      grid.innerHTML = '<div class="col-span-3 text-center py-6 text-slate-400">此分區暫無排班安排。</div>';
+      return;
+    }
+
+    grid.innerHTML = list.map((item, idx) => `
+      <div class="p-2.5 bg-slate-50 border rounded-xl space-y-1">
+        <div class="font-bold text-slate-900">${item.fence}</div>
+        <div class="text-[11px] text-blue-700 font-semibold">負責人: ${item.name} (${item.order})</div>
+        ${currentRole === 'admin' ? `<button type="button" onclick="deleteAssignmentRow('${currentAssignTab}', ${idx})" class="text-[10px] text-rose-500 font-bold">移除</button>` : ''}
+      </div>
+    `).join('');
+  }
+
+  function saveNewAssignmentRow() {
+    const fence = document.getElementById('new-assign-fence-select').value;
+    const name = document.getElementById('new-assign-rider-select').value;
+    const order = document.getElementById('new-assign-order-select').value;
+
+    if (!zoneAssignments[currentAssignTab]) zoneAssignments[currentAssignTab] = [];
+    zoneAssignments[currentAssignTab].push({ id: Date.now(), fence, name, order });
+    saveData();
+    renderAssignmentsModal();
+    alert('✅ 排班加入成功！');
+  }
+
+  function deleteAssignmentRow(tab, idx) {
+    if (confirm('確定移除此排班？')) {
+      zoneAssignments[tab].splice(idx, 1);
+      saveData();
+      renderAssignmentsModal();
+    }
+  }
+
+  function openModal3() { renderCountsModal('kt'); openModal('modal-kt-counts'); }
+  function openModal4() { renderCountsModal('east'); openModal('modal-east-counts'); }
+  function openModalStCounts() { renderCountsModal('st'); openModal('modal-st-counts'); }
+
+  function renderCountsModal(zoneKey) {
+    const containerId = zoneKey === 'kt' ? 'm3-list' : (zoneKey === 'east' ? 'm4-list' : 'mst-list');
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const fences = zoneFences[zoneKey] || [];
+    container.innerHTML = fences.map(f => {
+      const countVal = zoneFenceCounts[f.id] || 0;
+      return `
+        <div class="flex items-center justify-between p-2 bg-slate-50 border rounded-lg text-xs">
+          <span class="font-bold text-slate-800">${f.id} - ${f.name}</span>
+          <input type="number" id="count-inp-${f.id}" value="${countVal}" min="0" class="w-20 p-1 bg-white border rounded text-center font-bold text-blue-700">
+        </div>
+      `;
+    }).join('');
+  }
+
+  function saveModal3() { saveCountsForZone('kt', 'modal-kt-counts'); }
+  function saveModal4() { saveCountsForZone('east', 'modal-east-counts'); }
+  function saveModalStCounts() { saveCountsForZone('st', 'modal-st-counts'); }
+
+  function saveCountsForZone(zoneKey, modalId) {
+    const fences = zoneFences[zoneKey] || [];
+    fences.forEach(f => {
+      const inp = document.getElementById(`count-inp-${f.id}`);
+      if (inp) zoneFenceCounts[f.id] = Number(inp.value) || 0;
+    });
+    saveData();
+    closeModal(modalId);
+    alert('✅ 貨量數據已成功儲存！');
+  }
+
+  function openModal5() {
+    const staffSelect = document.getElementById('shift-staff-select');
+    const daysSelect = document.getElementById('shift-14days-select');
+    if (staffSelect) staffSelect.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.category})</option>`).join('');
+    if (daysSelect) {
+      let opts = '';
+      const baseDate = new Date();
+      for (let i = 0; i < 14; i++) {
+        const d = new Date(baseDate);
+        d.setDate(baseDate.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        opts += `<option value="${dateStr}">${dateStr} (${['日','一','二','三','四','五','六'][d.getDay()]})</option>`;
+      }
+      daysSelect.innerHTML = opts;
+    }
+    renderShiftsHistoryList();
+    openModal('modal-shift-reporting');
+  }
+
+  function submitShiftReport() {
+    const staff = document.getElementById('shift-staff-select').value;
+    const date = document.getElementById('shift-14days-select').value;
+    const zone = document.getElementById('shift-target-zone').value;
+    const workType = document.getElementById('shift-work-type').value;
+    const time = document.getElementById('shift-time-inp').value;
+    const fence = document.getElementById('shift-fence-inp').value.trim();
+
+    shiftReports.push({ id: Date.now(), staff, date, zone, workType, time, fence });
+    saveData();
+    document.getElementById('shift-fence-inp').value = '';
+    renderShiftsHistoryList();
+    alert('✅ 14天報更提交成功！');
+  }
+
+  function renderShiftsHistoryList() {
+    const container = document.getElementById('shifts-history-list');
+    if (!container) return;
+    if (shiftReports.length === 0) {
+      container.innerHTML = '<div class="text-center py-4 text-slate-400">暫無報更記錄</div>';
+      return;
+    }
+    container.innerHTML = shiftReports.slice(-15).reverse().map((s, idx) => `
+      <div class="p-2 bg-slate-50 border rounded-xl flex items-center justify-between text-xs font-semibold">
+        <div>
+          <div class="font-bold text-slate-900">${s.date} - ${s.staff} <span class="text-blue-600">(${s.workType})</span></div>
+          <div class="text-[10px] text-slate-500">${s.zone} | 時間: ${s.time} ${s.fence ? '| '+s.fence : ''}</div>
+        </div>
+        ${currentRole === 'admin' ? `<button type="button" onclick="deleteShift(${idx})" class="text-rose-500 font-bold px-1">刪除</button>` : ''}
+      </div>
+    `).join('');
+  }
+
+  function deleteShift(idx) {
+    if (confirm('確定刪除此報更？')) {
+      shiftReports.splice(idx, 1);
+      saveData();
+      renderShiftsHistoryList();
+    }
+  }
+
+  function openModal8() {
+    renderTruckRoutesModal();
+    openModal('modal-truck-routes');
+  }
+
+  function renderTruckRoutesModal() {
+    const container = document.getElementById('truck-list');
+    if (!container) return;
+    if (truckRoutes.length === 0) {
+      container.innerHTML = '<div class="text-center py-4 text-slate-400">暫無車線調度記錄</div>';
+      return;
+    }
+    container.innerHTML = truckRoutes.map((t, idx) => `
+      <div class="p-2.5 bg-slate-50 border rounded-xl flex items-center justify-between text-xs font-semibold">
+        <div>
+          <div class="font-bold text-slate-900">[${t.zone.toUpperCase()}] ${t.time} - 司機: ${t.driver} (${t.order})</div>
+          <div class="text-[11px] text-blue-700">📍 圍欄: ${t.fence}</div>
+        </div>
+        ${currentRole === 'admin' ? `<button type="button" onclick="deleteTruckRoute(${idx})" class="text-rose-500 font-bold px-1.5">刪除</button>` : ''}
+      </div>
+    `).join('');
+  }
+
+  function saveTruckRouteForm() {
+    if (currentRole !== 'admin') return alert('只有管理員可新增車線！');
+    const zone = document.getElementById('truck-zone-inp').value;
+    const time = document.getElementById('truck-time-inp').value;
+    const driver = document.getElementById('truck-driver-inp').value.trim();
+    const order = document.getElementById('truck-order-inp').value.trim();
+    const fence = document.getElementById('truck-fence-inp').value.trim();
+
+    if (!driver || !fence) return alert('請完整填寫司機與圍欄！');
+
+    truckRoutes.push({ id: Date.now(), zone, time, driver, order, fence });
+    saveData();
+    document.getElementById('truck-driver-inp').value = '';
+    document.getElementById('truck-order-inp').value = '';
+    document.getElementById('truck-fence-inp').value = '';
+    renderTruckRoutesModal();
+    alert('✅ 車線新增成功！');
+  }
+
+  function deleteTruckRoute(idx) {
+    if (confirm('確定刪除此車線？')) {
+      truckRoutes.splice(idx, 1);
+      saveData();
+      renderTruckRoutesModal();
+    }
+  }
+
+  function openModalProfit() {
+    const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
+    document.getElementById('profit-date').value = today;
+    loadProfitDataForDate();
+    openModal('modal-profit-calc');
+  }
+
+  function loadProfitDataForDate() {
+    const date = document.getElementById('profit-date').value;
+    const dayReports = dailyReports.filter(r => r.date === date);
+    const totalSalary = dayReports.reduce((sum, r) => sum + Number(r.liveSalary || 0), 0);
+    const totalClaim = dayReports.reduce((sum, r) => sum + Number(r.claim || 0), 0);
+    const totalAdvanceRepay = dayReports.reduce((sum, r) => sum + Number(r.deductAmount || 0), 0);
+    const daySupplies = suppliesList.filter(s => s.date === date).reduce((sum, s) => sum + Number(s.price || 0), 0);
+
+    document.getElementById('profit-salary-payout').value = totalSalary;
+    document.getElementById('profit-supplies-exp').value = daySupplies;
+    document.getElementById('profit-claim-exp').value = totalClaim;
+    document.getElementById('profit-advance-repay').value = totalAdvanceRepay;
+
+    const daySettle = dailySettlements.find(s => s.date === date);
+    if (daySettle) {
+      document.getElementById('profit-gross-revenue').value = daySettle.totalRevenue || 0;
+    } else {
+      document.getElementById('profit-gross-revenue').value = 0;
+    }
+    calcNetProfitLive();
+    renderProfitHistory();
+  }
+
+  function calcNetProfitLive() {
+    const rev = Number(document.getElementById('profit-gross-revenue').value) || 0;
+    const sal = Number(document.getElementById('profit-salary-payout').value) || 0;
+    const sup = Number(document.getElementById('profit-supplies-exp').value) || 0;
+    const clm = Number(document.getElementById('profit-claim-exp').value) || 0;
+    const rep = Number(document.getElementById('profit-advance-repay').value) || 0;
+
+    const net = rev - sal - sup - clm + rep;
+    const el = document.getElementById('profit-final-net');
+    if (el) {
+      el.textContent = `HK$ ${net.toFixed(2)}`;
+      el.className = net >= 0 ? 'text-xl font-black text-emerald-600' : 'text-xl font-black text-rose-600';
+    }
+  }
+
+  function saveDailyProfitRecord() {
+    const date = document.getElementById('profit-date').value;
+    const rev = Number(document.getElementById('profit-gross-revenue').value) || 0;
+    const sal = Number(document.getElementById('profit-salary-payout').value) || 0;
+    const sup = Number(document.getElementById('profit-supplies-exp').value) || 0;
+    const clm = Number(document.getElementById('profit-claim-exp').value) || 0;
+    const rep = Number(document.getElementById('profit-advance-repay').value) || 0;
+    const net = rev - sal - sup - clm + rep;
+
+    const existingIdx = profitRecords.findIndex(p => p.date === date);
+    const record = { date, rev, sal, sup, clm, rep, net };
+    if (existingIdx >= 0) profitRecords[existingIdx] = record;
+    else profitRecords.push(record);
+
+    saveData();
+    renderProfitHistory();
+    alert('✅ 利潤核算已成功儲存！');
+  }
+
+  function renderProfitHistory() {
+    const container = document.getElementById('profit-history-list');
+    if (!container) return;
+    if (profitRecords.length === 0) {
+      container.innerHTML = '<div class="text-center py-4 text-slate-400">暫無利潤核算歷史</div>';
+      return;
+    }
+    container.innerHTML = profitRecords.slice(-10).reverse().map(p => `
+      <div class="p-2 bg-slate-50 border rounded-xl flex items-center justify-between text-xs font-semibold">
+        <div>
+          <div class="font-bold text-slate-900">${p.date} - 收入: $${p.rev} | 支出: $${p.sal + p.sup + p.clm}</div>
+        </div>
+        <div class="font-black ${p.net>=0?'text-emerald-600':'text-rose-600'} font-mono">淨利: $${p.net.toFixed(2)}</div>
+      </div>
+    `).join('');
+  }
+
+  function openModalSettlementDaily() {
+    const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
+    document.getElementById('settle-date').value = today;
+    document.getElementById('settle-east-unitprice').value = priceSettings.revenue.east;
+    document.getElementById('settle-ktind-unitprice').value = priceSettings.revenue.ktind;
+    document.getElementById('settle-ktlg-unitprice').value = priceSettings.revenue.ktlg;
+    document.getElementById('settle-st-unitprice').value = priceSettings.revenue.st;
+    renderSettlementHistory();
+    openModal('modal-settlement-daily');
+  }
+
+  function calcSettleRevenueLive() {
+    const eastP = Number(document.getElementById('settle-east-pieces').value) || 0;
+    const eastU = Number(document.getElementById('settle-east-unitprice').value) || priceSettings.revenue.east;
+    const ktindP = Number(document.getElementById('settle-ktind-pieces').value) || 0;
+    const ktindU = Number(document.getElementById('settle-ktind-unitprice').value) || priceSettings.revenue.ktind;
+    const ktlgP = Number(document.getElementById('settle-ktlg-pieces').value) || 0;
+    const ktlgU = Number(document.getElementById('settle-ktlg-unitprice').value) || priceSettings.revenue.ktlg;
+    const stP = Number(document.getElementById('settle-st-pieces').value) || 0;
+    const stU = Number(document.getElementById('settle-st-unitprice').value) || priceSettings.revenue.st;
+
+    const totalPieces = eastP + ktindP + ktlgP + stP;
+    const totalRev = (eastP * eastU) + (ktindP * ktindU) + (ktlgP * ktlgU) + (stP * stU);
+
+    const txt = document.getElementById('settle-live-revenue-txt');
+    if (txt) txt.textContent = `${totalPieces} 票 ➜ HK$ ${totalRev.toFixed(2)}`;
+  }
+
+  function saveFullDailySettlement() {
+    const date = document.getElementById('settle-date').value;
+    const eastP = Number(document.getElementById('settle-east-pieces').value) || 0;
+    const eastU = Number(document.getElementById('settle-east-unitprice').value) || priceSettings.revenue.east;
+    const ktindP = Number(document.getElementById('settle-ktind-pieces').value) || 0;
+    const ktindU = Number(document.getElementById('settle-ktind-unitprice').value) || priceSettings.revenue.ktind;
+    const ktlgP = Number(document.getElementById('settle-ktlg-pieces').value) || 0;
+    const ktlgU = Number(document.getElementById('settle-ktlg-unitprice').value) || priceSettings.revenue.ktlg;
+    const stP = Number(document.getElementById('settle-st-pieces').value) || 0;
+    const stU = Number(document.getElementById('settle-st-unitprice').value) || priceSettings.revenue.st;
+    const claim = Number(document.getElementById('settle-claim-total').value) || 0;
+    const note = document.getElementById('settle-note').value.trim();
+
+    const totalPieces = eastP + ktindP + ktlgP + stP;
+    const totalRevenue = (eastP * eastU) + (ktindP * ktindU) + (ktlgP * ktlgU) + (stP * stU);
+
+    dailySettlements.push({
+      date, eastP, eastU, ktindP, ktindU, ktlgP, ktlgU, stP, stU, claim, note, totalPieces, totalRevenue
+    });
+    saveData();
+    renderSettlementHistory();
+    alert('✅ 分區詳細埋數儲存成功！');
+  }
+
+  function renderSettlementHistory() {
+    const container = document.getElementById('settlement-history-list');
+    if (!container) return;
+    if (dailySettlements.length === 0) {
+      container.innerHTML = '<div class="text-center py-4 text-slate-400">暫無埋數歷史</div>';
+      return;
+    }
+    container.innerHTML = dailySettlements.slice(-10).reverse().map(s => `
+      <div class="p-2 bg-slate-50 border rounded-xl flex items-center justify-between text-xs font-semibold">
+        <div>
+          <div class="font-bold text-slate-900">${s.date} - 總票數: ${s.totalPieces} 票</div>
+          <div class="text-[10px] text-slate-500">${s.note || '正常埋數'}</div>
+        </div>
+        <div class="font-black text-blue-700 font-mono">HK$ ${s.totalRevenue.toFixed(2)}</div>
+      </div>
+    `).join('');
+  }
+
+  function openModalPriceSettings() {
+    if (currentRole !== 'admin') return alert('只有總管理員 Mia 有權修改票價設定！');
+    document.getElementById('cfg-wage-east').value = priceSettings.wage.east;
+    document.getElementById('cfg-wage-ktlg').value = priceSettings.wage.ktlg;
+    document.getElementById('cfg-wage-ktind').value = priceSettings.wage.ktind;
+    document.getElementById('cfg-wage-st').value = priceSettings.wage.st;
+
+    document.getElementById('cfg-rev-east').value = priceSettings.revenue.east;
+    document.getElementById('cfg-rev-ktlg').value = priceSettings.revenue.ktlg;
+    document.getElementById('cfg-rev-ktind').value = priceSettings.revenue.ktind;
+    document.getElementById('cfg-rev-st').value = priceSettings.revenue.st;
+
+    openModal('modal-price-settings');
+  }
+
+  function savePriceSettings() {
+    priceSettings.wage.east = Number(document.getElementById('cfg-wage-east').value);
+    priceSettings.wage.ktlg = Number(document.getElementById('cfg-wage-ktlg').value);
+    priceSettings.wage.ktind = Number(document.getElementById('cfg-wage-ktind').value);
+    priceSettings.wage.st = Number(document.getElementById('cfg-wage-st').value);
+
+    priceSettings.revenue.east = Number(document.getElementById('cfg-rev-east').value);
+    priceSettings.revenue.ktlg = Number(document.getElementById('cfg-rev-ktlg').value);
+    priceSettings.revenue.ktind = Number(document.getElementById('cfg-rev-ktind').value);
+    priceSettings.revenue.st = Number(document.getElementById('cfg-rev-st').value);
+
+    saveData();
+    closeModal('modal-price-settings');
+    alert('✅ 全域預設票價更新成功！');
+  }
+
+  function openAddRiderModal() {
+    if (currentRole !== 'admin') return alert('只有總管理員 Mia 有權新增人員及設定專屬票價！');
+    autoGenerateStaffId();
+    renderStaffCategoryList();
+    openModal('modal-add-rider');
+  }
+
+  function autoGenerateStaffId() {
+    const team = document.getElementById('new-rider-team').value;
+    const existingCount = accounts.filter(a => a.team === team).length + 1;
+    const idStr = team + String(existingCount).padStart(2, '0');
+    document.getElementById('new-rider-id-auto').value = idStr;
+  }
+
+  function saveNewRider() {
+    const team = document.getElementById('new-rider-team').value;
+    const id = document.getElementById('new-rider-id-auto').value;
+    const name = document.getElementById('new-rider-name').value.trim();
+    const category = document.getElementById('new-rider-category').value;
+    const zone = document.getElementById('new-rider-default-zone').value;
+    const password = document.getElementById('new-rider-init-pwd').value.trim() || '123';
+
+    if (!name) return alert('請輸入人員姓名！');
+
+    accounts.push({ id, name, category, team, zone, password, customPrices: {} });
+    saveData();
+    document.getElementById('new-rider-name').value = '';
+    autoGenerateStaffId();
+    renderStaffCategoryList();
+    updateStaffDropdowns();
+    alert('✅ 人員帳號建立成功！');
+  }
+
+  function renderStaffCategoryList() {
+    const container = document.getElementById('staff-category-list');
+    if (!container) return;
+
+    container.innerHTML = accounts.map((a, idx) => `
+      <div class="p-3 bg-slate-50 border rounded-xl space-y-2">
+        <div class="flex justify-between items-center">
+          <div>
+            <span class="font-black text-slate-900 text-xs">${a.name}</span>
+            <span class="text-[10px] text-slate-500 font-mono">(${a.id} - ${a.category})</span>
+          </div>
+          ${a.name !== 'Mia' ? `<button type="button" onclick="deleteAccount(${idx})" class="text-rose-500 font-bold text-[11px]">刪除帳號</button>` : ''}
+        </div>
+        <div class="grid grid-cols-4 gap-1.5 text-[11px]">
+          <div>
+            <label class="text-slate-500 block text-[9px]">東區單價($)</label>
+            <input type="number" step="0.1" id="cp-east-${idx}" value="${a.customPrices?.east || ''}" placeholder="${priceSettings.wage.east}" onchange="saveCustomPrice(${idx})" class="w-full p-1 bg-white border rounded font-bold">
+          </div>
+          <div>
+            <label class="text-slate-500 block text-[9px]">麗港城單價($)</label>
+            <input type="number" step="0.1" id="cp-ktlg-${idx}" value="${a.customPrices?.ktlg || ''}" placeholder="${priceSettings.wage.ktlg}" onchange="saveCustomPrice(${idx})" class="w-full p-1 bg-white border rounded font-bold">
+          </div>
+          <div>
+            <label class="text-slate-500 block text-[9px]">工商區單價($)</label>
+            <input type="number" step="0.1" id="cp-ktind-${idx}" value="${a.customPrices?.ktind || ''}" placeholder="${priceSettings.wage.ktind}" onchange="saveCustomPrice(${idx})" class="w-full p-1 bg-white border rounded font-bold">
+          </div>
+          <div>
+            <label class="text-slate-500 block text-[9px]">沙田單價($)</label>
+            <input type="number" step="0.1" id="cp-st-${idx}" value="${a.customPrices?.st || ''}" placeholder="${priceSettings.wage.st}" onchange="saveCustomPrice(${idx})" class="w-full p-1 bg-white border rounded font-bold">
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function saveCustomPrice(idx) {
+    const east = document.getElementById(`cp-east-${idx}`).value;
+    const ktlg = document.getElementById(`cp-ktlg-${idx}`).value;
+    const ktind = document.getElementById(`cp-ktind-${idx}`).value;
+    const st = document.getElementById(`cp-st-${idx}`).value;
+
+    if (!accounts[idx].customPrices) accounts[idx].customPrices = {};
+    accounts[idx].customPrices.east = east ? Number(east) : '';
+    accounts[idx].customPrices.ktlg = ktlg ? Number(ktlg) : '';
+    accounts[idx].customPrices.ktind = ktind ? Number(ktind) : '';
+    accounts[idx].customPrices.st = st ? Number(st) : '';
+
+    saveData();
+  }
+
+  function deleteAccount(idx) {
+    if (currentRole !== 'admin') return alert('無權操作！');
+    if (confirm(`確定刪除帳號【${accounts[idx].name}】？`)) {
+      accounts.splice(idx, 1);
+      saveData();
+      renderStaffCategoryList();
+      updateStaffDropdowns();
+    }
+  }
+
+  function openChangePasswordModal() {
+    const select = document.getElementById('pwd-target-account');
+    if (select) {
+      if (currentRole === 'admin') {
+        select.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.category})</option>`).join('');
+      } else {
+        select.innerHTML = `<option value="${currentRole}">${currentRole} (當前登入帳戶)</option>`;
+      }
+    }
+    onPasswordTargetChange(select ? select.value : currentRole);
+    openModal('modal-change-password');
+  }
+
+  function onPasswordTargetChange(name) {
+    const user = accounts.find(a => a.name === name);
+    const pwdDisplay = document.getElementById('pwd-current-display');
+    if (user && pwdDisplay) {
+      pwdDisplay.textContent = user.password || '123';
+    }
+  }
+
+  function saveNewPassword() {
+    const targetName = document.getElementById('pwd-target-account').value;
+    const newPwd = document.getElementById('pwd-new-input').value.trim();
+
+    if (!newPwd || newPwd.length < 2) return alert('新密碼至少需要 2 個字元！');
+
+    const user = accounts.find(a => a.name === targetName);
+    if (user) {
+      user.password = newPwd;
+      saveData();
+      closeModal('modal-change-password');
+      alert(`✅【${targetName}】密碼修改成功！`);
+    }
+  }
+
+  function openUniversalExportModal(type) {
+    let title = '📤 資料匯出中心';
+    let text = '';
+
+    if (type === 'truck_dispatch') {
+      title = '🚗 每日車線調度 WhatsApp 報告';
+      text = `🚗 *Mia組 每日車線調度安排*\n━━━━━━━━━━━━━━━━━━━\n`;
+      truckRoutes.forEach(t => {
+        text += `▪️ [${t.zone.toUpperCase()}] ${t.time} ｜ 司機：*${t.driver}* (${t.order})\n  📍 圍欄：${t.fence}\n`;
+      });
+      text += `━━━━━━━━━━━━━━━━━━━\n請各位司機及步兵準時按車線跟進！`;
+    } else if (type === 'shift_schedule') {
+      title = '📤 14天更表 WhatsApp 報告';
+      text = `⏰ *Mia組 14天出更安排名冊*\n━━━━━━━━━━━━━━━━━━━\n`;
+      shiftReports.slice(-20).forEach(s => {
+        text += `📅 ${s.date} ｜ *${s.staff}* ➜ ${s.workType} (${s.zone})\n`;
+      });
+      text += `━━━━━━━━━━━━━━━━━━━\n請各組員依時到崗！`;
+    } else if (type === 'tickets_list') {
+      title = '🚨 異常工單進度 WhatsApp 報告';
+      text = `🚨 *Mia組 異常工單追蹤報告*\n━━━━━━━━━━━━━━━━━━━\n`;
+      ticketsList.filter(t => t.status !== '已解決').forEach(t => {
+        text += `▪️ 運單：${t.tracking}\n  📍 地址：${t.address}\n  👤 負責：${t.staff || t.courier} ｜ 狀態：*${t.status}*\n  ⚠️ 問題：${t.issue}\n\n`;
+      });
+      text += `━━━━━━━━━━━━━━━━━━━\n請相關人員盡快跟進處理！`;
+    } else if (type === 'profit_report') {
+      title = '📈 營運利潤 WhatsApp 報告';
+      const latest = profitRecords[profitRecords.length - 1] || { date: '今日', rev: 0, sal: 0, sup: 0, clm: 0, net: 0 };
+      text = `📈 *Mia組 營運利潤核算報告*\n━━━━━━━━━━━━━━━━━━━\n`;
+      text += `📅 日期：${latest.date}\n`;
+      text += `➕ 總收入：HK$ ${latest.rev}\n`;
+      text += `➖ 步兵出糧：HK$ ${latest.sal}\n`;
+      text += `➖ 物資/報銷：HK$ ${latest.sup + latest.clm}\n`;
+      text += `━━━━━━━━━━━━━━━━━━━\n`;
+      text += `💰 *實質純利 (Net Profit)：HK$ ${latest.net.toFixed(2)}*`;
+    } else if (type === 'daily_settlement') {
+      title = '💰 詳細分區埋數 WhatsApp 報告';
+      const latest = dailySettlements[dailySettlements.length - 1] || { date: '今日', totalPieces: 0, totalRevenue: 0, note: '' };
+      text = `💰 *Mia組 分區詳細埋數報告*\n━━━━━━━━━━━━━━━━━━━\n`;
+      text += `📅 日期：${latest.date}\n`;
+      text += `📦 總派件票數：${latest.totalPieces} 票\n`;
+      text += `💵 總收入金額：HK$ ${latest.totalRevenue.toFixed(2)}\n`;
+      text += `💬 備註：${latest.note || '正常運作'}\n`;
+      text += `━━━━━━━━━━━━━━━━━━━\n`;
+    } else if (type === 'progress_report') {
+      title = '⏱️ 圍欄清場進度 WhatsApp 報告';
+      text = `⏱️ *Mia組 圍欄清場進度報告*\n━━━━━━━━━━━━━━━━━━━\n`;
+      const allFences = [...zoneFences.kt, ...zoneFences.east, ...zoneFences.st];
+      allFences.forEach(f => {
+        const cleared = fenceProgressMap[f.id] || false;
+        text += `${cleared ? '✅' : '⏳'} ${f.id} ${f.name} ➜ *${cleared ? '已清場' : '派送中'}*\n`;
+      });
+      text += `━━━━━━━━━━━━━━━━━━━\n`;
+    }
+
+    document.getElementById('export-modal-title').textContent = title;
+    document.getElementById('universal-export-textarea').value = text;
+    openModal('modal-universal-export');
+  }
+
+  function openUniversalExportModalWithText(modalTitle, textContent) {
+    document.getElementById('export-modal-title').textContent = modalTitle;
+    document.getElementById('universal-export-textarea').value = textContent;
+    openModal('modal-universal-export');
+  }
+
+  function copyUniversalWhatsAppText() {
+    const textarea = document.getElementById('universal-export-textarea');
+    textarea.select();
+    document.execCommand('copy');
+    alert('✅ 已成功複製 WhatsApp 格式文字！');
+  }
+
+  function handleImagePreview(input, previewId) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        photoBase64Map[previewId] = e.target.result;
+        const container = document.getElementById(previewId);
+        if (container) {
+          container.innerHTML = `<img src="${e.target.result}" class="w-10 h-10 object-cover rounded border">`;
+          container.classList.remove('hidden');
+        }
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function onStaffSelectChange(staffName) {
+    const user = accounts.find(a => a.name === staffName);
+    const badge = document.getElementById('staff-price-badge');
+    if (!user) return;
+
+    const cp = user.customPrices || {};
+    document.getElementById('repEastPrice').value = cp.east !== undefined && cp.east !== '' ? cp.east : priceSettings.wage.east;
+    document.getElementById('repKtLgPrice').value = cp.ktlg !== undefined && cp.ktlg !== '' ? cp.ktlg : priceSettings.wage.ktlg;
+    document.getElementById('repKtIndPrice').value = cp.ktind !== undefined && cp.ktind !== '' ? cp.ktind : priceSettings.wage.ktind;
+    document.getElementById('repStPrice').value = cp.st !== undefined && cp.st !== '' ? cp.st : priceSettings.wage.st;
+
+    if (badge) {
+      const hasCustom = (cp.east !== undefined && cp.east !== '') || (cp.ktlg !== undefined && cp.ktlg !== '') || (cp.ktind !== undefined && cp.ktind !== '') || (cp.st !== undefined && cp.st !== '');
+      badge.textContent = hasCustom ? `當前套用：${staffName} 個別專屬單價` : `當前套用：預設單價`;
+      badge.className = hasCustom ? 'text-[11px] font-black text-rose-600' : 'text-[11px] font-bold text-blue-700';
+    }
+
+    calcSalaryLive();
+  }
+
+  function calcSalaryLive() {
+    const eastC = Number(document.getElementById('repEastCount').value) || 0;
+    const eastP = Number(document.getElementById('repEastPrice').value) || priceSettings.wage.east;
+    const ktLgC = Number(document.getElementById('repKtLgCount').value) || 0;
+    const ktLgP = Number(document.getElementById('repKtLgPrice').value) || priceSettings.wage.ktlg;
+    const ktIndC = Number(document.getElementById('repKtIndCount').value) || 0;
+    const ktIndP = Number(document.getElementById('repKtIndPrice').value) || priceSettings.wage.ktind;
+    const stC = Number(document.getElementById('repStCount').value) || 0;
+    const stP = Number(document.getElementById('repStPrice').value) || priceSettings.wage.st;
+
+    const car = Number(document.getElementById('repCarAllowance').value) || 0;
+    const claim = Number(document.getElementById('repClaim').value) || 0;
+    const bonus = Number(document.getElementById('repBonus').value) || 0;
+    const penalty = Number(document.getElementById('repPenalty').value) || 0;
+    const prevAdv = Number(document.getElementById('repPrevAdvance').value) || 0;
+    const newAdv = Number(document.getElementById('repNewAdvance').value) || 0;
+    const deduct = Number(document.getElementById('repDeductAmount').value) || 0;
+
+    const basePieceSalary = (eastC * eastP) + (ktLgC * ktLgP) + (ktIndC * ktIndP) + (stC * stP);
+    const totalSalary = basePieceSalary + car + claim + bonus - penalty - deduct;
+
+    const remainAdv = prevAdv + newAdv - deduct;
+
+    const salaryEl = document.getElementById('repLiveTotalSalary');
+    if (salaryEl) salaryEl.textContent = `HK$ ${totalSalary.toFixed(2)}`;
+
+    const remainEl = document.getElementById('repFinalRemainAdvance');
+    if (remainEl) remainEl.textContent = `HK$ ${remainAdv.toFixed(2)}`;
+  }
+
+  function saveFullDailyReport(e) {
+    e.preventDefault();
+    const date = document.getElementById('repDate').value;
+    const staff = document.getElementById('repStaffSelect').value;
+
+    const eastC = Number(document.getElementById('repEastCount').value) || 0;
+    const eastP = Number(document.getElementById('repEastPrice').value) || priceSettings.wage.east;
+    const ktLgC = Number(document.getElementById('repKtLgCount').value) || 0;
+    const ktLgP = Number(document.getElementById('repKtLgPrice').value) || priceSettings.wage.ktlg;
+    const ktIndC = Number(document.getElementById('repKtIndCount').value) || 0;
+    const ktIndP = Number(document.getElementById('repKtIndPrice').value) || priceSettings.wage.ktind;
+    const stC = Number(document.getElementById('repStCount').value) || 0;
+    const stP = Number(document.getElementById('repStPrice').value) || priceSettings.wage.st;
+
+    const car = Number(document.getElementById('repCarAllowance').value) || 0;
+    const claim = Number(document.getElementById('repClaim').value) || 0;
+    const bonus = Number(document.getElementById('repBonus').value) || 0;
+    const penalty = Number(document.getElementById('repPenalty').value) || 0;
+    const prevAdv = Number(document.getElementById('repPrevAdvance').value) || 0;
+    const newAdv = Number(document.getElementById('repNewAdvance').value) || 0;
+    const deduct = Number(document.getElementById('repDeductAmount').value) || 0;
+
+    const totalPieces = eastC + ktLgC + ktIndC + stC;
+    const basePieceSalary = (eastC * eastP) + (ktLgC * ktLgP) + (ktIndC * ktIndP) + (stC * stP);
+    const liveSalary = basePieceSalary + car + claim + bonus - penalty - deduct;
+
+    const refundItems = document.getElementById('repRefundItems').value.trim();
+    const signedItems = document.getElementById('repSignedItems').value.trim();
+    const pendingItems = document.getElementById('repPendingPickupItems').value.trim();
+    const returnItems = document.getElementById('repReturnItems').value.trim();
+    const dailyIssue = document.getElementById('repDailyIssueNote').value.trim();
+
+    const record = {
+      id: Date.now(), date, staff, eastC, eastP, ktLgC, ktLgP, ktIndC, ktIndP, stC, stP,
+      car, claim, bonus, penalty, prevAdv, newAdv, deduct, totalPieces, liveSalary,
+      refundItems, signedItems, pendingItems, returnItems, dailyIssue,
+      photos: { refund: photoBase64Map.previewRefund, signed: photoBase64Map.previewSigned, pending: photoBase64Map.previewPending, return: photoBase64Map.previewReturn }
+    };
+
+    dailyReports.push(record);
+    saveData();
+    renderDailyReportsTable();
+    syncWithGoogleSheet(record);
+    alert('✅ 每日派件報數與薪資結算已成功提交！');
+  }
+
+  function renderDailyReportsTable() {
+    const tbody = document.getElementById('reportTableBody');
+    if (!tbody) return;
+
+    let filtered = dailyReports;
+    const isAdmin = (currentRole === 'admin');
+    const curUser = accounts.find(a => a.name === currentRole);
+
+    if (!isAdmin) {
+      if (curUser && curUser.category.includes('組長')) {
+        filtered = dailyReports.filter(r => {
+          const u = accounts.find(a => a.name === r.staff);
+          return u && u.team === curUser.team;
+        });
+      } else {
+        filtered = dailyReports.filter(r => r.staff === currentRole);
+      }
+    }
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400">暫無報數記錄。</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filtered.slice(-15).reverse().map((r, idx) => `
+      <tr class="hover:bg-slate-50/80 transition">
+        <td class="p-3 font-mono font-bold text-slate-700">${r.date}</td>
+        <td class="p-3 font-bold text-slate-900">${r.staff}</td>
+        <td class="p-3 text-center text-slate-600">東:${r.eastC} ｜ 麗:${r.ktLgC} ｜ 工:${r.ktIndC} ｜ 沙:${r.stC}</td>
+        <td class="p-3 text-right font-black text-blue-700 font-mono">${r.totalPieces} 票</td>
+        <td class="p-3 text-right font-black text-slate-900 font-mono">HK$ ${r.liveSalary.toFixed(2)}</td>
+        <td class="p-3 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">已同步核算</span></td>
+        <td class="p-3 text-center">
+          <button type="button" onclick="openPayslipModal(${r.id})" class="px-2.5 py-1 bg-slate-900 text-white rounded-lg text-[10px] font-bold shadow-2xs">查看工資條</button>
+        </td>
+        <td class="p-3 text-center admin-only-col">
+          ${isAdmin ? `<button type="button" onclick="deleteDailyReport(${r.id})" class="text-rose-500 font-bold">刪除</button>` : ''}
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function deleteDailyReport(id) {
+    if (confirm('確定刪除此報數記錄？')) {
+      dailyReports = dailyReports.filter(r => r.id !== id);
+      saveData();
+      renderDailyReportsTable();
+    }
+  }
+
+  function clearReports() {
+    if (currentRole !== 'admin') return alert('只有管理員可清空報數！');
+    if (confirm('確定清空今日所有報數記錄？')) {
+      dailyReports = [];
+      saveData();
+      renderDailyReportsTable();
+    }
+  }
+
+  function openPayslipModal(id) {
+    const r = dailyReports.find(item => item.id === id);
+    if (!r) return;
+    const text = `🧾 *Mia組 - 個人薪資結算條 (Payslip)*\n━━━━━━━━━━━━━━━━━━━\n` +
+      `📅 派送日期：${r.date}\n` +
+      `👤 派件人員：${r.staff}\n` +
+      `━━━━━━━━━━━━━━━━━━━\n` +
+      `📦 *分區票數及明細：*\n` +
+      `  • 東區 (41圍欄)：${r.eastC} 票 × $${r.eastP}\n` +
+      `  • 觀塘麗港城：${r.ktLgC} 票 × $${r.ktLgP}\n` +
+      `  • 觀塘工商區：${r.ktIndC} 票 × $${r.ktIndP}\n` +
+      `  • 沙田 F58：${r.stC} 票 × $${r.stP}\n` +
+      `  • 總派件票數：*${r.totalPieces} 票*\n` +
+      `━━━━━━━━━━━━━━━━━━━\n` +
+      `💰 *津貼與扣減項目：*\n` +
+      `  • 車津：+$${r.car}\n` +
+      `  • Claim報銷：+$${r.claim}\n` +
+      `  • Bonus獎金：+$${r.bonus}\n` +
+      `  • 罰款/賠付：-$${r.penalty}\n` +
+      `  • 本日扣數：-$${r.deduct}\n` +
+      `━━━━━━━━━━━━━━━━━━━\n` +
+      `💵 *實發總工資：HK$ ${r.liveSalary.toFixed(2)}*\n` +
+      `━━━━━━━━━━━━━━━━━━━\n` +
+      `📋 特殊件備註：${r.dailyIssue || '無異常'}`;
+
+    openUniversalExportModalWithText('🧾 官方薪資結算條 (Payslip)', text);
+  }
+
+  function syncWithGoogleSheet(record) {
+    if (!GOOGLE_SCRIPT_URL) return;
+    fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record)
+    }).catch(err => console.log('Google Sheet sync background:', err));
+  }
+
+  function renderRoleView() {
+    const badge = document.getElementById('role-display-badge');
+    const select = document.getElementById('current-user-role-select');
+    const reportPanel = document.getElementById('report-entry-panel');
+
+    const isAdmin = (currentRole === 'admin');
+    const curUser = accounts.find(a => a.name === currentRole);
+
+    if (badge) {
+      if (isAdmin) {
+        badge.textContent = '👑 總管理員 (Mia)';
+        badge.className = 'px-1.5 py-0.5 rounded text-[10px] bg-rose-900/80 text-rose-300 border border-rose-700 font-semibold';
+      } else if (curUser) {
+        badge.textContent = `${curUser.category} (${curUser.name})`;
+        badge.className = 'px-1.5 py-0.5 rounded text-[10px] bg-blue-900/80 text-blue-300 border border-blue-700 font-semibold';
+      } else {
+        badge.textContent = '👤 請登入帳戶';
+        badge.className = 'px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700 font-semibold';
+      }
+    }
+
+    if (select) {
+      select.innerHTML = `<option value="admin" ${isAdmin?'selected':''}>👑 總管理員 (Mia)</option>` +
+        accounts.filter(a => a.name !== 'Mia').map(a => `<option value="${a.name}" ${currentRole===a.name?'selected':''}>${a.name} (${a.category})</option>`).join('');
+    }
+
+    const adminOnlyCols = document.querySelectorAll('.admin-only-col');
+    adminOnlyCols.forEach(el => el.style.display = isAdmin ? '' : 'none');
+
+    const adminLockTags = document.querySelectorAll('.admin-lock-tag');
+    adminLockTags.forEach(el => el.style.display = isAdmin ? 'inline' : 'none');
+
+    if (reportPanel && !isAdmin && curUser && !curUser.category.includes('組長')) {
+      const carInp = document.getElementById('repCarAllowance');
+      const bonusInp = document.getElementById('repBonus');
+      if (carInp) carInp.disabled = true;
+      if (bonusInp) bonusInp.disabled = true;
+    } else {
+      const carInp = document.getElementById('repCarAllowance');
+      const bonusInp = document.getElementById('repBonus');
+      if (carInp) carInp.disabled = false;
+      if (bonusInp) bonusInp.disabled = false;
+    }
+
+    renderDailyReportsTable();
+  }
+
+  function updateStaffDropdowns() {
+    const staffRepSelect = document.getElementById('repStaffSelect');
+    if (staffRepSelect) {
+      staffRepSelect.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.id} - ${a.category})</option>`).join('');
+      if (accounts.length > 0) {
+        staffRepSelect.value = accounts[0].name;
+        onStaffSelectChange(accounts[0].name);
+      }
+    }
+  }
+
+  window.onload = function() {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const dateInp = document.getElementById('global-system-date');
+    if (dateInp) {
+      dateInp.value = todayStr;
+      dateInp.onchange = function() {
+        document.getElementById('repDate').value = this.value;
+        renderLeaderboardData();
+      };
+    }
+    const repDate = document.getElementById('repDate');
+    if (repDate) repDate.value = todayStr;
+
+    updateStaffDropdowns();
+
+    if (!currentRole) {
+      currentRole = 'admin';
+      localStorage.setItem('MIA_LOGGED_IN_USER', 'admin');
+    }
+
+    renderRoleView();
+    initHourlyTimer();
+  };
+  </script>
 </body>
 </html>
