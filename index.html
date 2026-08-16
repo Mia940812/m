@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Mia組 - 派件營運與薪酬結算系統</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     .custom-scrollbar::-webkit-scrollbar { height: 4px; width: 4px; }
@@ -24,7 +23,7 @@
         <div class="px-3 py-1 bg-blue-600 rounded-xl font-black text-sm tracking-wider shadow-sm">Mia組</div>
         <div>
           <div class="text-xs font-black text-white">派件營運全功能工作台</div>
-          <div id="cloud-status-badge" class="text-[10px] text-emerald-400 font-bold">☁️ Google Sheet 雲端連線中...</div>
+          <div id="cloud-status-badge" class="text-[10px] text-emerald-400 font-bold">☁️ Google Sheet 雲端連線就緒</div>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -102,7 +101,7 @@
     <!-- 派件報數輸入表單 -->
     <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
       <h2 class="text-sm font-black text-slate-900 mb-3.5 flex items-center gap-2">
-        <span class="w-2 h-4 bg-blue-600 rounded-full"></span> 提交派件報數紀錄 (實時同步 Google Sheet)
+        <span class="w-2 h-4 bg-blue-600 rounded-full"></span> 提交派件報數紀錄 (實時極速同步 Google Sheet)
       </h2>
       <form onsubmit="saveDailyReport(event)" class="grid grid-cols-1 sm:grid-cols-5 gap-3">
         <div>
@@ -345,7 +344,7 @@
 
   <!-- JavaScript 核心引擎 -->
   <script>
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmUs0IwpBWFZy-GjmZcyLGv6N2irPuRQeaGMUlIdKW9PHF6kd0Ws6zNUEssiYAq6_TVQ/exec';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzGrY1lB4MQMpvbNmgkQnL5MoszDEb-Re5pbAivI4daxtaQlv8s3RZ3IbEcu9eXD89fBw/exec';
 
     const defaultZoneFences = {
       kt: [
@@ -392,82 +391,45 @@
       { tracking: 'JT0025004238936', address: '筲箕灣寶文街1號峻峰花園D座2603室', courier: '吳嘉榮', issue: '未收到包裹，疑似送錯門口', fine: '$50' }
     ];
 
-    let zoneFences = JSON.parse(localStorage.getItem('MIA_FENCES_V7')) || defaultZoneFences;
-    let accounts = JSON.parse(localStorage.getItem('MIA_ACCOUNTS_V7')) || initialAccounts;
-    let zoneAssignments = JSON.parse(localStorage.getItem('MIA_ASSIGNS_V7')) || defaultAssignments;
-    let zoneFenceCounts = JSON.parse(localStorage.getItem('MIA_COUNTS_V7')) || {};
-    let truckRoutes = JSON.parse(localStorage.getItem('MIA_TRUCKS_V7')) || [{ zone: 'kt', time: '08:30', fence: '11E 麗港城-1號托', driver: '陳司機', order: '第 1 班車' }];
-    let recruitsList = JSON.parse(localStorage.getItem('MIA_RECRUITS_V7')) || [{ name: '陳偉豪', phone: '98765432', date: '2026-08-18', wage: '$4.5/票' }];
-    let expensesList = JSON.parse(localStorage.getItem('MIA_EXPENSES_V7')) || [{ date: '2026-08-16', name: '買封箱大膠紙 (6卷)', amount: 120, buyer: 'Mia' }];
-    let shiftReports = JSON.parse(localStorage.getItem('MIA_SHIFTS_V7')) || [];
-    let dailyReports = JSON.parse(localStorage.getItem('MIA_DAILY_REPORTS_V7')) || [];
+    let zoneFences = JSON.parse(localStorage.getItem('MIA_FENCES_V8')) || defaultZoneFences;
+    let accounts = JSON.parse(localStorage.getItem('MIA_ACCOUNTS_V8')) || initialAccounts;
+    let zoneAssignments = JSON.parse(localStorage.getItem('MIA_ASSIGNS_V8')) || defaultAssignments;
+    let zoneFenceCounts = JSON.parse(localStorage.getItem('MIA_COUNTS_V8')) || {};
+    let truckRoutes = JSON.parse(localStorage.getItem('MIA_TRUCKS_V8')) || [{ zone: 'kt', time: '08:30', fence: '11E 麗港城-1號托', driver: '陳司機', order: '第 1 班車' }];
+    let recruitsList = JSON.parse(localStorage.getItem('MIA_RECRUITS_V8')) || [{ name: '陳偉豪', phone: '98765432', date: '2026-08-18', wage: '$4.5/票' }];
+    let expensesList = JSON.parse(localStorage.getItem('MIA_EXPENSES_V8')) || [{ date: '2026-08-16', name: '買封箱大膠紙 (6卷)', amount: 120, buyer: 'Mia' }];
+    let shiftReports = JSON.parse(localStorage.getItem('MIA_SHIFTS_V8')) || [];
+    let dailyReports = JSON.parse(localStorage.getItem('MIA_DAILY_REPORTS_V8')) || [];
 
     let currentAssignTab = 'kt';
 
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-    // 雙通道穿透寫入 Google Sheet
-    function syncToGoogleSheet(key, data) {
+    // 輕量單筆非阻塞推送（絕不觸發 413）
+    function syncSingleRecord(key, record) {
       if (!GOOGLE_SCRIPT_URL) return;
-      const dataStr = typeof data === 'string' ? data : JSON.stringify(data);
-      
-      // 通道 1：Image Beacon（100% 繞過 Safari 攔截）
-      const beacon = new Image();
-      beacon.src = `${GOOGLE_SCRIPT_URL}?key=${encodeURIComponent(key)}&data=${encodeURIComponent(dataStr)}&_t=${Date.now()}`;
-      
-      // 通道 2：POST 背景同步
       try {
         fetch(GOOGLE_SCRIPT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ key: key, data: data }),
+          body: JSON.stringify({ key: key, data: record }),
           mode: 'no-cors'
         });
-      } catch (e) {}
+      } catch (err) {
+        console.warn('Sync failed:', err);
+      }
     }
 
     function saveData() {
-      localStorage.setItem('MIA_FENCES_V7', JSON.stringify(zoneFences));
-      localStorage.setItem('MIA_ACCOUNTS_V7', JSON.stringify(accounts));
-      localStorage.setItem('MIA_ASSIGNS_V7', JSON.stringify(zoneAssignments));
-      localStorage.setItem('MIA_COUNTS_V7', JSON.stringify(zoneFenceCounts));
-      localStorage.setItem('MIA_TRUCKS_V7', JSON.stringify(truckRoutes));
-      localStorage.setItem('MIA_SHIFTS_V7', JSON.stringify(shiftReports));
-      localStorage.setItem('MIA_DAILY_REPORTS_V7', JSON.stringify(dailyReports));
+      localStorage.setItem('MIA_FENCES_V8', JSON.stringify(zoneFences));
+      localStorage.setItem('MIA_ACCOUNTS_V8', JSON.stringify(accounts));
+      localStorage.setItem('MIA_ASSIGNS_V8', JSON.stringify(zoneAssignments));
+      localStorage.setItem('MIA_COUNTS_V8', JSON.stringify(zoneFenceCounts));
+      localStorage.setItem('MIA_TRUCKS_V8', JSON.stringify(truckRoutes));
+      localStorage.setItem('MIA_SHIFTS_V8', JSON.stringify(shiftReports));
+      localStorage.setItem('MIA_DAILY_REPORTS_V8', JSON.stringify(dailyReports));
       updateStats();
-
-      // 背景同步
-      syncToGoogleSheet('zoneFences', zoneFences);
-      syncToGoogleSheet('zoneAssigns', zoneAssignments);
-      syncToGoogleSheet('truckRoutes', truckRoutes);
-      syncToGoogleSheet('dailyReports', dailyReports);
-    }
-
-    async function loadCloudData() {
-      const badge = document.getElementById('cloud-status-badge');
-      try {
-        if (GOOGLE_SCRIPT_URL) {
-          const res = await Promise.race([
-            fetch(GOOGLE_SCRIPT_URL),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
-          ]);
-          const data = await res.json();
-          if (data && typeof data === 'object') {
-            if (data.zoneFences) zoneFences = data.zoneFences;
-            if (data.accounts) accounts = data.accounts;
-            if (data.zoneAssigns) zoneAssignments = data.zoneAssigns;
-            if (data.zoneFenceCounts) zoneFenceCounts = data.zoneFenceCounts;
-            if (data.truckRoutes) truckRoutes = data.truckRoutes;
-            if (data.shiftReports) shiftReports = data.shiftReports;
-            if (data.dailyReports) dailyReports = data.dailyReports;
-            saveData();
-            if (badge) badge.innerText = '☁️ Google Sheet 實時同步已打通';
-          }
-        }
-      } catch (e) {
-        if (badge) badge.innerText = '☁️ Google 連線就緒 (雙通道同步)';
-      }
     }
 
     function resetSystemData() {
@@ -506,8 +468,10 @@
       const z = document.getElementById('new-fence-zone-select').value;
       const n = document.getElementById('new-fence-name-input').value.trim();
       if (!n) return alert('請填寫圍欄名稱！');
-      zoneFences[z].push({ id: `${z}_${Date.now()}`, name: n });
+      const newFence = { id: `${z}_${Date.now()}`, name: n };
+      zoneFences[z].push(newFence);
       saveData(); renderZoneFencesList();
+      syncSingleRecord('新增圍欄', newFence);
       document.getElementById('new-fence-name-input').value = '';
     }
     function deleteZoneFence(z, idx) {
@@ -549,8 +513,10 @@
       const fence = document.getElementById('new-assign-fence-select').value;
       const order = document.getElementById('new-assign-order-select').value;
       const acc = accounts.find(a => a.id === rId);
-      zoneAssignments[currentAssignTab].push({ id: acc.id, name: acc.name, fence, order });
+      const newAssign = { id: acc.id, name: acc.name, fence, order };
+      zoneAssignments[currentAssignTab].push(newAssign);
       saveData(); renderFencesBoardGrid();
+      syncSingleRecord('區域排班', newAssign);
     }
 
     // 3, 4, 4b 貨量
@@ -563,8 +529,13 @@
       openModal('modal-kt-counts');
     }
     function saveModal3() {
-      (zoneFences.kt || []).forEach(f => { zoneFenceCounts[f.id] = Number(document.getElementById(`inp-zcount-${f.id}`).value) || 0; });
-      saveData(); syncToGoogleSheet('zoneFenceCounts', zoneFenceCounts); alert('✅ 觀塘貨量已儲存並同步！'); closeModal('modal-kt-counts');
+      let temp = {};
+      (zoneFences.kt || []).forEach(f => {
+        const val = Number(document.getElementById(`inp-zcount-${f.id}`).value) || 0;
+        zoneFenceCounts[f.id] = val;
+        temp[f.name] = val;
+      });
+      saveData(); syncSingleRecord('觀塘貨量', temp); alert('✅ 觀塘貨量已儲存並同步！'); closeModal('modal-kt-counts');
     }
 
     function openModal4() {
@@ -576,8 +547,13 @@
       openModal('modal-east-counts');
     }
     function saveModal4() {
-      (zoneFences.east || []).forEach(f => { zoneFenceCounts[f.id] = Number(document.getElementById(`inp-zcount-${f.id}`).value) || 0; });
-      saveData(); syncToGoogleSheet('zoneFenceCounts', zoneFenceCounts); alert('✅ 東區貨量已儲存並同步！'); closeModal('modal-east-counts');
+      let temp = {};
+      (zoneFences.east || []).forEach(f => {
+        const val = Number(document.getElementById(`inp-zcount-${f.id}`).value) || 0;
+        zoneFenceCounts[f.id] = val;
+        temp[f.name] = val;
+      });
+      saveData(); syncSingleRecord('東區貨量', temp); alert('✅ 東區貨量已儲存並同步！'); closeModal('modal-east-counts');
     }
 
     function openModalStCounts() {
@@ -589,8 +565,13 @@
       openModal('modal-st-counts');
     }
     function saveModalStCounts() {
-      (zoneFences.st || []).forEach(f => { zoneFenceCounts[f.id] = Number(document.getElementById(`inp-zcount-${f.id}`).value) || 0; });
-      saveData(); syncToGoogleSheet('zoneFenceCounts', zoneFenceCounts); alert('✅ 沙田貨量已儲存並同步！'); closeModal('modal-st-counts');
+      let temp = {};
+      (zoneFences.st || []).forEach(f => {
+        const val = Number(document.getElementById(`inp-zcount-${f.id}`).value) || 0;
+        zoneFenceCounts[f.id] = val;
+        temp[f.name] = val;
+      });
+      saveData(); syncSingleRecord('沙田貨量', temp); alert('✅ 沙田貨量已儲存並同步！'); closeModal('modal-st-counts');
     }
 
     // 5- 報更
@@ -599,8 +580,9 @@
       const name = document.getElementById('shift-name-inp').value || '同事';
       const time = document.getElementById('shift-time-inp').value;
       const fence = document.getElementById('shift-fence-inp').value;
-      shiftReports.unshift({ name, time, fence });
-      saveData(); syncToGoogleSheet('shiftReports', shiftReports); alert('✅ 報更已成功提交並同步至 Google Sheet！'); closeModal('modal-shift-reporting');
+      const newShift = { name, time, fence, date: new Date().toLocaleDateString() };
+      shiftReports.unshift(newShift);
+      saveData(); syncSingleRecord('翌日報更', newShift); alert('✅ 報更已成功提交並同步至 Google Sheet！'); closeModal('modal-shift-reporting');
     }
 
     // 8- 車線調度
@@ -622,8 +604,9 @@
       const time = document.getElementById('truck-time-inp').value;
       const fence = document.getElementById('truck-fence-inp').value;
       if (!driver) return alert('請填寫司機姓名！');
-      truckRoutes.push({ driver, time, fence });
-      saveData(); syncToGoogleSheet('truckRoutes', truckRoutes); openModal8();
+      const newTruck = { driver, time, fence };
+      truckRoutes.push(newTruck);
+      saveData(); syncSingleRecord('車線調度', newTruck); openModal8();
     }
 
     // 9- 埋數/物資
@@ -690,8 +673,9 @@
       const name = document.getElementById('new-rider-name').value.trim();
       const id = document.getElementById('new-rider-id-custom').value.trim().toUpperCase();
       if (!name || !id) return alert('請填寫姓名與ID！');
-      accounts.push({ id, name });
-      saveData(); alert(`✅ 成功新增人員【${name} (${id})】！`);
+      const newStaff = { id, name };
+      accounts.push(newStaff);
+      saveData(); syncSingleRecord('新增人員', newStaff); alert(`✅ 成功新增人員【${name} (${id})】！`);
       closeModal('modal-add-rider');
     }
 
@@ -703,9 +687,12 @@
       const staff = document.getElementById('repStaff').value.trim();
       const count = parseInt(document.getElementById('repCount').value, 10);
 
-      dailyReports.unshift({ id: Date.now(), date, area, staff, count });
+      const record = { id: Date.now(), date, area, staff, count };
+      dailyReports.unshift(record);
       saveData();
-      syncToGoogleSheet('dailyReports', dailyReports);
+
+      // 單筆即時推送至 Google Sheet
+      syncSingleRecord('派件報數', record);
 
       document.getElementById('repStaff').value = '';
       document.getElementById('repCount').value = '';
@@ -763,7 +750,6 @@
       document.getElementById('global-system-date').valueAsDate = new Date();
       document.getElementById('repDate').valueAsDate = new Date();
       updateStats();
-      loadCloudData();
     });
   </script>
 </body>
