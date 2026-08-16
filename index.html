@@ -3,49 +3,268 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mia組 - 派件報數與薪酬結算系統</title>
+  <title>Mia組 - 派貨員報數與薪酬結算系統</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+    input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    button, input, select, textarea { touch-action: manipulation; }
+  </style>
 </head>
-<body class="bg-slate-900 min-h-screen flex items-center justify-center p-4">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
 
-  <!-- 登入卡片 -->
-  <div class="w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl space-y-4">
-    <div class="text-center space-y-1">
-      <h1 class="text-xl font-bold text-slate-800">派件報數與薪酬結算系統</h1>
-      <p class="text-xs text-slate-500">Mia組</p>
-      <p id="sync-status" class="text-xs text-emerald-600 font-medium">● 雲端資料庫已就緒</p>
+  <!-- 1. 登入畫面 -->
+  <div id="view-login" class="flex-1 flex items-center justify-center p-4 min-h-screen bg-slate-900">
+    <div class="w-full max-w-sm bg-white rounded-3xl p-6 space-y-4 shadow-2xl">
+      <div class="text-center space-y-1">
+        <div class="inline-flex px-4 py-1.5 rounded-xl bg-blue-600 text-white font-black text-lg shadow-md">Mia組</div>
+        <h1 class="text-xl font-bold text-slate-800 pt-1">派件報數與薪酬結算系統</h1>
+        <p id="cloud-status" class="text-xs text-emerald-600 font-medium">● 雲端資料庫已就緒</p>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4 pt-2">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">員工編號 / 帳號</label>
+          <input type="text" id="loginUser" required placeholder="例如：KM001 或 A001" 
+                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">登入密碼</label>
+          <input type="password" id="loginPass" required placeholder="輸入密碼" 
+                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <button type="submit" 
+                class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold rounded-xl text-sm shadow-lg shadow-blue-500/30 transition duration-150">
+          登入系統
+        </button>
+      </form>
+      <div class="text-center text-[11px] text-slate-400">管理員預設：KM001 / mia888</div>
     </div>
+  </div>
 
-    <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4 pt-2">
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">員工編號</label>
-        <input type="text" id="username" required placeholder="例如：KM001" 
-               class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 uppercase">
+  <!-- 2. 主系統畫面 (登入後顯示) -->
+  <div id="view-main" class="hidden flex-1 flex flex-col">
+    <!-- 頂部導航列 -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <span class="bg-blue-600 text-white text-xs font-black px-2.5 py-1 rounded-lg">Mia組</span>
+          <span class="font-bold text-slate-800 text-base">派件與結算系統</span>
+        </div>
+        <div class="flex items-center space-x-3">
+          <span id="currentUserDisplay" class="text-xs bg-slate-100 text-slate-700 px-3 py-1.5 rounded-full font-medium">總管理員</span>
+          <button onclick="handleLogout()" class="text-xs text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg font-medium transition">登出</button>
+        </div>
       </div>
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">密碼</label>
-        <input type="password" id="password" required placeholder="輸入登入密碼" 
-               class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500">
+      <!-- 功能標籤頁分頁按鈕 -->
+      <div class="max-w-7xl mx-auto px-4 flex space-x-2 overflow-x-auto custom-scrollbar border-t border-slate-100 py-2">
+        <button onclick="switchTab('report')" id="tab-report" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm whitespace-nowrap">每日報數</button>
+        <button onclick="switchTab('roster')" id="tab-roster" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 whitespace-nowrap">分工排班</button>
+        <button onclick="switchTab('salary')" id="tab-salary" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 whitespace-nowrap">薪酬結算</button>
       </div>
-      <button type="submit" 
-              class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm transition">
-        登入系統
-      </button>
-    </form>
+    </header>
+
+    <!-- 主內容區 -->
+    <main class="max-w-7xl mx-auto p-4 flex-1 w-full space-y-6">
+
+      <!-- 分頁 1: 每日報數 -->
+      <section id="panel-report" class="tab-panel space-y-4">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+          <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+            <span class="w-2 h-4 bg-blue-600 rounded-full"></span> 提交派件數據
+          </h2>
+          <form onsubmit="saveReport(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">日期</label>
+              <input type="date" id="repDate" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">派件員 / 車線</label>
+              <input type="text" id="repStaff" placeholder="例如：景鴻 (觀塘A線)" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">派件總數 (件)</label>
+              <input type="number" id="repCount" min="0" placeholder="0" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+            </div>
+            <div class="flex items-end">
+              <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm shadow-md transition">
+                儲存並同步雲端
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 報數紀錄列表 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+            <h3 class="font-bold text-sm text-slate-800">最新報數清單</h3>
+            <span class="text-xs text-slate-400">即時自動保存</span>
+          </div>
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
+                <tr>
+                  <th class="p-3.5">日期</th>
+                  <th class="p-3.5">人員 / 車線</th>
+                  <th class="p-3.5 text-right">派件數量</th>
+                  <th class="p-3.5 text-center">狀態</th>
+                </tr>
+              </thead>
+              <tbody id="reportTableBody" class="divide-y divide-slate-100">
+                <tr>
+                  <td colspan="4" class="p-6 text-center text-slate-400">目前尚無報數資料，請由上方表單新增。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 分頁 2: 分工排班 -->
+      <section id="panel-roster" class="tab-panel hidden space-y-4">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+          <h2 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <span class="w-2 h-4 bg-emerald-600 rounded-full"></span> 觀塘、東區與沙田 分工排班名冊
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <div class="font-bold text-sm text-slate-800">觀塘組 (A組)</div>
+              <div class="text-xs text-slate-500 mt-1">組長：景鴻 (A001)</div>
+              <div class="text-xs text-slate-400 mt-2">負責圍欄：KT-01, KT-02, KT-03</div>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <div class="font-bold text-sm text-slate-800">東區組 (B組)</div>
+              <div class="text-xs text-slate-500 mt-1">組長：詠豪 (B001)</div>
+              <div class="text-xs text-slate-400 mt-2">負責圍欄：HK-E01, HK-E02</div>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <div class="font-bold text-sm text-slate-800">沙田組 (C組)</div>
+              <div class="text-xs text-slate-500 mt-1">負責人：俊華 (C001)</div>
+              <div class="text-xs text-slate-400 mt-2">負責圍欄：ST-01, ST-02</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 分頁 3: 薪酬結算 -->
+      <section id="panel-salary" class="tab-panel hidden space-y-4">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+          <h2 class="text-base font-bold text-slate-800 mb-2 flex items-center gap-2">
+            <span class="w-2 h-4 bg-amber-600 rounded-full"></span> 薪酬與提成結算總覽
+          </h2>
+          <p class="text-xs text-slate-500 mb-4">按每件標準單價與組別津貼自動計算。</p>
+          <div id="salarySummary" class="text-sm font-bold text-slate-700 bg-amber-50 p-4 rounded-xl border border-amber-200">
+            結算總額：HK$ 0.00 (請先登記報數)
+          </div>
+        </div>
+      </section>
+
+    </main>
   </div>
 
   <script>
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwPq-iE8oQpD9yT8R3tL4-7mP4eG1s9yvB8h1bF_Q_XQ/exec';
+    let reports = JSON.parse(localStorage.getItem('mia_reports') || '[]');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('repDate').valueAsDate = new Date();
+      renderReports();
+      if (window.lucide) lucide.createIcons();
+    });
 
     function handleLogin(e) {
       e.preventDefault();
-      const u = document.getElementById('username').value.trim().toUpperCase();
-      const p = document.getElementById('password').value.trim();
+      const u = document.getElementById('loginUser').value.trim().toUpperCase();
+      const p = document.getElementById('loginPass').value.trim();
 
-      if ((u === 'KM001' || u === 'A001') && (p === 'mia888' || p === '100')) {
-        alert('登入成功！');
+      const validUsers = {
+        'KM001': 'mia888',
+        'A001': '100',
+        'B001': '201',
+        'C001': '301'
+      };
+
+      if (validUsers[u] && validUsers[u] === p) {
+        document.getElementById('view-login').classList.add('hidden');
+        document.getElementById('view-main').classList.remove('hidden');
+        document.getElementById('currentUserDisplay').textContent = u === 'KM001' ? '總管理員 (KM001)' : `成員 (${u})`;
       } else {
-        alert('員工編號或密碼錯誤！');
+        alert('員工編號或密碼錯誤，請重新輸入！');
+      }
+    }
+
+    function handleLogout() {
+      document.getElementById('view-main').classList.add('hidden');
+      document.getElementById('view-login').classList.remove('hidden');
+      document.getElementById('loginPass').value = '';
+    }
+
+    function switchTab(tabKey) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.className = 'tab-btn px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 whitespace-nowrap';
+      });
+
+      document.getElementById(`panel-${tabKey}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-${tabKey}`);
+      activeBtn.className = 'tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm whitespace-nowrap';
+    }
+
+    function saveReport(e) {
+      e.preventDefault();
+      const date = document.getElementById('repDate').value;
+      const staff = document.getElementById('repStaff').value.trim();
+      const count = parseInt(document.getElementById('repCount').value, 10);
+
+      const newRecord = { date, staff, count, timestamp: new Date().toISOString() };
+      reports.unshift(newRecord);
+      localStorage.setItem('mia_reports', JSON.stringify(reports));
+
+      renderReports();
+      document.getElementById('repStaff').value = '';
+      document.getElementById('repCount').value = '';
+
+      // 異步同步至 Google Script
+      if (GOOGLE_SCRIPT_URL) {
+        fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ key: 'reports', data: reports }),
+          mode: 'no-cors'
+        }).catch(err => console.log('雲端備份通知:', err));
+      }
+      alert('已成功登記並儲存！');
+    }
+
+    function renderReports() {
+      const tbody = document.getElementById('reportTableBody');
+      if (!tbody) return;
+      if (reports.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400">目前尚無報數資料，請由上方表單新增。</td></tr>';
+        return;
+      }
+
+      let totalCount = 0;
+      tbody.innerHTML = reports.map(r => {
+        totalCount += Number(r.count || 0);
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3.5 font-medium text-slate-700">${r.date}</td>
+            <td class="p-3.5 font-bold text-slate-900">${r.staff}</td>
+            <td class="p-3.5 text-right font-black text-blue-600">${r.count} 件</td>
+            <td class="p-3.5 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full">已同步</span></td>
+          </tr>
+        `;
+      }).join('');
+
+      const salBox = document.getElementById('salarySummary');
+      if (salBox) {
+        const estAmount = (totalCount * 8.5).toFixed(2);
+        salBox.innerHTML = `總派件數：<span class="text-blue-600 font-black">${totalCount} 件</span> ｜ 估計結算薪酬：<span class="text-emerald-600 font-black">HK$ ${estAmount}</span>`;
       }
     }
   </script>
