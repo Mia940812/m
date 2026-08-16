@@ -24,7 +24,7 @@
         <div class="px-3 py-1 bg-blue-600 rounded-xl font-black text-sm tracking-wider shadow-sm">Mia組</div>
         <div>
           <div class="text-xs font-black text-white">派件營運全功能工作台</div>
-          <div id="cloud-status-badge" class="text-[10px] text-emerald-400 font-bold">☁️ Google Sheet 雲端同步連線中...</div>
+          <div id="cloud-status-badge" class="text-[10px] text-emerald-400 font-bold">☁️ Google Sheet 雲端連線中...</div>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -343,9 +343,9 @@
     </div>
   </div>
 
-  <!-- JavaScript 核心引擎 (完全打通 Google Apps Script) -->
+  <!-- JavaScript 核心引擎 -->
   <script>
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-RG2KUcGLCVVLxEK2zfpZXwilMJc_IpzXN4-ZMCijD2stGsPZxAkb3d-VFVOsqkrUPw/exec';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6sua6o6Oc_Mc_EN-y1VjoT-jjTpEpJiBQEchs-zOnB-Z-kM6rr92Uq6xY9-GmaRFTFg/exec';
 
     const defaultZoneFences = {
       kt: [
@@ -417,7 +417,7 @@
           body: JSON.stringify({ key: key, data: data }),
           mode: 'no-cors'
         });
-        console.log(`[Google Sync] ${key} 已成功送達 Google Apps Script`);
+        console.log(`[Google Sync] ${key} 已成功送出`);
       } catch (err) {
         console.warn(`[Google Sync Error] ${key}:`, err);
       }
@@ -433,7 +433,7 @@
       localStorage.setItem('MIA_DAILY_REPORTS_V7', JSON.stringify(dailyReports));
       updateStats();
 
-      // 背景同步全盤數據至 Google Sheet
+      // 背景同步至 Google Sheet
       syncToGoogleSheet('zoneFences', zoneFences);
       syncToGoogleSheet('zoneAssigns', zoneAssignments);
       syncToGoogleSheet('truckRoutes', truckRoutes);
@@ -446,7 +446,7 @@
         if (GOOGLE_SCRIPT_URL) {
           const res = await Promise.race([
             fetch(GOOGLE_SCRIPT_URL),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
           ]);
           const data = await res.json();
           if (data && typeof data === 'object') {
@@ -458,11 +458,11 @@
             if (data.shiftReports) shiftReports = data.shiftReports;
             if (data.dailyReports) dailyReports = data.dailyReports;
             saveData();
-            if (badge) badge.innerText = '☁️ Google Sheet 雲端實時同步中';
+            if (badge) badge.innerText = '☁️ Google Sheet 實時同步已打通';
           }
         }
       } catch (e) {
-        if (badge) badge.innerText = '☁️ 離線極速模式 (已就緒)';
+        if (badge) badge.innerText = '☁️ Google 連線就緒 (本地極速模式)';
       }
     }
 
@@ -691,7 +691,7 @@
       closeModal('modal-add-rider');
     }
 
-    // 每日即時報數系統 (實時推送到 Google Apps Script)
+    // 每日即時報數系統
     function saveDailyReport(e) {
       e.preventDefault();
       const date = document.getElementById('repDate').value;
