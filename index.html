@@ -1,25 +1,184 @@
-<!-- 1. 登入頁面 -->
-<div id="loginSection" style="display: block; max-width: 400px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; text-align: center;">
-  <h2>🔐 步兵/管理員 系統登入</h2>
-  <input type="text" id="loginId" placeholder="帳號 (例如: Mia, KM01)">
-  <input type="password" id="loginPassword" placeholder="密碼">
-  <button onclick="handleLogin()">確認登入</button>
-</div>
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>步兵派件管理系統</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 15px; background: #f4f6f9; }
+    
+    /* 登入介面樣式 */
+    #loginSection { max-width: 380px; margin: 60px auto; padding: 25px; background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
+    #loginSection h2 { margin-bottom: 20px; font-size: 20px; }
+    #loginSection input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
+    #loginSection button { width: 100%; padding: 12px; background: #007bff; color: #fff; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+    #loginSection button:hover { background: #0056b3; }
+    
+    /* 主系統介面樣式 */
+    #mainSection { display: none; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px 20px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .logout-btn { background: #dc3545; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    .module-card { background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .module-title { font-weight: bold; font-size: 16px; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+    
+    /* 管理員專用模組 */
+    .admin-only { display: block; }
+  </style>
+</head>
+<body>
 
-<!-- 2. 主系統頁面 (把你原本所有的 HTML 模組放到這裡面) -->
-<div id="mainSection" style="display: none;">
-  
-  <!-- 頂部登入者資訊列 -->
-  <div style="display: flex; justify-content: space-between; padding: 10px; background: #eee;">
-    <span>當前登入者：<strong id="currentUserDisplay">--</strong></span>
-    <button onclick="handleLogout()">🚪 登出</button>
+  <!-- ==================== 1. 獨立登入頁面 ==================== -->
+  <div id="loginSection">
+    <h2>🔒 步兵/管理員 系統登入</h2>
+    <input type="text" id="loginId" placeholder="帳號 ID (例如: Mia, KM01, A01)" autocomplete="off">
+    <input type="password" id="loginPassword" placeholder="密碼">
+    <button onclick="handleLogin()">確認登入</button>
   </div>
 
-  <!-- ⚠️⚠️⚠️ 關鍵：把你原本系統的所有 HTML 代碼（圍欄、埋數、車線等）全部貼在下面 ⚠️⚠️⚠️ -->
-  
-  <!-- 例如：-->
-  <!-- <div id="fenceSection">...</div> -->
-  <!-- <div id="financeSection">...</div> -->
-  <!-- ...原本的所有模組... -->
 
-</div>
+  <!-- ==================== 2. 主系統介面 ==================== -->
+  <div id="mainSection">
+    
+    <!-- 頂部登入者狀態欄 -->
+    <div class="top-bar">
+      <div>當前登入者：<strong id="currentUserDisplay">--</strong></div>
+      <button class="logout-btn" onclick="handleLogout()">🚪 登出</button>
+    </div>
+
+    <!-- 模組：當月罰款獎池 ＆ 違規龍虎榜 (管理員) -->
+    <div class="module-card admin-only">
+      <div class="module-title">🏆 當月罰款獎池 ＆ 違規龍虎榜</div>
+      <p>當月累計罰款獎池總額 (Monthly Pool)：<strong>HK$ 0.00</strong></p>
+      <p style="font-size: 12px; color: #666;">🔒 僅 Mia 總管理員可錄入及刪除</p>
+    </div>
+
+    <!-- 模組：當日營運利潤核算中心 (管理員) -->
+    <div class="module-card admin-only">
+      <div class="module-title">📈 當日營運利潤核算中心</div>
+      <p>實質純利潤 (Net Profit)：<strong>HK$ 0.00</strong></p>
+    </div>
+
+    <!-- 模組：每日詳細分區埋數系統 -->
+    <div class="module-card">
+      <div class="module-title">💰 每日詳細分區埋數系統</div>
+      <ul>
+        <li>📍 東區 (41圍欄) - 0 票 ➜ HK$ 0.00</li>
+        <li>📍 觀塘工商區</li>
+        <li>📍 觀塘麗港城</li>
+        <li>📍 沙田 F58</li>
+      </ul>
+    </div>
+
+    <!-- 模組：14天 (兩週) 報更系統 -->
+    <div class="module-card">
+      <div class="module-title">⏰ 14天 (兩週) 報更系統</div>
+      <p>選擇區域：東區 / 觀塘區 / 沙田區 / 全區調度</p>
+    </div>
+
+    <!-- 模組：每日車線調度安排 -->
+    <div class="module-card">
+      <div class="module-title">🚗 每日車線調度安排</div>
+      <p>📍 觀塘區 | 📍 東區 | 📍 沙田區</p>
+    </div>
+
+    <!-- 模組：分區圍欄管理與貨量 -->
+    <div class="module-card">
+      <div class="module-title">📍 分區圍欄管理 & 📦 貨量統計</div>
+      <p>🏢 東區圍欄貨量 (41圍欄) | 📦 觀塘區圍欄貨量 | 🏞️ 沙田區圍欄貨量</p>
+    </div>
+
+    <!-- 模組：人員管理 (管理員) -->
+    <div class="module-card admin-only">
+      <div class="module-title">👥 人員管理與個別專屬票價設定</div>
+      <p>可在此為每位步兵設定其專屬單價。</p>
+    </div>
+
+  </div>
+
+
+  <!-- ==================== 3. 系統 JavaScript 邏輯 ==================== -->
+  <script>
+    // 人員資料庫 (相容大寫/小寫/km001等輸入)
+    const userDatabase = [
+      { id: "Mia", name: "👑 總管理員 (Mia)", role: "admin", password: "123" },
+      { id: "A01", name: "👑 組長: 詠豪 (A01)", role: "leader", password: "123" },
+      { id: "KM01", name: "👤 步兵: KM01", role: "courier", password: "123" },
+      { id: "KM04", name: "👤 步兵: 盧智聰 (KM04)", role: "courier", password: "123" },
+      { id: "KM05", name: "👤 步兵: 姜嘉敏 KK (KM05)", role: "courier", password: "123" },
+      { id: "A03", name: "👤 步兵: 周健 (A03)", role: "courier", password: "123" },
+      { id: "A04", name: "👤 步兵: 黃奕烽 (A04)", role: "courier", password: "123" },
+      { id: "C01", name: "👤 步兵: 張兆偉 (C01)", role: "courier", password: "123" },
+      { id: "B01", name: "👤 步兵: 小肥 (B01)", role: "courier", password: "123" },
+      { id: "B02", name: "👤 步兵: 吳嘉榮 (B02)", role: "courier", password: "123" },
+      { id: "B03", name: "👑 組長: 景鴻 (B03)", role: "leader", password: "123" },
+      { id: "C02", name: "👑 組長: 俊華 (C02)", role: "leader", password: "123" },
+      { id: "KM06", name: "👤 步兵: 倪志康 (KM06)", role: "courier", password: "123" },
+      { id: "KM07", name: "👤 步兵: 吳瑋儒 (KM07)", role: "courier", password: "123" },
+      { id: "KM08", name: "👤 步兵: 王利民 (KM08)", role: "courier", password: "123" }
+    ];
+
+    // 處理登入動作
+    function handleLogin() {
+      try {
+        const idInput = document.getElementById('loginId').value.trim();
+        const passInput = document.getElementById('loginPassword').value.trim();
+
+        if (!idInput || !passInput) {
+          alert("請輸入帳號和密碼！");
+          return;
+        }
+
+        // 清理輸入格式 (將 km001 自動轉為 km01)
+        let cleanId = idInput.toLowerCase();
+        if (cleanId === 'km001') cleanId = 'km01';
+
+        // 比對帳密
+        const matchedUser = userDatabase.find(
+          u => u.id.toLowerCase() === cleanId && u.password === passInput
+        );
+
+        if (matchedUser) {
+          sessionStorage.setItem('loggedInUser', JSON.stringify(matchedUser));
+          renderSystem(matchedUser);
+        } else {
+          alert("❌ 帳號或密碼不正確！\n(請確認帳號為 Mia 或 KM01，密碼為 123)");
+        }
+      } catch (err) {
+        alert("登入過程發生錯誤：" + err.message);
+      }
+    }
+
+    // 渲染登入後的系統介面與權限
+    function renderSystem(user) {
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('mainSection').style.display = 'block';
+      document.getElementById('currentUserDisplay').innerText = `${user.name} (${user.id})`;
+
+      // 權限控制：如果係普通步兵 (courier)，隱藏管理員專屬模組
+      const adminModules = document.querySelectorAll('.admin-only');
+      if (user.role === 'courier') {
+        adminModules.forEach(el => el.style.display = 'none');
+      } else {
+        adminModules.forEach(el => el.style.display = 'block');
+      }
+    }
+
+    // 處理登出動作
+    function handleLogout() {
+      sessionStorage.removeItem('loggedInUser');
+      document.getElementById('loginSection').style.display = 'block';
+      document.getElementById('mainSection').style.display = 'none';
+      document.getElementById('loginId').value = '';
+      document.getElementById('loginPassword').value = '';
+    }
+
+    // 頁面載入時自動檢查登入狀態
+    window.onload = function() {
+      const savedUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
+      if (savedUser) {
+        renderSystem(savedUser);
+      }
+    };
+  </script>
+</body>
+</html>
