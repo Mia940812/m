@@ -1,128 +1,411 @@
-// =========================================================================
-// 1. 私密財務試算表 ID（請先睇下方第 1 步點攞）
-// =========================================================================
-var PRIVATE_FINANCE_SPREADSHEET_ID = "YOUR_PRIVATE_FINANCE_SPREADSHEET_ID_HERE";
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>營運報數與結算系統</title>
+  <style>
+    :root {
+      --primary: #0284C7;
+      --primary-hover: #0369A1;
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text-main: #1E293B;
+      --text-sub: #64748B;
+      --border: #E2E8F0;
+      --success: #10B981;
+      --finance-accent: #059669;
+    }
 
-function doPost(e) {
-  var publicSS = SpreadsheetApp.getActiveSpreadsheet(); // 一般管理員/步兵使用的公共表
-  var key = "派件報數";
-  var dataStr = "";
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .container {
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 480px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+      padding: 24px;
+      margin-top: 10px;
+    }
+
+    h2 {
+      margin: 0 0 4px 0;
+      color: var(--primary);
+      font-size: 20px;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--text-sub);
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      background: #F1F5F9;
+      padding: 4px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-sub);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: #FFFFFF;
+      color: var(--primary);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      background-color: #F8FAFC;
+      color: var(--text-main);
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      background-color: #FFFFFF;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .row .form-group {
+      flex: 1;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background-color: var(--primary);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.2s ease;
+    }
+
+    .btn-submit:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-finance {
+      background-color: var(--finance-accent);
+    }
+
+    .btn-finance:hover {
+      background-color: #047857;
+    }
+
+    #statusMessage {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .finance-lock-box {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>營運與報數管理中心</h2>
+  <div class="subtitle">乾淨明亮 · 營運數據直通管理</div>
+
+  <!-- 分頁選單 -->
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('staffTab')">步兵派件報數</button>
+    <button class="tab-btn" onclick="switchTab('financeTab')">財務利潤核算</button>
+  </div>
+
+  <!-- 1. 步兵報數介面 (公開給所有人使用) -->
+  <div id="staffTab" class="tab-content">
+    <div class="form-group">
+      <label>派送日期</label>
+      <input type="date" id="p_date">
+    </div>
+
+    <div class="form-group">
+      <label>步兵人員 / 身份</label>
+      <input type="text" id="p_staff" placeholder="例如：步兵小明">
+    </div>
+
+    <div class="row">
+      <div class="form-group">
+        <label>東區票數</label>
+        <input type="number" id="p_east" value="0">
+      </div>
+      <div class="form-group">
+        <label>麗港城票數</label>
+        <input type="number" id="p_ktLg" value="0">
+      </div>
+      <div class="form-group">
+        <label>觀塘工商票數</label>
+        <input type="number" id="p_ktInd" value="0">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="form-group">
+        <label>總票數</label>
+        <input type="number" id="p_total" value="0">
+      </div>
+      <div class="form-group">
+        <label>車津 (HK$)</label>
+        <input type="number" id="p_car" value="0">
+      </div>
+      <div class="form-group">
+        <label>Claim 報銷</label>
+        <input type="number" id="p_claim" value="0">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="form-group">
+        <label>Bonus 獎金</label>
+        <input type="number" id="p_bonus" value="0">
+      </div>
+      <div class="form-group">
+        <label>罰款扣減</label>
+        <input type="number" id="p_penalty" value="0">
+      </div>
+      <div class="form-group">
+        <label>扣數還款</label>
+        <input type="number" id="p_deduct" value="0">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>實發總工資 (HK$)</label>
+      <input type="number" id="p_salary" placeholder="自動/手動結算總額">
+    </div>
+
+    <button class="btn-submit" onclick="submitStaffData()">提交步兵報數資料</button>
+  </div>
+
+  <!-- 2. 財務專屬介面 (加設密碼鎖，防止管理員隨意窺探) -->
+  <div id="financeTab" class="tab-content hidden">
+    <!-- 密碼解鎖層 -->
+    <div id="financeAuthBox" class="finance-lock-box">
+      <p style="font-size: 13px; color: var(--text-sub); margin-bottom: 12px;">此區域包含敏感財務數據，請輸入私密密碼：</p>
+      <input type="password" id="financePassword" placeholder="請輸入查看密碼 (預設: 8888)" style="text-align: center; max-width: 260px; margin: 0 auto 12px auto;">
+      <button class="btn-submit btn-finance" style="max-width: 260px; margin: 0 auto;" onclick="verifyFinancePass()">解鎖財務表單</button>
+    </div>
+
+    <!-- 財務輸入表單 -->
+    <div id="financeForm" class="hidden">
+      <div class="form-group">
+        <label>核算日期</label>
+        <input type="date" id="f_date">
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label>當天總收入</label>
+          <input type="number" id="f_gross" placeholder="HK$">
+        </div>
+        <div class="form-group">
+          <label>步兵出糧總額</label>
+          <input type="number" id="f_payout" placeholder="HK$">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label>物資支出</label>
+          <input type="number" id="f_supplies" value="0">
+        </div>
+        <div class="form-group">
+          <label>Claim 報銷支出</label>
+          <input type="number" id="f_claim" value="0">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label>步兵扣數還款</label>
+          <input type="number" id="f_advance" value="0">
+        </div>
+        <div class="form-group">
+          <label>實質純利潤 (純利)</label>
+          <input type="number" id="f_net" placeholder="HK$">
+        </div>
+      </div>
+
+      <button class="btn-submit btn-finance" onclick="submitFinanceData()">提交私密財務紀錄</button>
+    </div>
+  </div>
+
+  <div id="statusMessage"></div>
+</div>
+
+<script>
+  // =========================================================================
+  // 請在此貼入你 Google Apps Script 部署後的 Web App URL (結尾為 /exec)
+  // =========================================================================
+  const GAS_URL = "https://script.google.com/macros/s/你的AppsScript部署ID/exec";
   
-  if (e && e.parameter && e.parameter.data) {
-    dataStr = e.parameter.data;
-    key = e.parameter.key || key;
-  } else if (e && e.postData && e.postData.contents) {
+  // 財務介面解鎖密碼（你可隨意更改）
+  const FINANCE_PIN = "8888";
+
+  // 初始化預設今日日期
+  document.getElementById('p_date').valueAsDate = new Date();
+  document.getElementById('f_date').valueAsDate = new Date();
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    
+    document.getElementById(tabId).classList.remove('hidden');
+    event.target.classList.add('active');
+    document.getElementById('statusMessage').innerText = '';
+  }
+
+  function verifyFinancePass() {
+    const inputPass = document.getElementById('financePassword').value;
+    if (inputPass === FINANCE_PIN) {
+      document.getElementById('financeAuthBox').classList.add('hidden');
+      document.getElementById('financeForm').classList.remove('hidden');
+    } else {
+      alert("密碼不正確，無法存取財務區！");
+    }
+  }
+
+  // 發送步兵報數
+  async function submitStaffData() {
+    const date = document.getElementById('p_date').value;
+    const staff = document.getElementById('p_staff').value;
+
+    if (!date || !staff) {
+      alert("請填寫派送日期與人員姓名！");
+      return;
+    }
+
+    const payload = {
+      key: "派件報數",
+      data: {
+        date: date,
+        staff: staff,
+        eastCount: Number(document.getElementById('p_east').value) || 0,
+        ktLgCount: Number(document.getElementById('p_ktLg').value) || 0,
+        ktIndCount: Number(document.getElementById('p_ktInd').value) || 0,
+        totalCount: Number(document.getElementById('p_total').value) || 0,
+        carAllowance: Number(document.getElementById('p_car').value) || 0,
+        claim: Number(document.getElementById('p_claim').value) || 0,
+        bonus: Number(document.getElementById('p_bonus').value) || 0,
+        penalty: Number(document.getElementById('p_penalty').value) || 0,
+        deductAmount: Number(document.getElementById('p_deduct').value) || 0,
+        totalSalary: Number(document.getElementById('p_salary').value) || 0
+      }
+    };
+
+    sendToGoogle(payload);
+  }
+
+  // 發送私密財務利潤
+  async function submitFinanceData() {
+    const date = document.getElementById('f_date').value;
+    if (!date) {
+      alert("請選擇核算日期！");
+      return;
+    }
+
+    const payload = {
+      key: "每日利潤核算",
+      data: {
+        date: date,
+        grossRevenue: Number(document.getElementById('f_gross').value) || 0,
+        salaryPayout: Number(document.getElementById('f_payout').value) || 0,
+        suppliesExp: Number(document.getElementById('f_supplies').value) || 0,
+        claimExp: Number(document.getElementById('f_claim').value) || 0,
+        advanceRepay: Number(document.getElementById('f_advance').value) || 0,
+        netProfit: Number(document.getElementById('f_net').value) || 0
+      }
+    };
+
+    sendToGoogle(payload);
+  }
+
+  // 底層傳送函式
+  async function sendToGoogle(payload) {
+    const status = document.getElementById('statusMessage');
+    status.style.color = "var(--primary)";
+    status.innerText = "資料正在安全傳送中...";
+
     try {
-      var p = JSON.parse(e.postData.contents);
-      key = p.key || key;
-      dataStr = typeof p.data === 'string' ? p.data : JSON.stringify(p.data);
-    } catch(err) {
-      dataStr = e.postData.contents;
+      await fetch(GAS_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      status.style.color = "var(--success)";
+      status.innerText = "✅ 提交成功，資料已同步！";
+    } catch (err) {
+      status.style.color = "#EF4444";
+      status.innerText = "❌ 傳送失敗，請確認網絡連線";
     }
   }
+</script>
 
-  var now = new Date();
-  var parsed = null;
-  try { parsed = JSON.parse(dataStr); } catch(err) {}
-
-  // -------------------------------------------------------------
-  // 【私密財務】自動寫入你個人專屬表（管理員完全睇唔到）
-  // -------------------------------------------------------------
-
-  // 1. 每日營運利潤核算表 (清爽薄荷綠風格)
-  if (key === "每日利潤核算" && parsed && parsed.date) {
-    var financeSS = SpreadsheetApp.openById(PRIVATE_FINANCE_SPREADSHEET_ID);
-    var sheet = getOrCreateSheet(financeSS, "每日營運利潤表", [
-      "核算日期", "當天總收入", "步兵出糧總額", "當日物資支出", "當日Claim報銷", "步兵扣數還款", "實質純利潤", "記錄時間"
-    ], "emerald");
-    
-    sheet.appendRow([
-      parsed.date, parsed.grossRevenue, parsed.salaryPayout, parsed.suppliesExp, parsed.claimExp, parsed.advanceRepay, parsed.netProfit, now
-    ]);
-    return ContentService.createTextOutput("OK");
-  }
-
-  // 2. 詳細分區埋數表 (清爽薄荷綠風格)
-  if (key === "詳細分區埋數" && parsed && parsed.date) {
-    var financeSS = SpreadsheetApp.openById(PRIVATE_FINANCE_SPREADSHEET_ID);
-    var sheet = getOrCreateSheet(financeSS, "詳細分區埋數表", [
-      "埋數日期", "全組總票數", "我方總應收",
-      "東區票數", "東區單價", "東區步兵分工",
-      "觀塘工商票數", "觀塘工商單價", "觀塘工商步兵分工",
-      "觀塘麗港城票數", "觀塘麗港城單價", "觀塘麗港城步兵分工",
-      "沙田F58票數", "沙田F58單價", "沙田F58步兵分工",
-      "總Claim報銷", "雜費支出", "埋數備註", "記錄時間"
-    ], "emerald");
-    
-    sheet.appendRow([
-      parsed.date, parsed.totalPieces, parsed.totalRevenue,
-      parsed.eastPieces, parsed.eastUnitPrice, parsed.eastRiders,
-      parsed.ktIndPieces, parsed.ktIndUnitPrice, parsed.ktIndRiders,
-      parsed.ktLgPieces, parsed.ktLgUnitPrice, parsed.ktLgRiders,
-      parsed.stPieces, parsed.stUnitPrice, parsed.stRiders,
-      parsed.claimTotal, parsed.miscExp, parsed.note, now
-    ]);
-    return ContentService.createTextOutput("OK");
-  }
-
-  // -------------------------------------------------------------
-  // 【公共營運】寫入原本公共表（管理員/步兵正常查看）
-  // -------------------------------------------------------------
-
-  // 3. 步兵報數與薪酬結算 (明亮天藍風格)
-  if (key === "派件報數" && parsed && parsed.date) {
-    var sheet = getOrCreateSheet(publicSS, "薪酬結算與報數總表", [
-      "派送日期", "人員 / 身份", "東區票數", "麗港城票數", "觀塘工商票數", "總票數", "車津", "Claim報銷", "Bonus獎金", "罰款", "扣數還款", "實發總工資", "記錄時間"
-    ], "sky");
-    
-    sheet.appendRow([
-      parsed.date, parsed.staff, parsed.eastCount || 0, parsed.ktLgCount || 0, parsed.ktIndCount || 0, parsed.totalCount || 0,
-      parsed.carAllowance || 0, parsed.claim || 0, parsed.bonus || 0, parsed.penalty || 0, parsed.deductAmount || 0, parsed.totalSalary || 0, now
-    ]);
-    return ContentService.createTextOutput("OK");
-  }
-
-  // 4. 系統總紀錄 (柔和淡灰風格)
-  var defaultSheet = getOrCreateSheet(publicSS, "系統總紀錄", ["功能類型", "內容數據", "記錄時間"], "slate");
-  defaultSheet.appendRow([key, dataStr, now]);
-  return ContentService.createTextOutput("OK");
-}
-
-/**
- * 建立/取得分頁並套用「明亮清爽」配色（告別深黑藍）
- */
-function getOrCreateSheet(ss, sheetName, headers, themeStyle) {
-  var sheet = ss.getSheetByName(sheetName);
-  if (!sheet) sheet = ss.insertSheet(sheetName);
-  
-  if (sheet.getLastRow() === 0) {
-    var headerRange = sheet.getRange(1, 1, 1, headers.length);
-    headerRange.setValues([headers]);
-    
-    var bgColor = "#F1F5F9"; // 淺灰預設
-    var fontColor = "#334155";
-    
-    if (themeStyle === "sky") {
-      bgColor = "#E0F2FE";   // 淺天藍底
-      fontColor = "#0369A1"; // 深藍字
-    } else if (themeStyle === "emerald") {
-      bgColor = "#DCFCE7";   // 淺薄荷綠底
-      fontColor = "#15803D"; // 墨綠字
-    }
-    
-    headerRange
-      .setBackground(bgColor)
-      .setFontColor(fontColor)
-      .setFontWeight("bold")
-      .setFontFamily("Arial")
-      .setFontSize(10)
-      .setHorizontalAlignment("center");
-      
-    sheet.setFrozenRows(1);
-  }
-  return sheet;
-}
-
-function doGet(e) {
-  return doPost(e);
-}
+</body>
+</html>
