@@ -51,10 +51,10 @@
       box-sizing: border-box;
     }
     .modal {
-      display: none;
+      display: flex;
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.7);
       justify-content: center;
       align-items: center;
       z-index: 999;
@@ -94,29 +94,33 @@
     <button class="btn btn-danger" style="width: auto;" onclick="logout()">登出帳號</button>
   </div>
 
-  <!-- 管理員 / 步兵 專用版面區塊 -->
+  <!-- 主控台版面 (預設隱藏) -->
   <div id="main-dashboard" class="hidden">
     <div class="card">
       <h3>📋 營運日報表 & 違規紀錄</h3>
       <p>歡迎登入系統，請選擇相應的操作功能。</p>
+      
+      <!-- 管理員 Mia 專用區塊 -->
       <div id="admin-only-tools" class="hidden">
         <span class="badge">Admin 權限</span>
-        <p style="color: #27ae60; font-weight: bold;">登入者：管理員 (Mia)</p>
+        <p style="color: #27ae60; font-weight: bold;">登入者：總管理員 (Mia)</p>
         <button class="btn btn-success" onclick="exportLeaderboardWhatsApp()">📤 匯出 WhatsApp 違規龍虎榜</button>
       </div>
+
+      <!-- 步兵 / 司機 專用區塊 -->
       <div id="staff-only-tools" class="hidden">
         <span class="badge" style="background:#0984e3;">步兵 / 司機權限</span>
-        <p>請輸入您的每日派送紀錄。</p>
+        <p>請在此填寫每日派送與打卡紀錄。</p>
       </div>
     </div>
   </div>
 </div>
 
-<!-- 帳號登入 Modal 彈窗 -->
+<!-- 強制帳號登入 Modal 彈窗 (預設顯示) -->
 <div id="login-modal" class="modal">
   <div class="modal-content">
     <h3 style="margin-top:0;">🔐 請先登入帳號</h3>
-    <p style="font-size: 13px; color: #666;">請輸入您的步兵/管理員帳號與密碼：</p>
+    <p style="font-size: 13px; color: #666;">進入系統前請先驗證身份：</p>
     
     <label>帳號：</label>
     <input type="text" id="login-username" placeholder="請輸入帳號 (例如: rider01)">
@@ -129,51 +133,20 @@
 </div>
 
 <script>
-  // Google Apps Script API 網址 (請替換為你的 Web App URL)
-  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+  // 1. 安全防禦核心：頁面一讀取，立刻清空任何舊有的登入紀錄
+  localStorage.clear();
+  sessionStorage.clear();
 
-  // 全域身分狀態
   let currentUser = null;
   let currentRole = null;
 
-  // 1. 頁面載入初始化
+  // 2. 網頁加載完畢，鎖定在登入畫面
   document.addEventListener('DOMContentLoaded', () => {
-    // 檢查網址是否帶有 ?logout=true 參數
-    const urlParams = new URLSearchParams(window.location.search);
-    const isForceLogout = urlParams.get('logout') === 'true';
-
-    // 如果帶有 logout 參數，強制清空所有本地儲存登入紀錄
-    if (isForceLogout) {
-      localStorage.clear();
-      sessionStorage.clear();
-      window.currentUser = null;
-      window.currentRole = null;
-
-      // 清除網址列上的 ?logout=true，保持網址乾淨
-      window.history.replaceState({}, document.title, window.location.pathname);
-      console.log('🔒 已強制登出，清空所有快照。');
-    }
-
-    // 檢查是否有歷史登入紀錄
-    const savedUser = localStorage.getItem('currentUser');
-    const savedRole = localStorage.getItem('currentRole');
-
-    if (savedUser && savedRole) {
-      currentUser = savedUser;
-      currentRole = savedRole;
-      showDashboard();
-    } else {
-      showLoginModal();
-    }
-  });
-
-  // 2. 顯示登入視窗
-  function showLoginModal() {
     document.getElementById('main-dashboard').classList.add('hidden');
     document.getElementById('login-modal').style.display = 'flex';
-  }
+  });
 
-  // 3. 執行登入邏輯
+  // 3. 處理登入驗證
   function processLogin() {
     const u = document.getElementById('login-username').value.trim();
     const p = document.getElementById('login-password').value.trim();
@@ -183,25 +156,21 @@
       return;
     }
 
-    // 身分驗證 (可根據你的需求擴充帳密邏輯)
-    if (u === 'mia' && p === '940812') {
+    // 權限判斷：只有輸入專屬管理員密碼才會給予 Admin 權限
+    if (u.toLowerCase() === 'mia' && p === '940812') {
       currentUser = 'Mia';
       currentRole = 'admin';
     } else {
-      // 預設其他帳號均為一般步兵/司機
       currentUser = u;
       currentRole = 'staff';
     }
 
-    // 儲存登入狀態至本地
-    localStorage.setItem('currentUser', currentUser);
-    localStorage.setItem('currentRole', currentRole);
-
+    // 登入成功，關閉登入視窗並渲染對應權限版面
     document.getElementById('login-modal').style.display = 'none';
     showDashboard();
   }
 
-  // 4. 切換顯示對應身分的版面
+  // 4. 根據身分顯示介面
   function showDashboard() {
     document.getElementById('main-dashboard').classList.remove('hidden');
     document.getElementById('user-display-status').textContent = `目前登入：${currentUser} (${currentRole === 'admin' ? '管理員' : '步兵'})`;
@@ -215,19 +184,17 @@
     }
   }
 
-  // 5. 登出邏輯
+  // 5. 手動登出
   function logout() {
     localStorage.clear();
     sessionStorage.clear();
-    currentUser = null;
-    currentRole = null;
     alert('已成功登出！');
-    showLoginModal();
+    location.reload(); // 重新整理頁面，觸發最上方的清空機制
   }
 
-  // 6. WhatsApp 格式匯出（範例）
+  // 6. 匯出 WhatsApp 範例
   function exportLeaderboardWhatsApp() {
-    alert('已生成 WhatsApp 違規龍虎榜！');
+    alert('已匯出 WhatsApp 違規龍虎榜！');
   }
 </script>
 
