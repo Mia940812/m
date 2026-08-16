@@ -295,7 +295,7 @@
 
   <!-- 模態視窗集合 -->
 
-  <!-- 👤 步兵獨立登入 Modal (確保步兵開連結唔會入到 Mia 帳戶) -->
+  <!-- 👤 步兵獨立登入 Modal (徹底隱藏 Mia 選項，保障管理員安全) -->
   <div id="modal-staff-login" class="app-modal" style="display: none;">
     <div class="bg-white rounded-2xl p-5 max-w-sm w-full shadow-2xl space-y-4">
       <div class="text-center border-b pb-3">
@@ -315,6 +315,12 @@
         <button type="button" onclick="performStaffLogin()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-xs transition">
           登入工作台 (長期記住)
         </button>
+
+        <div class="pt-2 text-center border-t border-slate-100">
+          <button type="button" onclick="closeModal('modal-staff-login'); promptRoleSwitch('admin');" class="text-[11px] text-slate-400 hover:text-slate-700 font-bold transition">
+            👑 總管理員 (Mia) 專屬登入口
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -552,7 +558,7 @@
             <div class="font-bold text-slate-700">📍 觀塘麗港城</div>
             <div class="flex gap-1">
               <input type="number" id="settle-ktlg-pieces" placeholder="票數" oninput="calcSettleRevenueLive()" class="w-1/2 p-1 bg-slate-50 border rounded font-bold">
-              <input type="number" id="settle-ktlg-unitprice" step="0.1" placeholder="每票收$" oninput="calcSettleRevenueLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded font-bold">
+              <input type="number" id="settle-ktlg-unitprice" step="0.1" placeholder="每票收$" oninput="calcSettleRevenueLive()" class="w-1/2 p-1 bg-slate-50 border rounded font-bold">
             </div>
             <input type="text" id="settle-ktlg-riders" placeholder="負責步兵 (例: 奶龍 110票)" class="w-full p-1 bg-slate-50 border rounded text-[11px]">
           </div>
@@ -1193,13 +1199,11 @@
     // 👤 步兵專屬登入與防洩密控制
     function openStaffLoginModal() {
       const select = document.getElementById('login-staff-select');
-      select.innerHTML = accounts.map(a => {
-        if (a.name === 'Mia') {
-          return `<option value="admin">👑 總管理員 (Mia)</option>`;
-        } else {
-          return `<option value="${a.name}">${a.category.includes('組長') ? '👑 組長' : '👤 步兵/司機'}: ${a.name} (${a.id} - ${a.team}隊)</option>`;
-        }
-      }).join('');
+      // 🔒 徹底過濾 Mia，步兵選單只顯示組長、步兵、司機等員工
+      select.innerHTML = accounts
+        .filter(a => a.name !== 'Mia')
+        .map(a => `<option value="${a.name}">${a.category.includes('組長') ? '👑 組長' : '👤 步兵/司機'}: ${a.name} (${a.id} - ${a.team}隊)</option>`)
+        .join('');
       document.getElementById('login-staff-pwd').value = '';
       openModal('modal-staff-login');
     }
@@ -1208,29 +1212,16 @@
       const targetRole = document.getElementById('login-staff-select').value;
       const pwd = document.getElementById('login-staff-pwd').value.trim();
 
-      if (targetRole === 'admin') {
-        const miaAcc = accounts.find(a => a.name === 'Mia') || { password: '123' };
-        if (pwd === miaAcc.password || pwd === '123' || pwd === 'admin888') {
-          currentRole = 'admin';
-          localStorage.setItem('MIA_LOGGED_IN_USER', 'admin');
-          closeModal('modal-staff-login');
-          alert('👑 總管理員 Mia 登入成功！');
-          renderRoleView();
-        } else {
-          alert('❌ 管理員密碼不正確！');
-        }
+      const targetUser = accounts.find(a => a.name === targetRole);
+      const correctPwd = (targetUser && targetUser.password) ? targetUser.password : '123';
+      if (pwd === correctPwd || pwd === '123') {
+        currentRole = targetRole;
+        localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
+        closeModal('modal-staff-login');
+        alert(`✅ 登入成功！歡迎【${targetRole}】`);
+        renderRoleView();
       } else {
-        const targetUser = accounts.find(a => a.name === targetRole);
-        const correctPwd = (targetUser && targetUser.password) ? targetUser.password : '123';
-        if (pwd === correctPwd || pwd === '123') {
-          currentRole = targetRole;
-          localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
-          closeModal('modal-staff-login');
-          alert(`✅ 登入成功！歡迎【${targetRole}】`);
-          renderRoleView();
-        } else {
-          alert('❌ 密碼錯誤，請重新輸入！');
-        }
+        alert('❌ 密碼錯誤，請重新輸入！');
       }
     }
 
@@ -2781,7 +2772,6 @@
       applyDefaultPricesToInputs();
       autoGenerateStaffId();
       
-      // 網址參數快速導向登入 (例如 index.html?user=詠豪 或 index.html?login)
       const urlParams = new URLSearchParams(window.location.search);
       const urlUser = urlParams.get('user');
       if (urlUser && accounts.some(a => a.name === urlUser)) {
