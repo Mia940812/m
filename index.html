@@ -1,894 +1,128 @@
-<!DOCTYPE html>
-<html lang="zh-HK">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Mia組 - 派件營運、詳細埋數與利潤結算系統</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-    .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 999px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
-    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type=number] { -moz-appearance: textfield; }
-  </style>
-</head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
+// =========================================================================
+// 1. 私密財務試算表 ID（請先睇下方第 1 步點攞）
+// =========================================================================
+var PRIVATE_FINANCE_SPREADSHEET_ID = "YOUR_PRIVATE_FINANCE_SPREADSHEET_ID_HERE";
 
-  <!-- 頂部 Header -->
-  <header class="bg-slate-900 text-white px-4 py-3 sticky top-0 z-40 shadow-md">
-    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
-      <div class="flex items-center space-x-3">
-        <div class="px-3 py-1 bg-blue-600 rounded-xl font-black text-sm tracking-wider shadow-sm">Mia組</div>
-        <div>
-          <div class="text-xs font-black text-white">派件營運、詳細埋數與利潤核算工作台</div>
-          <div id="cloud-status-badge" class="text-[10px] text-emerald-400 font-bold">🟢 Google 雲端數據庫已連線</div>
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <input id="global-system-date" type="date" class="bg-slate-800 border border-slate-700 text-white rounded-xl px-2.5 py-1 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-blue-500">
-        <button onclick="resetSystemData()" title="重設數據" class="text-[11px] px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-rose-950 text-slate-400 hover:text-rose-300 transition font-semibold">重置</button>
-      </div>
-    </div>
-  </header>
+function doPost(e) {
+  var publicSS = SpreadsheetApp.getActiveSpreadsheet(); // 一般管理員/步兵使用的公共表
+  var key = "派件報數";
+  var dataStr = "";
+  
+  if (e && e.parameter && e.parameter.data) {
+    dataStr = e.parameter.data;
+    key = e.parameter.key || key;
+  } else if (e && e.postData && e.postData.contents) {
+    try {
+      var p = JSON.parse(e.postData.contents);
+      key = p.key || key;
+      dataStr = typeof p.data === 'string' ? p.data : JSON.stringify(p.data);
+    } catch(err) {
+      dataStr = e.postData.contents;
+    }
+  }
 
-  <!-- 功能導航欄 (新增利潤入口) -->
-  <nav class="bg-white border-b border-slate-200 shadow-sm sticky top-[57px] z-30">
-    <div class="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap items-center gap-2 text-xs font-bold">
-      <!-- 快捷匯出 -->
-      <button onclick="openUniversalExportModal('truck_dispatch')" class="px-3.5 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white shadow-sm flex items-center gap-1">
-        <span>🚗</span> 匯出車線
-      </button>
-      <button onclick="openUniversalExportModal('shift_schedule')" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm flex items-center gap-1">
-        <span>📤</span> 匯出14天更表
-      </button>
+  var now = new Date();
+  var parsed = null;
+  try { parsed = JSON.parse(dataStr); } catch(err) {}
 
-      <!-- 核心財務入口 -->
-      <button onclick="openModalProfit()" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-1">
-        <span>📈</span> 每日營運利潤
-      </button>
-      <button onclick="openModalSettlementDaily()" class="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white shadow-sm flex items-center gap-1">
-        <span>💰</span> 詳細分區埋數
-      </button>
-      <button onclick="openModalSupplies()" class="px-3.5 py-1.5 rounded-xl bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border border-cyan-200">
-        📦 物資採購
-      </button>
+  // -------------------------------------------------------------
+  // 【私密財務】自動寫入你個人專屬表（管理員完全睇唔到）
+  // -------------------------------------------------------------
 
-      <!-- 業務管理功能 -->
-      <button onclick="openModalProgress()" class="px-3.5 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200">
-        ⏱️ 圍欄進度回報
-      </button>
-      <button onclick="openModal1()" class="px-3.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200">
-        📍 1- 圍欄管理
-      </button>
-      <button onclick="openModal2()" class="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200">
-        👥 2- 區域排班
-      </button>
-      <button onclick="openModal3()" class="px-3.5 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200">
-        📦 3- 觀塘貨量
-      </button>
-      <button onclick="openModal4()" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200">
-        🏢 4- 東區貨量
-      </button>
-      <button onclick="openModalStCounts()" class="px-3.5 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200">
-        🏞️ 4b- 沙田貨量
-      </button>
-      <button onclick="openModal5()" class="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200">
-        ⏰ 5- 14天報更
-      </button>
-      <button onclick="openModal8()" class="px-3.5 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200">
-        🚗 8- 車線調度
-      </button>
-      <button onclick="openTicketsModal()" class="px-3.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200">
-        🚨 異常工單
-      </button>
-      <button onclick="openRecruitsModal()" class="px-3.5 py-1.5 rounded-xl bg-fuchsia-50 hover:bg-fuchsia-100 text-fuchsia-700 border border-fuchsia-200">
-        📋 預約新人
-      </button>
-      <button onclick="openAddRiderModal()" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
-        ➕ 新增人員
-      </button>
-    </div>
-  </nav>
-
-  <!-- 主工作台內容區 -->
-  <main class="max-w-7xl mx-auto p-4 flex-1 w-full space-y-5">
+  // 1. 每日營運利潤核算表 (清爽薄荷綠風格)
+  if (key === "每日利潤核算" && parsed && parsed.date) {
+    var financeSS = SpreadsheetApp.openById(PRIVATE_FINANCE_SPREADSHEET_ID);
+    var sheet = getOrCreateSheet(financeSS, "每日營運利潤表", [
+      "核算日期", "當天總收入", "步兵出糧總額", "當日物資支出", "當日Claim報銷", "步兵扣數還款", "實質純利潤", "記錄時間"
+    ], "emerald");
     
-    <!-- 數據概覽卡 (含利潤即時卡片) -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
-        <div class="text-xs font-bold text-slate-500">今日全組總票數</div>
-        <div id="statTotalCount" class="text-2xl font-black text-blue-600 mt-1">0 票</div>
-      </div>
-      <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
-        <div class="text-xs font-bold text-slate-500">今日步兵總工資</div>
-        <div id="statSalaryTotal" class="text-2xl font-black text-amber-600 mt-1">HK$ 0.00</div>
-      </div>
-      <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
-        <div class="text-xs font-bold text-slate-500">今日營運總收入 (預估)</div>
-        <div id="statGrossRevenue" class="text-2xl font-black text-indigo-600 mt-1">HK$ 0.00</div>
-      </div>
-      <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
-        <div class="text-xs font-bold text-slate-500">今日淨利潤 (實時結算)</div>
-        <div id="statNetProfit" class="text-2xl font-black text-emerald-600 mt-1">HK$ 0.00</div>
-      </div>
-    </div>
+    sheet.appendRow([
+      parsed.date, parsed.grossRevenue, parsed.salaryPayout, parsed.suppliesExp, parsed.claimExp, parsed.advanceRepay, parsed.netProfit, now
+    ]);
+    return ContentService.createTextOutput("OK");
+  }
 
-    <!-- 報數明細即時清單 -->
-    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="font-black text-xs text-slate-900">當日報數、薪酬結算與人員明細清單</h3>
-        <button onclick="clearReports()" class="text-[11px] text-slate-400 hover:text-rose-600 font-bold transition">清空今日報數</button>
-      </div>
-      <div class="overflow-x-auto custom-scrollbar">
-        <table class="w-full text-left text-xs">
-          <thead class="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
-            <tr>
-              <th class="p-3.5">日期</th>
-              <th class="p-3.5">人員 / 身份</th>
-              <th class="p-3.5 text-center">分區票數 (東/麗/工/沙)</th>
-              <th class="p-3.5 text-right">總票數</th>
-              <th class="p-3.5 text-right">實發工資</th>
-              <th class="p-3.5 text-right">扣數還款</th>
-              <th class="p-3.5 text-center">工資條核對</th>
-              <th class="p-3.5 text-center">操作</th>
-            </tr>
-          </thead>
-          <tbody id="reportTableBody" class="divide-y divide-slate-100">
-            <tr>
-              <td colspan="8" class="p-6 text-center text-slate-400">暫無報數記錄，請由上方功能欄或報數系統登記。</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+  // 2. 詳細分區埋數表 (清爽薄荷綠風格)
+  if (key === "詳細分區埋數" && parsed && parsed.date) {
+    var financeSS = SpreadsheetApp.openById(PRIVATE_FINANCE_SPREADSHEET_ID);
+    var sheet = getOrCreateSheet(financeSS, "詳細分區埋數表", [
+      "埋數日期", "全組總票數", "我方總應收",
+      "東區票數", "東區單價", "東區步兵分工",
+      "觀塘工商票數", "觀塘工商單價", "觀塘工商步兵分工",
+      "觀塘麗港城票數", "觀塘麗港城單價", "觀塘麗港城步兵分工",
+      "沙田F58票數", "沙田F58單價", "沙田F58步兵分工",
+      "總Claim報銷", "雜費支出", "埋數備註", "記錄時間"
+    ], "emerald");
+    
+    sheet.appendRow([
+      parsed.date, parsed.totalPieces, parsed.totalRevenue,
+      parsed.eastPieces, parsed.eastUnitPrice, parsed.eastRiders,
+      parsed.ktIndPieces, parsed.ktIndUnitPrice, parsed.ktIndRiders,
+      parsed.ktLgPieces, parsed.ktLgUnitPrice, parsed.ktLgRiders,
+      parsed.stPieces, parsed.stUnitPrice, parsed.stRiders,
+      parsed.claimTotal, parsed.miscExp, parsed.note, now
+    ]);
+    return ContentService.createTextOutput("OK");
+  }
 
-  </main>
+  // -------------------------------------------------------------
+  // 【公共營運】寫入原本公共表（管理員/步兵正常查看）
+  // -------------------------------------------------------------
 
-  <!-- 模態視窗集合 -->
+  // 3. 步兵報數與薪酬結算 (明亮天藍風格)
+  if (key === "派件報數" && parsed && parsed.date) {
+    var sheet = getOrCreateSheet(publicSS, "薪酬結算與報數總表", [
+      "派送日期", "人員 / 身份", "東區票數", "麗港城票數", "觀塘工商票數", "總票數", "車津", "Claim報銷", "Bonus獎金", "罰款", "扣數還款", "實發總工資", "記錄時間"
+    ], "sky");
+    
+    sheet.appendRow([
+      parsed.date, parsed.staff, parsed.eastCount || 0, parsed.ktLgCount || 0, parsed.ktIndCount || 0, parsed.totalCount || 0,
+      parsed.carAllowance || 0, parsed.claim || 0, parsed.bonus || 0, parsed.penalty || 0, parsed.deductAmount || 0, parsed.totalSalary || 0, now
+    ]);
+    return ContentService.createTextOutput("OK");
+  }
 
-  <!-- 📈 每日利潤計算入口 Modal (全新獨立) -->
-  <div id="modal-profit-calc" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2">
-        <div>
-          <h3 class="font-black text-sm text-emerald-800">📈 當日營運利潤核算中心</h3>
-          <span class="text-[11px] text-slate-400 font-bold">自動由埋數與報數系統帶入數據，實時結算淨利潤</span>
-        </div>
-        <button onclick="closeModal('modal-profit-calc')" class="font-bold text-slate-400 hover:text-slate-700">✕</button>
-      </div>
+  // 4. 系統總紀錄 (柔和淡灰風格)
+  var defaultSheet = getOrCreateSheet(publicSS, "系統總紀錄", ["功能類型", "內容數據", "記錄時間"], "slate");
+  defaultSheet.appendRow([key, dataStr, now]);
+  return ContentService.createTextOutput("OK");
+}
 
-      <!-- 利潤計算公式展示區 -->
-      <div class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 text-xs space-y-3">
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">核算日期</label>
-            <input type="date" id="profit-date" onchange="loadProfitDataForDate()" class="w-full bg-white border border-emerald-300 rounded-xl p-2 font-bold">
-          </div>
-          <div>
-            <label class="block font-bold text-indigo-900 mb-1">➕ 當天總收入 (公司每票應收)</label>
-            <input type="number" id="profit-gross-revenue" oninput="calcNetProfitLive()" class="w-full bg-white border border-indigo-300 rounded-xl p-2 font-black text-indigo-700">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <div>
-            <label class="block font-bold text-rose-700 mb-1">➖ 步兵出糧總額</label>
-            <input type="number" id="profit-salary-payout" oninput="calcNetProfitLive()" class="w-full bg-white border border-rose-200 rounded-xl p-2 font-bold text-rose-600">
-          </div>
-          <div>
-            <label class="block font-bold text-rose-700 mb-1">➖ 當日物資支出</label>
-            <input type="number" id="profit-supplies-exp" oninput="calcNetProfitLive()" class="w-full bg-white border border-rose-200 rounded-xl p-2 font-bold text-rose-600">
-          </div>
-          <div>
-            <label class="block font-bold text-rose-700 mb-1">➖ 當日Claim報銷</label>
-            <input type="number" id="profit-claim-exp" oninput="calcNetProfitLive()" class="w-full bg-white border border-rose-200 rounded-xl p-2 font-bold text-rose-600">
-          </div>
-          <div>
-            <label class="block font-bold text-blue-700 mb-1">➕ 步兵扣數還款</label>
-            <input type="number" id="profit-advance-repay" oninput="calcNetProfitLive()" class="w-full bg-white border border-blue-300 rounded-xl p-2 font-bold text-blue-600">
-          </div>
-        </div>
-
-        <!-- 最終利潤大卡片 -->
-        <div class="bg-white p-4 rounded-2xl border-2 border-emerald-500 shadow-sm flex items-center justify-between">
-          <div>
-            <div class="text-[11px] font-bold text-slate-500">💰 實質純利潤 (Net Profit)</div>
-            <div class="text-[10px] text-slate-400">總收入 - 出糧 - 物資 - Claim + 還款</div>
-          </div>
-          <div id="profit-final-net" class="text-2xl font-black text-emerald-600">HK$ 0.00</div>
-        </div>
-
-        <button onclick="saveDailyProfitRecord()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md transition">
-          確認儲存當日利潤核算 (同步 Google Sheet)
-        </button>
-      </div>
-
-      <!-- 歷史利潤清單 -->
-      <div>
-        <div class="font-black text-xs text-slate-700 mb-1.5">近期利潤記錄清單：</div>
-        <div id="profit-history-list" class="space-y-1.5 text-xs max-h-40 overflow-y-auto custom-scrollbar"></div>
-      </div>
-
-      <div class="flex gap-2">
-        <button onclick="openUniversalExportModal('profit_report')" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-2xl text-xs font-bold">匯出 WhatsApp 利潤總表</button>
-        <button onclick="closeModal('modal-profit-calc')" class="px-5 py-2.5 bg-slate-100 rounded-2xl text-xs font-bold">關閉</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 💰 每日詳細分區埋數 Modal (升級完整版) -->
-  <div id="modal-settlement-daily" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-2xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2">
-        <div>
-          <h3 class="font-black text-sm text-amber-900">💰 每日詳細分區埋數系統</h3>
-          <span class="text-[11px] text-slate-400 font-bold">東區、觀塘工商、觀塘麗港城、沙田F58 與步兵分工明細</span>
-        </div>
-        <button onclick="closeModal('modal-settlement-daily')" class="font-bold text-slate-400 hover:text-slate-700">✕</button>
-      </div>
-
-      <div class="space-y-3 text-xs bg-amber-50/70 p-4 rounded-2xl border border-amber-200">
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">埋數日期</label>
-          <input type="date" id="settle-date" class="w-full bg-white border border-amber-300 rounded-xl p-2 font-bold">
-        </div>
-
-        <!-- 4大區域詳細票數、公司每票收入單價、負責步兵名單 -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          <!-- 東區 -->
-          <div class="bg-white p-2.5 rounded-xl border border-amber-200 space-y-1.5">
-            <div class="font-black text-slate-800">📍 東區 (41圍欄)</div>
-            <div class="flex gap-1.5">
-              <input type="number" id="settle-east-pieces" placeholder="總票數" oninput="calcSettleRevenueLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded-lg font-bold text-blue-600">
-              <input type="number" id="settle-east-unitprice" step="0.1" value="10.5" placeholder="我方每票收$" oninput="calcSettleRevenueLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded-lg font-bold">
-            </div>
-            <input type="text" id="settle-east-riders" placeholder="負責步兵 (例: 景鴻 120票, 嘉榮 80票)" class="w-full p-1.5 bg-slate-50 border rounded-lg font-semibold text-[11px]">
-          </div>
-
-          <!-- 觀塘工商區 -->
-          <div class="bg-white p-2.5 rounded-xl border border-amber-200 space-y-1.5">
-            <div class="font-black text-slate-800">📍 觀塘工商區</div>
-            <div class="flex gap-1.5">
-              <input type="number" id="settle-ktind-pieces" placeholder="總票數" oninput="calcSettleRevenueLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded-lg font-bold text-blue-600">
-              <input type="number" id="settle-ktind-unitprice" step="0.1" value="9.5" placeholder="我方每票收$" oninput="calcSettleRevenueLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded-lg font-bold">
-            </div>
-            <input type="text" id="settle-ktind-riders" placeholder="負責步兵 (例: 詠豪 150票, 俊華 90票)" class="w-full p-1.5 bg-slate-50 border rounded-lg font-semibold text-[11px]">
-          </div>
-
-          <!-- 觀塘麗港城 -->
-          <div class="bg-white p-2.5 rounded-xl border border-amber-200 space-y-1.5">
-            <div class="font-black text-slate-800">📍 觀塘麗港城</div>
-            <div class="flex gap-1.5">
-              <input type="number" id="settle-ktlg-pieces" placeholder="總票數" oninput="calcSettleRevenueLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded-lg font-bold text-blue-600">
-              <input type="number" id="settle-ktlg-unitprice" step="0.1" value="10.0" placeholder="我方每票收$" oninput="calcSettleRevenueLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded-lg font-bold">
-            </div>
-            <input type="text" id="settle-ktlg-riders" placeholder="負責步兵 (例: 奶龍 110票)" class="w-full p-1.5 bg-slate-50 border rounded-lg font-semibold text-[11px]">
-          </div>
-
-          <!-- 沙田 F58 -->
-          <div class="bg-white p-2.5 rounded-xl border border-amber-200 space-y-1.5">
-            <div class="font-black text-slate-800">📍 沙田 F58</div>
-            <div class="flex gap-1.5">
-              <input type="number" id="settle-st-pieces" placeholder="總票數" oninput="calcSettleRevenueLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded-lg font-bold text-blue-600">
-              <input type="number" id="settle-st-unitprice" step="0.1" value="9.0" placeholder="我方每票收$" oninput="calcSettleRevenueLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded-lg font-bold">
-            </div>
-            <input type="text" id="settle-st-riders" placeholder="負責步兵 (例: 王利民 70票)" class="w-full p-1.5 bg-slate-50 border rounded-lg font-semibold text-[11px]">
-          </div>
-        </div>
-
-        <!-- 報銷、支出與預估收入 -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">今日總報銷 Claim ($)</label>
-            <input type="number" id="settle-claim-total" placeholder="0" class="w-full bg-white border rounded-xl p-2 font-bold text-rose-600">
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">油費/泊車/雜費 ($)</label>
-            <input type="number" id="settle-misc-exp" placeholder="0" class="w-full bg-white border rounded-xl p-2 font-bold">
-          </div>
-          <div class="bg-white p-2 rounded-xl border border-amber-300 flex flex-col justify-center">
-            <span class="text-[10px] font-bold text-amber-900">總票數 / 總收入估算</span>
-            <span id="settle-live-revenue-txt" class="font-black text-amber-700 text-xs">0 票 ➜ HK$ 0.00</span>
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">埋數對數備註說明</label>
-          <input type="text" id="settle-note" placeholder="例如：今日東區貨量較大，沙田全數清場" class="w-full bg-white border rounded-xl p-2 font-semibold">
-        </div>
-
-        <button onclick="saveFullDailySettlement()" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold shadow-md transition">
-          確認儲存分區詳細埋數 (同步 Google Sheet)
-        </button>
-      </div>
-
-      <!-- 歷史埋數清單 -->
-      <div>
-        <div class="font-black text-xs text-slate-700 mb-1">歷史詳細埋數記錄：</div>
-        <div id="settlement-history-list" class="space-y-1.5 text-xs max-h-36 overflow-y-auto custom-scrollbar"></div>
-      </div>
-
-      <div class="flex gap-2">
-        <button onclick="openUniversalExportModal('daily_settlement')" class="flex-1 py-2.5 bg-amber-600 text-white rounded-2xl text-xs font-bold">匯出詳細埋數日報表</button>
-        <button onclick="closeModal('modal-settlement-daily')" class="px-5 py-2.5 bg-slate-100 rounded-2xl text-xs font-bold">關閉</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 其他 Modal 視窗保持完整 -->
-  <div id="modal-supplies" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-lg w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-black text-sm text-cyan-900">📦 物資採購與庫存管理</h3><button onclick="closeModal('modal-supplies')">✕</button></div>
-      <div class="bg-cyan-50/70 p-3 rounded-2xl border border-cyan-200 text-xs space-y-2">
-        <div class="grid grid-cols-2 gap-2">
-          <input type="date" id="supply-date" class="w-full bg-white border rounded-xl p-2 font-bold">
-          <input type="text" id="supply-name" placeholder="物資名稱" class="w-full bg-white border rounded-xl p-2 font-bold">
-        </div>
-        <div class="grid grid-cols-3 gap-2">
-          <input type="number" id="supply-qty" placeholder="數量" class="w-full bg-white border rounded-xl p-2 font-bold">
-          <input type="number" id="supply-price" placeholder="金額($)" class="w-full bg-white border rounded-xl p-2 font-bold">
-          <input type="text" id="supply-buyer" placeholder="採購人" class="w-full bg-white border rounded-xl p-2 font-bold">
-        </div>
-        <button onclick="saveSupplyRecord()" class="w-full py-2 bg-cyan-600 text-white rounded-xl font-bold">登記採購</button>
-      </div>
-      <div id="supplies-list" class="space-y-1 text-xs max-h-40 overflow-y-auto custom-scrollbar"></div>
-      <button onclick="closeModal('modal-supplies')" class="w-full py-2 bg-slate-100 rounded-xl font-bold text-xs">關閉</button>
-    </div>
-  </div>
-
-  <div id="modal-fences-zone" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-xl w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-black text-sm">📍 1- 圍欄管理</h3><button onclick="closeModal('modal-fences-zone')">✕</button></div>
-      <div id="m1-fences-container" class="space-y-3 text-xs"></div>
-      <button onclick="closeModal('modal-fences-zone')" class="w-full py-2.5 bg-slate-100 rounded-2xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <div id="modal-assignments" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-4xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-black text-sm">👥 2- 區域排班名冊</h3><button onclick="closeModal('modal-assignments')">✕</button></div>
-      <div id="m2-fences-board-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs"></div>
-      <button onclick="closeModal('modal-assignments')" class="w-full py-2.5 bg-slate-100 rounded-2xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <div id="modal-kt-counts" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-black text-sm">📦 3- 觀塘區圍欄貨量</h3><button onclick="closeModal('modal-kt-counts')">✕</button></div>
-      <div id="m3-list" class="space-y-1.5 text-xs"></div>
-      <button onclick="saveModal3()" class="w-full py-2.5 bg-sky-600 text-white rounded-2xl text-xs font-bold">儲存數量</button>
-    </div>
-  </div>
-  <div id="modal-east-counts" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-black text-sm">🏢 4- 東區圍欄貨量</h3><button onclick="closeModal('modal-east-counts')">✕</button></div>
-      <div id="m4-list" class="space-y-1.5 text-xs"></div>
-      <button onclick="saveModal4()" class="w-full py-2.5 bg-indigo-600 text-white rounded-2xl text-xs font-bold">儲存數量</button>
-    </div>
-  </div>
-  <div id="modal-st-counts" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-black text-sm">🏞️ 4b- 沙田區圍欄貨量</h3><button onclick="closeModal('modal-st-counts')">✕</button></div>
-      <div id="mst-list" class="space-y-1.5 text-xs"></div>
-      <button onclick="saveModalStCounts()" class="w-full py-2.5 bg-teal-600 text-white rounded-2xl text-xs font-bold">儲存數量</button>
-    </div>
-  </div>
-
-  <div id="modal-shift-reporting" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-xl w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-black text-sm">⏰ 5- 14天報更系統</h3><button onclick="closeModal('modal-shift-reporting')">✕</button></div>
-      <div id="shifts-history-list" class="space-y-1.5 text-xs max-h-48 overflow-y-auto custom-scrollbar"></div>
-      <button onclick="closeModal('modal-shift-reporting')" class="w-full py-2.5 bg-slate-100 rounded-2xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <div id="modal-truck-routes" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-2xl w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-black text-sm">🚗 8- 車線調度管理</h3><button onclick="closeModal('modal-truck-routes')">✕</button></div>
-      <div id="truck-list" class="space-y-2 text-xs max-h-60 overflow-y-auto custom-scrollbar"></div>
-      <button onclick="closeModal('modal-truck-routes')" class="w-full py-2.5 bg-slate-100 rounded-2xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <div id="modal-tickets-view" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-2xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-black text-sm text-rose-700">🚨 異常工單追蹤</h3><button onclick="closeModal('modal-tickets-view')">✕</button></div>
-      <div id="tickets-container" class="space-y-2 text-xs max-h-56 overflow-y-auto custom-scrollbar"></div>
-      <button onclick="closeModal('modal-tickets-view')" class="w-full py-2.5 bg-slate-100 rounded-2xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <div id="modal-progress-view" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-2xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-black text-sm text-teal-800">⏱️ 當日圍欄清場進度</h3><button onclick="closeModal('modal-progress-view')">✕</button></div>
-      <div id="progress-fences-list" class="space-y-2 text-xs max-h-72 overflow-y-auto custom-scrollbar"></div>
-      <button onclick="closeModal('modal-progress-view')" class="w-full py-2.5 bg-slate-100 rounded-2xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <div id="modal-recruits-view" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-lg w-full shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-black text-sm">📋 預約新人檔案</h3><button onclick="closeModal('modal-recruits-view')">✕</button></div>
-      <div id="recruits-list" class="space-y-2 text-xs"></div>
-      <button onclick="closeModal('modal-recruits-view')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <div id="modal-add-rider" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-black text-sm">👥 新增人員與身份分類</h3><button onclick="closeModal('modal-add-rider')">✕</button></div>
-      <div id="staff-category-list" class="space-y-2 text-xs"></div>
-      <button onclick="closeModal('modal-add-rider')" class="w-full py-2.5 bg-slate-100 rounded-2xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <div id="modal-universal-export" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 z-50 hidden">
-    <div class="bg-white rounded-3xl p-5 max-w-3xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 id="export-modal-title" class="font-black text-sm text-slate-900">📤 全模組資料匯出中心</h3>
-        <button onclick="closeModal('modal-universal-export')">✕</button>
-      </div>
-      <textarea id="universal-export-textarea" rows="14" readonly class="w-full bg-slate-50 border rounded-2xl p-3 font-mono text-xs focus:outline-none"></textarea>
-      <div class="flex gap-2">
-        <button onclick="copyUniversalWhatsAppText()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold shadow-md transition">一鍵複製 WhatsApp 格式</button>
-        <button onclick="closeModal('modal-universal-export')" class="px-5 py-3 bg-slate-100 rounded-2xl text-xs font-bold">關閉</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- JavaScript 核心引擎 -->
-  <script>
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwG5x-iN6GjVd1jtdoz11Nwn79JLSLdLrIDr_xXfNCyfo1EBxfYPUFb5oW754GXf7H4fA/exec';
-
-    const defaultZoneFences = {
-      kt: [
-        { id: '01E', name: '01E Koko Hills' }, { id: '02E', name: '02E 觀塘工商區1號' }, { id: '03E', name: '03E 觀塘工商區2號' },
-        { id: '04E', name: '04E 觀塘工商區3號' }, { id: '05E', name: '05E 觀塘工商區4號' }, { id: '06E', name: '06E 觀塘工商區5號' },
-        { id: '07E', name: '07E 觀塘工商區6號' }, { id: '08E', name: '08E 觀塘工商區7號' }, { id: '09E', name: '09E 觀塘工商區8號' },
-        { id: '10E', name: '10E 鴻圖道+勵業街' }, { id: '11E', name: '11E 麗港城-1號托' }, { id: '12E', name: '12E 麗港城-2號托' },
-        { id: '13E', name: '13E 麗港城-3號托' }, { id: '14E', name: '14E 麗港城-4號托' }, { id: '15E', name: '15E 麗港城-5號托' }
-      ],
-      east: [
-        { id: '03F', name: '03F 東旭苑' }, { id: '06F', name: '06F 東濤苑' }, { id: '09F', name: '09F 富怡花園' },
-        { id: '12F', name: '12F 杏花邨1號' }, { id: '13F', name: '13F 杏花邨3號' }, { id: '14F', name: '14F 杏花邨4號' },
-        { id: '17F', name: '17F 香島' }, { id: '18F', name: '18F 曉翠苑' }, { id: '19F', name: '19F 漁灣邨' },
-        { id: '21F', name: '21F 杏翠苑+翠灣邨' }, { id: '22F', name: '22F 峰華邨+景翠苑' }, { id: '26F', name: '26F 興華（1）邨' },
-        { id: '27F', name: '27F 興華（2）邨' }, { id: '28F', name: '28F 興民邨' }, { id: '29F', name: '29F 山翠苑' },
-        { id: '30F', name: '30F 新翠花園' }, { id: '31F', name: '31F 環翠邨' }, { id: '39F', name: '39F 柴灣地鐵站工業區' },
-        { id: '40F', name: '40F 小西灣工業區' }, { id: '41F', name: '41F 小西灣邨-1號托' }, { id: '42F', name: '42F 小西灣邨-2號托' },
-        { id: '43F', name: '43F 小西灣邨-3號托' }, { id: '44F', name: '44F 樂軒+宏德+怡翠' }, { id: '45F', name: '45F 柴灣+蝶翠+康平街' },
-        { id: '46F', name: '46F 高威+康翠+灣景園' }, { id: '47F', name: '47F 澤鑾閣暫存點' }, { id: '60F', name: '60F 藍灣半島' },
-        { id: '61F', name: '61F 富欣花園' }, { id: '62F', name: '62F 愛蝶灣' }, { id: '64F', name: '64F 愛東邨' },
-        { id: '65F', name: '65F 富景花園' }, { id: '67F', name: '67F 杏花園' }, { id: '68F', name: '68F 東大街板A' },
-        { id: '69F', name: '69F 峻峰花園' }, { id: '70F', name: '70F 筲箕灣道板-1號托' }, { id: '72F', name: '72F 形薈' },
-        { id: '73F', name: '73F 東區樂翠台暫存點' }, { id: '74F', name: '74F 東區醫院暫存點' }, { id: '76F', name: '76F 常安街簡約公屋暫存點' },
-        { id: '15F', name: '15F 明華A-E座' }, { id: '16F', name: '16F 明華1&2座' }
-      ],
-      st: [
-        { id: 'ST_01', name: 'ST_01 沙田第一城' }, { id: 'ST_02', name: 'ST_02 沙田市中心/新城市' }, { id: 'ST_03', name: 'ST_03 火炭工業區' }
-      ]
-    };
-
-    const initialAccounts = [
-      { id: 'KM001', name: 'Mia', category: '管理組/調度', zone: '全區調度' },
-      { id: 'A001', name: '景鴻', category: '全職步兵', zone: '東區' },
-      { id: 'B001', name: '詠豪', category: '全職步兵', zone: '觀塘' },
-      { id: 'C001', name: '俊華', category: '兼職步兵', zone: '觀塘' },
-      { id: 'KM02', name: '吳嘉榮', category: '兼職步兵', zone: '東區' },
-      { id: 'D01', name: '奶龍', category: '全職司機', zone: '觀塘' },
-      { id: 'D02', name: '龍', category: '全職司機', zone: '東區' },
-      { id: 'D03', name: '煒爺', category: '兼職司機', zone: '東區' }
-    ];
-
-    let zoneFences = JSON.parse(localStorage.getItem('MIA_FENCES_V17')) || defaultZoneFences;
-    let accounts = JSON.parse(localStorage.getItem('MIA_ACCOUNTS_V17')) || initialAccounts;
-    let zoneAssignments = JSON.parse(localStorage.getItem('MIA_ASSIGNS_V17')) || {
-      kt: [{ id: 'B001', name: '詠豪', fence: '03E 觀塘工商區2號', order: '第 1 順位' }],
-      east: [{ id: 'KM02', name: '吳嘉榮', fence: '69F 峻峰花園', order: '第 1 順位' }],
-      st: [{ id: 'KM04', name: '王利民', fence: 'ST_01 沙田第一城', order: '第 1 順位' }]
-    };
-    let truckRoutes = JSON.parse(localStorage.getItem('MIA_TRUCKS_V17')) || [];
-    let recruitsList = JSON.parse(localStorage.getItem('MIA_RECRUITS_V17')) || [];
-    let shiftReports = JSON.parse(localStorage.getItem('MIA_SHIFTS_V17')) || [];
-    let dailyReports = JSON.parse(localStorage.getItem('MIA_DAILY_REPORTS_V17')) || [];
-    let dailySettlements = JSON.parse(localStorage.getItem('MIA_SETTLEMENTS_V17')) || [];
-    let suppliesList = JSON.parse(localStorage.getItem('MIA_SUPPLIES_V17')) || [];
-    let ticketsList = JSON.parse(localStorage.getItem('MIA_TICKETS_V17')) || [];
-    let profitRecords = JSON.parse(localStorage.getItem('MIA_PROFITS_V17')) || [];
-    let fenceProgressMap = JSON.parse(localStorage.getItem('MIA_PROGRESS_V17')) || {};
-
-    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-    function syncSingleRecord(key, record) {
-      if (!GOOGLE_SCRIPT_URL) return;
-      const dataStr = typeof record === 'string' ? record : JSON.stringify(record);
-      const beacon = new Image();
-      beacon.src = `${GOOGLE_SCRIPT_URL}?key=${encodeURIComponent(key)}&data=${encodeURIComponent(dataStr)}&_t=${Date.now()}`;
-      try {
-        fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ key: key, data: record }),
-          mode: 'no-cors'
-        });
-      } catch (err) {}
+/**
+ * 建立/取得分頁並套用「明亮清爽」配色（告別深黑藍）
+ */
+function getOrCreateSheet(ss, sheetName, headers, themeStyle) {
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) sheet = ss.insertSheet(sheetName);
+  
+  if (sheet.getLastRow() === 0) {
+    var headerRange = sheet.getRange(1, 1, 1, headers.length);
+    headerRange.setValues([headers]);
+    
+    var bgColor = "#F1F5F9"; // 淺灰預設
+    var fontColor = "#334155";
+    
+    if (themeStyle === "sky") {
+      bgColor = "#E0F2FE";   // 淺天藍底
+      fontColor = "#0369A1"; // 深藍字
+    } else if (themeStyle === "emerald") {
+      bgColor = "#DCFCE7";   // 淺薄荷綠底
+      fontColor = "#15803D"; // 墨綠字
     }
-
-    function saveData() {
-      localStorage.setItem('MIA_FENCES_V17', JSON.stringify(zoneFences));
-      localStorage.setItem('MIA_ACCOUNTS_V17', JSON.stringify(accounts));
-      localStorage.setItem('MIA_ASSIGNS_V17', JSON.stringify(zoneAssignments));
-      localStorage.setItem('MIA_TRUCKS_V17', JSON.stringify(truckRoutes));
-      localStorage.setItem('MIA_SHIFTS_V17', JSON.stringify(shiftReports));
-      localStorage.setItem('MIA_DAILY_REPORTS_V17', JSON.stringify(dailyReports));
-      localStorage.setItem('MIA_SETTLEMENTS_V17', JSON.stringify(dailySettlements));
-      localStorage.setItem('MIA_SUPPLIES_V17', JSON.stringify(suppliesList));
-      localStorage.setItem('MIA_TICKETS_V17', JSON.stringify(ticketsList));
-      localStorage.setItem('MIA_PROFITS_V17', JSON.stringify(profitRecords));
-      localStorage.setItem('MIA_PROGRESS_V17', JSON.stringify(fenceProgressMap));
-      updateStats();
-    }
-
-    function resetSystemData() {
-      if (confirm('確定重設並恢復所有完整預設數據？')) {
-        localStorage.clear();
-        zoneFences = defaultZoneFences;
-        accounts = initialAccounts;
-        dailyReports = [];
-        saveData();
-        location.reload();
-      }
-    }
-
-    // 📈 每日利潤計算核心引擎
-    function openModalProfit() {
-      const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
-      document.getElementById('profit-date').value = today;
-      loadProfitDataForDate();
-      renderProfitHistoryList();
-      openModal('modal-profit-calc');
-    }
-
-    function loadProfitDataForDate() {
-      const d = document.getElementById('profit-date').value;
+    
+    headerRange
+      .setBackground(bgColor)
+      .setFontColor(fontColor)
+      .setFontWeight("bold")
+      .setFontFamily("Arial")
+      .setFontSize(10)
+      .setHorizontalAlignment("center");
       
-      // 自動由報數記錄匯總：步兵工資、扣數還款
-      let salarySum = 0, repaySum = 0, claimSum = 0;
-      dailyReports.filter(r => r.date === d).forEach(r => {
-        salarySum += Number(r.totalSalary || 0);
-        repaySum += Number(r.deductAmount || 0);
-        claimSum += Number(r.claim || 0);
-      });
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
 
-      // 自動由物資記錄匯總：當日物資
-      let suppliesSum = 0;
-      suppliesList.filter(sp => sp.date === d).forEach(sp => {
-        suppliesSum += Number(sp.price || 0);
-      });
-
-      // 自動由埋數記錄匯總：當日總收入 (如有)
-      let grossRevenue = 0;
-      const settle = dailySettlements.find(s => s.date === d);
-      if (settle) {
-        grossRevenue = Number(settle.totalRevenue || 0);
-        if (settle.claimTotal) claimSum = Math.max(claimSum, Number(settle.claimTotal || 0));
-      } else {
-        // 若未埋數，以預設每票收入估算 ($10/票)
-        let totalPieces = 0;
-        dailyReports.filter(r => r.date === d).forEach(r => { totalPieces += Number(r.totalCount || 0); });
-        grossRevenue = totalPieces * 10;
-      }
-
-      document.getElementById('profit-gross-revenue').value = grossRevenue;
-      document.getElementById('profit-salary-payout').value = salarySum;
-      document.getElementById('profit-supplies-exp').value = suppliesSum;
-      document.getElementById('profit-claim-exp').value = claimSum;
-      document.getElementById('profit-advance-repay').value = repaySum;
-
-      calcNetProfitLive();
-    }
-
-    function calcNetProfitLive() {
-      const revenue = Number(document.getElementById('profit-gross-revenue').value) || 0;
-      const salary = Number(document.getElementById('profit-salary-payout').value) || 0;
-      const supplies = Number(document.getElementById('profit-supplies-exp').value) || 0;
-      const claim = Number(document.getElementById('profit-claim-exp').value) || 0;
-      const repay = Number(document.getElementById('profit-advance-repay').value) || 0;
-
-      // 純利潤 = 總收入 - 步兵出糧 - 當日物資 - 當日Claim錢 + 步兵扣數還款
-      const netProfit = revenue - salary - supplies - claim + repay;
-
-      document.getElementById('profit-final-net').textContent = `HK$ ${netProfit.toFixed(2)}`;
-      document.getElementById('profit-final-net').className = `text-2xl font-black ${netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
-
-      return { revenue, salary, supplies, claim, repay, netProfit };
-    }
-
-    function saveDailyProfitRecord() {
-      const d = document.getElementById('profit-date').value;
-      const calcs = calcNetProfitLive();
-
-      const newRecord = {
-        date: d,
-        grossRevenue: calcs.revenue,
-        salaryPayout: calcs.salary,
-        suppliesExp: calcs.supplies,
-        claimExp: calcs.claim,
-        advanceRepay: calcs.repay,
-        netProfit: calcs.netProfit,
-        timestamp: new Date().toLocaleString()
-      };
-
-      profitRecords = profitRecords.filter(p => p.date !== d);
-      profitRecords.unshift(newRecord);
-      saveData();
-      renderProfitHistoryList();
-      syncSingleRecord('每日利潤核算', newRecord);
-
-      alert(`✅ 成功儲存 [${d}] 營運利潤！\n總純利潤：HK$ ${calcs.netProfit.toFixed(2)}\n已同步至 Google Sheet！`);
-    }
-
-    function renderProfitHistoryList() {
-      const c = document.getElementById('profit-history-list');
-      if (profitRecords.length === 0) {
-        c.innerHTML = '<div class="text-slate-400 text-center py-2">暫無利潤記錄</div>';
-        return;
-      }
-      c.innerHTML = profitRecords.map((p, idx) => `
-        <div class="p-2 bg-emerald-50 border border-emerald-100 rounded-xl flex justify-between items-center shadow-xs">
-          <div>
-            <span class="font-black text-slate-800">[${p.date}] 總收入: $${p.grossRevenue}</span>
-            <span class="font-black ${p.netProfit>=0?'text-emerald-700':'text-rose-600'} ml-1.5">純利: $${p.netProfit.toFixed(2)}</span>
-            <div class="text-slate-500 text-[10px]">出糧:$${p.salaryPayout} | 物資:$${p.suppliesExp} | Claim:$${p.claimExp} | 還款:+$${p.advanceRepay}</div>
-          </div>
-          <button onclick="deleteProfitRecord(${idx})" class="text-rose-500 font-bold text-xs">🗑️</button>
-        </div>
-      `).join('');
-    }
-
-    function deleteProfitRecord(idx) {
-      if (confirm('確定刪除此利潤記錄？')) {
-        profitRecords.splice(idx, 1);
-        saveData();
-        renderProfitHistoryList();
-      }
-    }
-
-    // 💰 詳細分區埋數系統 (升級版)
-    function openModalSettlementDaily() {
-      document.getElementById('settle-date').valueAsDate = new Date();
-      calcSettleRevenueLive();
-      renderSettlementHistory();
-      openModal('modal-settlement-daily');
-    }
-
-    function calcSettleRevenueLive() {
-      const eP = Number(document.getElementById('settle-east-pieces').value) || 0;
-      const eU = Number(document.getElementById('settle-east-unitprice').value) || 0;
-      const indP = Number(document.getElementById('settle-ktind-pieces').value) || 0;
-      const indU = Number(document.getElementById('settle-ktind-unitprice').value) || 0;
-      const lgP = Number(document.getElementById('settle-ktlg-pieces').value) || 0;
-      const lgU = Number(document.getElementById('settle-ktlg-unitprice').value) || 0;
-      const stP = Number(document.getElementById('settle-st-pieces').value) || 0;
-      const stU = Number(document.getElementById('settle-st-unitprice').value) || 0;
-
-      const totalP = eP + indP + lgP + stP;
-      const totalRev = (eP * eU) + (indP * indU) + (lgP * lgU) + (stP * stU);
-
-      document.getElementById('settle-live-revenue-txt').textContent = `${totalP} 票 ➜ HK$ ${totalRev.toFixed(2)}`;
-      return { totalP, totalRev, eP, eU, indP, indU, lgP, lgU, stP, stU };
-    }
-
-    function saveFullDailySettlement() {
-      const calcs = calcSettleRevenueLive();
-      const date = document.getElementById('settle-date').value;
-      const eastRiders = document.getElementById('settle-east-riders').value.trim();
-      const ktIndRiders = document.getElementById('settle-ktind-riders').value.trim();
-      const ktLgRiders = document.getElementById('settle-ktlg-riders').value.trim();
-      const stRiders = document.getElementById('settle-st-riders').value.trim();
-      const claimTotal = Number(document.getElementById('settle-claim-total').value) || 0;
-      const miscExp = Number(document.getElementById('settle-misc-exp').value) || 0;
-      const note = document.getElementById('settle-note').value.trim();
-
-      const newSettle = {
-        date,
-        totalPieces: calcs.totalP,
-        totalRevenue: calcs.totalRev,
-        eastPieces: calcs.eP, eastUnitPrice: calcs.eU, eastRiders,
-        ktIndPieces: calcs.indP, ktIndUnitPrice: calcs.indU, ktIndRiders,
-        ktLgPieces: calcs.lgP, ktLgUnitPrice: calcs.lgU, ktLgRiders,
-        stPieces: calcs.stP, stUnitPrice: calcs.stU, stRiders,
-        claimTotal, miscExp, note,
-        timestamp: new Date().toLocaleString()
-      };
-
-      dailySettlements = dailySettlements.filter(s => s.date !== date);
-      dailySettlements.unshift(newSettle);
-      saveData();
-      renderSettlementHistory();
-      syncSingleRecord('詳細分區埋數', newSettle);
-
-      alert(`✅ 成功儲存 [${date}] 詳細分區埋數！\n總票數：${calcs.totalP} 票\n我方總應收：HK$ ${calcs.totalRev.toFixed(2)}\n已同步至 Google Sheet！`);
-    }
-
-    function renderSettlementHistory() {
-      const c = document.getElementById('settlement-history-list');
-      if (dailySettlements.length === 0) {
-        c.innerHTML = '<div class="text-slate-400 text-center py-2">暫無埋數記錄</div>';
-        return;
-      }
-      c.innerHTML = dailySettlements.map((s, idx) => `
-        <div class="p-2.5 bg-amber-50 border rounded-xl flex justify-between items-center shadow-xs">
-          <div>
-            <span class="font-black text-slate-800">[${s.date}] 總票數: ${s.totalPieces} 票 ➜ 總收: $${s.totalRevenue.toFixed(2)}</span>
-            <div class="text-slate-600 text-[10px]">東區:${s.eastPieces}票 | 工商:${s.ktIndPieces}票 | 麗港:${s.ktLgPieces}票 | 沙田:${s.stPieces}票 | Claim:$${s.claimTotal}</div>
-            <div class="text-slate-400 text-[9px] truncate max-w-sm">步兵: 東(${s.eastRiders||'-'}) | 工(${s.ktIndRiders||'-'}) | 麗(${s.ktLgRiders||'-'})</div>
-          </div>
-          <button onclick="deleteSettlementRecord(${idx})" class="text-rose-500 font-bold text-xs">🗑️</button>
-        </div>
-      `).join('');
-    }
-
-    function deleteSettlementRecord(idx) {
-      if (confirm('確定刪除此埋數記錄？')) {
-        dailySettlements.splice(idx, 1);
-        saveData();
-        renderSettlementHistory();
-      }
-    }
-
-    // 更新全局統計卡片
-    function updateStats() {
-      let totalPieces = 0, totalSalarySum = 0, totalRepay = 0;
-      const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
-
-      dailyReports.filter(r => r.date === today).forEach(r => {
-        totalPieces += Number(r.totalCount || 0);
-        totalSalarySum += Number(r.totalSalary || 0);
-        totalRepay += Number(r.deductAmount || 0);
-      });
-
-      let todayRev = totalPieces * 10;
-      const settle = dailySettlements.find(s => s.date === today);
-      if (settle) todayRev = Number(settle.totalRevenue || 0);
-
-      const net = todayRev - totalSalarySum + totalRepay;
-
-      document.getElementById('statTotalCount').textContent = `${totalPieces} 票`;
-      document.getElementById('statSalaryTotal').textContent = `HK$ ${totalSalarySum.toFixed(2)}`;
-      document.getElementById('statGrossRevenue').textContent = `HK$ ${todayRev.toFixed(2)}`;
-      document.getElementById('statNetProfit').textContent = `HK$ ${net.toFixed(2)}`;
-
-      const tbody = document.getElementById('reportTableBody');
-      if (dailyReports.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400">暫無報數記錄，請使用上方功能欄登記。</td></tr>';
-      } else {
-        tbody.innerHTML = dailyReports.map(r => `
-          <tr class="hover:bg-slate-50 transition font-semibold text-[11px]">
-            <td class="p-3 text-slate-700 whitespace-nowrap">${r.date}</td>
-            <td class="p-3 text-slate-900 font-bold whitespace-nowrap">${r.staff}</td>
-            <td class="p-3 text-slate-600 text-center whitespace-nowrap">東: ${r.eastCount||0} | 麗: ${r.ktLgCount||0} | 工: ${r.ktIndCount||0} | 沙: ${r.stCount||0}</td>
-            <td class="p-3 text-right text-blue-600 font-black whitespace-nowrap">${r.totalCount} 票</td>
-            <td class="p-3 text-right text-amber-700 font-black whitespace-nowrap">HK$ ${Number(r.totalSalary||0).toFixed(2)}</td>
-            <td class="p-3 text-right text-emerald-700 font-black whitespace-nowrap">+$${Number(r.deductAmount||0).toFixed(2)}</td>
-            <td class="p-3 text-center whitespace-nowrap">
-              <button onclick="exportSingleStaffPayslip(${r.id})" class="px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg font-bold hover:bg-emerald-100">📤 匯出工資條</button>
-            </td>
-            <td class="p-3 text-center whitespace-nowrap">
-              <button onclick="deleteReport(${r.id})" class="text-rose-500 hover:text-rose-700 font-bold">刪除</button>
-            </td>
-          </tr>
-        `).join('');
-      }
-    }
-
-    function exportSingleStaffPayslip(reportId) {
-      const r = dailyReports.find(x => x.id === reportId);
-      if (!r) return;
-      const msg = `🧾 【Mia組 - 步兵每日薪酬工資結算核對單】\n========================================\n` +
-                  `👤 人員姓名：${r.staff}\n` +
-                  `📅 派送日期：${r.date}\n` +
-                  `----------------------------------------\n` +
-                  `📦 【派件票數與票價明細】\n` +
-                  `  • 東區：${r.eastCount||0} 票 × $${r.eastPrice||0} = $${((r.eastCount||0)*(r.eastPrice||0)).toFixed(2)}\n` +
-                  `  • 觀塘麗港城：${r.ktLgCount||0} 票 × $${r.ktLgPrice||0} = $${((r.ktLgCount||0)*(r.ktLgPrice||0)).toFixed(2)}\n` +
-                  `  • 觀塘工商區：${r.ktIndCount||0} 票 × $${r.ktIndPrice||0} = $${((r.ktIndCount||0)*(r.ktIndPrice||0)).toFixed(2)}\n` +
-                  `  📊 本日總票數：${r.totalCount} 票\n` +
-                  `----------------------------------------\n` +
-                  `💰 【津貼與獎懲】\n` +
-                  `  • 車津：+$${r.carAllowance||0} | Claim：+$${r.claim||0} | Bonus：+$${r.bonus||0}\n` +
-                  `  • 罰款/工單賠付：-$${r.penalty||0}\n` +
-                  `----------------------------------------\n` +
-                  `💵 【預支與扣數】\n` +
-                  `  • 上期預支：$${r.prevAdvance||0} | 本次預支：$${r.newAdvance||0}\n` +
-                  `  • 本日扣數還款：-$${r.deductAmount||0}\n` +
-                  `  • 最新剩餘預支：$${r.remainAdvance||0}\n` +
-                  `========================================\n` +
-                  `🎯 【當日實發總工資】：HK$ ${Number(r.totalSalary||0).toFixed(2)}\n` +
-                  `========================================\n請核對以上票數及薪金！💪`;
-
-      document.getElementById('export-modal-title').textContent = `🧾 ${r.staff} - 薪酬工資條核對單`;
-      document.getElementById('universal-export-textarea').value = msg;
-      openModal('modal-universal-export');
-    }
-
-    function openUniversalExportModal(type) {
-      const today = document.getElementById('global-system-date').value || '2026-08-16';
-      let title = '📤 資料匯出', msg = '';
-
-      if (type === 'profit_report') {
-        title = '📈 每日營運利潤總報表 (WhatsApp 格式)';
-        msg = `📈 【Mia組 - 每日營運淨利潤總表】(${today})\n========================================\n`;
-        const p = profitRecords.find(x => x.date === today) || { grossRevenue: 0, salaryPayout: 0, suppliesExp: 0, claimExp: 0, advanceRepay: 0, netProfit: 0 };
-        msg += `➕ 當天總收入：HK$ ${Number(p.grossRevenue).toFixed(2)}\n` +
-               `➖ 步兵出糧總額：-HK$ ${Number(p.salaryPayout).toFixed(2)}\n` +
-               `➖ 當日物資支出：-HK$ ${Number(p.suppliesExp).toFixed(2)}\n` +
-               `➖ 當日Claim報銷：-HK$ ${Number(p.claimExp).toFixed(2)}\n` +
-               `➕ 步兵扣數還款：+HK$ ${Number(p.advanceRepay).toFixed(2)}\n` +
-               `========================================\n` +
-               `🎯 【當日純利潤 (Net Profit)】：HK$ ${Number(p.netProfit).toFixed(2)}\n` +
-               `========================================\n營運數據每日按時結算！💪`;
-      } else if (type === 'daily_settlement') {
-        title = '💰 詳細分區埋數報表';
-        msg = `💰 【Mia組 - 每日詳細分區埋數表】(${today})\n========================================\n`;
-        dailySettlements.forEach(s => {
-          msg += `📅 日期: ${s.date}\n` +
-                 `  • 東區: ${s.eastPieces} 票 ($${s.eastUnitPrice}/票) ➜ 步兵: ${s.eastRiders||'-'}\n` +
-                 `  • 觀塘工商: ${s.ktIndPieces} 票 ($${s.ktIndUnitPrice}/票) ➜ 步兵: ${s.ktIndRiders||'-'}\n` +
-                 `  • 觀塘麗港城: ${s.ktLgPieces} 票 ($${s.ktLgUnitPrice}/票) ➜ 步兵: ${s.ktLgRiders||'-'}\n` +
-                 `  • 沙田F58: ${s.stPieces} 票 ($${s.stUnitPrice}/票) ➜ 步兵: ${s.stRiders||'-'}\n` +
-                 `  📊 總票數: ${s.totalPieces} 票 | 總應收: HK$ ${Number(s.totalRevenue).toFixed(2)}\n` +
-                 `  🧾 總Claim報銷: $${s.claimTotal} | 雜費: $${s.miscExp}\n` +
-                 `  📝 備註: ${s.note || '-'}\n----------------------------------------\n`;
-        });
-      }
-
-      document.getElementById('export-modal-title').textContent = title;
-      document.getElementById('universal-export-textarea').value = msg;
-      openModal('modal-universal-export');
-    }
-
-    function copyUniversalWhatsAppText() {
-      const txt = document.getElementById('universal-export-textarea');
-      txt.select();
-      navigator.clipboard.writeText(txt.value);
-      alert('✅ 已成功複製 WhatsApp 格式報表！');
-    }
-
-    function deleteReport(id) {
-      if (confirm('確定刪除此筆報數？')) {
-        dailyReports = dailyReports.filter(r => r.id !== id);
-        saveData();
-      }
-    }
-
-    function clearReports() {
-      if (confirm('確定清空今日所有報數？')) {
-        dailyReports = [];
-        saveData();
-      }
-    }
-
-    function saveSupplyRecord() {
-      const date = document.getElementById('supply-date').value;
-      const name = document.getElementById('supply-name').value.trim();
-      const qty = Number(document.getElementById('supply-qty').value) || 1;
-      const price = Number(document.getElementById('supply-price').value) || 0;
-      const buyer = document.getElementById('supply-buyer').value.trim() || 'Mia';
-      if (!name) return alert('請填寫物資名稱！');
-      suppliesList.unshift({ date, name, qty, price, buyer });
-      saveData();
-      alert(`✅ 成功登記物資【${name}】！`);
-      document.getElementById('supply-name').value = '';
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('global-system-date').valueAsDate = new Date();
-      updateStats();
-    });
-  </script>
-</body>
-</html>
+function doGet(e) {
+  return doPost(e);
+}
