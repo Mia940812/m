@@ -611,7 +611,38 @@
       localStorage.setItem(DB_KEY + 'SHIFTS', JSON.stringify(shiftReports));
     }
 
-    async function saveData() {
+    async function saveData() {async function saveData() {
+  // 1. 先寫入本地快取防斷線
+  saveLocalData();
+
+  // 2. 檢查 Google Apps Script 網址
+  const scriptUrl = 'https://script.google.com/macros/s/AKfycby-RG2KUcGLCVVLxEK2zfpZXwilMJc_IpzXN4-ZMCijD2stGsPZxAkb3d-VFVOsqkrUPw/exec';
+
+  const payload = {
+    zoneFences: zoneFences,
+    accounts: accounts,
+    zoneAssigns: zoneAssigns,
+    zoneFenceCounts: zoneFenceCounts,
+    truckRoutes: truckRoutes,
+    shiftReports: shiftReports
+  };
+
+  // 3. 逐個 key 實時推送到 Google Sheet
+  try {
+    for (const [key, val] of Object.entries(payload)) {
+      await fetch(scriptUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ key: key, data: val }),
+        mode: 'no-cors'
+      });
+    }
+    console.log('[Cloud Sync] 全部數據已成功送至 Google Sheet');
+  } catch (err) {
+    console.error('[Cloud Sync Error]:', err);
+  }
+}
+
       saveLocalData();
       if (!GOOGLE_SCRIPT_URL) return;
       try {
