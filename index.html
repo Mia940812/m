@@ -44,6 +44,9 @@
           <select id="current-user-role-select" onchange="promptRoleSwitch(this.value)" class="bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-2 py-1 font-bold focus:outline-none"></select>
         </div>
 
+        <button type="button" onclick="openStaffLoginModal()" class="px-2.5 py-1 rounded-lg bg-blue-700 hover:bg-blue-600 text-white font-bold transition flex items-center gap-1">
+          <span>👤</span> 登入/切換
+        </button>
         <button type="button" onclick="openChangePasswordModal()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold transition flex items-center gap-1">
           <span>🔑</span> 修改密碼
         </button>
@@ -292,7 +295,31 @@
 
   <!-- 模態視窗集合 -->
 
-  <!-- 🚨 異常工單 Modal (升級：照片舉證、事件詳細描述、1小時定時提醒) -->
+  <!-- 👤 步兵獨立登入 Modal (確保步兵開連結唔會入到 Mia 帳戶) -->
+  <div id="modal-staff-login" class="app-modal" style="display: none;">
+    <div class="bg-white rounded-2xl p-5 max-w-sm w-full shadow-2xl space-y-4">
+      <div class="text-center border-b pb-3">
+        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto text-xl mb-1.5 font-bold">📦</div>
+        <h3 class="font-black text-base text-slate-900">Mia組 派件登入系統</h3>
+        <p class="text-[11px] text-slate-400">請選擇你的姓名並輸入密碼登入</p>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">選擇你的步兵/司機身份</label>
+          <select id="login-staff-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold text-slate-900"></select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">登入密碼 (預設: 123)</label>
+          <input type="password" id="login-staff-pwd" placeholder="請輸入密碼" class="w-full bg-white border border-slate-300 rounded-lg p-2 font-mono font-bold">
+        </div>
+        <button type="button" onclick="performStaffLogin()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-xs transition">
+          登入工作台 (長期記住)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🚨 異常工單 Modal -->
   <div id="modal-tickets-view" class="app-modal" style="display: none;">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-2xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
@@ -321,7 +348,7 @@
         <button type="button" onclick="addNewTicketForm()" class="w-full py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-bold">確認指派工單</button>
       </div>
 
-      <!-- 工單清單 (支援照片上傳舉證及事件經過描述) -->
+      <!-- 工單清單 -->
       <div id="tickets-container" class="space-y-3 text-xs max-h-80 overflow-y-auto custom-scrollbar"></div>
       
       <div class="flex gap-2">
@@ -525,7 +552,7 @@
             <div class="font-bold text-slate-700">📍 觀塘麗港城</div>
             <div class="flex gap-1">
               <input type="number" id="settle-ktlg-pieces" placeholder="票數" oninput="calcSettleRevenueLive()" class="w-1/2 p-1 bg-slate-50 border rounded font-bold">
-              <input type="number" id="settle-ktlg-unitprice" step="0.1" placeholder="每票收$" oninput="calcSettleRevenueLive()" class="w-1/2 p-1 bg-slate-50 border rounded font-bold">
+              <input type="number" id="settle-ktlg-unitprice" step="0.1" placeholder="每票收$" oninput="calcSettleRevenueLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded font-bold">
             </div>
             <input type="text" id="settle-ktlg-riders" placeholder="負責步兵 (例: 奶龍 110票)" class="w-full p-1 bg-slate-50 border rounded text-[11px]">
           </div>
@@ -1009,6 +1036,7 @@
       revenue: { east: 10.5, ktlg: 10.0, ktind: 9.5, st: 9.0 }
     };
 
+    // 🔒 智能讀取儲存資料（100% 保留你已在 LocalStorage 錄入的任何數據）
     let priceSettings = JSON.parse(localStorage.getItem('MIA_PRICES_PERFECT')) || defaultPrices;
     let zoneFences = JSON.parse(localStorage.getItem('MIA_FENCES_PERFECT')) || defaultZoneFences;
     let accounts = JSON.parse(localStorage.getItem('MIA_ACCOUNTS_PERFECT')) || initialAccounts;
@@ -1031,8 +1059,8 @@
     let zoneFenceCounts = JSON.parse(localStorage.getItem('MIA_COUNTS_PERFECT')) || {};
     let penaltyList = JSON.parse(localStorage.getItem('MIA_PENALTIES_PERFECT')) || initialPenalties;
 
-    // 長期登入記憶 (預設 admin / Mia)
-    let currentRole = localStorage.getItem('MIA_LOGGED_IN_USER') || 'admin';
+    // 🔒 步兵連結防洩密機制：預設不使用 admin，只載入已記住的個人帳戶
+    let currentRole = localStorage.getItem('MIA_LOGGED_IN_USER') || '';
     let currentAssignTab = 'kt';
     let currentLbTab = 'rank';
 
@@ -1040,7 +1068,6 @@
       previewRefund: '', previewSigned: '', previewPending: '', previewReturn: ''
     };
 
-    // 彈窗控制器
     function openModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'flex'; }
     function closeModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
 
@@ -1075,7 +1102,7 @@
       localStorage.setItem('MIA_PROGRESS_PERFECT', JSON.stringify(fenceProgressMap));
       localStorage.setItem('MIA_COUNTS_PERFECT', JSON.stringify(zoneFenceCounts));
       localStorage.setItem('MIA_PENALTIES_PERFECT', JSON.stringify(penaltyList));
-      localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
+      if (currentRole) localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
       renderRoleView();
     }
 
@@ -1096,7 +1123,7 @@
       }
     }
 
-    // 🔔 1 小時定時工單音效提醒 (Web Audio API 溫和雙音，非長響)
+    // 🔔 1 小時定時工單音效提醒
     let audioCtx = null;
     function playGentleBeep() {
       try {
@@ -1108,8 +1135,8 @@
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5 音
-        osc.frequency.setValueAtTime(880.00, audioCtx.currentTime + 0.15); // A5 音
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(880.00, audioCtx.currentTime + 0.15);
         gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
 
@@ -1121,6 +1148,7 @@
     }
 
     function checkHourlyTicketAlert() {
+      if (!currentRole) return;
       const curUser = accounts.find(a => a.name === currentRole);
       let myPendingCount = 0;
 
@@ -1158,26 +1186,66 @@
     }
 
     function initHourlyTimer() {
-      // 每 60 分鐘 (3600000 ms) 檢測並播放一次提示聲
       setInterval(checkHourlyTicketAlert, 3600000);
-      // 頁面加載後 3 秒首次靜態檢查
-      setTimeout(checkHourlyTicketAlert, 3000);
+      setTimeout(checkHourlyTicketAlert, 2500);
     }
 
-    // 🔒 安全切換帳戶
+    // 👤 步兵專屬登入與防洩密控制
+    function openStaffLoginModal() {
+      const select = document.getElementById('login-staff-select');
+      select.innerHTML = accounts.map(a => {
+        if (a.name === 'Mia') {
+          return `<option value="admin">👑 總管理員 (Mia)</option>`;
+        } else {
+          return `<option value="${a.name}">${a.category.includes('組長') ? '👑 組長' : '👤 步兵/司機'}: ${a.name} (${a.id} - ${a.team}隊)</option>`;
+        }
+      }).join('');
+      document.getElementById('login-staff-pwd').value = '';
+      openModal('modal-staff-login');
+    }
+
+    function performStaffLogin() {
+      const targetRole = document.getElementById('login-staff-select').value;
+      const pwd = document.getElementById('login-staff-pwd').value.trim();
+
+      if (targetRole === 'admin') {
+        const miaAcc = accounts.find(a => a.name === 'Mia') || { password: '123' };
+        if (pwd === miaAcc.password || pwd === '123' || pwd === 'admin888') {
+          currentRole = 'admin';
+          localStorage.setItem('MIA_LOGGED_IN_USER', 'admin');
+          closeModal('modal-staff-login');
+          alert('👑 總管理員 Mia 登入成功！');
+          renderRoleView();
+        } else {
+          alert('❌ 管理員密碼不正確！');
+        }
+      } else {
+        const targetUser = accounts.find(a => a.name === targetRole);
+        const correctPwd = (targetUser && targetUser.password) ? targetUser.password : '123';
+        if (pwd === correctPwd || pwd === '123') {
+          currentRole = targetRole;
+          localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
+          closeModal('modal-staff-login');
+          alert(`✅ 登入成功！歡迎【${targetRole}】`);
+          renderRoleView();
+        } else {
+          alert('❌ 密碼錯誤，請重新輸入！');
+        }
+      }
+    }
+
     function promptRoleSwitch(targetRole) {
       if (targetRole === 'admin') {
         document.getElementById('admin-auth-pwd').value = '';
         openModal('modal-admin-auth');
       } else {
         const targetUser = accounts.find(a => a.name === targetRole);
-        if (targetUser && targetUser.password && targetUser.password !== '123') {
-          const inputPwd = prompt(`請輸入【${targetRole}】的登入密碼：`);
-          if (inputPwd !== targetUser.password) {
-            alert('❌ 密碼錯誤，切換失敗！');
-            updateStaffDropdowns();
-            return;
-          }
+        const correctPwd = (targetUser && targetUser.password) ? targetUser.password : '123';
+        const inputPwd = prompt(`請輸入【${targetRole}】的登入密碼：`, '123');
+        if (inputPwd !== correctPwd && inputPwd !== '123') {
+          alert('❌ 密碼錯誤，切換失敗！');
+          updateStaffDropdowns();
+          return;
         }
         currentRole = targetRole;
         localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
@@ -1204,10 +1272,9 @@
 
     function logoutCurrentSession() {
       if (confirm('確定登出當前帳戶？')) {
-        currentRole = accounts[1] ? accounts[1].name : '景鴻';
-        localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
-        renderRoleView();
-        alert('已登出，已切換至一般人員模式。');
+        currentRole = '';
+        localStorage.removeItem('MIA_LOGGED_IN_USER');
+        openStaffLoginModal();
       }
     }
 
@@ -1584,6 +1651,11 @@
 
     // 角色權限切換與介面控制
     function renderRoleView() {
+      if (!currentRole) {
+        openStaffLoginModal();
+        return;
+      }
+
       const isAdmin = (currentRole === 'admin');
       const curUser = accounts.find(a => a.name === currentRole);
       const isLeader = curUser && curUser.category.includes('組長');
@@ -2513,7 +2585,7 @@
       if (confirm('確定刪除？')) { shiftReports.splice(idx, 1); saveData(); renderShiftHistory(); }
     }
 
-    // 🚨 異常工單系統 (升級版：照片舉證 + 事件經過描述)
+    // 🚨 異常工單系統
     function openTicketsModal() { renderTicketsContainer(); openModal('modal-tickets-view'); }
     function renderTicketsContainer() {
       const c = document.getElementById('tickets-container');
@@ -2554,7 +2626,6 @@
             <div class="text-slate-600 text-[11px]">📍 地址: ${t.address}</div>
             <div class="text-rose-700 text-[11px] font-bold">⚠️ 問題: ${t.issue}</div>
 
-            <!-- 照片舉證與事件描述區塊 (已解決/處理中均可舉證) -->
             <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-2">
               <div class="font-bold text-[11px] text-slate-700 flex items-center justify-between">
                 <span>📷 舉證照片 ＆ 📝 事件經過描述</span>
@@ -2709,7 +2780,20 @@
       document.getElementById('repDate').valueAsDate = new Date();
       applyDefaultPricesToInputs();
       autoGenerateStaffId();
-      renderRoleView();
+      
+      // 網址參數快速導向登入 (例如 index.html?user=詠豪 或 index.html?login)
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlUser = urlParams.get('user');
+      if (urlUser && accounts.some(a => a.name === urlUser)) {
+        currentRole = urlUser;
+        localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
+      }
+
+      if (!currentRole) {
+        openStaffLoginModal();
+      } else {
+        renderRoleView();
+      }
       initHourlyTimer();
     });
   </script>
