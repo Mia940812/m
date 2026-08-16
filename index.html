@@ -579,6 +579,41 @@
     let isCloudLoaded = false; // 防空白覆蓋旗標
 
     async function loadCloudData() {
+  const loadingEl = document.getElementById('cloud-loading-overlay') || document.querySelector('.loading-overlay');
+  
+  // 建立 2.5 秒超時機制，超時即刻解鎖畫面
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('連線超時，使用本地快取')), 2500)
+  );
+
+  try {
+    if (!GOOGLE_SCRIPT_URL) throw new Error('未設定 URL');
+
+    const fetchPromise = fetch(GOOGLE_SCRIPT_URL);
+    const res = await Promise.race([fetchPromise, timeoutPromise]);
+    const data = await res.json();
+
+    if (data && typeof data === 'object') {
+      if (data.zoneFences) zoneFences = data.zoneFences;
+      if (data.accounts) accounts = data.accounts;
+      if (data.zoneAssigns) zoneAssigns = data.zoneAssigns;
+      if (data.zoneFenceCounts) zoneFenceCounts = data.zoneFenceCounts;
+      if (data.truckRoutes) truckRoutes = data.truckRoutes;
+      if (data.shiftReports) shiftReports = data.shiftReports;
+      console.log('[Cloud] 雲端資料載入成功');
+    }
+  } catch (err) {
+    console.warn('[Cloud] 雲端連線失敗或超時，已無縫切換本地快取:', err);
+  } finally {
+    // 無論成功定失敗，一律即刻解鎖畫面
+    if (typeof isCloudLoaded !== 'undefined') isCloudLoaded = true;
+    if (loadingEl) loadingEl.style.display = 'none';
+    if (typeof renderAll === 'function') renderAll();
+    if (typeof renderTruckRoutes === 'function') renderTruckRoutes();
+    if (typeof renderFences === 'function') renderFences();
+  }
+}
+
       if (!GOOGLE_SCRIPT_URL) return;
       try {
         const resp = await fetch(GOOGLE_SCRIPT_URL);
