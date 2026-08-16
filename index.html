@@ -24,7 +24,7 @@
         <div class="px-3 py-1 bg-blue-600 rounded-xl font-black text-sm tracking-wider shadow-sm">Mia組</div>
         <div>
           <div class="text-xs font-black text-white">派件營運全功能工作台</div>
-          <div class="text-[10px] text-emerald-400 font-bold">● 系統在線 ｜ 東區 41 圍欄 ｜ 觀塘 ｜ 沙田</div>
+          <div id="cloud-status-badge" class="text-[10px] text-emerald-400 font-bold">☁️ Google Sheet 雲端同步連線中...</div>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -34,7 +34,7 @@
     </div>
   </header>
 
-  <!-- 🌟 11 個功能入口快捷導航欄 -->
+  <!-- 11 個功能入口快捷導航欄 -->
   <nav class="bg-white border-b border-slate-200 shadow-sm sticky top-[57px] z-30">
     <div class="max-w-7xl mx-auto px-4 py-2 flex items-center gap-2 overflow-x-auto no-scrollbar text-xs font-bold">
       <button onclick="openUniversalExportModal('shift_truck')" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white whitespace-nowrap shadow-sm flex items-center gap-1">
@@ -102,7 +102,7 @@
     <!-- 派件報數輸入表單 -->
     <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
       <h2 class="text-sm font-black text-slate-900 mb-3.5 flex items-center gap-2">
-        <span class="w-2 h-4 bg-blue-600 rounded-full"></span> 提交派件報數紀錄
+        <span class="w-2 h-4 bg-blue-600 rounded-full"></span> 提交派件報數紀錄 (實時同步 Google Sheet)
       </h2>
       <form onsubmit="saveDailyReport(event)" class="grid grid-cols-1 sm:grid-cols-5 gap-3">
         <div>
@@ -127,7 +127,7 @@
         </div>
         <div class="flex items-end">
           <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-black rounded-2xl text-xs shadow-md shadow-blue-600/20 transition">
-            儲存報數
+            儲存並同步 Google
           </button>
         </div>
       </form>
@@ -254,7 +254,7 @@
         <input id="shift-time-inp" type="time" value="09:00" class="w-full border rounded-xl p-2.5 font-bold">
         <label class="font-bold block text-slate-700">負責圍欄 / 備註</label>
         <input id="shift-fence-inp" type="text" placeholder="例如：03E 或 麗港城" class="w-full border rounded-xl p-2.5 font-semibold">
-        <button onclick="submitShiftReport()" class="w-full py-3 bg-emerald-600 text-white rounded-2xl font-bold">確認提交報更</button>
+        <button onclick="submitShiftReport()" class="w-full py-3 bg-emerald-600 text-white rounded-2xl font-bold">確認提交報更 (同步 Google)</button>
       </div>
       <button onclick="closeModal('modal-shift-reporting')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
     </div>
@@ -281,7 +281,7 @@
           <input id="truck-order-inp" type="text" placeholder="車次 (例: 早班)" class="w-full bg-white border rounded-xl p-2 font-bold">
         </div>
         <select id="truck-fence-inp" class="w-full bg-white border rounded-xl p-2 font-bold"></select>
-        <button onclick="saveTruckRouteForm()" class="w-full py-2 bg-orange-600 text-white rounded-xl font-bold">儲存車線</button>
+        <button onclick="saveTruckRouteForm()" class="w-full py-2 bg-orange-600 text-white rounded-xl font-bold">儲存車線 (同步 Google)</button>
       </div>
       <div id="truck-list" class="space-y-2 text-xs"></div>
       <button onclick="closeModal('modal-truck-routes')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
@@ -343,8 +343,10 @@
     </div>
   </div>
 
-  <!-- JavaScript 核心引擎 -->
+  <!-- JavaScript 核心引擎 (完全打通 Google Apps Script) -->
   <script>
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-RG2KUcGLCVVLxEK2zfpZXwilMJc_IpzXN4-ZMCijD2stGsPZxAkb3d-VFVOsqkrUPw/exec';
+
     const defaultZoneFences = {
       kt: [
         { id: '01E', name: '01E Koko Hills' }, { id: '02E', name: '02E 觀塘工商區1號' }, { id: '03E', name: '03E 觀塘工商區2號' },
@@ -405,6 +407,22 @@
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
+    // 實時推送到 Google Sheet
+    async function syncToGoogleSheet(key, data) {
+      if (!GOOGLE_SCRIPT_URL) return;
+      try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ key: key, data: data }),
+          mode: 'no-cors'
+        });
+        console.log(`[Google Sync] ${key} 已成功送達 Google Apps Script`);
+      } catch (err) {
+        console.warn(`[Google Sync Error] ${key}:`, err);
+      }
+    }
+
     function saveData() {
       localStorage.setItem('MIA_FENCES_V7', JSON.stringify(zoneFences));
       localStorage.setItem('MIA_ACCOUNTS_V7', JSON.stringify(accounts));
@@ -414,6 +432,38 @@
       localStorage.setItem('MIA_SHIFTS_V7', JSON.stringify(shiftReports));
       localStorage.setItem('MIA_DAILY_REPORTS_V7', JSON.stringify(dailyReports));
       updateStats();
+
+      // 背景同步全盤數據至 Google Sheet
+      syncToGoogleSheet('zoneFences', zoneFences);
+      syncToGoogleSheet('zoneAssigns', zoneAssignments);
+      syncToGoogleSheet('truckRoutes', truckRoutes);
+      syncToGoogleSheet('dailyReports', dailyReports);
+    }
+
+    async function loadCloudData() {
+      const badge = document.getElementById('cloud-status-badge');
+      try {
+        if (GOOGLE_SCRIPT_URL) {
+          const res = await Promise.race([
+            fetch(GOOGLE_SCRIPT_URL),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2500))
+          ]);
+          const data = await res.json();
+          if (data && typeof data === 'object') {
+            if (data.zoneFences) zoneFences = data.zoneFences;
+            if (data.accounts) accounts = data.accounts;
+            if (data.zoneAssigns) zoneAssignments = data.zoneAssigns;
+            if (data.zoneFenceCounts) zoneFenceCounts = data.zoneFenceCounts;
+            if (data.truckRoutes) truckRoutes = data.truckRoutes;
+            if (data.shiftReports) shiftReports = data.shiftReports;
+            if (data.dailyReports) dailyReports = data.dailyReports;
+            saveData();
+            if (badge) badge.innerText = '☁️ Google Sheet 雲端實時同步中';
+          }
+        }
+      } catch (e) {
+        if (badge) badge.innerText = '☁️ 離線極速模式 (已就緒)';
+      }
     }
 
     function resetSystemData() {
@@ -429,10 +479,7 @@
     }
 
     // 1- 圍欄管理
-    function openModal1() {
-      renderZoneFencesList();
-      openModal('modal-fences-zone');
-    }
+    function openModal1() { renderZoneFencesList(); openModal('modal-fences-zone'); }
     function renderZoneFencesList() {
       const container = document.getElementById('m1-fences-container');
       container.innerHTML = '';
@@ -513,7 +560,7 @@
     }
     function saveModal3() {
       (zoneFences.kt || []).forEach(f => { zoneFenceCounts[f.id] = Number(document.getElementById(`inp-zcount-${f.id}`).value) || 0; });
-      saveData(); alert('✅ 觀塘貨量已儲存！'); closeModal('modal-kt-counts');
+      saveData(); syncToGoogleSheet('zoneFenceCounts', zoneFenceCounts); alert('✅ 觀塘貨量已儲存並同步！'); closeModal('modal-kt-counts');
     }
 
     function openModal4() {
@@ -526,7 +573,7 @@
     }
     function saveModal4() {
       (zoneFences.east || []).forEach(f => { zoneFenceCounts[f.id] = Number(document.getElementById(`inp-zcount-${f.id}`).value) || 0; });
-      saveData(); alert('✅ 東區貨量已儲存！'); closeModal('modal-east-counts');
+      saveData(); syncToGoogleSheet('zoneFenceCounts', zoneFenceCounts); alert('✅ 東區貨量已儲存並同步！'); closeModal('modal-east-counts');
     }
 
     function openModalStCounts() {
@@ -539,7 +586,7 @@
     }
     function saveModalStCounts() {
       (zoneFences.st || []).forEach(f => { zoneFenceCounts[f.id] = Number(document.getElementById(`inp-zcount-${f.id}`).value) || 0; });
-      saveData(); alert('✅ 沙田貨量已儲存！'); closeModal('modal-st-counts');
+      saveData(); syncToGoogleSheet('zoneFenceCounts', zoneFenceCounts); alert('✅ 沙田貨量已儲存並同步！'); closeModal('modal-st-counts');
     }
 
     // 5- 報更
@@ -549,7 +596,7 @@
       const time = document.getElementById('shift-time-inp').value;
       const fence = document.getElementById('shift-fence-inp').value;
       shiftReports.unshift({ name, time, fence });
-      saveData(); alert('✅ 報更已成功提交！'); closeModal('modal-shift-reporting');
+      saveData(); syncToGoogleSheet('shiftReports', shiftReports); alert('✅ 報更已成功提交並同步至 Google Sheet！'); closeModal('modal-shift-reporting');
     }
 
     // 8- 車線調度
@@ -572,7 +619,7 @@
       const fence = document.getElementById('truck-fence-inp').value;
       if (!driver) return alert('請填寫司機姓名！');
       truckRoutes.push({ driver, time, fence });
-      saveData(); openModal8();
+      saveData(); syncToGoogleSheet('truckRoutes', truckRoutes); openModal8();
     }
 
     // 9- 埋數/物資
@@ -644,7 +691,7 @@
       closeModal('modal-add-rider');
     }
 
-    // 每日即時報數系統
+    // 每日即時報數系統 (實時推送到 Google Apps Script)
     function saveDailyReport(e) {
       e.preventDefault();
       const date = document.getElementById('repDate').value;
@@ -654,9 +701,11 @@
 
       dailyReports.unshift({ id: Date.now(), date, area, staff, count });
       saveData();
+      syncToGoogleSheet('dailyReports', dailyReports);
+
       document.getElementById('repStaff').value = '';
       document.getElementById('repCount').value = '';
-      alert('✅ 報數已成功登記！');
+      alert('✅ 報數已成功登記並同步至 Google Sheet！');
     }
 
     function deleteReport(id) {
@@ -710,6 +759,7 @@
       document.getElementById('global-system-date').valueAsDate = new Date();
       document.getElementById('repDate').valueAsDate = new Date();
       updateStats();
+      loadCloudData();
     });
   </script>
 </body>
