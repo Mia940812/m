@@ -76,14 +76,22 @@
       const badge = document.getElementById('role-display-badge');
       if (badge) {
         if (currentRole === 'admin') {
-          badge.textContent = '👑 總管理員 (Mia)';
-          badge.className = 'px-1.5 py-0.5 rounded text-[10px] bg-blue-900/80 text-blue-300 border border-blue-700 font-semibold';
+          badge.innerHTML = '👑 總管理員 (Mia) <input type="text" id="manual-role-input" placeholder="切換/輸入帳號" onchange="handleManualRoleInput(this.value)" class="ml-2 px-1.5 py-0.5 text-[10px] text-slate-800 bg-white border border-slate-300 rounded focus:outline-none w-28">';
         } else {
-          badge.textContent = `👤 帳戶: ${currentRole}`;
-          badge.className = 'px-1.5 py-0.5 rounded text-[10px] bg-emerald-900/80 text-emerald-300 border border-emerald-700 font-semibold';
+          badge.innerHTML = `👤 帳戶: <input type="text" id="manual-role-input" value="${currentRole}" placeholder="輸入帳號" onchange="handleManualRoleInput(this.value)" class="ml-1 px-1.5 py-0.5 text-[10px] text-slate-800 bg-white border border-slate-300 rounded focus:outline-none w-28">`;
         }
+        const inp = document.getElementById('manual-role-input');
+        if (inp && currentRole !== 'admin') inp.value = currentRole;
       }
       updateStaffDropdowns();
+    }
+
+    function handleManualRoleInput(val) {
+      const trimmed = val.trim();
+      if (!trimmed) return;
+      currentRole = trimmed;
+      renderRoleView();
+      if (typeof renderAll === 'function') renderAll();
     }
 
     function updateStaffDropdowns() {
