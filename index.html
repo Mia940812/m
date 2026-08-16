@@ -8,36 +8,33 @@
 </head>
 <body class="bg-slate-100 text-slate-800 antialiased font-sans">
 
-  <!-- 🔐 系統登入遮罩 Modal (新添加) -->
+  <!-- 🔐 系統登入遮罩 Modal -->
   <div id="modal-system-login" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-200">
       <div class="bg-slate-900 text-white p-6 text-center relative">
         <div class="w-12 h-12 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-xl font-black mb-3 shadow-lg shadow-blue-500/30">📦</div>
         <h2 class="text-lg font-black tracking-wide">Mia組 派件營運工作台</h2>
-        <p class="text-xs text-slate-400 mt-1">請輸入帳號與密碼以繼續操作</p>
+        <p class="text-xs text-slate-400 mt-1">請輸入姓名與密碼以繼續</p>
       </div>
       <form onsubmit="handleSystemLogin(event)" class="p-6 space-y-4">
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1.5">帳號名稱 (Account)</label>
-          <input type="text" id="login-username-input" required placeholder="例如: admin 或 組員名字" 
+          <label class="block text-xs font-bold text-slate-600 mb-1.5">組員名稱</label>
+          <input type="text" id="login-username-input" required placeholder="請輸入姓名 (例如: 詠豪)" 
                  class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition">
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1.5">密碼 (Password)</label>
+          <label class="block text-xs font-bold text-slate-600 mb-1.5">密碼</label>
           <input type="password" id="login-password-input" required placeholder="請輸入密碼" 
                  class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition">
         </div>
-        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-black rounded-xl text-sm shadow-md shadow-blue-600/20 transition">
-          立即登入系統
+        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-black rounded-xl text-sm shadow-md transition">
+          進入工作台
         </button>
-        <div class="text-[11px] text-slate-400 text-center mt-2">
-          提示：管理員預設帳號 <span class="font-mono text-slate-600 font-bold">admin</span> / 密碼 <span class="font-mono text-slate-600 font-bold">123456</span>
-        </div>
       </form>
     </div>
   </div>
 
-  <!-- 頂部導覽列與管理員控制 -->
+  <!-- 頂部導覽列 -->
   <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center space-x-3">
@@ -50,399 +47,69 @@
           </div>
         </div>
       </div>
-      <div class="flex items-center space-x-2">
-        <input type="date" id="global-system-date" class="px-2.5 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs font-bold text-white focus:outline-none">
-      </div>
     </div>
   </header>
 
-  <!-- 主要內容區 -->
-  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
-    <!-- 數據概覽卡片 -->
-    <div id="dashboard-summary-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <!-- 動態生成 -->
-    </div>
-
-    <!-- 報數與結算表格區 -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
-      <div class="flex items-center justify-between flex-wrap gap-3">
-        <h3 class="text-sm font-black text-slate-900">📋 團隊日常派件報數與工資結算紀錄</h3>
-        <div class="flex items-center space-x-2">
-          <button type="button" onclick="clearReports()" class="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-xl text-xs font-bold transition admin-lock-tag">清空全部</button>
-        </div>
-      </div>
-
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-slate-50 text-slate-400 text-[11px] font-black uppercase tracking-wider border-b border-slate-200">
-              <th class="p-3">日期</th>
-              <th class="p-3">派件員</th>
-              <th class="p-3 text-center">各區票數 (東/九龍長/九龍工/沙田)</th>
-              <th class="p-3 text-right">總票數</th>
-              <th class="p-3 text-right">應發工資</th>
-              <th class="p-3 text-center">轉賬狀態</th>
-              <th class="p-3 text-center">工資條</th>
-              <th class="p-3 text-center admin-only-col">操作</th>
-            </tr>
-          </thead>
-          <tbody id="reportTableBody" class="divide-y divide-slate-100 text-xs font-medium">
-            <!-- 動態生成 -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- 快速報數表單 -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
-      <h3 class="text-sm font-black text-slate-900">📝 新增當日派件與工資結算</h3>
-      <form onsubmit="saveFullDailyReport(event)" class="space-y-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">選擇日期</label>
-            <input type="date" id="repDate" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">選擇派件員</label>
-            <select id="repStaffSelect" onchange="onStaffSelectChange(this.value)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
-              <!-- 動態生成 -->
-            </select>
-            <div id="staff-price-badge" class="text-[10px] text-blue-600 font-bold mt-1"></div>
-          </div>
-        </div>
-
-        <!-- 票數輸入 -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">東區票數</label>
-            <div class="flex space-x-1">
-              <input type="number" id="repEastCount" value="0" oninput="calcSalaryLive()" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold">
-              <input type="hidden" id="repEastPrice" value="10">
-            </div>
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">九龍長沙灣票數</label>
-            <div class="flex space-x-1">
-              <input type="number" id="repKtLgCount" value="0" oninput="calcSalaryLive()" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold">
-              <input type="hidden" id="repKtLgPrice" value="10">
-            </div>
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">九龍工業票數</label>
-            <div class="flex space-x-1">
-              <input type="number" id="repKtIndCount" value="0" oninput="calcSalaryLive()" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold">
-              <input type="hidden" id="repKtIndPrice" value="10">
-            </div>
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">沙田票數</label>
-            <div class="flex space-x-1">
-              <input type="number" id="repStCount" value="0" oninput="calcSalaryLive()" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold">
-              <input type="hidden" id="repStPrice" value="12">
-            </div>
-          </div>
-        </div>
-
-        <!-- 額外津貼與扣款 -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">車費津貼 (Car)</label>
-            <input type="number" id="repCarAllowance" value="0" oninput="calcSalaryLive()" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">額外報銷 (Claim)</label>
-            <input type="number" id="repClaim" value="0" oninput="calcSalaryLive()" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">獎金 (Bonus)</label>
-            <input type="number" id="repBonus" value="0" oninput="calcSalaryLive()" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">罰款 (Penalty)</label>
-            <input type="number" id="repPenalty" value="0" oninput="calcSalaryLive()" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
-          </div>
-        </div>
-
-        <!-- 預支款項與扣除 -->
-        <div class="grid grid-cols-3 gap-3">
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">上期剩餘預支</label>
-            <input type="number" id="repPrevAdvance" value="0" oninput="calcSalaryLive()" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">本期新增預支</label>
-            <input type="number" id="repNewAdvance" value="0" oninput="calcSalaryLive()" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">本期預支扣除額</label>
-            <input type="number" id="repDeductAmount" value="0" oninput="calcSalaryLive()" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
-          </div>
-        </div>
-
-        <!-- 備註與拍照上傳隱藏欄位，保持結構完整 -->
-        <div class="hidden">
-          <input type="text" id="repRefundItems"><input type="text" id="repSignedItems"><input type="text" id="repPendingPickupItems"><input type="text" id="repReturnItems"><input type="text" id="repDailyIssueNote">
-          <div id="previewRefund"></div><div id="previewSigned"></div><div id="previewPending"></div><div id="previewReturn"></div>
-        </div>
-
-        <!-- 結算即時總結 -->
-        <div class="bg-slate-900 text-white p-4 rounded-2xl flex items-center justify-between">
-          <div>
-            <div class="text-[11px] text-slate-400 font-bold">本期結餘預支：<span id="repFinalRemainAdvance" class="font-mono text-white">HK$ 0.00</span></div>
-            <div class="text-sm font-black mt-0.5">實發總工資：<span id="repLiveTotalSalary" class="text-lg text-emerald-400 font-mono">HK$ 0.00</span></div>
-          </div>
-          <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl text-xs shadow-md transition">
-            提交並結算報數
-          </button>
-        </div>
-      </form>
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    <div id="dashboard-summary-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"></div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+      <h3 class="text-sm font-black text-slate-900 mb-4">📋 報數與結算紀錄</h3>
+      <table class="w-full text-left">
+        <thead><tr class="text-slate-400 text-[11px] font-black border-b border-slate-200"><th class="p-3">姓名</th><th class="p-3">身份</th></tr></thead>
+        <tbody id="reportTableBody"></tbody>
+      </table>
     </div>
   </main>
 
-  <!-- 通用匯出 Modal 容器 -->
-  <div id="modal-universal-export" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
-      <h3 id="export-modal-title" class="text-sm font-black text-slate-900">匯出</h3>
-      <textarea id="universal-export-textarea" rows="8" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono"></textarea>
-      <div class="flex justify-end space-x-2">
-        <button type="button" onclick="document.getElementById('modal-universal-export').classList.add('hidden')" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">關閉</button>
-        <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('universal-export-textarea').value); alert('已複製！');" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold">複製內容</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 程式邏輯核心 -->
   <script>
-    // 原始核心狀態與資料
-    let currentRole = 'admin';
+    // 你的完整團隊名單
     let accounts = [
-      { name: 'Rider A', id: 'A01', category: '步兵', zone: '東區' },
-      { name: 'Rider B', id: 'A02', category: '車手', zone: '九龍' }
+      { name: 'Mia', id: 'ADMIN', category: '總管理員', zone: '所有', password: '123' },
+      { name: '詠豪', id: 'A01', category: '組長', zone: 'A隊', password: '123' },
+      { name: '盧智聰', id: 'KM04', category: '步兵', zone: 'KM隊', password: '123' },
+      { name: '姜嘉敏 KK', id: 'KM05', category: '步兵', zone: 'KM隊', password: '123' },
+      { name: '周健', id: 'A03', category: '步兵', zone: 'A隊', password: '123' },
+      { name: '黃奕烽', id: 'A04', category: '步兵', zone: 'A隊', password: '123' },
+      { name: '張兆偉', id: 'C01', category: '步兵', zone: 'C隊', password: '123' },
+      { name: '小肥', id: 'B01', category: '步兵', zone: 'B隊', password: '123' },
+      { name: '吳嘉榮', id: 'B02', category: '步兵', zone: 'B隊', password: '123' },
+      { name: '景鴻', id: 'B03', category: '組長', zone: 'B隊', password: '123' },
+      { name: '俊華', id: 'C02', category: '組長', zone: 'C隊', password: '123' },
+      { name: '倪志康', id: 'KM06', category: '步兵', zone: 'KM隊', password: '123' },
+      { name: '吳瑋儒', id: 'KM07', category: '步兵', zone: 'KM隊', password: '123' },
+      { name: '王利民', id: 'KM08', category: '步兵', zone: 'KM隊', password: '123' }
     ];
-    let priceSettings = { wage: { east: 10, ktlg: 10, ktind: 10, st: 12 } };
-    let dailyReports = [];
-    let ticketsList = [];
-    let photoBase64Map = {};
 
-    // 🔐 系統登入控制邏輯 (新添加)
+    let currentRole = '';
+
     function handleSystemLogin(event) {
       event.preventDefault();
       const userInp = document.getElementById('login-username-input').value.trim();
       const passInp = document.getElementById('login-password-input').value.trim();
 
-      // 管理員帳號密碼校驗
-      if (userInp === 'admin' && passInp === '123456') {
-        currentRole = 'admin';
+      const user = accounts.find(a => a.name === userInp);
+      
+      if (user && passInp === user.password) {
+        currentRole = user.name;
         document.getElementById('modal-system-login').style.display = 'none';
         renderRoleView();
-        alert('👑 歡迎回來，總管理員 Mia！');
-        return;
+        alert('✅ 歡迎使用，' + user.name + '！');
+      } else {
+        alert('❌ 帳號不存在或密碼錯誤！請再次確認。');
       }
-
-      // 檢查團隊成員帳號
-      const targetStaff = accounts.find(a => a.name === userInp);
-      if (targetStaff) {
-        if (passInp === '1234' || passInp === '123456') {
-          currentRole = targetStaff.name;
-          document.getElementById('modal-system-login').style.display = 'none';
-          renderRoleView();
-          alert(`👤 歡迎登入，${targetStaff.name} (${targetStaff.category})！`);
-          return;
-        } else {
-          alert('❌ 密碼錯誤，請重新輸入！');
-          return;
-        }
-      }
-
-      alert('❌ 找不到此帳號，請確認名稱是否正確！');
     }
 
-    // 登出或切換帳號功能 (新添加)
     function logoutSystem() {
-      document.getElementById('login-username-input').value = '';
-      document.getElementById('login-password-input').value = '';
       document.getElementById('modal-system-login').style.display = 'flex';
     }
 
-    function saveData() {}
-    function syncSingleRecord() {}
-    function openPayslipModal() {}
-    function initHourlyTimer() {}
-
     function renderRoleView() {
-      const roleBadge = document.getElementById('role-display-badge');
-      const isAdmin = (currentRole === 'admin');
-
-      if (roleBadge) {
-        if (isAdmin) {
-          roleBadge.textContent = '👑 總管理員 (Mia)';
-          roleBadge.className = 'px-1.5 py-0.5 rounded text-[10px] bg-blue-900/80 text-blue-300 border border-blue-700 font-semibold';
-        } else {
-          const u = accounts.find(a => a.name === currentRole);
-          roleBadge.textContent = `👤 ${currentRole} (${u ? u.category : '組員'})`;
-          roleBadge.className = 'px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700 font-semibold';
-        }
-      }
-
-      document.querySelectorAll('.admin-lock-tag').forEach(el => el.style.display = isAdmin ? 'inline' : 'none');
-      document.querySelectorAll('.admin-only-col').forEach(el => el.style.display = isAdmin ? 'table-cell' : 'none');
-
-      updateStaffDropdowns();
-      renderReportsTable();
-      renderSummaryCards();
-    }
-
-    function updateStaffDropdowns() {
-      const select = document.getElementById('repStaffSelect');
-      if (!select) return;
-      select.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.id} - ${a.category})</option>`).join('');
-      onStaffSelectChange(select.value);
-    }
-
-    function onStaffSelectChange(staffName) {
-      document.getElementById('repEastPrice').value = priceSettings.wage.east;
-      document.getElementById('repKtLgPrice').value = priceSettings.wage.ktlg;
-      document.getElementById('repKtIndPrice').value = priceSettings.wage.ktind;
-      document.getElementById('repStPrice').value = priceSettings.wage.st;
-      calcSalaryLive();
-    }
-
-    function calcSalaryLive() {
-      const eastC = Number(document.getElementById('repEastCount').value) || 0;
-      const eastP = Number(document.getElementById('repEastPrice').value) || 0;
-      const ktLgC = Number(document.getElementById('repKtLgCount').value) || 0;
-      const ktLgP = Number(document.getElementById('repKtLgPrice').value) || 0;
-      const ktIndC = Number(document.getElementById('repKtIndCount').value) || 0;
-      const ktIndP = Number(document.getElementById('repKtIndPrice').value) || 0;
-      const stC = Number(document.getElementById('repStCount').value) || 0;
-      const stP = Number(document.getElementById('repStPrice').value) || 0;
-
-      const carAllw = Number(document.getElementById('repCarAllowance').value) || 0;
-      const claim = Number(document.getElementById('repClaim').value) || 0;
-      const bonus = Number(document.getElementById('repBonus').value) || 0;
-      const penalty = Number(document.getElementById('repPenalty').value) || 0;
-      const prevAdv = Number(document.getElementById('repPrevAdvance').value) || 0;
-      const newAdv = Number(document.getElementById('repNewAdvance').value) || 0;
-      const deduct = Number(document.getElementById('repDeductAmount').value) || 0;
-
-      const totalPiecesWage = (eastC * eastP) + (ktLgC * ktLgP) + (ktIndC * ktIndP) + (stC * stP);
-      const finalRemainAdv = Math.max(0, prevAdv + newAdv - deduct);
-      document.getElementById('repFinalRemainAdvance').textContent = `HK$ ${finalRemainAdv.toFixed(2)}`;
-
-      const totalSalary = totalPiecesWage + carAllw + claim + bonus - penalty - deduct;
-      document.getElementById('repLiveTotalSalary').textContent = `HK$ ${totalSalary.toFixed(2)}`;
-    }
-
-    function saveFullDailyReport(event) {
-      event.preventDefault();
-      const date = document.getElementById('repDate').value;
-      const staff = document.getElementById('repStaffSelect').value;
-      if (!date || !staff) return alert('請選擇日期與人員！');
-
-      const record = {
-        id: `REP_${Date.now()}`,
-        date,
-        staff,
-        counts: {
-          east: Number(document.getElementById('repEastCount').value) || 0,
-          ktLg: Number(document.getElementById('repKtLgCount').value) || 0,
-          ktInd: Number(document.getElementById('repKtIndCount').value) || 0,
-          st: Number(document.getElementById('repStCount').value) || 0
-        },
-        prices: {
-          east: Number(document.getElementById('repEastPrice').value) || 0,
-          ktLg: Number(document.getElementById('repKtLgPrice').value) || 0,
-          ktInd: Number(document.getElementById('repKtIndPrice').value) || 0,
-          st: Number(document.getElementById('repStPrice').value) || 0
-        },
-        allowances: {
-          car: Number(document.getElementById('repCarAllowance').value) || 0,
-          claim: Number(document.getElementById('repClaim').value) || 0,
-          bonus: Number(document.getElementById('repBonus').value) || 0,
-          penalty: Number(document.getElementById('repPenalty').value) || 0,
-          prevAdv: Number(document.getElementById('repPrevAdvance').value) || 0,
-          newAdv: Number(document.getElementById('repNewAdvance').value) || 0,
-          deduct: Number(document.getElementById('repDeductAmount').value) || 0
-        },
-        settledStatus: '未轉賬'
-      };
-
-      dailyReports.unshift(record);
-      renderReportsTable();
-      alert(`✅ 【${staff}】 ${date} 派件報數已成功提交！`);
-      event.target.reset();
-      document.getElementById('repDate').value = document.getElementById('global-system-date').value;
-    }
-
-    function renderReportsTable() {
-      const tbody = document.getElementById('reportTableBody');
-      if (!tbody) return;
-      if (dailyReports.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400">暫無報數記錄。</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = dailyReports.map((r, idx) => {
-        const totalPieces = r.counts.east + r.counts.ktLg + r.counts.ktInd + r.counts.st;
-        const totalSalary = (r.counts.east * r.prices.east) + (r.counts.ktLg * r.prices.ktLg) + 
-                            (r.counts.ktInd * r.prices.ktInd) + (r.counts.st * r.prices.st) + 
-                            r.allowances.car + r.allowances.claim + r.allowances.bonus - r.allowances.penalty - r.allowances.deduct;
-        const isAdmin = (currentRole === 'admin');
-
-        return `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="p-3 font-mono font-bold text-slate-700">${r.date}</td>
-            <td class="p-3 font-bold text-slate-900">${r.staff}</td>
-            <td class="p-3 text-center font-mono">${r.counts.east} / ${r.counts.ktLg} / ${r.counts.ktInd} / ${r.counts.st}</td>
-            <td class="p-3 text-right font-black text-blue-700 font-mono">${totalPieces} 票</td>
-            <td class="p-3 text-right font-black text-slate-900 font-mono">HK$ ${totalSalary.toFixed(2)}</td>
-            <td class="p-3 text-center">
-              <span class="px-2 py-1 rounded text-[10px] font-bold ${r.settledStatus==='已轉賬'?'bg-emerald-100 text-emerald-800':'bg-amber-100 text-amber-800'}">
-                ${r.settledStatus}
-              </span>
-            </td>
-            <td class="p-3 text-center">
-              <button type="button" class="px-2.5 py-1 bg-slate-900 text-white rounded-lg font-bold text-[10px]">查看</button>
-            </td>
-            <td class="p-3 text-center admin-only-col">
-              ${isAdmin ? `<button type="button" onclick="dailyReports.splice(${idx},1);renderReportsTable();" class="text-rose-500 font-bold">🗑️</button>` : ''}
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function clearReports() {
-      if (currentRole !== 'admin') return;
-      if (confirm('確定清空？')) {
-        dailyReports = [];
-        renderReportsTable();
+      const user = accounts.find(a => a.name === currentRole);
+      const badge = document.getElementById('role-display-badge');
+      if (user && badge) {
+        badge.textContent = '👤 ' + user.name + ' (' + user.category + ')';
       }
     }
-
-    function renderSummaryCards() {
-      const container = document.getElementById('dashboard-summary-cards');
-      if (!container) return;
-      container.innerHTML = `
-        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-          <div>
-            <div class="text-[11px] font-bold text-slate-400">系統狀態</div>
-            <div class="text-lg font-black text-slate-900 mt-0.5">運作正常</div>
-          </div>
-          <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-black">📦</div>
-        </div>
-      `;
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      const todayStr = new Date().toISOString().split('T')[0];
-      const dateInp = document.getElementById('global-system-date');
-      if (dateInp) dateInp.value = todayStr;
-      const repDate = document.getElementById('repDate');
-      if (repDate) repDate.value = todayStr;
-
-      renderRoleView();
-    });
   </script>
 </body>
 </html>
