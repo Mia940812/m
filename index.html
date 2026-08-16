@@ -3,210 +3,446 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mia組 派件營運全功能工作台</title>
+  <title>Mia組 - 派件營運全功能工作台</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-4">
-  <div class="max-w-md mx-auto space-y-4">
-    <!-- 頂部標題與帳號狀態列 -->
-    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 flex items-center justify-between shadow-lg">
-      <div>
-        <h1 class="text-base font-bold text-white flex items-center gap-1.5">
-          <span>📦</span> Mia組 派件營運工作台
-        </h1>
-        <div class="text-[10px] text-slate-400 mt-0.5">系統日期: <input type="date" id="global-system-date" class="bg-slate-700 text-white px-1 rounded border border-slate-600 text-[10px]"></div>
-      </div>
-      <!-- 帳號顯示與手動輸入切換區域 -->
-      <div class="text-right">
-        <div id="role-display-badge" class="text-xs font-semibold"></div>
-      </div>
-    </div>
+<body class="bg-slate-100 text-slate-800 antialiased font-sans">
 
-    <!-- 主要功能區塊 -->
-    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3 shadow-lg">
-      <h2 class="text-sm font-bold text-slate-200 border-b border-slate-700 pb-2 flex justify-between items-center">
-        <span>🏆 罰款獎池與龍虎榜</span>
-        <button type="button" onclick="exportLeaderboardWhatsApp()" class="text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-1 rounded font-semibold transition">📤 匯出 WhatsApp</button>
-      </h2>
-
-      <!-- 錄入罰款區塊 (僅管理員可見或操作) -->
-      <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-700/60 space-y-2">
-        <div class="text-xs font-bold text-amber-400">➕ 錄入違規罰款 (總管理員)</div>
-        <div class="grid grid-cols-2 gap-2">
-          <input type="date" id="lb-inp-date" class="bg-slate-800 text-white text-xs p-1.5 rounded border border-slate-700">
-          <input type="text" id="lb-inp-staff" placeholder="步兵/員工名稱" class="bg-slate-800 text-white text-xs p-1.5 rounded border border-slate-700">
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <input type="number" id="lb-inp-amount" placeholder="罰款金額 (HK$)" class="bg-slate-800 text-white text-xs p-1.5 rounded border border-slate-700">
-          <input type="text" id="lb-inp-reason" placeholder="違規原因" class="bg-slate-800 text-white text-xs p-1.5 rounded border border-slate-700">
-        </div>
-        <button type="button" onclick="saveNewPenaltyRecord()" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 rounded-lg transition">確認錄入獎池</button>
+  <!-- 🔐 系統登入遮罩 Modal (新添加) -->
+  <div id="modal-system-login" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-200">
+      <div class="bg-slate-900 text-white p-6 text-center relative">
+        <div class="w-12 h-12 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-xl font-black mb-3 shadow-lg shadow-blue-500/30">📦</div>
+        <h2 class="text-lg font-black tracking-wide">Mia組 派件營運工作台</h2>
+        <p class="text-xs text-slate-400 mt-1">請輸入帳號與密碼以繼續操作</p>
       </div>
-
-      <!-- 罰款紀錄明細列表 -->
-      <div class="space-y-2">
-        <div class="text-xs font-semibold text-slate-300">📋 當月違規明細紀錄</div>
-        <div id="lb-content-records" class="space-y-1.5 max-h-48 overflow-y-auto">
-          <div class="text-center py-6 text-slate-400">暫無明細紀錄。</div>
+      <form onsubmit="handleSystemLogin(event)" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1.5">帳號名稱 (Account)</label>
+          <input type="text" id="login-username-input" required placeholder="例如: admin 或 組員名字" 
+                 class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition">
         </div>
-      </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1.5">密碼 (Password)</label>
+          <input type="password" id="login-password-input" required placeholder="請輸入密碼" 
+                 class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition">
+        </div>
+        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-black rounded-xl text-sm shadow-md shadow-blue-600/20 transition">
+          立即登入系統
+        </button>
+        <div class="text-[11px] text-slate-400 text-center mt-2">
+          提示：管理員預設帳號 <span class="font-mono text-slate-600 font-bold">admin</span> / 密碼 <span class="font-mono text-slate-600 font-bold">123456</span>
+        </div>
+      </form>
     </div>
   </div>
 
-  <!-- 通用跳出視窗 (Modal) -->
-  <div id="modal-universal-export" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-4 space-y-3 shadow-2xl">
-      <div class="flex justify-between items-center border-b border-slate-700 pb-2">
-        <h3 id="export-modal-title" class="text-sm font-bold text-white">📤 匯出內容</h3>
-        <button type="button" onclick="closeModal('modal-universal-export')" class="text-slate-400 hover:text-white font-bold px-1.5">✕</button>
+  <!-- 頂部導覽列與管理員控制 -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center font-black shadow-md">📦</div>
+        <div>
+          <h1 class="text-sm font-black tracking-wide">Mia組 - 派件營運全功能工作台</h1>
+          <div class="flex items-center space-x-2 mt-0.5">
+            <span id="role-display-badge" class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700 font-semibold">👤 載入中...</span>
+            <button type="button" onclick="logoutSystem()" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold rounded transition">🔒 登出</button>
+          </div>
+        </div>
       </div>
-      <textarea id="universal-export-textarea" class="w-full h-36 bg-slate-900 text-white text-xs p-2 rounded border border-slate-700 focus:outline-none"></textarea>
-      <button type="button" onclick="alert('已複製到剪貼簿！')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded-lg transition">一鍵複製文字</button>
+      <div class="flex items-center space-x-2">
+        <input type="date" id="global-system-date" class="px-2.5 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs font-bold text-white focus:outline-none">
+      </div>
     </div>
-  </div>
+  </header>
 
-  <script>
-    // 系統基礎資料與狀態
-    let currentRole = 'admin';
-    let penaltyList = [
-      { id: 'PN1', date: '2026-06-01', staff: '張三', amount: 50, reason: '遲到' }
-    ];
-    let accounts = [
-      { name: '張三', category: '步兵' },
-      { name: '李四', category: '步兵' }
-    ];
+  <!-- 主要內容區 -->
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <!-- 數據概覽卡片 -->
+    <div id="dashboard-summary-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- 動態生成 -->
+    </div>
 
-    function openModal(id) {
-      document.getElementById(id).classList.remove('hidden');
-    }
+    <!-- 報數與結算表格區 -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <h3 class="text-sm font-black text-slate-900">📋 團隊日常派件報數與工資結算紀錄</h3>
+        <div class="flex items-center space-x-2">
+          <button type="button" onclick="clearReports()" class="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-xl text-xs font-bold transition admin-lock-tag">清空全部</button>
+        </div>
+      </div>
 
-    function closeModal(id) {
-      document.getElementById(id).classList.add('hidden');
-    }
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 text-slate-400 text-[11px] font-black uppercase tracking-wider border-b border-slate-200">
+              <th class="p-3">日期</th>
+              <th class="p-3">派件員</th>
+              <th class="p-3 text-center">各區票數 (東/九龍長/九龍工/沙田)</th>
+              <th class="p-3 text-right">總票數</th>
+              <th class="p-3 text-right">應發工資</th>
+              <th class="p-3 text-center">轉賬狀態</th>
+              <th class="p-3 text-center">工資條</th>
+              <th class="p-3 text-center admin-only-col">操作</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody" class="divide-y divide-slate-100 text-xs font-medium">
+            <!-- 動態生成 -->
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-    function saveData() {
-      // 模擬儲存動作
-    }
+    <!-- 快速報數表單 -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
+      <h3 class="text-sm font-black text-slate-900">📝 新增當日派件與工資結算</h3>
+      <form onsubmit="saveFullDailyReport(event)" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">選擇日期</label>
+            <input type="date" id="repDate" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">選擇派件員</label>
+            <select id="repStaffSelect" onchange="onStaffSelectChange(this.value)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
+              <!-- 動態生成 -->
+            </select>
+            <div id="staff-price-badge" class="text-[10px] text-blue-600 font-bold mt-1"></div>
+          </div>
+        </div>
 
-    function renderLeaderboardData() {
-      const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
-      const curMonth = today.substring(0, 7);
-      const monthPenalties = penaltyList.filter(p => p.date && p.date.startsWith(curMonth));
-      const isAdmin = (currentRole === 'admin');
-
-      const recContainer = document.getElementById('lb-content-records');
-      if (monthPenalties.length === 0) {
-        recContainer.innerHTML = '<div class="text-center py-6 text-slate-400">暫無明細紀錄。</div>';
-      } else {
-        recContainer.innerHTML = monthPenalties.map((p, idx) => `
-          <div class="p-2.5 bg-white border rounded-xl flex items-center justify-between text-xs">
-            <div>
-              <div class="font-bold text-slate-800">${p.date} - <span class="text-blue-700">${p.staff}</span></div>
-              <div class="text-[10px] text-slate-500">${p.reason}</div>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="font-black text-rose-600 font-mono">HK$ ${Number(p.amount).toFixed(2)}</span>
-              ${isAdmin ? `<button type="button" onclick="deletePenaltyRecord('${p.id}')" class="text-rose-400 hover:text-rose-600 font-bold px-1">✕</button>` : ''}
+        <!-- 票數輸入 -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">東區票數</label>
+            <div class="flex space-x-1">
+              <input type="number" id="repEastCount" value="0" oninput="calcSalaryLive()" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold">
+              <input type="hidden" id="repEastPrice" value="10">
             </div>
           </div>
-        `).join('');
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">九龍長沙灣票數</label>
+            <div class="flex space-x-1">
+              <input type="number" id="repKtLgCount" value="0" oninput="calcSalaryLive()" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold">
+              <input type="hidden" id="repKtLgPrice" value="10">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">九龍工業票數</label>
+            <div class="flex space-x-1">
+              <input type="number" id="repKtIndCount" value="0" oninput="calcSalaryLive()" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold">
+              <input type="hidden" id="repKtIndPrice" value="10">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">沙田票數</label>
+            <div class="flex space-x-1">
+              <input type="number" id="repStCount" value="0" oninput="calcSalaryLive()" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold">
+              <input type="hidden" id="repStPrice" value="12">
+            </div>
+          </div>
+        </div>
+
+        <!-- 額外津貼與扣款 -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">車費津貼 (Car)</label>
+            <input type="number" id="repCarAllowance" value="0" oninput="calcSalaryLive()" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">額外報銷 (Claim)</label>
+            <input type="number" id="repClaim" value="0" oninput="calcSalaryLive()" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">獎金 (Bonus)</label>
+            <input type="number" id="repBonus" value="0" oninput="calcSalaryLive()" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">罰款 (Penalty)</label>
+            <input type="number" id="repPenalty" value="0" oninput="calcSalaryLive()" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
+          </div>
+        </div>
+
+        <!-- 預支款項與扣除 -->
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">上期剩餘預支</label>
+            <input type="number" id="repPrevAdvance" value="0" oninput="calcSalaryLive()" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">本期新增預支</label>
+            <input type="number" id="repNewAdvance" value="0" oninput="calcSalaryLive()" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">本期預支扣除額</label>
+            <input type="number" id="repDeductAmount" value="0" oninput="calcSalaryLive()" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold">
+          </div>
+        </div>
+
+        <!-- 備註與拍照上傳隱藏欄位，保持結構完整 -->
+        <div class="hidden">
+          <input type="text" id="repRefundItems"><input type="text" id="repSignedItems"><input type="text" id="repPendingPickupItems"><input type="text" id="repReturnItems"><input type="text" id="repDailyIssueNote">
+          <div id="previewRefund"></div><div id="previewSigned"></div><div id="previewPending"></div><div id="previewReturn"></div>
+        </div>
+
+        <!-- 結算即時總結 -->
+        <div class="bg-slate-900 text-white p-4 rounded-2xl flex items-center justify-between">
+          <div>
+            <div class="text-[11px] text-slate-400 font-bold">本期結餘預支：<span id="repFinalRemainAdvance" class="font-mono text-white">HK$ 0.00</span></div>
+            <div class="text-sm font-black mt-0.5">實發總工資：<span id="repLiveTotalSalary" class="text-lg text-emerald-400 font-mono">HK$ 0.00</span></div>
+          </div>
+          <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl text-xs shadow-md transition">
+            提交並結算報數
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <!-- 通用匯出 Modal 容器 -->
+  <div id="modal-universal-export" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+      <h3 id="export-modal-title" class="text-sm font-black text-slate-900">匯出</h3>
+      <textarea id="universal-export-textarea" rows="8" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono"></textarea>
+      <div class="flex justify-end space-x-2">
+        <button type="button" onclick="document.getElementById('modal-universal-export').classList.add('hidden')" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">關閉</button>
+        <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('universal-export-textarea').value); alert('已複製！');" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold">複製內容</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 程式邏輯核心 -->
+  <script>
+    // 原始核心狀態與資料
+    let currentRole = 'admin';
+    let accounts = [
+      { name: 'Rider A', id: 'A01', category: '步兵', zone: '東區' },
+      { name: 'Rider B', id: 'A02', category: '車手', zone: '九龍' }
+    ];
+    let priceSettings = { wage: { east: 10, ktlg: 10, ktind: 10, st: 12 } };
+    let dailyReports = [];
+    let ticketsList = [];
+    let photoBase64Map = {};
+
+    // 🔐 系統登入控制邏輯 (新添加)
+    function handleSystemLogin(event) {
+      event.preventDefault();
+      const userInp = document.getElementById('login-username-input').value.trim();
+      const passInp = document.getElementById('login-password-input').value.trim();
+
+      // 管理員帳號密碼校驗
+      if (userInp === 'admin' && passInp === '123456') {
+        currentRole = 'admin';
+        document.getElementById('modal-system-login').style.display = 'none';
+        renderRoleView();
+        alert('👑 歡迎回來，總管理員 Mia！');
+        return;
       }
-    }
 
-    function saveNewPenaltyRecord() {
-      if (currentRole !== 'admin') return alert('只有 Mia 總管理員可錄入違規罰款！');
-      const date = document.getElementById('lb-inp-date').value;
-      const staff = document.getElementById('lb-inp-staff').value;
-      const amount = parseFloat(document.getElementById('lb-inp-amount').value) || 0;
-      const reason = document.getElementById('lb-inp-reason').value.trim();
-
-      if (!reason || amount <= 0) return alert('請填寫完整的違規原因及大於 0 的罰款金額！');
-
-      const newP = {
-        id: 'PN' + Date.now(),
-        date, staff, amount, reason
-      };
-      penaltyList.unshift(newP);
-      saveData();
-      renderLeaderboardData();
-      document.getElementById('lb-inp-amount').value = '';
-      document.getElementById('lb-inp-reason').value = '';
-      alert('✅ 違規罰款已成功錄入獎池！');
-    }
-
-    function deletePenaltyRecord(id) {
-      if (currentRole !== 'admin') return alert('只有管理員可刪除紀錄！');
-      if (confirm('確定刪除此條罰款紀錄？')) {
-        penaltyList = penaltyList.filter(p => p.id !== id);
-        saveData();
-        renderLeaderboardData();
+      // 檢查團隊成員帳號
+      const targetStaff = accounts.find(a => a.name === userInp);
+      if (targetStaff) {
+        if (passInp === '1234' || passInp === '123456') {
+          currentRole = targetStaff.name;
+          document.getElementById('modal-system-login').style.display = 'none';
+          renderRoleView();
+          alert(`👤 歡迎登入，${targetStaff.name} (${targetStaff.category})！`);
+          return;
+        } else {
+          alert('❌ 密碼錯誤，請重新輸入！');
+          return;
+        }
       }
+
+      alert('❌ 找不到此帳號，請確認名稱是否正確！');
     }
 
-    function exportLeaderboardWhatsApp() {
-      const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
-      const curMonth = today.substring(0, 7);
-      const monthPenalties = penaltyList.filter(p => p.date && p.date.startsWith(curMonth));
-      const totalJackpot = monthPenalties.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-
-      let text = `🏆 *Mia組 ${curMonth} 罰款獎池與違規龍虎榜*\n`;
-      text += `💰 *當月獎池總額: HK$ ${totalJackpot.toFixed(2)}*\n\n`;
-      text += `📋 *違規明細:* \n`;
-      monthPenalties.forEach((p, idx) => {
-        text += `${idx+1}. [${p.date}] ${p.staff} 扣 $${p.amount} - ${p.reason}\n`;
-      });
-      text += `\n_由 Mia組 派件營運全功能工作台實時自動生成_`;
-
-      document.getElementById('universal-export-textarea').value = text;
-      document.getElementById('export-modal-title').textContent = '📤 匯出獎池與龍虎榜 WhatsApp';
-      openModal('modal-universal-export');
+    // 登出或切換帳號功能 (新添加)
+    function logoutSystem() {
+      document.getElementById('login-username-input').value = '';
+      document.getElementById('login-password-input').value = '';
+      document.getElementById('modal-system-login').style.display = 'flex';
     }
+
+    function saveData() {}
+    function syncSingleRecord() {}
+    function openPayslipModal() {}
+    function initHourlyTimer() {}
 
     function renderRoleView() {
-      const badge = document.getElementById('role-display-badge');
-      if (badge) {
-        if (currentRole === 'admin') {
-          badge.innerHTML = '👑 總管理員 (Mia) <input type="text" id="manual-role-input" placeholder="切換/輸入帳號" onchange="handleManualRoleInput(this.value)" class="ml-2 px-1.5 py-0.5 text-[10px] text-slate-800 bg-white border border-slate-300 rounded focus:outline-none w-28">';
-        } else {
-          badge.innerHTML = `👤 帳戶: <input type="text" id="manual-role-input" value="${currentRole}" placeholder="輸入帳號" onchange="handleManualRoleInput(this.value)" class="ml-1 px-1.5 py-0.5 text-[10px] text-slate-800 bg-white border border-slate-300 rounded focus:outline-none w-28">`;
-        }
-        const inp = document.getElementById('manual-role-input');
-        if (inp && currentRole !== 'admin') inp.value = currentRole;
-      }
-      updateStaffDropdowns();
-    }
+      const roleBadge = document.getElementById('role-display-badge');
+      const isAdmin = (currentRole === 'admin');
 
-    function handleManualRoleInput(val) {
-      const trimmed = val.trim();
-      if (!trimmed) return;
-      currentRole = trimmed;
-      renderRoleView();
-      if (typeof renderAll === 'function') renderAll();
+      if (roleBadge) {
+        if (isAdmin) {
+          roleBadge.textContent = '👑 總管理員 (Mia)';
+          roleBadge.className = 'px-1.5 py-0.5 rounded text-[10px] bg-blue-900/80 text-blue-300 border border-blue-700 font-semibold';
+        } else {
+          const u = accounts.find(a => a.name === currentRole);
+          roleBadge.textContent = `👤 ${currentRole} (${u ? u.category : '組員'})`;
+          roleBadge.className = 'px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700 font-semibold';
+        }
+      }
+
+      document.querySelectorAll('.admin-lock-tag').forEach(el => el.style.display = isAdmin ? 'inline' : 'none');
+      document.querySelectorAll('.admin-only-col').forEach(el => el.style.display = isAdmin ? 'table-cell' : 'none');
+
+      updateStaffDropdowns();
+      renderReportsTable();
+      renderSummaryCards();
     }
 
     function updateStaffDropdowns() {
-      const select = document.getElementById('current-user-role-select');
-      if (select) {
-        let options = `<option value="admin">👑 總管理員 (Mia)</option>`;
-        accounts.forEach(a => {
-          options += `<option value="${a.name}">${a.name} (${a.category})</option>`;
-        });
-        select.innerHTML = options;
-        select.value = currentRole || 'admin';
+      const select = document.getElementById('repStaffSelect');
+      if (!select) return;
+      select.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.id} - ${a.category})</option>`).join('');
+      onStaffSelectChange(select.value);
+    }
+
+    function onStaffSelectChange(staffName) {
+      document.getElementById('repEastPrice').value = priceSettings.wage.east;
+      document.getElementById('repKtLgPrice').value = priceSettings.wage.ktlg;
+      document.getElementById('repKtIndPrice').value = priceSettings.wage.ktind;
+      document.getElementById('repStPrice').value = priceSettings.wage.st;
+      calcSalaryLive();
+    }
+
+    function calcSalaryLive() {
+      const eastC = Number(document.getElementById('repEastCount').value) || 0;
+      const eastP = Number(document.getElementById('repEastPrice').value) || 0;
+      const ktLgC = Number(document.getElementById('repKtLgCount').value) || 0;
+      const ktLgP = Number(document.getElementById('repKtLgPrice').value) || 0;
+      const ktIndC = Number(document.getElementById('repKtIndCount').value) || 0;
+      const ktIndP = Number(document.getElementById('repKtIndPrice').value) || 0;
+      const stC = Number(document.getElementById('repStCount').value) || 0;
+      const stP = Number(document.getElementById('repStPrice').value) || 0;
+
+      const carAllw = Number(document.getElementById('repCarAllowance').value) || 0;
+      const claim = Number(document.getElementById('repClaim').value) || 0;
+      const bonus = Number(document.getElementById('repBonus').value) || 0;
+      const penalty = Number(document.getElementById('repPenalty').value) || 0;
+      const prevAdv = Number(document.getElementById('repPrevAdvance').value) || 0;
+      const newAdv = Number(document.getElementById('repNewAdvance').value) || 0;
+      const deduct = Number(document.getElementById('repDeductAmount').value) || 0;
+
+      const totalPiecesWage = (eastC * eastP) + (ktLgC * ktLgP) + (ktIndC * ktIndP) + (stC * stP);
+      const finalRemainAdv = Math.max(0, prevAdv + newAdv - deduct);
+      document.getElementById('repFinalRemainAdvance').textContent = `HK$ ${finalRemainAdv.toFixed(2)}`;
+
+      const totalSalary = totalPiecesWage + carAllw + claim + bonus - penalty - deduct;
+      document.getElementById('repLiveTotalSalary').textContent = `HK$ ${totalSalary.toFixed(2)}`;
+    }
+
+    function saveFullDailyReport(event) {
+      event.preventDefault();
+      const date = document.getElementById('repDate').value;
+      const staff = document.getElementById('repStaffSelect').value;
+      if (!date || !staff) return alert('請選擇日期與人員！');
+
+      const record = {
+        id: `REP_${Date.now()}`,
+        date,
+        staff,
+        counts: {
+          east: Number(document.getElementById('repEastCount').value) || 0,
+          ktLg: Number(document.getElementById('repKtLgCount').value) || 0,
+          ktInd: Number(document.getElementById('repKtIndCount').value) || 0,
+          st: Number(document.getElementById('repStCount').value) || 0
+        },
+        prices: {
+          east: Number(document.getElementById('repEastPrice').value) || 0,
+          ktLg: Number(document.getElementById('repKtLgPrice').value) || 0,
+          ktInd: Number(document.getElementById('repKtIndPrice').value) || 0,
+          st: Number(document.getElementById('repStPrice').value) || 0
+        },
+        allowances: {
+          car: Number(document.getElementById('repCarAllowance').value) || 0,
+          claim: Number(document.getElementById('repClaim').value) || 0,
+          bonus: Number(document.getElementById('repBonus').value) || 0,
+          penalty: Number(document.getElementById('repPenalty').value) || 0,
+          prevAdv: Number(document.getElementById('repPrevAdvance').value) || 0,
+          newAdv: Number(document.getElementById('repNewAdvance').value) || 0,
+          deduct: Number(document.getElementById('repDeductAmount').value) || 0
+        },
+        settledStatus: '未轉賬'
+      };
+
+      dailyReports.unshift(record);
+      renderReportsTable();
+      alert(`✅ 【${staff}】 ${date} 派件報數已成功提交！`);
+      event.target.reset();
+      document.getElementById('repDate').value = document.getElementById('global-system-date').value;
+    }
+
+    function renderReportsTable() {
+      const tbody = document.getElementById('reportTableBody');
+      if (!tbody) return;
+      if (dailyReports.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400">暫無報數記錄。</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = dailyReports.map((r, idx) => {
+        const totalPieces = r.counts.east + r.counts.ktLg + r.counts.ktInd + r.counts.st;
+        const totalSalary = (r.counts.east * r.prices.east) + (r.counts.ktLg * r.prices.ktLg) + 
+                            (r.counts.ktInd * r.prices.ktInd) + (r.counts.st * r.prices.st) + 
+                            r.allowances.car + r.allowances.claim + r.allowances.bonus - r.allowances.penalty - r.allowances.deduct;
+        const isAdmin = (currentRole === 'admin');
+
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3 font-mono font-bold text-slate-700">${r.date}</td>
+            <td class="p-3 font-bold text-slate-900">${r.staff}</td>
+            <td class="p-3 text-center font-mono">${r.counts.east} / ${r.counts.ktLg} / ${r.counts.ktInd} / ${r.counts.st}</td>
+            <td class="p-3 text-right font-black text-blue-700 font-mono">${totalPieces} 票</td>
+            <td class="p-3 text-right font-black text-slate-900 font-mono">HK$ ${totalSalary.toFixed(2)}</td>
+            <td class="p-3 text-center">
+              <span class="px-2 py-1 rounded text-[10px] font-bold ${r.settledStatus==='已轉賬'?'bg-emerald-100 text-emerald-800':'bg-amber-100 text-amber-800'}">
+                ${r.settledStatus}
+              </span>
+            </td>
+            <td class="p-3 text-center">
+              <button type="button" class="px-2.5 py-1 bg-slate-900 text-white rounded-lg font-bold text-[10px]">查看</button>
+            </td>
+            <td class="p-3 text-center admin-only-col">
+              ${isAdmin ? `<button type="button" onclick="dailyReports.splice(${idx},1);renderReportsTable();" class="text-rose-500 font-bold">🗑️</button>` : ''}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function clearReports() {
+      if (currentRole !== 'admin') return;
+      if (confirm('確定清空？')) {
+        dailyReports = [];
+        renderReportsTable();
       }
     }
 
-    window.onload = function() {
-      const today = new Date().toISOString().split('T')[0];
-      const dateInp = document.getElementById('global-system-date');
-      if (dateInp) dateInp.value = today;
-      const repDate = document.getElementById('repDate');
-      if (repDate) repDate.value = today;
+    function renderSummaryCards() {
+      const container = document.getElementById('dashboard-summary-cards');
+      if (!container) return;
+      container.innerHTML = `
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+          <div>
+            <div class="text-[11px] font-bold text-slate-400">系統狀態</div>
+            <div class="text-lg font-black text-slate-900 mt-0.5">運作正常</div>
+          </div>
+          <div class="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-black">📦</div>
+        </div>
+      `;
+    }
 
-      if (!currentRole) currentRole = 'admin';
+    window.addEventListener('DOMContentLoaded', () => {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const dateInp = document.getElementById('global-system-date');
+      if (dateInp) dateInp.value = todayStr;
+      const repDate = document.getElementById('repDate');
+      if (repDate) repDate.value = todayStr;
+
       renderRoleView();
-      renderLeaderboardData();
-    };
+    });
   </script>
 </body>
 </html>
