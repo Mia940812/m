@@ -1375,6 +1375,25 @@
       const dateInp = document.getElementById('global-system-date');
       if (dateInp) dateInp.value = today;
       loadCloudData();
+      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-RG2KUcGLCVVLxEK2zfpZXwilMJc_IpzXN4-ZMCijD2stGsPZxAkb3d-VFVOsqkrUPw/exec';
+
+async function saveCloudData(key, data) {
+  if (!GOOGLE_SCRIPT_URL) return;
+  try {
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8',
+      },
+      body: JSON.stringify({ key: key, data: data }),
+      mode: 'no-cors'
+    });
+    console.log(`[Cloud Sync] ${key} 已成功送出`);
+  } catch (err) {
+    console.error(`[Cloud Sync Error] ${key}:`, err);
+  }
+}
+
     });
   </script>
 </body>
