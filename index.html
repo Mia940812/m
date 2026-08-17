@@ -454,11 +454,14 @@
     </div>
   </div>
 
-  <!-- ➕ 新增人員/專屬票價 Modal -->
+  <!-- ➕ 人員名冊管理 ＆ 專屬票價修改 Modal (支援隨時修改身份與各區單價) -->
   <div id="modal-add-rider" class="app-modal hidden">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-2xl w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-sm text-slate-900">👥 人員名冊管理 ＆ 個別專屬票價/扣數設定</h3>
+        <div>
+          <h3 class="font-bold text-sm text-slate-900">👥 人員名冊管理 ＆ 個別專屬票價/扣數設定</h3>
+          <span class="text-[11px] text-slate-400">可隨時新增人員，或點擊下方清單「✏️ 修改」即時變更身份與單價</span>
+        </div>
         <button type="button" onclick="closeModal('modal-add-rider')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
       </div>
       <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-2.5">
@@ -478,7 +481,7 @@
           <div><label class="block text-[10px] font-bold text-slate-500">工商區票價</label><input id="new-staff-p-ktind" type="number" step="0.1" value="7.5" class="w-full p-1 bg-white border rounded font-bold"></div>
           <div><label class="block text-[10px] font-bold text-slate-500">沙田票價</label><input id="new-staff-p-st" type="number" step="0.1" value="7.5" class="w-full p-1 bg-white border rounded font-bold"></div>
         </div>
-        <button type="button" onclick="saveNewStaffRecord()" class="w-full py-2 bg-slate-900 text-white rounded-lg font-bold shadow-xs">確認建立人員</button>
+        <button type="button" id="btn-save-staff-action" onclick="saveNewStaffRecord()" class="w-full py-2 bg-slate-900 text-white rounded-lg font-bold shadow-xs">確認建立人員</button>
       </div>
       <div id="staff-category-list" class="space-y-2 text-xs max-h-56 overflow-y-auto custom-scrollbar"></div>
       <button type="button" onclick="closeModal('modal-add-rider')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
@@ -650,7 +653,7 @@
     </div>
   </div>
 
-  <!-- JavaScript 核心引擎 (含自動防崩潰容錯與修復) -->
+  <!-- JavaScript 核心引擎 -->
   <script>
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwG5x-iN6GjVd1jtdoz11Nwn79JLSLdLrIDr_xXfNCyfo1EBxfYPUFb5oW754GXf7H4fA/exec';
 
@@ -670,7 +673,7 @@
       }
     }
 
-    // 🌟 安全載入票價設定（自動升級舊格式，防止 undefined 拋錯）
+    // 票價預設值
     const defaultPrices = {
       wage: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 },
       rev: { east: 11.5, ktlg: 11.0, ktind: 10.5, st: 10.5 }
@@ -679,9 +682,7 @@
     let priceSettings = (function() {
       try {
         const saved = JSON.parse(localStorage.getItem('MIA_PRICES_PERFECT'));
-        if (saved && saved.wage && saved.rev && saved.wage.east !== undefined && saved.rev.east !== undefined) {
-          return saved;
-        }
+        if (saved && saved.wage && saved.rev) return saved;
       } catch(e) {}
       localStorage.setItem('MIA_PRICES_PERFECT', JSON.stringify(defaultPrices));
       return defaultPrices;
@@ -714,9 +715,11 @@
       ]
     };
 
+    // 完整原始名冊（已含詠豪、徐子傑、小魚及全部成員）
     const initialAccounts = [
       { id: 'KM01', name: 'Mia', category: 'Admin', team: 'KM', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
       { id: 'A01', name: '詠豪', category: '組長', team: 'A', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'A02', name: '小魚', category: '兼職步兵', team: 'A', payCycle: '隔日糧', deductRate: '40%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
       { id: 'A03', name: '周健', category: '兼職步兵', team: 'A', payCycle: '隔日糧', deductRate: '40%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
       { id: 'A04', name: '黄奕烽', category: '兼職步兵', team: 'A', payCycle: '隔日糧', deductRate: '40%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
       { id: 'A05', name: '徐子傑', category: '全職步兵', team: 'A', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
@@ -734,8 +737,17 @@
       { id: 'KM08', name: '王利民', category: '兼職步兵', team: 'KM', payCycle: '隔日糧', deductRate: '40%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' }
     ];
 
-    let zoneFences = JSON.parse(localStorage.getItem('MIA_FENCES_PERFECT')) || defaultZoneFences;
-    let accounts = JSON.parse(localStorage.getItem('MIA_ACCOUNTS_PERFECT')) || initialAccounts;
+    // 智慧合併名冊（確保舊名冊與新增的人員（如小魚）都在）
+    let accounts = (function() {
+      let saved = [];
+      try { saved = JSON.parse(localStorage.getItem('MIA_ACCOUNTS_PERFECT')) || []; } catch(e) {}
+      const map = new Map();
+      initialAccounts.forEach(a => map.set(a.name, a));
+      saved.forEach(a => { if (a && a.name) map.set(a.name, { ...map.get(a.name), ...a }); });
+      const merged = Array.from(map.values());
+      localStorage.setItem('MIA_ACCOUNTS_PERFECT', JSON.stringify(merged));
+      return merged;
+    })();
 
     const initialAssignments = {
       east: [
@@ -759,7 +771,16 @@
         { name: '周健', fence: '09E 觀塘工商區8號' }, { name: '黄奕烽', fence: '09E 觀塘工商區8號' }
       ]
     };
-    let zoneAssignments = JSON.parse(localStorage.getItem('MIA_ASSIGNS_PERFECT')) || initialAssignments;
+
+    let zoneAssignments = (function() {
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem('MIA_ASSIGNS_PERFECT')); } catch(e) {}
+      if (saved && (saved.east?.length || saved.kt?.length || saved.st?.length)) return saved;
+      localStorage.setItem('MIA_ASSIGNS_PERFECT', JSON.stringify(initialAssignments));
+      return initialAssignments;
+    })();
+
+    let zoneFences = JSON.parse(localStorage.getItem('MIA_FENCES_PERFECT')) || defaultZoneFences;
     let fenceProgressStatus = JSON.parse(localStorage.getItem('MIA_PROGRESS_STATUS_PERFECT')) || {};
 
     const initialTickets = [
@@ -1075,7 +1096,45 @@
       document.getElementById('new-staff-id').value = `${team}${numStr}`;
     }
 
-    function openAddRiderModal() { autoGenerateStaffId(); renderStaffManagementList(); openModal('modal-add-rider'); }
+    function openAddRiderModal() {
+      resetStaffForm();
+      autoGenerateStaffId();
+      renderStaffManagementList();
+      openModal('modal-add-rider');
+    }
+
+    function resetStaffForm() {
+      document.getElementById('new-staff-name').value = '';
+      document.getElementById('new-staff-name').readOnly = false;
+      document.getElementById('new-staff-p-east').value = 8.5;
+      document.getElementById('new-staff-p-ktlg').value = 8.0;
+      document.getElementById('new-staff-p-ktind').value = 7.5;
+      document.getElementById('new-staff-p-st').value = 7.5;
+      document.getElementById('btn-save-staff-action').textContent = '確認建立人員';
+      autoGenerateStaffId();
+    }
+
+    // ✏️ 隨時修改人員身份與票價功能
+    function editStaffRecord(staffId) {
+      const a = accounts.find(acc => acc.id === staffId);
+      if (!a) return;
+
+      document.getElementById('new-staff-team').value = a.team || 'KM';
+      document.getElementById('new-staff-id').value = a.id;
+      document.getElementById('new-staff-name').value = a.name;
+      document.getElementById('new-staff-name').readOnly = true;
+      document.getElementById('new-staff-role').value = a.category || '兼職步兵';
+      document.getElementById('new-staff-paycycle').value = a.payCycle || '半月糧';
+      document.getElementById('new-staff-deduct-rate').value = a.deductRate || '50%';
+      document.getElementById('new-staff-p-east').value = a.prices?.east || 8.5;
+      document.getElementById('new-staff-p-ktlg').value = a.prices?.ktlg || 8.0;
+      document.getElementById('new-staff-p-ktind').value = a.prices?.ktind || 7.5;
+      document.getElementById('new-staff-p-st').value = a.prices?.st || 7.5;
+
+      document.getElementById('btn-save-staff-action').textContent = `💾 儲存【${a.name}】修改`;
+      openModal('modal-add-rider');
+    }
+
     function renderStaffManagementList() {
       const c = document.getElementById('staff-category-list');
       c.innerHTML = accounts.map(a => `
@@ -1085,8 +1144,11 @@
             <span class="ml-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">${a.category} (${a.team}組)</span>
             <span class="ml-1 text-[11px] text-slate-500">週期: ${a.payCycle || '半月糧'} | 扣數: ${a.deductRate || '50%'}</span>
           </div>
-          <div class="text-[11px] text-slate-600 font-mono">
-            票價: 東$${a.prices?.east || 8.5} / 麗$${a.prices?.ktlg || 8} / 工$${a.prices?.ktind || 7.5} / 沙$${a.prices?.st || 7.5}
+          <div class="flex items-center gap-2">
+            <div class="text-[11px] text-slate-600 font-mono">
+              東$${a.prices?.east || 8.5}/麗$${a.prices?.ktlg || 8}/工$${a.prices?.ktind || 7.5}/沙$${a.prices?.st || 7.5}
+            </div>
+            <button type="button" onclick="editStaffRecord('${a.id}')" class="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold">✏️ 修改</button>
           </div>
         </div>
       `).join('');
@@ -1106,19 +1168,26 @@
 
       if (!name) return alert('請填寫人員姓名！');
 
-      const newAccount = {
+      const existingIdx = accounts.findIndex(a => a.id === id || a.name === name);
+      const record = {
         id, name, team, category, payCycle, deductRate,
         prices: { east: eastP, ktlg: ktlgP, ktind: ktindP, st: stP },
         password: '123'
       };
 
-      accounts.push(newAccount);
+      if (existingIdx >= 0) {
+        accounts[existingIdx] = { ...accounts[existingIdx], ...record };
+        alert(`✅ 成功更新【${name}】的身份與專屬票價！`);
+      } else {
+        accounts.push(record);
+        alert(`✅ 成功建立【${id} ${name}】(${category})！`);
+      }
+
       localStorage.setItem('MIA_ACCOUNTS_PERFECT', JSON.stringify(accounts));
-      document.getElementById('new-staff-name').value = '';
-      autoGenerateStaffId();
+      resetStaffForm();
       renderStaffManagementList();
       renderRoleView();
-      alert(`✅ 成功建立【${id} ${name}】(${category})！`);
+      renderAssignmentsBoard();
     }
 
     function updateShiftFenceDropdown(zone) {
