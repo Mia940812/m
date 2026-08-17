@@ -373,7 +373,7 @@
           renderRoleView();
         }
 
-        if (badge) {
+                if (badge) {
           badge.innerHTML = '🟢 Google 雲端數據庫已連線';
           badge.className = 'text-[10px] text-emerald-400 font-semibold';
         }
@@ -477,6 +477,25 @@
       `).join('');
     }
 
+        // 智能提取人員姓名與職位（自動相容陣列、物件、中英文各類格式）
+    function extractStaffInfo(a) {
+      if (!a) return { name: '未命名', cat: '步兵' };
+      if (typeof a === 'string') return { name: a, cat: '步兵' };
+      
+      // 支援陣列格式 (例如 [id, name, team, category...])
+      if (Array.isArray(a)) {
+        return {
+          name: a[1] || a[0] || '未命名',
+          cat: a[3] || a[2] || '步兵'
+        };
+      }
+
+      // 支援物件格式
+      const name = a.name || a['姓名'] || a['人員'] || a['步兵姓名'] || a['Staff'] || a['Name'] || a.id || '未命名';
+      const cat = a.category || a['身份'] || a['身份類別'] || a['類別'] || a['組別'] || a['Role'] || '步兵';
+      return { name: String(name).trim(), cat: String(cat).trim() };
+    }
+
     function renderRoleView() {
       const isAdm = isCurrentUserAdmin();
       ['btn-nav-recon', 'btn-nav-profit', 'btn-nav-settle', 'btn-nav-m1', 'btn-nav-addrider', 'btn-price-settings-top', 'section-daily-settle-table'].forEach(id => {
@@ -484,28 +503,26 @@
         if (el) el.style.display = isAdm ? 'inline-flex' : 'none';
       });
 
-      const getStaffName = (a) => a.name || a['姓名'] || a['人員'] || a['步兵姓名'] || (typeof a === 'string' ? a : '未知');
-      const getStaffCat = (a) => a.category || a['身份'] || a['身份類別'] || a['類別'] || '步兵';
-
+      // 1. 渲染頂部切換帳戶選單
       const roleSel = document.getElementById('current-user-role-select');
       if (roleSel) {
         roleSel.innerHTML = accounts.map(a => {
-          const n = getStaffName(a);
-          const c = getStaffCat(a);
-          return `<option value="${n}" ${n === currentRole ? 'selected' : ''}>${n} (${c})</option>`;
+          const info = extractStaffInfo(a);
+          return `<option value="${info.name}" ${info.name === currentRole ? 'selected' : ''}>${info.name} (${info.cat})</option>`;
         }).join('');
       }
 
+      // 2. 渲染表單人員選單
       const staffSel = document.getElementById('repStaffSelect');
       if (staffSel) {
         staffSel.innerHTML = accounts.map(a => {
-          const n = getStaffName(a);
-          const c = getStaffCat(a);
-          return `<option value="${n}">${n} (${c})</option>`;
+          const info = extractStaffInfo(a);
+          return `<option value="${info.name}">${info.name} (${info.cat})</option>`;
         }).join('');
         if (staffSel.value) onStaffSelectChange(staffSel.value);
       }
     }
+
 
     function promptRoleSwitch(targetRole) {
       currentRole = targetRole;
