@@ -654,364 +654,669 @@
   <script>
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwG5x-iN6GjVd1jtdoz11Nwn79JLSLdLrIDr_xXfNCyfo1EBxfYPUFb5oW754GXf7H4fA/exec';
 
-    function openModal1() { renderM1Fences(); openModal('modal-fences-zone'); }
-    function openModal2() { switchAssignmentTab('east'); openModal('modal-assignments'); }
-    function openModal3() {
-      const c = document.getElementById('m3-list');
-      if (c) {
-        c.innerHTML = (zoneFences.kt || []).map(f => `
-          <div class="flex justify-between items-center p-1.5 bg-slate-50 border rounded">
-            <span class="font-bold">${f.name}</span>
-            <input type="number" id="kt-count-${f.name}" value="${ktCounts[f.name] || ''}" oninput="calcTotalZoneCounts('kt')" placeholder="件數" class="w-20 p-1 border rounded text-center font-bold">
-          </div>
-        `).join('');
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('hidden');
+        el.style.display = 'flex';
       }
-      calcTotalZoneCounts('kt');
-      openModal('modal-kt-counts');
     }
 
-    function openModal4() {
-      const c = document.getElementById('m4-list');
-      if (c) {
-        c.innerHTML = (zoneFences.east || []).map(f => `
-          <div class="flex justify-between items-center p-1.5 bg-slate-50 border rounded">
-            <span class="font-bold">${f.name}</span>
-            <input type="number" id="east-count-${f.name}" value="${eastCounts[f.name] || ''}" oninput="calcTotalZoneCounts('east')" placeholder="件數" class="w-20 p-1 border rounded text-center font-bold">
-          </div>
-        `).join('');
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.add('hidden');
+        el.style.display = 'none';
       }
-      calcTotalZoneCounts('east');
-      openModal('modal-east-counts');
     }
 
-    function openModalStCounts() {
-      const c = document.getElementById('mst-list');
-      if (c) {
-        c.innerHTML = (zoneFences.st || []).map(f => `
-          <div class="flex justify-between items-center p-1.5 bg-slate-50 border rounded">
-            <span class="font-bold">${f.name}</span>
-            <input type="number" id="st-count-${f.name}" value="${stCounts[f.name] || ''}" oninput="calcTotalZoneCounts('st')" placeholder="件數" class="w-20 p-1 border rounded text-center font-bold">
-          </div>
-        `).join('');
-      }
-      calcTotalZoneCounts('st');
-      openModal('modal-st-counts');
+    const defaultPrices = {
+      wage: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 },
+      rev: { east: 11.5, ktlg: 11.0, ktind: 10.5, st: 10.5 }
+    };
+    let priceSettings = JSON.parse(localStorage.getItem('MIA_PRICES_PERFECT')) || defaultPrices;
+
+    const defaultZoneFences = {
+      st: [{ name: 'F58' }, { name: '廣源邨' }],
+      kt: [
+        { name: '01E Koko Hills' }, { name: '02E 觀塘工商區1號' }, { name: '03E 觀塘工商區2號' },
+        { name: '04E 觀塘工商區3號' }, { name: '05E 觀塘工商區4號' }, { name: '06E 觀塘工商區5號' },
+        { name: '07E 觀塘工商區6號' }, { name: '08E 觀塘工商區7號' }, { name: '09E 觀塘工商區8號' },
+        { name: '10E 鴻圖道+勵業街' }, { name: '11E 麗港城-1號托' }, { name: '12E 麗港城-2號托' },
+        { name: '13E 麗港城-3號托' }, { name: '14E 麗港城-4號托' }, { name: '15E 麗港城-5號托' }
+      ],
+      east: [
+        { name: '03F 東旭苑' }, { name: '06F 東濤苑' }, { name: '09F 富怡花園' },
+        { name: '12F 杏花邨1號' }, { name: '13F 杏花邨3號' }, { name: '14F 杏花邨4號' },
+        { name: '17F 香島' }, { name: '18F 曉翠苑' }, { name: '19F 漁灣邨' },
+        { name: '21F 杏翠苑+翠灣邨' }, { name: '22F 峰華邨+景翠苑' }, { name: '26F 興華（1）邨' },
+        { name: '27F 興華（2）邨' }, { name: '28F 興民邨' }, { name: '29F 山翠苑' },
+        { name: '30F 新翠花園' }, { name: '31F 環翠邨' }, { name: '39F 柴灣地鐵站工業區' },
+        { name: '40F 小西灣工業區' }, { name: '41F 小西灣邨-1號托' }, { name: '42F 小西灣邨-2號托' },
+        { name: '43F 小西灣邨-3號托' }, { name: '44F 樂軒+宏德+怡翠' }, { name: '45F 柴灣+蝶翠+康平街' },
+        { name: '46F 高威+康翠+灣景園' }, { name: '47F 澤鑾閣暫存點' }, { name: '60F 藍灣半島' },
+        { name: '61F 富欣花園' }, { name: '62F 愛蝶灣' }, { name: '64F 愛東邨' },
+        { name: '65F 富景花園' }, { name: '67F 杏花園' }, { name: '68F 東大街板A' },
+        { name: '69F 峻峰花園' }, { name: '70F 筲箕灣道板-1號托' }, { name: '72F 形薈' },
+        { name: '73F 東區樂翠台暫存點' }, { name: '74F 東區醫院暫存點' }, { name: '76F 常安街簡約公屋暫存點' },
+        { name: '15F 明華A-E座' }, { name: '16F 明華1&2座' }
+      ]
+    };
+
+    const initialAccounts = [
+      { id: 'KM01', name: 'Mia', category: 'Admin', team: 'KM', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'A01', name: '詠豪', category: '組長', team: 'A', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'A03', name: '周健', category: '兼職步兵', team: 'A', payCycle: '隔日糧', deductRate: '40%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'A04', name: '黄奕烽', category: '兼職步兵', team: 'A', payCycle: '隔日糧', deductRate: '40%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'A05', name: '徐子傑', category: '全職步兵', team: 'A', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'B01', name: '景鴻', category: '組長', team: 'B', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'B02', name: '小肥', category: '兼職步兵', team: 'B', payCycle: '隔日糧', deductRate: '40%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'B03', name: '吳嘉榮', category: '兼職步兵', team: 'B', payCycle: '隔日糧', deductRate: '40%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'C01', name: '俊華', category: '組長', team: 'C', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'C02', name: '張兆偉', category: '全職步兵', team: 'C', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'D01', name: '奶龍', category: '全職司機', team: 'D', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'D02', name: '阿龍', category: '兼職司機', team: 'D', payCycle: '隔日糧', deductRate: '40%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'KM04', name: '盧智聰', category: '全職步兵', team: 'KM', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'KM05', name: '姜嘉敏KK', category: '全職步兵', team: 'KM', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'KM06', name: '倪志康', category: '兼職步兵', team: 'KM', payCycle: '隔日糧', deductRate: '40%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'KM07', name: '吳瑋儒', category: '全職步兵', team: 'KM', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'KM08', name: '王利民', category: '兼職步兵', team: 'KM', payCycle: '隔日糧', deductRate: '40%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' }
+    ];
+
+    let zoneFences = JSON.parse(localStorage.getItem('MIA_FENCES_PERFECT')) || defaultZoneFences;
+    let accounts = JSON.parse(localStorage.getItem('MIA_ACCOUNTS_PERFECT')) || initialAccounts;
+
+    const initialAssignments = {
+      east: [
+        { name: '張兆偉', fence: '40F 小西灣工業區' }, { name: '俊華', fence: '19F 漁灣邨' },
+        { name: '俊華', fence: '76F 常安街簡約公屋暫存點' }, { name: '張兆偉', fence: '76F 常安街簡約公屋暫存點' },
+        { name: '倪志康', fence: '03F 東旭苑' }, { name: '倪志康', fence: '06F 東濤苑' },
+        { name: '小肥', fence: '64F 愛東邨' }, { name: '小肥', fence: '68F 東大街板A' },
+        { name: '吳嘉榮', fence: '68F 東大街板A' }, { name: '小肥', fence: '69F 峻峰花園' },
+        { name: '小肥', fence: '70F 筲箕灣道板-1號托' }, { name: '吳嘉榮', fence: '70F 筲箕灣道板-1號托' },
+        { name: '吳嘉榮', fence: '72F 形薈' }, { name: '吳嘉榮', fence: '15F 明華A-E座' },
+        { name: '小肥', fence: '15F 明華A-E座' }, { name: '吳嘉榮', fence: '16F 明華1&2座' },
+        { name: '小肥', fence: '17F 香島' }
+      ],
+      st: [{ name: '景鴻', fence: '廣源邨' }, { name: '吳瑋儒', fence: '廣源邨' }],
+      kt: [
+        { name: '盧智聰', fence: '05E 觀塘工商區4號' }, { name: '姜嘉敏KK', fence: '05E 觀塘工商區4號' },
+        { name: '周健', fence: '03E 觀塘工商區2號' }, { name: '黄奕烽', fence: '03E 觀塘工商區2號' },
+        { name: '徐子傑', fence: '10E 鴻圖道+勵業街' }, { name: '周健', fence: '10E 鴻圖道+勵業街' },
+        { name: '黄奕烽', fence: '10E 鴻圖道+勵業街' }, { name: '盧智聰', fence: '06E 觀塘工商區5號' },
+        { name: '姜嘉敏KK', fence: '06E 觀塘工商區5號' }, { name: '徐子傑', fence: '09E 觀塘工商區8號' },
+        { name: '周健', fence: '09E 觀塘工商區8號' }, { name: '黄奕烽', fence: '09E 觀塘工商區8號' }
+      ]
+    };
+    let zoneAssignments = JSON.parse(localStorage.getItem('MIA_ASSIGNS_PERFECT')) || initialAssignments;
+    let fenceProgressStatus = JSON.parse(localStorage.getItem('MIA_PROGRESS_STATUS_PERFECT')) || {};
+
+    const initialTickets = [
+      { id: 'TK1001', date: '2026-08-16', tracking: 'JT88239012', staff: '張兆偉', type: '破損/損壞', amount: 150, zone: '40F 小西灣工業區', desc: '外箱破損' },
+      { id: 'TK1002', date: '2026-08-16', tracking: 'JT88239055', staff: '周健', type: '錯派/誤投', amount: 50, zone: '03E 觀塘工商區2號', desc: '錯派至隔離公司' },
+      { id: 'TK1003', date: '2026-08-17', tracking: 'JT88239108', staff: '倪志康', type: '嚴重客訴/態度差', amount: 100, zone: '03F 東旭苑', desc: '未電聯即放門口' }
+    ];
+    let ticketsList = JSON.parse(localStorage.getItem('MIA_TICKETS_PERFECT')) || initialTickets;
+
+    const initialRecruits = [
+      { id: 1, name: '陳小龍', phone: '91234567', date: '2026-08-18', zone: '東區', role: '兼職步兵', status: '已約試工', desc: '有順豐步兵1年經驗' },
+      { id: 2, name: '李志剛', phone: '98765432', date: '2026-08-19', zone: '觀塘區', role: '全職步兵', status: '預約跟進中', desc: '住觀塘熟路' }
+    ];
+    let recruitsList = JSON.parse(localStorage.getItem('MIA_RECRUITS_PERFECT')) || initialRecruits;
+
+    let truckRoutes = JSON.parse(localStorage.getItem('MIA_TRUCKS_PERFECT')) || [
+      { zone: 'kt', time: '08:30', driver: '奶龍', order: '第一車 1站', fence: '04E 觀塘工商區3號' },
+      { zone: 'east', time: '09:00', driver: '阿龍', order: '第一車 2站', fence: '69F 峻峰花園' }
+    ];
+    let suppliesList = JSON.parse(localStorage.getItem('MIA_SUPPLIES_PERFECT')) || [
+      { id: 1, date: '2026-08-17', name: '大膠紙 (6卷)', qty: 6, price: 120, buyer: 'Mia' }
+    ];
+    let shiftReports = JSON.parse(localStorage.getItem('MIA_SHIFTS_PERFECT')) || [];
+    let dailyReports = JSON.parse(localStorage.getItem('MIA_DAILY_REPORTS_PERFECT')) || [];
+    let ktCounts = JSON.parse(localStorage.getItem('MIA_KT_COUNTS')) || {};
+    let eastCounts = JSON.parse(localStorage.getItem('MIA_EAST_COUNTS')) || {};
+    let stCounts = JSON.parse(localStorage.getItem('MIA_ST_COUNTS')) || {};
+
+    let currentRole = localStorage.getItem('MIA_LOGGED_IN_USER') || 'admin';
+    let currentAssignTab = 'east';
+
+    // ⏱️ 各區進度報告（7 種狀態）
+    const progressOptions = ['🚚 派送中', '⚡ 快完成', '✅ 完成', '📍 剛剛到', '⚠️ 有阻滯', '⏳ 未開始', '🚫 不是我們'];
+
+    function getStatusBadgeStyle(st) {
+      if (st.includes('完成') && !st.includes('快')) return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+      if (st.includes('快完成')) return 'bg-blue-100 text-blue-800 border-blue-300';
+      if (st.includes('剛剛到')) return 'bg-purple-100 text-purple-800 border-purple-300';
+      if (st.includes('有阻滯')) return 'bg-rose-100 text-rose-800 border-rose-300 font-black animate-pulse';
+      if (st.includes('未開始')) return 'bg-slate-100 text-slate-600 border-slate-300';
+      if (st.includes('不是我們')) return 'bg-zinc-200 text-zinc-800 border-zinc-400 font-bold';
+      return 'bg-amber-100 text-amber-800 border-amber-300';
     }
 
-    function openModal5() {
-      const el = document.getElementById('shift-staff-select');
-      if (el) el.innerHTML = accounts.filter(a => a.name !== 'Mia').map(a => `<option value="${a.name}">${a.name} (${a.id})</option>`).join('');
-      let dOpts = '';
-      for (let i = 0; i < 14; i++) {
-        const d = new Date(); d.setDate(d.getDate() + i);
-        const str = d.toISOString().split('T')[0];
-        dOpts += `<option value="${str}">${str}</option>`;
-      }
-      const dEl = document.getElementById('shift-14days-select');
-      if (dEl) dEl.innerHTML = dOpts;
-      updateShiftFenceDropdown('east');
-      renderShiftsHistory();
-      openModal('modal-shift-reporting');
+    function changeFenceProgress(fenceName, newStatus) {
+      fenceProgressStatus[fenceName] = newStatus;
+      localStorage.setItem('MIA_PROGRESS_STATUS_PERFECT', JSON.stringify(fenceProgressStatus));
+      renderProgressModalContent();
     }
 
-    function openModal8() {
-      const dEl = document.getElementById('truck-driver-select');
-      if (dEl) dEl.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.category})</option>`).join('');
-      renderTruckRoutes();
-      openModal('modal-truck-routes');
-    }
+    function renderProgressModalContent() {
+      const c = document.getElementById('progress-fences-list');
+      if (!c) return;
 
-    function openRecruitsModal() { renderRecruits(); openModal('modal-recruits-view'); }
-    function openAddRiderModal() { autoGenerateStaffId(); renderStaffManagementList(); openModal('modal-add-rider'); }
-    function openSuppliesModal() { renderSupplies(); openModal('modal-supplies'); }
-    function openTicketsModal() {
-      const tkSel = document.getElementById('tk-responsible-staff');
-      if (tkSel) tkSel.innerHTML = accounts.filter(a => a.name !== 'Mia').map(a => `<option value="${a.name}">${a.name} (${a.id})</option>`).join('');
-      renderTicketsList();
-      openModal('modal-tickets-view');
-    }
+      c.innerHTML = ['east', 'kt', 'st'].map(z => {
+        const zName = z === 'east' ? '東區' : (z === 'kt' ? '觀塘區' : '沙田區');
+        const fences = zoneFences[z] || [];
+        const assigns = zoneAssignments[z] || [];
 
-    function openLeaderboardModal() {
-      const defaultRankingData = [
-        { rank: 1, name: '張兆偉', count: 1420, team: 'C組', badge: '🥇 派件冠軍' },
-        { rank: 2, name: '盧智聰', count: 1350, team: 'KM組', badge: '🥈 派件亞軍' },
-        { rank: 3, name: '吳瑋儒', count: 1280, team: 'KM組', badge: '🥉 派件季軍' },
-        { rank: 4, name: '徐子傑', count: 1190, team: 'A組', badge: '🎖️ 表現卓越' },
-        { rank: 5, name: '小肥', count: 1110, team: 'B組', badge: '🎖️ 表現卓越' }
-      ];
-
-      const poolEl = document.getElementById('lb-pool-total');
-      const totalPool = ticketsList.reduce((sum, t) => sum + (Number(t.amount) || 0), 350);
-      if (poolEl) poolEl.textContent = `HK$ ${totalPool.toFixed(2)}`;
-
-      const rList = document.getElementById('lb-rankings-list');
-      if (rList) {
-        rList.innerHTML = defaultRankingData.map(item => `
-          <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center">
-            <div class="flex items-center gap-2">
-              <span class="w-6 h-6 flex items-center justify-center rounded-full bg-slate-800 text-white font-black text-xs">${item.rank}</span>
-              <span class="font-black text-slate-900">${item.name}</span>
-              <span class="px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded text-[10px] font-bold">${item.team}</span>
+        return `
+          <div class="p-3 bg-slate-50 border rounded-xl space-y-2 shadow-2xs">
+            <div class="font-black text-slate-900 text-xs flex justify-between items-center">
+              <span>📍 ${zName} 實時進度列表</span>
+              <span class="text-blue-700 font-bold">${fences.length} 個圍欄</span>
             </div>
-            <div class="flex items-center gap-2">
-              <span class="text-[11px] font-bold text-slate-500">${item.badge}</span>
-              <span class="font-black font-mono text-emerald-600">${item.count} 票</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              ${fences.map(f => {
+                const staff = assigns.filter(a => a.fence === f.name).map(a => a.name);
+                const curStatus = fenceProgressStatus[f.name] || (staff.length > 0 ? '🚚 派送中' : '⏳ 未開始');
+                const badgeClass = getStatusBadgeStyle(curStatus);
+
+                return `
+                  <div class="p-2 bg-white border rounded-xl flex flex-col justify-between gap-1.5 shadow-2xs">
+                    <div class="flex justify-between items-center">
+                      <span class="font-black text-slate-900 text-xs">${f.name}</span>
+                      <span class="text-[11px] font-bold text-slate-500">${staff.length > 0 ? staff.join('、') : '<span class="text-slate-400 font-normal">(未排人)</span>'}</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 pt-0.5 border-t border-slate-100">
+                      <span class="text-[10px] text-slate-400 font-bold">更新狀態:</span>
+                      <select onchange="changeFenceProgress('${f.name}', this.value)" class="text-[11px] font-bold p-1 rounded-lg border focus:outline-none ${badgeClass}">
+                        ${progressOptions.map(opt => `
+                          <option value="${opt}" ${curStatus === opt ? 'selected' : ''}>${opt}</option>
+                        `).join('')}
+                      </select>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
             </div>
-          </div>
-        `).join('');
-      }
-
-      const zeroEl = document.getElementById('lb-zero-tickets-list');
-      if (zeroEl) {
-        const punishedStaff = ticketsList.map(t => t.staff);
-        const zeroStaff = accounts.filter(a => a.name !== 'Mia' && !punishedStaff.includes(a.name));
-        zeroEl.innerHTML = zeroStaff.length > 0 
-          ? zeroStaff.map(s => `<span class="px-2 py-1 bg-white border border-emerald-300 rounded-lg shadow-2xs">🌟 ${s.name}</span>`).join('')
-          : '<span class="text-slate-400">目前暫無</span>';
-      }
-
-      openModal('modal-penalty-leaderboard');
-    }
-
-    function openModalProfit() {
-      const eastC = Number(document.getElementById('repEastCount')?.value) || 0;
-      const ktLgC = Number(document.getElementById('repKtLgCount')?.value) || 0;
-      const ktIndC = Number(document.getElementById('repKtIndCount')?.value) || 0;
-      const stC = Number(document.getElementById('repStCount')?.value) || 0;
-      const totalPieces = eastC + ktLgC + ktIndC + stC;
-
-      const rev = totalPieces > 0 
-        ? ((eastC * priceSettings.rev.east) + (ktLgC * priceSettings.rev.ktlg) + (ktIndC * priceSettings.rev.ktind) + (stC * priceSettings.rev.st))
-        : 3850.00;
-      const cost = totalPieces > 0 
-        ? ((eastC * priceSettings.wage.east) + (ktLgC * priceSettings.wage.ktlg) + (ktIndC * priceSettings.wage.ktind) + (stC * priceSettings.wage.st))
-        : 2680.00;
-      const net = rev - cost;
-
-      const revEl = document.getElementById('profit-view-rev');
-      const costEl = document.getElementById('profit-view-cost');
-      const netEl = document.getElementById('profit-view-net');
-
-      if (revEl) revEl.textContent = `HK$ ${rev.toFixed(2)} ${totalPieces > 0 ? `(${totalPieces}票)` : '(預估)'}`;
-      if (costEl) costEl.textContent = `HK$ ${cost.toFixed(2)}`;
-      if (netEl) netEl.textContent = `HK$ ${net.toFixed(2)}`;
-
-      openModal('modal-profit-calc');
-    }
-
-    function openModalSettlementDaily() {
-      const c = document.getElementById('settle-breakdown-container');
-      const today = document.getElementById('global-system-date')?.value || new Date().toISOString().split('T')[0];
-      const todayReports = dailyReports.filter(r => r.date === today);
-
-      let eastSum = 0, ktLgSum = 0, ktIndSum = 0, stSum = 0, wageSum = 0;
-      todayReports.forEach(r => {
-        eastSum += (r.eastCount || 0);
-        ktLgSum += (r.ktLgCount || 0);
-        ktIndSum += (r.ktIndCount || 0);
-        stSum += (r.stCount || 0);
-        wageSum += (r.finalSalary || 0);
-      });
-
-      if (c) {
-        c.innerHTML = `
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-            <div class="p-3 bg-white border rounded-xl"><span class="text-slate-500 font-bold">📍 東區總票數</span><div class="font-black text-slate-900 text-sm mt-1">${eastSum} 票</div></div>
-            <div class="p-3 bg-white border rounded-xl"><span class="text-slate-500 font-bold">📍 麗港城總票數</span><div class="font-black text-slate-900 text-sm mt-1">${ktLgSum} 票</div></div>
-            <div class="p-3 bg-white border rounded-xl"><span class="text-slate-500 font-bold">📍 觀塘工區總票數</span><div class="font-black text-slate-900 text-sm mt-1">${ktIndSum} 票</div></div>
-            <div class="p-3 bg-white border rounded-xl"><span class="text-slate-500 font-bold">📍 沙田總票數</span><div class="font-black text-slate-900 text-sm mt-1">${stSum} 票</div></div>
-          </div>
-          <div class="p-3 bg-slate-50 border rounded-xl flex justify-between items-center text-xs">
-            <span class="font-bold">今日全部步兵應發總薪資：</span>
-            <span class="font-black text-rose-600 font-mono text-base">HK$ ${wageSum.toFixed(2)}</span>
           </div>
         `;
-      }
-      openModal('modal-settlement-daily');
+      }).join('');
     }
 
-    function calcTotalZoneCounts(zone) {
-      let sum = 0;
-      const fences = zoneFences[zone] || [];
-      const prefix = zone === 'east' ? 'east' : (zone === 'kt' ? 'kt' : 'st');
-      fences.forEach(f => {
-        sum += Number(document.getElementById(`${prefix}-count-${f.name}`)?.value) || 0;
+    function openModalProgress() {
+      renderProgressModalContent();
+      openModal('modal-progress-view');
+    }
+
+    function exportProgressText() {
+      let txt = `⏱️ 【Mia組 - 當日各區圍欄實時進度報告】\n========================================\n`;
+      ['east', 'kt', 'st'].forEach(z => {
+        const zName = z === 'east' ? '東區' : (z === 'kt' ? '觀塘區' : '沙田區');
+        const fences = zoneFences[z] || [];
+        const assigns = zoneAssignments[z] || [];
+        txt += `\n📍 【${zName}】\n----------------------------------------\n`;
+        fences.forEach(f => {
+          const staff = assigns.filter(a => a.fence === f.name).map(a => a.name);
+          const st = fenceProgressStatus[f.name] || (staff.length > 0 ? '🚚 派送中' : '⏳ 未開始');
+          txt += `• ${f.name}: ${staff.length > 0 ? `${staff.join('、')} [${st}]` : `(未排人) [${st}]`}\n`;
+        });
       });
-      const badge = document.getElementById(`${zone}-total-count-badge`);
-      if (badge) badge.textContent = `${sum} 票`;
+      txt += `\n========================================\n報告生成時間: ${new Date().toLocaleTimeString()}`;
+      showUniversalExportModal('進度報告匯出', txt);
     }
 
-    function saveModal3() {
-      (zoneFences.kt || []).forEach(f => { const val = document.getElementById(`kt-count-${f.name}`)?.value; if (val !== undefined) ktCounts[f.name] = val; });
-      localStorage.setItem('MIA_KT_COUNTS', JSON.stringify(ktCounts));
-      alert('✅ 觀塘貨量儲存成功！'); closeModal('modal-kt-counts');
+    // ⚙️ 修改全域預設票價
+    function openModalPriceSettings() {
+      const eastW = document.getElementById('cfg-wage-east');
+      const ktlgW = document.getElementById('cfg-wage-ktlg');
+      const ktindW = document.getElementById('cfg-wage-ktind');
+      const stW = document.getElementById('cfg-wage-st');
+
+      const eastR = document.getElementById('cfg-rev-east');
+      const ktlgR = document.getElementById('cfg-rev-ktlg');
+      const ktindR = document.getElementById('cfg-rev-ktind');
+      const stR = document.getElementById('cfg-rev-st');
+
+      if (eastW) eastW.value = priceSettings.wage.east || 8.5;
+      if (ktlgW) ktlgW.value = priceSettings.wage.ktlg || 8.0;
+      if (ktindW) ktindW.value = priceSettings.wage.ktind || 7.5;
+      if (stW) stW.value = priceSettings.wage.st || 7.5;
+
+      if (eastR) eastR.value = priceSettings.rev.east || 11.5;
+      if (ktlgR) ktlgR.value = priceSettings.rev.ktlg || 11.0;
+      if (ktindR) ktindR.value = priceSettings.rev.ktind || 10.5;
+      if (stR) stR.value = priceSettings.rev.st || 10.5;
+
+      openModal('modal-price-settings');
     }
 
-    function saveModal4() {
-      (zoneFences.east || []).forEach(f => { const val = document.getElementById(`east-count-${f.name}`)?.value; if (val !== undefined) eastCounts[f.name] = val; });
-      localStorage.setItem('MIA_EAST_COUNTS', JSON.stringify(eastCounts));
-      alert('✅ 東區貨量儲存成功！'); closeModal('modal-east-counts');
+    function savePriceSettings() {
+      priceSettings = {
+        wage: {
+          east: Number(document.getElementById('cfg-wage-east')?.value) || 8.5,
+          ktlg: Number(document.getElementById('cfg-wage-ktlg')?.value) || 8.0,
+          ktind: Number(document.getElementById('cfg-wage-ktind')?.value) || 7.5,
+          st: Number(document.getElementById('cfg-wage-st')?.value) || 7.5
+        },
+        rev: {
+          east: Number(document.getElementById('cfg-rev-east')?.value) || 11.5,
+          ktlg: Number(document.getElementById('cfg-rev-ktlg')?.value) || 11.0,
+          ktind: Number(document.getElementById('cfg-rev-ktind')?.value) || 10.5,
+          st: Number(document.getElementById('cfg-rev-st')?.value) || 10.5
+        }
+      };
+      localStorage.setItem('MIA_PRICES_PERFECT', JSON.stringify(priceSettings));
+      alert('✅ 全域預設票價設定已成功儲存！');
+      closeModal('modal-price-settings');
+      calcSalaryLive();
     }
 
-    function saveModalStCounts() {
-      (zoneFences.st || []).forEach(f => { const val = document.getElementById(`st-count-${f.name}`)?.value; if (val !== undefined) stCounts[f.name] = val; });
-      localStorage.setItem('MIA_ST_COUNTS', JSON.stringify(stCounts));
-      alert('✅ 沙田貨量儲存成功！'); closeModal('modal-st-counts');
+    // 實時計算薪資
+    function calcSalaryLive() {
+      const eastC = Number(document.getElementById('repEastCount')?.value) || 0;
+      const eastP = Number(document.getElementById('repEastPrice')?.value) || priceSettings.wage.east;
+      const ktLgC = Number(document.getElementById('repKtLgCount')?.value) || 0;
+      const ktLgP = Number(document.getElementById('repKtLgPrice')?.value) || priceSettings.wage.ktlg;
+      const ktIndC = Number(document.getElementById('repKtIndCount')?.value) || 0;
+      const ktIndP = Number(document.getElementById('repKtIndPrice')?.value) || priceSettings.wage.ktind;
+      const stC = Number(document.getElementById('repStCount')?.value) || 0;
+      const stP = Number(document.getElementById('repStPrice')?.value) || priceSettings.wage.st;
+
+      const car = Number(document.getElementById('repCarAllowance')?.value) || 0;
+      const claim = Number(document.getElementById('repClaim')?.value) || 0;
+      const bonus = Number(document.getElementById('repBonus')?.value) || 0;
+      const penalty = Number(document.getElementById('repPenalty')?.value) || 0;
+
+      const prevAdv = Number(document.getElementById('repPrevAdvance')?.value) || 0;
+      const newAdv = Number(document.getElementById('repNewAdvance')?.value) || 0;
+      const deduct = Number(document.getElementById('repDeductAmount')?.value) || 0;
+
+      const remainAdv = prevAdv + newAdv - deduct;
+      const remainAdvEl = document.getElementById('repFinalRemainAdvance');
+      if (remainAdvEl) remainAdvEl.textContent = `HK$ ${remainAdv.toFixed(2)}`;
+
+      const total = (eastC * eastP) + (ktLgC * ktLgP) + (ktIndC * ktIndP) + (stC * stP) + car + claim + bonus - penalty - deduct;
+      const el = document.getElementById('repLiveTotalSalary');
+      if (el) el.textContent = `HK$ ${total.toFixed(2)}`;
     }
 
-    function exportZoneCountsText(zone) {
-      const zName = zone === 'east' ? '東區' : (zone === 'kt' ? '觀塘區' : '沙田區');
-      const fences = zoneFences[zone] || [];
-      const countsMap = zone === 'east' ? eastCounts : (zone === 'kt' ? ktCounts : stCounts);
-      let total = 0;
-      let txt = `📦 【Mia組 - ${zName} 圍欄貨量統計】\n========================================\n`;
-      fences.forEach(f => {
-        const c = Number(countsMap[f.name]) || 0;
-        total += c;
-        txt += `• ${f.name}: ${c} 票\n`;
-      });
-      txt += `========================================\n【${zName} 總貨量】：${total} 票`;
-      showUniversalExportModal(`${zName}貨量匯出`, txt);
+    function saveFullDailyReport(e) {
+      e.preventDefault();
+      const date = document.getElementById('repDate').value;
+      const staffName = document.getElementById('repStaffSelect').value;
+      const userObj = accounts.find(a => a.name === staffName) || {};
+
+      const eastC = Number(document.getElementById('repEastCount').value) || 0;
+      const ktLgC = Number(document.getElementById('repKtLgCount').value) || 0;
+      const ktIndC = Number(document.getElementById('repKtIndCount').value) || 0;
+      const stC = Number(document.getElementById('repStCount').value) || 0;
+      const totalPieces = eastC + ktLgC + ktIndC + stC;
+
+      const car = Number(document.getElementById('repCarAllowance').value) || 0;
+      const claim = Number(document.getElementById('repClaim').value) || 0;
+      const bonus = Number(document.getElementById('repBonus').value) || 0;
+      const penalty = Number(document.getElementById('repPenalty').value) || 0;
+      const deduct = Number(document.getElementById('repDeductAmount').value) || 0;
+
+      const finalSalaryStr = document.getElementById('repLiveTotalSalary').textContent.replace('HK$ ', '');
+
+      const reportItem = {
+        id: `REP_${Date.now()}`,
+        date, staff: staffName, category: userObj.category || '步兵', payCycle: userObj.payCycle || '半月糧',
+        eastCount: eastC, ktLgCount: ktLgC, ktIndCount: ktIndC, stCount: stC,
+        totalPieces, car, claim, bonus, penalty, deduct,
+        finalSalary: Number(finalSalaryStr) || 0, transferStatus: '未轉賬'
+      };
+
+      dailyReports.unshift(reportItem);
+      localStorage.setItem('MIA_DAILY_REPORTS_PERFECT', JSON.stringify(dailyReports));
+      renderReportsTable();
+      alert(`✅ 成功提交【${staffName}】的報數紀錄！`);
     }
 
-    function renderTicketsList() {
-      const badge = document.getElementById('ticket-badge-count');
-      if (badge) badge.textContent = ticketsList.length;
-      const c = document.getElementById('tickets-container');
-      if (!c) return;
-      if (ticketsList.length === 0) {
-        c.innerHTML = '<div class="p-3 text-center text-slate-400">目前沒有任何異常工單。</div>';
-        return;
-      }
-      c.innerHTML = ticketsList.map((t, idx) => `
-        <div class="p-3 bg-slate-50 border border-rose-200 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="px-2 py-0.5 bg-rose-600 text-white rounded text-[10px] font-bold">${t.type}</span>
-              <span class="font-black text-slate-900">[${t.tracking}]</span>
-              <span class="font-bold text-blue-700">責任人: ${t.staff}</span>
-            </div>
-            <div class="text-[11px] text-slate-500 mt-1">地點: ${t.zone} | 日期: ${t.date} | 說明: ${t.desc || '無'}</div>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="font-black text-rose-600 font-mono text-sm">-HK$ ${t.amount}</span>
-            <button type="button" onclick="deleteTicket(${idx})" class="text-xs text-rose-600 hover:text-rose-800 font-bold ml-2 border border-rose-200 bg-white px-2 py-1 rounded">🗑️ 刪除/結案</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function saveNewTicket() {
-      const tracking = document.getElementById('tk-tracking-no')?.value.trim();
-      const staff = document.getElementById('tk-responsible-staff')?.value;
-      const type = document.getElementById('tk-issue-type')?.value;
-      const amount = Number(document.getElementById('tk-penalty-amount')?.value) || 50;
-      const zone = document.getElementById('tk-zone')?.value || '全區';
-      const desc = document.getElementById('tk-issue-desc')?.value;
-
-      if (!tracking) return alert('請填寫運單號碼！');
-
-      ticketsList.unshift({ id: `TK${Date.now()}`, date: new Date().toISOString().split('T')[0], tracking, staff, type, amount, zone, desc });
-      localStorage.setItem('MIA_TICKETS_PERFECT', JSON.stringify(ticketsList));
-      if (document.getElementById('tk-tracking-no')) document.getElementById('tk-tracking-no').value = '';
-      if (document.getElementById('tk-issue-desc')) document.getElementById('tk-issue-desc').value = '';
-      renderTicketsList();
-      alert(`✅ 已成功增添工單並對【${staff}】扣款 HK$ ${amount}！`);
-    }
-
-    function deleteTicket(idx) {
-      if (confirm('確定刪除此工單記錄？')) {
-        ticketsList.splice(idx, 1);
-        localStorage.setItem('MIA_TICKETS_PERFECT', JSON.stringify(ticketsList));
-        renderTicketsList();
-      }
-    }
-
-    function exportTicketsText() {
-      let txt = `🚨 【Mia組 - 異常工單與扣罰名冊】\n========================================\n`;
-      ticketsList.forEach((t, i) => {
-        txt += `${i+1}. [${t.date}] 單號:${t.tracking} | 責任人:${t.staff} | 類型:${t.type} | 罰款:$${t.amount} | 地點:${t.zone} | 備註:${t.desc||'無'}\n`;
-      });
-      txt += `========================================\n總工單數: ${ticketsList.length} 宗`;
-      showUniversalExportModal('異常工單匯出', txt);
-    }
-
-    function renderRecruits() {
-      const c = document.getElementById('recruits-list');
-      if (!c) return;
-      if (recruitsList.length === 0) {
-        c.innerHTML = '<div class="text-slate-400 p-2">暫無預約新人檔案。</div>';
-        return;
-      }
-      c.innerHTML = recruitsList.map((r, idx) => `
-        <div class="p-2.5 bg-slate-50 border rounded-xl flex justify-between items-center text-xs">
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="font-black text-slate-900">${r.name} (${r.phone})</span>
-              <span class="px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded text-[10px] font-bold">${r.role || '兼職步兵'}</span>
-              <span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">${r.status || '跟進中'}</span>
-            </div>
-            <div class="text-[11px] text-slate-500 mt-0.5">預約日期: ${r.date || '未定'} | 目標分區: ${r.zone || '全區'} | 備註: ${r.desc || '無'}</div>
-          </div>
-          <button type="button" onclick="deleteRecruit(${idx})" class="text-rose-500 hover:text-rose-700 font-bold ml-2">✕</button>
-        </div>
-      `).join('');
-    }
-
-    function saveNewRecruitForm() {
-      const name = document.getElementById('recruit-name')?.value.trim();
-      const phone = document.getElementById('recruit-phone')?.value.trim();
-      const date = document.getElementById('recruit-date')?.value || new Date().toISOString().split('T')[0];
-      const zone = document.getElementById('recruit-zone')?.value;
-      const role = document.getElementById('recruit-role')?.value;
-      const status = document.getElementById('recruit-status')?.value;
-      const desc = document.getElementById('recruit-desc')?.value;
-
-      if (!name || !phone) return alert('請填寫新人姓名與電話！');
-
-      recruitsList.unshift({ id: Date.now(), name, phone, date, zone, role, status, desc });
-      localStorage.setItem('MIA_RECRUITS_PERFECT', JSON.stringify(recruitsList));
-      if (document.getElementById('recruit-name')) document.getElementById('recruit-name').value = '';
-      if (document.getElementById('recruit-phone')) document.getElementById('recruit-phone').value = '';
-      if (document.getElementById('recruit-desc')) document.getElementById('recruit-desc').value = '';
-      renderRecruits();
-      alert('✅ 新人檔案建立成功！');
-    }
-
-    function deleteRecruit(idx) {
-      if (confirm('確定刪除此新人檔案？')) {
-        recruitsList.splice(idx, 1);
-        localStorage.setItem('MIA_RECRUITS_PERFECT', JSON.stringify(recruitsList));
-        renderRecruits();
-      }
-    }
-
-    function exportRecruitsText() {
-      let txt = `📋 【Mia組 - 預約新人檔案清單】\n========================================\n`;
-      recruitsList.forEach((r, i) => {
-        txt += `${i+1}. 姓名:${r.name} | 電話:${r.phone} | 應徵:${r.role} | 分區:${r.zone} | 預約日:${r.date} | 狀態:${r.status} | 備註:${r.desc||'無'}\n`;
-      });
-      txt += `========================================\n總人數: ${recruitsList.length} 人`;
-      showUniversalExportModal('預約新人匯出', txt);
-    }
-
-    function exportDailyReportsText() {
-      const today = document.getElementById('global-system-date')?.value || new Date().toISOString().split('T')[0];
+    function renderReportsTable() {
+      const tbody = document.getElementById('reportTableBody');
+      if (!tbody) return;
+      const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
       const todayReports = dailyReports.filter(r => r.date === today);
-      let txt = `📋 【Mia組 - ${today} 每日報數與薪資明細】\n========================================\n`;
-      todayReports.forEach((r, i) => {
-        txt += `${i+1}. ${r.staff} (${r.category}): 東${r.eastCount||0} / 麗${r.ktLgCount||0} / 工${r.ktIndCount||0} / 沙${r.stCount||0} | 總票:${r.totalPieces} | 實發:$${r.finalSalary} [${r.transferStatus}]\n`;
-      });
-      txt += `========================================`;
-      showUniversalExportModal('今日報數匯出', txt);
+
+      if (todayReports.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">今日暫無報數記錄。</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = todayReports.map((r, idx) => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-3 font-mono text-slate-600">${r.date}</td>
+          <td class="p-3 font-bold text-slate-900">${r.staff} <span class="text-[10px] text-slate-400">(${r.payCycle})</span></td>
+          <td class="p-3 text-center font-mono font-semibold text-blue-700">${r.eastCount || 0} / ${r.ktLgCount || 0} / ${r.ktIndCount || 0} / ${r.stCount || 0}</td>
+          <td class="p-3 text-right font-bold text-slate-900">${r.totalPieces} 票</td>
+          <td class="p-3 text-right font-mono text-[11px] text-slate-500">+${r.car + r.claim + r.bonus} / -${r.penalty + r.deduct}</td>
+          <td class="p-3 text-right font-black text-emerald-600 font-mono">HK$ ${r.finalSalary.toFixed(2)}</td>
+          <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">${r.transferStatus}</span></td>
+          <td class="p-3 text-center"><button type="button" onclick="deleteDailyReport(${idx})" class="text-rose-500 hover:text-rose-700 font-bold">✕</button></td>
+        </tr>
+      `).join('');
     }
 
-    function openChangePasswordModal() {
-      const pSel = document.getElementById('pwd-target-account');
-      if (pSel) pSel.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
-      openModal('modal-change-password');
+    function deleteDailyReport(idx) {
+      if (confirm('確定刪除此條報數紀錄？')) {
+        dailyReports.splice(idx, 1);
+        localStorage.setItem('MIA_DAILY_REPORTS_PERFECT', JSON.stringify(dailyReports));
+        renderReportsTable();
+      }
     }
-    function saveNewPassword() { alert('密碼更新成功！'); closeModal('modal-change-password'); }
+
+    function clearReports() {
+      if (confirm('確定清空今日報數？')) {
+        const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
+        dailyReports = dailyReports.filter(r => r.date !== today);
+        localStorage.setItem('MIA_DAILY_REPORTS_PERFECT', JSON.stringify(dailyReports));
+        renderReportsTable();
+      }
+    }
+
+    function openUniversalExportModal(type) {
+      let content = `👥 【Mia組 - 各區圍欄排班狀況名冊】\n========================================\n`;
+      const zoneNames = { east: '東區', kt: '觀塘區', st: '沙田區' };
+      ['east', 'kt', 'st'].forEach(zone => {
+        content += `\n📍 【${zoneNames[zone]}】\n----------------------------------------\n`;
+        const fences = zoneFences[zone] || [];
+        const assigns = zoneAssignments[zone] || [];
+
+        fences.forEach(f => {
+          const staffList = assigns.filter(a => a.fence === f.name).map(a => a.name);
+          const count = staffList.length;
+          if (count > 0) {
+            content += `• ${f.name} (${count}人): ${staffList.join('、')}\n`;
+          } else {
+            content += `• ${f.name}: (暫未排人)\n`;
+          }
+        });
+      });
+      content += `\n========================================\n請各步兵準時到達負責圍欄！💪`;
+
+      showUniversalExportModal('排班更表匯出', content);
+    }
+
+    function showUniversalExportModal(title, content) {
+      document.getElementById('export-modal-title').textContent = `📤 ${title}`;
+      document.getElementById('universal-export-textarea').value = content;
+      openModal('modal-universal-export');
+    }
+
+    function copyUniversalWhatsAppText() {
+      const textarea = document.getElementById('universal-export-textarea');
+      if (textarea) {
+        textarea.select();
+        navigator.clipboard.writeText(textarea.value).then(() => {
+          alert('✅ 已成功複製 WhatsApp 格式至剪貼簿！');
+        });
+      }
+    }
+
+    function autoGenerateStaffId() {
+      const team = document.getElementById('new-staff-team').value;
+      const count = accounts.filter(a => a.team === team).length + 1;
+      const numStr = count < 10 ? `0${count}` : `${count}`;
+      document.getElementById('new-staff-id').value = `${team}${numStr}`;
+    }
+
+    function openAddRiderModal() { autoGenerateStaffId(); renderStaffManagementList(); openModal('modal-add-rider'); }
+    function renderStaffManagementList() {
+      const c = document.getElementById('staff-category-list');
+      c.innerHTML = accounts.map(a => `
+        <div class="p-2.5 bg-slate-50 border rounded-xl flex flex-wrap justify-between items-center gap-2">
+          <div>
+            <span class="font-black text-slate-900">[${a.id}] ${a.name}</span>
+            <span class="ml-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">${a.category} (${a.team}組)</span>
+            <span class="ml-1 text-[11px] text-slate-500">週期: ${a.payCycle || '半月糧'} | 扣數: ${a.deductRate || '50%'}</span>
+          </div>
+          <div class="text-[11px] text-slate-600 font-mono">
+            票價: 東$${a.prices?.east || 8.5} / 麗$${a.prices?.ktlg || 8} / 工$${a.prices?.ktind || 7.5} / 沙$${a.prices?.st || 7.5}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function saveNewStaffRecord() {
+      const id = document.getElementById('new-staff-id').value;
+      const name = document.getElementById('new-staff-name').value.trim();
+      const team = document.getElementById('new-staff-team').value;
+      const category = document.getElementById('new-staff-role').value;
+      const payCycle = document.getElementById('new-staff-paycycle').value;
+      const deductRate = document.getElementById('new-staff-deduct-rate').value;
+      const eastP = Number(document.getElementById('new-staff-p-east').value) || 8.5;
+      const ktlgP = Number(document.getElementById('new-staff-p-ktlg').value) || 8.0;
+      const ktindP = Number(document.getElementById('new-staff-p-ktind').value) || 7.5;
+      const stP = Number(document.getElementById('new-staff-p-st').value) || 7.5;
+
+      if (!name) return alert('請填寫人員姓名！');
+
+      const newAccount = {
+        id, name, team, category, payCycle, deductRate,
+        prices: { east: eastP, ktlg: ktlgP, ktind: ktindP, st: stP },
+        password: '123'
+      };
+
+      accounts.push(newAccount);
+      localStorage.setItem('MIA_ACCOUNTS_PERFECT', JSON.stringify(accounts));
+      document.getElementById('new-staff-name').value = '';
+      autoGenerateStaffId();
+      renderStaffManagementList();
+      renderRoleView();
+      alert(`✅ 成功建立【${id} ${name}】(${category})！`);
+    }
+
+    function updateShiftFenceDropdown(zone) {
+      const fenceSel = document.getElementById('shift-target-fence');
+      const fences = zoneFences[zone] || [];
+      fenceSel.innerHTML = fences.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
+    }
+
+    function submitShiftReport() {
+      const staff = document.getElementById('shift-staff-select').value;
+      const date = document.getElementById('shift-14days-select').value;
+      const zone = document.getElementById('shift-target-zone').value;
+      const fence = document.getElementById('shift-target-fence').value;
+      const type = document.getElementById('shift-work-type').value;
+      const timeRange = document.getElementById('shift-time-range').value || '全日';
+      const note = document.getElementById('shift-special-note').value;
+
+      shiftReports.unshift({ staff, date, zone: zone==='east'?'東區':(zone==='kt'?'觀塘':'沙田'), fence, type, timeRange, note });
+      localStorage.setItem('MIA_SHIFTS_PERFECT', JSON.stringify(shiftReports));
+      document.getElementById('shift-special-note').value = '';
+      renderShiftsHistory();
+      alert(`已成功提交【${staff}】於 ${date} 的報更！`);
+    }
+
+    function renderShiftsHistory() {
+      document.getElementById('shifts-history-list').innerHTML = shiftReports.map(s => `
+        <div class="p-2 bg-slate-50 border rounded-xl space-y-1">
+          <div class="flex justify-between font-bold">
+            <span>${s.date} - ${s.staff} (📍 ${s.fence})</span>
+            <span class="text-blue-700">${s.type} [${s.timeRange}]</span>
+          </div>
+          ${s.note ? `<div class="text-[11px] text-amber-700">⚠️ 備註: ${s.note}</div>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function renderTruckRoutes() {
+      document.getElementById('truck-list').innerHTML = truckRoutes.map((t, idx) => `
+        <div class="p-2 bg-slate-50 border rounded-xl flex justify-between items-center">
+          <div><span class="font-black text-slate-900">[${t.time}] ${t.driver} (${t.order})</span><span class="ml-2 text-blue-700 font-bold">送達: ${t.fence}</span></div>
+          <button type="button" onclick="deleteTruckRoute(${idx})" class="text-rose-500 hover:text-rose-700 font-bold">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function saveTruckRouteForm() {
+      const zone = document.getElementById('truck-zone-inp').value;
+      const time = document.getElementById('truck-time-inp').value;
+      const driver = document.getElementById('truck-driver-select').value;
+      const order = document.getElementById('truck-order-inp').value || '第1車';
+      const fence = document.getElementById('truck-fence-inp').value;
+      if (!fence) return alert('請填寫送達圍欄/地點！');
+      truckRoutes.push({ zone, time, driver, order, fence });
+      localStorage.setItem('MIA_TRUCKS_PERFECT', JSON.stringify(truckRoutes));
+      renderTruckRoutes();
+      alert('車線新增成功！');
+    }
+
+    function deleteTruckRoute(idx) {
+      if (confirm('確定刪除此車線？')) {
+        truckRoutes.splice(idx, 1);
+        localStorage.setItem('MIA_TRUCKS_PERFECT', JSON.stringify(truckRoutes));
+        renderTruckRoutes();
+      }
+    }
+
+    function renderSupplies() {
+      document.getElementById('supplies-list').innerHTML = suppliesList.map((s, idx) => `
+        <div class="p-2 bg-slate-50 border rounded-xl flex justify-between items-center">
+          <div><span class="font-bold">${s.date} - ${s.name} (${s.qty}件)</span><span class="text-[10px] text-slate-400 ml-2">採購: ${s.buyer}</span></div>
+          <div class="flex items-center gap-2">
+            <span class="font-black text-rose-600 font-mono">HK$ ${s.price}</span>
+            <button type="button" onclick="deleteSupply(${idx})" class="text-rose-500 hover:text-rose-700 font-bold ml-1">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function saveSupplyRecord() {
+      const date = document.getElementById('supply-date').value || new Date().toISOString().split('T')[0];
+      const name = document.getElementById('supply-name').value.trim();
+      const qty = Number(document.getElementById('supply-qty').value) || 1;
+      const price = Number(document.getElementById('supply-price').value) || 0;
+      const buyer = document.getElementById('supply-buyer').value || 'Mia';
+      if (!name) return alert('請填寫物資品名！');
+      suppliesList.unshift({ id: Date.now(), date, name, qty, price, buyer });
+      localStorage.setItem('MIA_SUPPLIES_PERFECT', JSON.stringify(suppliesList));
+      document.getElementById('supply-name').value = '';
+      renderSupplies();
+      alert('物資登記成功！');
+    }
+
+    function deleteSupply(idx) {
+      if (confirm('確定刪除此筆物資記錄？')) {
+        suppliesList.splice(idx, 1);
+        localStorage.setItem('MIA_SUPPLIES_PERFECT', JSON.stringify(suppliesList));
+        renderSupplies();
+      }
+    }
+
+    function renderM1Fences() {
+      const container = document.getElementById('m1-fences-container');
+      if (!container) return;
+      let html = '';
+      ['east', 'kt', 'st'].forEach(z => {
+        const zName = z === 'east' ? '東區' : (z === 'kt' ? '觀塘' : '沙田');
+        html += `<div class="font-bold text-slate-800 mt-2 mb-1">📍 ${zName}</div><div class="grid grid-cols-2 gap-1.5">`;
+        (zoneFences[z] || []).forEach((f, idx) => {
+          html += `<div class="p-1.5 bg-slate-50 border rounded flex justify-between items-center text-[11px]">
+            <span>${f.name}</span>
+            <button type="button" onclick="deleteFence('${z}', ${idx})" class="text-rose-500 hover:text-rose-700 font-bold">✕</button>
+          </div>`;
+        });
+        html += `</div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    function saveNewZoneFence() {
+      const z = document.getElementById('new-fence-zone-select').value;
+      const name = document.getElementById('new-fence-name-input').value.trim();
+      if (!name) return alert('請輸入圍欄名稱！');
+      if (!zoneFences[z]) zoneFences[z] = [];
+      zoneFences[z].push({ name });
+      localStorage.setItem('MIA_FENCES_PERFECT', JSON.stringify(zoneFences));
+      document.getElementById('new-fence-name-input').value = '';
+      renderM1Fences();
+      alert('圍欄新增成功！');
+    }
+
+    function deleteFence(z, idx) {
+      if (confirm('確定刪除此圍欄？')) {
+        zoneFences[z].splice(idx, 1);
+        localStorage.setItem('MIA_FENCES_PERFECT', JSON.stringify(zoneFences));
+        renderM1Fences();
+      }
+    }
+
+    function switchAssignmentTab(tab) {
+      currentAssignTab = tab;
+      ['east', 'kt', 'st'].forEach(t => {
+        const btn = document.getElementById(`tab-assign-${t}`);
+        if (btn) {
+          btn.className = (t === tab) ? 'px-3 py-1.5 rounded-lg bg-slate-900 text-white font-bold transition' : 'px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-bold transition';
+        }
+      });
+      renderAssignmentsBoard();
+    }
+
+    function renderAssignmentsBoard() {
+      const riderSel = document.getElementById('new-assign-rider-select');
+      if (riderSel) {
+        riderSel.innerHTML = '<option value="">-- 請選擇步兵 --</option>' + accounts.filter(a => a.name !== 'Mia').map(a => `<option value="${a.name}">${a.name} (${a.id})</option>`).join('');
+      }
+
+      const fenceSel = document.getElementById('new-assign-fence-select');
+      const fences = zoneFences[currentAssignTab] || [];
+      if (fenceSel) {
+        fenceSel.innerHTML = '<option value="">-- 請選擇屋苑/圍欄 --</option>' + fences.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
+      }
+
+      const grid = document.getElementById('m2-fences-board-grid');
+      if (!grid) return;
+      const currentList = zoneAssignments[currentAssignTab] || [];
+
+      grid.innerHTML = fences.map(f => {
+        const assignedStaff = currentList.filter(item => item.fence === f.name);
+        const staffCount = assignedStaff.length;
+
+        return `
+          <div class="p-3 bg-slate-50 border ${staffCount > 0 ? 'border-blue-200 bg-blue-50/20' : 'border-slate-200'} rounded-xl flex flex-col justify-between space-y-2 shadow-2xs">
+            <div class="flex items-center justify-between">
+              <span class="font-black text-slate-900 text-xs">📍 ${f.name}</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${staffCount > 0 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}">
+                ${staffCount} 人
+              </span>
+            </div>
+            <div class="flex flex-wrap gap-1 min-h-[26px] items-center">
+              ${staffCount === 0 ? '<span class="text-[11px] text-slate-400 font-semibold italic">暫未排人</span>' : assignedStaff.map(s => `
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-blue-300 text-blue-900 rounded-lg text-[11px] font-bold">
+                  ${s.name}
+                  <button type="button" onclick="removeStaffFromFence('${s.name}', '${f.name}')" class="text-rose-500 font-black ml-0.5">✕</button>
+                </span>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function saveNewAssignmentRow() {
+      const rider = document.getElementById('new-assign-rider-select').value;
+      const fence = document.getElementById('new-assign-fence-select').value;
+      if (!rider || !fence) return alert('請先選擇步兵姓名及負責圍欄！');
+      if (!zoneAssignments[currentAssignTab]) zoneAssignments[currentAssignTab] = [];
+      const exists = zoneAssignments[currentAssignTab].some(item => item.name === rider && item.fence === fence);
+      if (exists) return alert(`【${rider}】已經在【${fence}】名單中！`);
+
+      zoneAssignments[currentAssignTab].push({ name: rider, fence: fence });
+      localStorage.setItem('MIA_ASSIGNS_PERFECT', JSON.stringify(zoneAssignments));
+      renderAssignmentsBoard();
+      alert(`✅ 成功將【${rider}】指派到 ${fence}！`);
+    }
+
+    function removeStaffFromFence(riderName, fenceName) {
+      if (confirm(`確定將【${riderName}】從【${fenceName}】移除？`)) {
+        zoneAssignments[currentAssignTab] = (zoneAssignments[currentAssignTab] || []).filter(item => !(item.name === riderName && item.fence === fenceName));
+        localStorage.setItem('MIA_ASSIGNS_PERFECT', JSON.stringify(zoneAssignments));
+        renderAssignmentsBoard();
+      }
+    }
 
     function renderRoleView() {
       const selectEl = document.getElementById('current-user-role-select');
@@ -1066,6 +1371,13 @@
       }
       calcSalaryLive();
     }
+
+    function openChangePasswordModal() {
+      const pSel = document.getElementById('pwd-target-account');
+      if (pSel) pSel.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
+      openModal('modal-change-password');
+    }
+    function saveNewPassword() { alert('密碼更新成功！'); closeModal('modal-change-password'); }
 
     window.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
