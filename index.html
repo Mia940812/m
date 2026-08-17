@@ -568,8 +568,18 @@
       `).join('');
     }
 
-    function openReconciliationModal() {
+        function openReconciliationModal() {
       if (!isCurrentUserAdmin()) return alert('🔒 只有 Mia 總管理員具備權限查閱出糧紀錄！');
+      
+      // 自動載入步兵名單到核對選單
+      const reconStaffSel = document.getElementById('recon-staff-select');
+      if (reconStaffSel) {
+        reconStaffSel.innerHTML = '<option value="全部">全部步兵</option>' + accounts.map(a => {
+          const info = extractStaffInfo(a);
+          return `<option value="${info.name}">${info.name} (${info.cat})</option>`;
+        }).join('');
+      }
+
       filterReconHistory();
       openModal('modal-reconciliation-view');
     }
