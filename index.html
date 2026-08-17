@@ -31,13 +31,11 @@
         </div>
       </div>
 
-      <!-- 身份切換、修改密碼與系統控制 -->
       <div class="flex items-center gap-2 text-xs">
         <div id="account-switch-container" class="flex items-center gap-1.5">
           <span class="text-[11px] text-slate-400 font-bold hidden sm:inline">當前帳戶:</span>
           <select id="current-user-role-select" onchange="promptRoleSwitch(this.value)" class="bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-2 py-1 font-bold focus:outline-none"></select>
         </div>
-
         <button type="button" onclick="openChangePasswordModal()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold transition flex items-center gap-1">
           <span>🔑</span> 修改密碼
         </button>
@@ -53,10 +51,9 @@
   <!-- 核心功能導航欄 -->
   <nav class="bg-white border-b border-slate-200 sticky top-[53px] z-30 shadow-xs">
     <div id="navigation-bar-container" class="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center gap-1.5 text-xs font-bold">
-      <!-- 🔒 步兵出糧與報數核對 (僅 Mia 總管顯示與操作) -->
+      <!-- 🔒 Mia 專屬入口 -->
       <button type="button" id="btn-nav-recon" onclick="openReconciliationModal()" class="px-3 py-1.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white flex items-center gap-1 shadow-xs"><span>🔍</span> 步兵出糧與報數核對 (Mia專屬)</button>
       <button type="button" onclick="openViolationsModal()" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1 shadow-xs"><span>⚠️</span> 現場違規罰款</button>
-
       <!-- 🌐 全員公開可見 -->
       <button type="button" onclick="openLeaderboardModal()" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-1 shadow-xs"><span>🏆</span> 罰款獎池與龍虎榜</button>
       <button type="button" onclick="openTicketsModal()" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 relative">🚨 異常工單 <span id="ticket-badge-count" class="ml-1 px-1.5 py-0.2 bg-rose-600 text-white rounded-full text-[9px]">47</span></button>
@@ -66,8 +63,6 @@
       <button type="button" onclick="openModalProgress()" class="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-900 border border-blue-200 font-black">⏱️ 各區工作進度</button>
       <button type="button" onclick="openModal5()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">⏰ 5- 14天報更</button>
       <button type="button" onclick="openUniversalExportModal('shift_schedule')" class="px-3 py-1.5 rounded-xl bg-slate-800 text-white flex items-center gap-1 shadow-xs"><span>📤</span> 匯出更表</button>
-
-      <!-- 👑 Mia 專屬功能 (非 Mia 完全隱藏) -->
       <button type="button" id="btn-nav-profit" onclick="openModalProfit()" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs">📈 營運利潤</button>
       <button type="button" id="btn-nav-settle" onclick="openModalSettlementDaily()" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white shadow-xs">💰 詳細分區埋數</button>
       <button type="button" id="btn-nav-supplies" onclick="openSuppliesModal()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">📦 物資採購</button>
@@ -82,7 +77,7 @@
 
   <!-- 主內容工作區 -->
   <main class="max-w-7xl mx-auto p-3 sm:p-5 flex-1 w-full space-y-4">
-    <!-- 每日派件報數與薪資結算表單 -->
+    <!-- 每日派件報數表單 -->
     <div id="report-entry-panel" class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
       <div class="border-b border-slate-100 pb-2.5 flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-2">
@@ -155,7 +150,7 @@
           </div>
         </div>
 
-        <!-- 2. 津貼與實發結算 -->
+        <!-- 2. 津貼與結算 -->
         <div class="p-3.5 bg-slate-50/60 rounded-xl border border-slate-200 space-y-2.5">
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <div><label class="block font-bold text-slate-600 mb-1">🚗 車津 ($)</label><input type="number" id="repCarAllowance" min="0" value="0" oninput="calcSalaryLive()" class="w-full p-1.5 bg-white border rounded-lg font-bold"></div>
@@ -184,7 +179,7 @@
       </form>
     </div>
 
-    <!-- 埋數與工資核對清單 (🔒 只有 Mia 總管看得到) -->
+    <!-- 埋數清單 (🔒 僅 Mia 可見) -->
     <div id="section-daily-settle-table" class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden" style="display: none;">
       <div class="p-3.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
         <h3 id="table-heading-title" class="font-bold text-xs text-slate-900">📋 當日詳細埋數與工資結算核對清單 (Mia 專屬)</h3>
@@ -213,8 +208,257 @@
       </div>
     </div>
   </main>
+  <!-- 模態視窗集合 -->
+  <div id="modal-reconciliation-view" class="app-modal" style="display: none;">
+    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-5xl w-full shadow-2xl space-y-3.5 max-h-[94vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2"><span class="px-2 py-0.5 bg-indigo-600 text-white rounded text-xs font-black">核對入口</span> 🔍 步兵報數核對與工資計算核對系統</h3>
+        <button type="button" onclick="closeModal('modal-reconciliation-view')" class="text-slate-400 hover:text-slate-700 font-bold text-base">✕</button>
+      </div>
+      <div class="p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
+        <div><label class="block font-bold text-slate-700 mb-1">📅 選擇月份</label><select id="recon-month-select" onchange="filterReconHistory()" class="w-full p-1.5 bg-white border border-indigo-300 rounded-lg font-bold text-indigo-900"><option value="全部">全部月份</option><option value="8月" selected>8月</option><option value="7月">7月</option></select></div>
+        <div><label class="block font-bold text-slate-700 mb-1">👷 選擇步兵姓名</label><select id="recon-staff-select" onchange="filterReconHistory()" class="w-full p-1.5 bg-white border border-indigo-300 rounded-lg font-bold text-slate-900"></select></div>
+        <div><label class="block font-bold text-slate-700 mb-1">📍 選擇分區</label><select id="recon-zone-select" onchange="filterReconHistory()" class="w-full p-1.5 bg-white border border-indigo-300 rounded-lg font-bold text-slate-900"><option value="全部">全部分區</option><option value="SKW">東區 (SKW)</option><option value="KT">觀塘區 (麗同工)</option><option value="F58">沙田區 (F58)</option></select></div>
+        <div class="flex items-end"><button type="button" onclick="exportReconCurrentStaffText()" class="w-full py-1.5 bg-indigo-900 hover:bg-indigo-800 text-white rounded-lg font-bold shadow-xs">📤 匯出出糧對數單</button></div>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+        <div class="p-2.5 bg-white border rounded-xl"><span class="text-slate-500 font-bold text-[11px]">出勤天數</span><div id="recon-stat-days" class="font-black text-slate-900 text-base mt-0.5">0 天</div></div>
+        <div class="p-2.5 bg-white border rounded-xl"><span class="text-slate-500 font-bold text-[11px]">總票數合計</span><div id="recon-stat-tickets" class="font-black text-blue-700 text-base mt-0.5">0 票</div></div>
+        <div class="p-2.5 bg-white border rounded-xl"><span class="text-slate-500 font-bold text-[11px]">應發總額</span><div id="recon-stat-gross" class="font-black text-slate-900 text-base mt-0.5 font-mono">HK$ 0.00</div></div>
+        <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl"><span class="text-emerald-800 font-bold text-[11px]">實發總額</span><div id="recon-stat-net" class="font-black text-emerald-600 text-base mt-0.5 font-mono">HK$ 0.00</div></div>
+      </div>
+      <div class="overflow-x-auto custom-scrollbar max-h-72 border rounded-xl">
+        <table class="w-full text-left text-xs bg-white">
+          <thead class="bg-slate-100 text-slate-600 font-bold sticky top-0 border-b">
+            <tr><th class="p-2.5">月份/日期</th><th class="p-2.5">步兵姓名</th><th class="p-2.5 text-center">分區代碼</th><th class="p-2.5 text-right">票數</th><th class="p-2.5 text-right">實出金額</th><th class="p-2.5 text-center">狀態</th><th class="p-2.5">備註 / 扣數拆解</th></tr>
+          </thead>
+          <tbody id="reconTableBody" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+      <button type="button" onclick="closeModal('modal-reconciliation-view')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
 
-  <!-- 模態視窗與 JavaScript 邏輯控制完整內置在上下文中 -->
+  <div id="modal-violations-view" class="app-modal" style="display: none;">
+    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-2xl w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-slate-900">⚠️ 日常違規罰款登記入口</h3><button type="button" onclick="closeModal('modal-violations-view')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button></div>
+      <div id="violation-create-form" class="bg-amber-50/70 p-3 rounded-xl border border-amber-200 text-xs space-y-2">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <input type="date" id="vio-date" class="p-1.5 bg-white border rounded font-bold">
+          <select id="vio-staff-select" class="p-1.5 bg-white border rounded font-bold"></select>
+          <select id="vio-zone" class="p-1.5 bg-white border rounded font-bold"><option value="SKW (東區)">📍 SKW (東區)</option><option value="KT (觀塘)">📍 KT (觀塘)</option><option value="F58 (沙田)">📍 F58 (沙田)</option></select>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <select id="vio-type" onchange="autoFillViolationFine(this.value)" class="p-1.5 bg-white border rounded font-bold">
+            <option value="攤大餅">🚫 攤大餅 (佔用通道)</option><option value="遲到">⏰ 遲到 (未提前報備)</option><option value="射波">🚨 射波 / 曠工</option><option value="清場冇執垃圾">🧹 清場冇執垃圾</option><option value="唔冚雨布">🌧️ 唔冚雨布</option><option value="其他現場違規">⚠️ 其他現場違規</option>
+          </select>
+          <input type="number" id="vio-amount" placeholder="罰款金額 ($)" value="50" class="p-1.5 bg-white border border-rose-300 rounded font-bold text-rose-600">
+        </div>
+        <input type="text" id="vio-desc" placeholder="違規詳情說明 / 備註" class="w-full p-1.5 bg-white border rounded">
+        <button type="button" onclick="saveNewViolationRecord()" class="w-full py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded font-bold">確認登記現場違規</button>
+      </div>
+      <div id="violations-list" class="space-y-1.5 text-xs max-h-56 overflow-y-auto custom-scrollbar"></div>
+      <button type="button" onclick="closeModal('modal-violations-view')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
 
+  <div id="modal-tickets-view" class="app-modal" style="display: none;">
+    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-3xl w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-slate-900">🚨 異常工單中心 (47張工單)</h3><button type="button" onclick="closeModal('modal-tickets-view')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button></div>
+      <div id="tickets-container" class="space-y-2 text-xs max-h-80 overflow-y-auto custom-scrollbar"></div>
+      <button type="button" onclick="closeModal('modal-tickets-view')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
+
+  <div id="modal-assignments" class="app-modal" style="display: none;">
+    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-4xl w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">👥 區域排班分工看板</h3><button type="button" onclick="closeModal('modal-assignments')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button></div>
+      <div class="flex gap-2 text-xs font-bold">
+        <button type="button" onclick="switchAssignmentTab('east')" id="tab-assign-east" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white">📍 東區</button>
+        <button type="button" onclick="switchAssignmentTab('kt')" id="tab-assign-kt" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">📍 觀塘區</button>
+        <button type="button" onclick="switchAssignmentTab('st')" id="tab-assign-st" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">📍 沙田區</button>
+      </div>
+      <div id="m2-fences-board-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs max-h-72 overflow-y-auto custom-scrollbar"></div>
+      <button type="button" onclick="closeModal('modal-assignments')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
+
+  <div id="modal-progress-view" class="app-modal" style="display: none;">
+    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-3xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-slate-900">⏱️ 各區工作進度</h3><button type="button" onclick="closeModal('modal-progress-view')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button></div>
+      <div id="progress-fences-list" class="space-y-3 text-xs max-h-72 overflow-y-auto custom-scrollbar"></div>
+      <button type="button" onclick="closeModal('modal-progress-view')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
+
+  <div id="modal-change-password" class="app-modal" style="display: none;">
+    <div class="bg-white rounded-2xl p-4 max-w-md w-full space-y-3">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">🔑 修改密碼</h3><button type="button" onclick="closeModal('modal-change-password')">✕</button></div>
+      <div class="space-y-2 text-xs">
+        <select id="pwd-target-account" class="w-full border rounded p-2 font-bold"></select>
+        <input type="text" id="pwd-new-input" placeholder="輸入新密碼" class="w-full border rounded p-2 font-bold">
+        <button type="button" onclick="saveNewPassword()" class="w-full py-2 bg-slate-900 text-white rounded font-bold">儲存密碼</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-universal-export" class="app-modal" style="display: none;">
+    <div class="bg-white rounded-2xl p-4 max-w-2xl w-full space-y-3">
+      <div class="flex justify-between items-center border-b pb-2"><h3 id="export-modal-title" class="font-bold text-sm">📤 匯出中心</h3><button type="button" onclick="closeModal('modal-universal-export')">✕</button></div>
+      <textarea id="universal-export-textarea" rows="12" readonly class="w-full bg-slate-50 border rounded-xl p-3 font-mono text-xs focus:outline-none"></textarea>
+      <button type="button" onclick="copyUniversalWhatsAppText()" class="w-full py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold">一鍵複製 WhatsApp 格式</button>
+    </div>
+  </div>
+
+  <script>
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwG5x-iN6GjVd1jtdoz11Nwn79JLSLdLrIDr_xXfNCyfo1EBxfYPUFb5oW754GXf7H4fA/exec';
+
+    function openModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'flex'; }
+    function closeModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+
+    function resetSystemData() {
+      if (confirm('⚠️ 確定將系統重置為初始狀態？所有快取將恢復預設。')) {
+        localStorage.clear();
+        location.reload();
+      }
+    }
+
+    const defaultPrices = { wage: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, rev: { east: 11.5, ktlg: 11.0, ktind: 10.5, st: 10.5 } };
+    let priceSettings = JSON.parse(localStorage.getItem('MIA_PRICES_PERFECT')) || defaultPrices;
+
+    const defaultZoneFences = {
+      st: [{ name: 'F58' }, { name: '廣源邨' }],
+      kt: [{ name: '01E Koko Hills' }, { name: '02E 觀塘工商區1號' }, { name: '03E 觀塘工商區2號' }, { name: '04E 觀塘工商區3號' }, { name: '05E 觀塘工商區4號' }, { name: '06E 觀塘工商區5號' }, { name: '07E 觀塘工商區6號' }, { name: '08E 觀塘工商區7號' }, { name: '09E 觀塘工商區8號' }, { name: '10E 鴻圖道+勵業街' }, { name: '11E 麗港城-1號托' }, { name: '12E 麗港城-2號托' }, { name: '13E 麗港城-3號托' }, { name: '14E 麗港城-4號托' }, { name: '15E 麗港城-5號托' }],
+      east: [{ name: '03F 東旭苑' }, { name: '06F 東濤苑' }, { name: '09F 富怡花園' }, { name: '12F 杏花邨1號' }, { name: '13F 杏花邨3號' }, { name: '14F 杏花邨4號' }, { name: '17F 香島' }, { name: '18F 曉翠苑' }, { name: '19F 漁灣邨' }, { name: '21F 杏翠苑+翠灣邨' }, { name: '22F 峰華邨+景翠苑' }, { name: '26F 興華（1）邨' }, { name: '27F 興華（2）邨' }, { name: '28F 興民邨' }, { name: '29F 山翠苑' }, { name: '30F 新翠花園' }, { name: '31F 環翠邨' }, { name: '39F 柴灣地鐵站工業區' }, { name: '40F 小西灣工業區' }, { name: '41F 小西灣邨-1號托' }, { name: '42F 小西灣邨-2號托' }, { name: '43F 小西灣邨-3號托' }, { name: '44F 樂軒+宏德+怡翠' }, { name: '45F 柴灣+蝶翠+康平街' }, { name: '46F 高威+康翠+灣景園' }, { name: '47F 澤鑾閣暫存點' }, { name: '60F 藍灣半島' }, { name: '61F 富欣花園' }, { name: '62F 愛蝶灣' }, { name: '64F 愛東邨' }, { name: '65F 富景花園' }, { name: '67F 杏花園' }, { name: '68F 東大街板A' }, { name: '69F 峻峰花園' }, { name: '70F 筲箕灣道板-1號托' }, { name: '72F 形薈' }, { name: '73F 東區樂翠台暫存點' }, { name: '74F 東區醫院暫存點' }, { name: '76F 常安街簡約公屋暫存點' }, { name: '15F 明華A-E座' }, { name: '16F 明華1&2座' }]
+    };
+    let zoneFences = JSON.parse(localStorage.getItem('MIA_FENCES_PERFECT')) || defaultZoneFences;
+    let zoneAssignments = JSON.parse(localStorage.getItem('MIA_ASSIGNS_PERFECT')) || { east: [], kt: [], st: [] };
+    let fenceProgressStatus = JSON.parse(localStorage.getItem('MIA_PROGRESS_STATUS_PERFECT')) || {};
+    let dailyReports = JSON.parse(localStorage.getItem('MIA_DAILY_REPORTS_PERFECT')) || [];
+    let violationsList = JSON.parse(localStorage.getItem('MIA_VIOLATIONS_PERFECT')) || [
+      { id: 'VIO_1', date: '2026-08-01', staff: '黃傅釧', zone: 'SKW (東區)', type: '遲到', amount: 50, desc: '遲到未報備' }
+    ];
+
+    const initialAccounts = [
+      { id: 'KM01', name: 'Mia', category: 'Admin', team: 'KM', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'A01', name: '詠豪', category: '組長', team: 'A', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'A02', name: '小魚', category: '兼職步兵', team: 'A', payCycle: '隔日糧', deductRate: '40%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'B01', name: '景鴻', category: '組長', team: 'B', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
+      { id: 'C01', name: '俊華', category: '組長', team: 'C', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' }
+    ];
+    let accounts = JSON.parse(localStorage.getItem('MIA_ACCOUNTS_PERFECT')) || initialAccounts;
+    let currentRole = localStorage.getItem('MIA_LOGGED_IN_USER') || 'admin';
+    let currentAssignTab = 'east';
+
+    function isCurrentUserAdmin() { return currentRole === 'admin' || currentRole === 'Mia'; }
+    function isCurrentUserLeader() { const u = accounts.find(a => a.name === currentRole); return u && u.category === '組長'; }
+    function getAccessibleStaffNames() { return accounts.map(a => a.name); }
+
+    function openReconciliationModal() {
+      if (!isCurrentUserAdmin()) return alert('🔒 只有 Mia 總管理員具備權限查閱出糧紀錄！');
+      filterReconHistory();
+      openModal('modal-reconciliation-view');
+    }
+
+    function filterReconHistory() {
+      const tbody = document.getElementById('reconTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = dailyReports.slice(0, 50).map(r => `
+        <tr class="hover:bg-slate-50 text-[11px]">
+          <td class="p-2.5 font-mono text-slate-600">${r.date}</td>
+          <td class="p-2.5 font-bold text-slate-900">${r.staff}</td>
+          <td class="p-2.5 text-center font-bold text-blue-700">${r.eastCount > 0 ? 'SKW' : (r.ktLgCount > 0 ? 'KT' : 'F58')}</td>
+          <td class="p-2.5 text-right font-bold text-slate-900">${r.totalPieces}</td>
+          <td class="p-2.5 text-right font-black text-emerald-600 font-mono">HK$ ${r.finalSalary}</td>
+          <td class="p-2.5 text-center font-bold">${r.transferStatus || '未轉賬'}</td>
+          <td class="p-2.5 text-slate-500">${r.issue || '-'}</td>
+        </tr>
+      `).join('') || '<tr><td colspan="7" class="p-6 text-center text-slate-400">目前暫無出糧紀錄。</td></tr>';
+    }
+
+    function calcSalaryLive() {
+      const pWage = priceSettings.wage || defaultPrices.wage;
+      const eastC = Number(document.getElementById('repEastCount')?.value) || 0;
+      const ktLgC = Number(document.getElementById('repKtLgCount')?.value) || 0;
+      const ktIndC = Number(document.getElementById('repKtIndCount')?.value) || 0;
+      const stC = Number(document.getElementById('repStCount')?.value) || 0;
+      const total = (eastC * pWage.east) + (ktLgC * pWage.ktlg) + (ktIndC * pWage.ktind) + (stC * pWage.st);
+      const el = document.getElementById('repLiveTotalSalary');
+      if (el) el.textContent = `HK$ ${total.toFixed(2)}`;
+    }
+
+    function saveFullDailyReport(e) {
+      e.preventDefault();
+      const reportItem = {
+        id: `REP_${Date.now()}`,
+        date: document.getElementById('repDate').value,
+        staff: document.getElementById('repStaffSelect').value,
+        eastCount: Number(document.getElementById('repEastCount').value) || 0,
+        ktLgCount: Number(document.getElementById('repKtLgCount').value) || 0,
+        ktIndCount: Number(document.getElementById('repKtIndCount').value) || 0,
+        stCount: Number(document.getElementById('repStCount').value) || 0,
+        totalPieces: (Number(document.getElementById('repEastCount').value) || 0) + (Number(document.getElementById('repKtLgCount').value) || 0),
+        finalSalary: Number(document.getElementById('repLiveTotalSalary').textContent.replace('HK$ ', '')) || 0,
+        transferStatus: '未轉賬'
+      };
+      dailyReports.unshift(reportItem);
+      localStorage.setItem('MIA_DAILY_REPORTS_PERFECT', JSON.stringify(dailyReports));
+      alert('✅ 報數紀錄儲存成功！');
+      renderReportsTable();
+    }
+
+    function renderReportsTable() {
+      const tbody = document.getElementById('reportTableBody');
+      if (!tbody || !isCurrentUserAdmin()) return;
+      tbody.innerHTML = dailyReports.map(r => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-3 font-mono">${r.date}</td>
+          <td class="p-3 font-bold">${r.staff}</td>
+          <td class="p-3 text-center text-blue-700 font-bold">${r.eastCount || 0}/${r.ktLgCount || 0}/${r.ktIndCount || 0}/${r.stCount || 0}</td>
+          <td class="p-3 text-right font-bold">${r.totalPieces} 票</td>
+          <td class="p-3 text-right text-slate-500">-</td>
+          <td class="p-3 text-right font-black text-emerald-600 font-mono">HK$ ${r.finalSalary}</td>
+          <td class="p-3 text-center">${r.transferStatus || '未轉賬'}</td>
+          <td class="p-3 text-center">-</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderRoleView() {
+      const isAdm = isCurrentUserAdmin();
+      ['btn-nav-recon', 'btn-nav-profit', 'btn-nav-settle', 'btn-nav-m1', 'btn-nav-addrider', 'btn-price-settings-top', 'section-daily-settle-table'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = isAdm ? 'inline-flex' : 'none';
+      });
+      const staffSel = document.getElementById('repStaffSelect');
+      if (staffSel) staffSel.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.category})</option>`).join('');
+    }
+
+    function promptRoleSwitch(targetRole) {
+      currentRole = targetRole;
+      localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
+      renderRoleView();
+    }
+
+    function logoutCurrentSession() {
+      currentRole = 'admin';
+      localStorage.removeItem('MIA_LOGGED_IN_USER');
+      renderRoleView();
+    }
+
+    function openViolationsModal() { openModal('modal-violations-view'); }
+    function openTicketsModal() { openModal('modal-tickets-view'); }
+    function openModal2() { openModal('modal-assignments'); }
+    function openModalProgress() { openModal('modal-progress-view'); }
+    function openChangePasswordModal() { openModal('modal-change-password'); }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      if (document.getElementById('global-system-date')) document.getElementById('global-system-date').value = today;
+      if (document.getElementById('repDate')) document.getElementById('repDate').value = today;
+      renderRoleView();
+      calcSalaryLive();
+    });
+  </script>
 </body>
 </html>
