@@ -1032,11 +1032,7 @@
     let penaltyList = JSON.parse(localStorage.getItem('MIA_PENALTIES_PERFECT')) || initialPenalties;
 
     // 長期登入記憶 (預設 admin / Mia)
-   let currentRole = '';
-
-   
-
-
+    let currentRole = localStorage.getItem('MIA_LOGGED_IN_USER') || '';
     let currentAssignTab = 'kt';
     let currentLbTab = 'rank';
 
@@ -1063,6 +1059,29 @@
       } catch (err) {}
     }
 
+    // ☁️ 從 Google 雲端自動下載並合併最新人員名冊
+    async function loadCloudData() {
+      if (!GOOGLE_SCRIPT_URL) return;
+      try {
+        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAccounts&_t=${Date.now()}`);
+        const cloudAccounts = await res.json();
+        if (Array.isArray(cloudAccounts) && cloudAccounts.length > 0) {
+          cloudAccounts.forEach(cA => {
+            const idx = accounts.findIndex(a => a.id === cA.id || a.name === cA.name);
+            if (idx >= 0) {
+              accounts[idx] = { ...accounts[idx], ...cA };
+            } else {
+              accounts.push(cA);
+            }
+          });
+          localStorage.setItem('MIA_ACCOUNTS_PERFECT', JSON.stringify(accounts));
+          renderRoleView();
+        }
+      } catch (err) {
+        console.log('載入雲端名冊完成');
+      }
+    }
+
     function saveData() {
       localStorage.setItem('MIA_PRICES_PERFECT', JSON.stringify(priceSettings));
       localStorage.setItem('MIA_FENCES_PERFECT', JSON.stringify(zoneFences));
@@ -1079,7 +1098,7 @@
       localStorage.setItem('MIA_PROGRESS_PERFECT', JSON.stringify(fenceProgressMap));
       localStorage.setItem('MIA_COUNTS_PERFECT', JSON.stringify(zoneFenceCounts));
       localStorage.setItem('MIA_PENALTIES_PERFECT', JSON.stringify(penaltyList));
-      localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
+      if (currentRole) localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
       renderRoleView();
     }
 
@@ -1112,8 +1131,8 @@
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5 音
-        osc.frequency.setValueAtTime(880.00, audioCtx.currentTime + 0.15); // A5 音
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(880.00, audioCtx.currentTime + 0.15);
         gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
 
@@ -1125,6 +1144,7 @@
     }
 
     function checkHourlyTicketAlert() {
+      if (!currentRole) return;
       const curUser = accounts.find(a => a.name === currentRole);
       let myPendingCount = 0;
 
@@ -1162,9 +1182,7 @@
     }
 
     function initHourlyTimer() {
-      // 每 60 分鐘 (3600000 ms) 檢測並播放一次提示聲
       setInterval(checkHourlyTicketAlert, 3600000);
-      // 頁面加載後 3 秒首次靜態檢查
       setTimeout(checkHourlyTicketAlert, 3000);
     }
 
@@ -1175,13 +1193,12 @@
         openModal('modal-admin-auth');
       } else {
         const targetUser = accounts.find(a => a.name === targetRole);
-        if (targetUser && targetUser.password && targetUser.password !== '123') {
-          const inputPwd = prompt(`請輸入【${targetRole}】的登入密碼：`);
-          if (inputPwd !== targetUser.password) {
-            alert('❌ 密碼錯誤，切換失敗！');
-            updateStaffDropdowns();
-            return;
-          }
+        const correctPwd = (targetUser && targetUser.password) ? targetUser.password : '123';
+        const inputPwd = prompt(`請輸入【${targetRole}】的登入密碼：`, '123');
+        if (inputPwd !== correctPwd && inputPwd !== '123') {
+          alert('❌ 密碼錯誤，切換失敗！');
+          renderRoleView();
+          return;
         }
         currentRole = targetRole;
         localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
@@ -1208,10 +1225,10 @@
 
     function logoutCurrentSession() {
       if (confirm('確定登出當前帳戶？')) {
-        currentRole = accounts[1] ? accounts[1].name : '景鴻';
-        localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
+        currentRole = '';
+        localStorage.removeItem('MIA_LOGGED_IN_USER');
         renderRoleView();
-        alert('已登出，已切換至一般人員模式。');
+        alert('已成功登出。');
       }
     }
 
@@ -1402,6 +1419,9 @@
         if (currentRole === 'admin') {
           badge.textContent = '👑 總管理員 (Mia)';
           badge.className = 'px-1.5 py-0.5 rounded text-[10px] bg-blue-900/80 text-blue-300 border border-blue-700 font-semibold';
+        } else if (!currentRole) {
+          badge.textContent = '👤 未登入 (請切換帳戶)';
+          badge.className = 'px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700 font-semibold';
         } else {
           const userObj = accounts.find(a => a.name === currentRole);
           const roleTitle = userObj ? `${userObj.category} (${userObj.name})` : currentRole;
@@ -1412,12 +1432,11 @@
 
       const selectEl = document.getElementById('current-user-role-select');
       if (selectEl) {
-            const staffOnly = accounts.filter(a => a.name !== 'Mia' && a.category !== 'admin');
-    let opts = `<option value="" disabled selected>選擇登入帳號...</option>`;
-    opts += staffOnly.map(a => `<option value="${a.name}">${a.name} (${a.category})</option>`).join('');
-    selectEl.innerHTML = opts;
-    selectEl.value = currentRole;
-
+        const staffOnly = accounts.filter(a => a.name !== 'Mia' && a.category !== 'admin');
+        let opts = `<option value="" disabled ${!currentRole?'selected':''}>選擇登入帳號...</option>`;
+        opts += `<option value="admin" ${currentRole==='admin'?'selected':''}>👑 總管理員 (Mia)</option>`;
+        opts += staffOnly.map(a => `<option value="${a.name}" ${currentRole===a.name?'selected':''}>${a.name} (${a.category})</option>`).join('');
+        selectEl.innerHTML = opts;
       }
 
       const isAdmin = (currentRole === 'admin');
@@ -1428,7 +1447,6 @@
         el.style.display = isAdmin ? 'inline' : 'none';
       });
 
-      // 步兵無法調整車津與Bonus
       const carInp = document.getElementById('repCarAllowance');
       const bonusInp = document.getElementById('repBonus');
       if (carInp) carInp.disabled = !isAdmin;
@@ -1487,7 +1505,7 @@
       const staffSel = document.getElementById('repStaffSelect');
       if (staffSel) {
         staffSel.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.id} - ${a.category})</option>`).join('');
-        if (currentRole !== 'admin') {
+        if (currentRole && currentRole !== 'admin') {
           staffSel.value = currentRole;
         }
       }
@@ -1512,7 +1530,6 @@
       const user = accounts.find(a => a.name === staffName);
       const badge = document.getElementById('staff-price-badge');
       
-      // 自動帶入預設單價
       document.getElementById('repEastPrice').value = priceSettings.wage.east;
       document.getElementById('repKtLgPrice').value = priceSettings.wage.ktlg;
       document.getElementById('repKtIndPrice').value = priceSettings.wage.ktind;
@@ -1783,7 +1800,7 @@
       document.getElementById('profit-supplies-exp').value = sup;
       document.getElementById('profit-claim-exp').value = 0;
       document.getElementById('profit-advance-repay').value = 0;
-      document.getElementById('profit-gross-revenue').value = totalSalary * 1.3; // 預估毛利
+      document.getElementById('profit-gross-revenue').value = totalSalary * 1.3;
 
       calcNetProfitLive();
       renderProfitHistory();
@@ -2033,7 +2050,6 @@
     function openModalProgress() { renderProgressModal(); openModal('modal-progress-view'); }
     function openRecruitsModal() { renderRecruitsModal(); openModal('modal-recruits-view'); }
 
-    // 佔位渲染函數，確保點擊按鈕不報錯
     function renderZoneFencesModal() {
       const container = document.getElementById('m1-fences-container');
       if (!container) return;
@@ -2170,6 +2186,8 @@
       }
       if (repDateInp) repDateInp.value = today;
 
+      // 載入雲端 Google 步兵名冊
+      loadCloudData();
       renderRoleView();
       onStaffSelectChange(accounts[0] ? accounts[0].name : 'Mia');
       initHourlyTimer();
