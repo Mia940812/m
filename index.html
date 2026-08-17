@@ -56,7 +56,7 @@
     </div>
   </header>
 
-  <!-- 核心功能導航欄 -->
+  <!-- 核心功能導航欄 (17個按鈕) -->
   <nav class="bg-white border-b border-slate-200 sticky top-[53px] z-30 shadow-xs">
     <div id="navigation-bar-container" class="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center gap-1.5 text-xs font-bold">
       <button type="button" id="btn-nav-leaderboard" onclick="openLeaderboardModal()" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-1 shadow-xs animate-pulse"><span>🏆</span> 罰款獎池與龍虎榜</button>
@@ -83,7 +83,7 @@
   <main class="max-w-7xl mx-auto p-3 sm:p-5 flex-1 w-full space-y-4">
     <div id="dashboard-summary-cards" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3"></div>
 
-    <!-- 每日報數與薪酬結算錄入中心 -->
+    <!-- 每日報數與薪酬結算錄入中心 (全部 3 大部分原裝選項完整復原) -->
     <div id="report-entry-panel" class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
       <div class="border-b border-slate-100 pb-2.5 flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-2">
@@ -102,15 +102,15 @@
             <input type="date" id="repDate" required class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg font-bold">
           </div>
           <div>
-            <label class="block font-bold text-slate-700 mb-1">司機 / 步兵身份</label>
+            <label class="block font-bold text-slate-700 mb-1">司機 / 步兵身份 (選擇後自動帶入個別專屬單價)</label>
             <select id="repStaffSelect" onchange="onStaffSelectChange(this.value)" required class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg font-bold text-slate-900"></select>
           </div>
         </div>
 
-        <!-- 分區派件票數 -->
+        <!-- 1. 分區派件票數與票價計算 -->
         <div class="p-3.5 bg-slate-50/60 rounded-xl border border-slate-200 space-y-2.5">
           <div class="font-bold text-slate-800 flex items-center justify-between text-xs">
-            <span>📦 1. 分區派件報數</span>
+            <span>📦 1. 分區派件報數 (已自動帶入該人員專屬每票單價)</span>
             <span id="staff-price-badge" class="text-[11px] font-bold text-blue-700">當前套用：預設單價</span>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
@@ -149,19 +149,147 @@
           </div>
         </div>
 
-        <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex justify-between items-center mt-1">
-          <span class="font-bold text-slate-700 text-xs">當日應發總工資結算：</span>
-          <span id="repLiveTotalSalary" class="font-black text-slate-900 text-sm">HK$ 0.00</span>
+        <!-- 2. 津貼、獎金、扣數與預支結算 -->
+        <div class="p-3.5 bg-slate-50/60 rounded-xl border border-slate-200 space-y-2.5">
+          <div class="font-bold text-slate-800 flex items-center justify-between text-xs">
+            <span class="flex items-center gap-1.5"><span>💰</span> 2. 津貼、Claim 報銷與獎懲</span>
+            <span class="text-[10px] text-amber-600 font-bold hidden sm:inline">⚠️ Bonus 與 車津僅限 Mia 總管理員錄入</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div>
+              <label class="block font-bold text-slate-600 mb-1 flex items-center justify-between">
+                <span>🚗 車津 ($)</span>
+                <span class="text-[9px] text-rose-500 font-normal admin-lock-tag">[管理員專屬]</span>
+              </label>
+              <input type="number" id="repCarAllowance" min="0" value="0" oninput="calcSalaryLive()" class="w-full p-1.5 bg-white border rounded-lg font-bold">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-600 mb-1">🧾 Claim 報銷 ($)</label>
+              <input type="number" id="repClaim" min="0" value="0" oninput="calcSalaryLive()" class="w-full p-1.5 bg-white border rounded-lg font-bold">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-600 mb-1 flex items-center justify-between">
+                <span>🎁 Bonus 獎金 ($)</span>
+                <span class="text-[9px] text-rose-500 font-normal admin-lock-tag">[管理員專屬]</span>
+              </label>
+              <input type="number" id="repBonus" min="0" value="0" oninput="calcSalaryLive()" class="w-full p-1.5 bg-white border rounded-lg font-bold">
+            </div>
+            <div>
+              <label class="block font-bold text-rose-700 mb-1">🚨 工單賠付+罰款 ($)</label>
+              <input type="number" id="repPenalty" min="0" value="0" oninput="calcSalaryLive()" class="w-full p-1.5 bg-white border border-rose-300 rounded-lg font-bold text-rose-600">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+            <div>
+              <label class="block font-bold text-slate-600 mb-1">上期預支剩餘額 ($)</label>
+              <input type="number" id="repPrevAdvance" min="0" value="0" oninput="calcSalaryLive()" class="w-full p-1.5 bg-white border rounded-lg font-bold">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-600 mb-1">本次預支 ($)</label>
+              <input type="number" id="repNewAdvance" min="0" value="0" oninput="calcSalaryLive()" class="w-full p-1.5 bg-white border rounded-lg font-bold">
+            </div>
+            <div>
+              <label class="block font-bold text-rose-700 mb-1">本日扣數額 ($)</label>
+              <input type="number" id="repDeductAmount" min="0" value="0" oninput="calcSalaryLive()" class="w-full p-1.5 bg-white border border-rose-300 rounded-lg font-bold text-rose-600">
+            </div>
+            <div class="bg-slate-100 p-2 rounded-lg border flex flex-col justify-center">
+              <span class="text-[10px] font-bold text-slate-500">最新剩餘預支數</span>
+              <span id="repFinalRemainAdvance" class="font-black text-slate-800 text-xs">HK$ 0.00</span>
+            </div>
+          </div>
+
+          <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex justify-between items-center mt-1">
+            <span class="font-bold text-slate-700 text-xs">當日應發總工資結算：</span>
+            <span id="repLiveTotalSalary" class="font-black text-slate-900 text-sm">HK$ 0.00</span>
+          </div>
         </div>
 
-        <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-sm transition">
+        <!-- 3. 特殊件追蹤錄入 + 照片上傳 -->
+        <div class="p-3.5 bg-slate-50/60 rounded-xl border border-slate-200 space-y-2.5">
+          <div class="font-bold text-slate-800 flex items-center justify-between text-xs">
+            <span>📋 3. 特殊件追蹤錄入 (單號 ＋ 圍欄 ＋ 照片拍照上傳)</span>
+            <span class="text-[10px] text-slate-400">支援拍照 / 圖片憑證上傳</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div class="bg-white p-2.5 rounded-lg border space-y-1.5">
+              <label class="font-bold text-slate-600 text-[11px] block">🔄 退款件 (單號 + 圍欄)</label>
+              <input type="text" id="repRefundItems" placeholder="例: JT00123 (69F 峻峰)" class="w-full p-1.5 bg-slate-50 border rounded text-[11px] font-semibold">
+              <div class="flex items-center gap-2 pt-1">
+                <input type="file" id="fileRefund" accept="image/*" onchange="handleImagePreview(this, 'previewRefund')" class="text-[10px] text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200">
+                <div id="previewRefund" class="hidden"></div>
+              </div>
+            </div>
+
+            <div class="bg-white p-2.5 rounded-lg border space-y-1.5">
+              <label class="font-bold text-slate-600 text-[11px] block">✍️ 已簽收件 (單號 + 圍欄)</label>
+              <input type="text" id="repSignedItems" placeholder="例: JT00456 (03E 觀塘)" class="w-full p-1.5 bg-slate-50 border rounded text-[11px] font-semibold">
+              <div class="flex items-center gap-2 pt-1">
+                <input type="file" id="fileSigned" accept="image/*" onchange="handleImagePreview(this, 'previewSigned')" class="text-[10px] text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200">
+                <div id="previewSigned" class="hidden"></div>
+              </div>
+            </div>
+
+            <div class="bg-white p-2.5 rounded-lg border space-y-1.5">
+              <label class="font-bold text-slate-600 text-[11px] block">⏳ 已清場仍有待攬收 (單號 + 圍欄)</label>
+              <input type="text" id="repPendingPickupItems" placeholder="例: JT00789 (11E 麗港城)" class="w-full p-1.5 bg-slate-50 border rounded text-[11px] font-semibold">
+              <div class="flex items-center gap-2 pt-1">
+                <input type="file" id="filePending" accept="image/*" onchange="handleImagePreview(this, 'previewPending')" class="text-[10px] text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200">
+                <div id="previewPending" class="hidden"></div>
+              </div>
+            </div>
+
+            <div class="bg-white p-2.5 rounded-lg border space-y-1.5">
+              <label class="font-bold text-slate-600 text-[11px] block">🔙 回倉件 (單號 + 圍欄)</label>
+              <input type="text" id="repReturnItems" placeholder="例: JT00999 (19F 漁灣邨)" class="w-full p-1.5 bg-slate-50 border rounded text-[11px] font-semibold">
+              <div class="flex items-center gap-2 pt-1">
+                <input type="file" id="fileReturn" accept="image/*" onchange="handleImagePreview(this, 'previewReturn')" class="text-[10px] text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200">
+                <div id="previewReturn" class="hidden"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white p-2 rounded-lg border space-y-1">
+            <label class="font-bold text-slate-600 text-[11px]">⚠️ 匯報當天異常問題 (如有)</label>
+            <textarea id="repDailyIssueNote" rows="2" placeholder="填寫當日異常情況" class="w-full p-1.5 bg-slate-50 border rounded text-[11px] font-semibold"></textarea>
+          </div>
+        </div>
+
+        <button type="submit" id="btn-submit-report" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-sm transition">
           確認提交報數紀錄 (同步 Google Sheet)
         </button>
       </form>
     </div>
+
+    <!-- 報數清單與工資條核對表 (完整復原) -->
+    <div id="reports-table-container-card" class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+      <div class="p-3.5 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="font-bold text-xs text-slate-900">當日報數與工資結算核對清單</h3>
+        <button type="button" id="btn-clear-reports" onclick="clearReports()" class="text-[11px] text-slate-400 hover:text-rose-600 font-bold transition">清空今日報數</button>
+      </div>
+      <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
+            <tr>
+              <th class="p-3">日期</th>
+              <th class="p-3">人員 / 隊伍身份</th>
+              <th class="p-3 text-center">分區票數 (東/麗/工/沙)</th>
+              <th class="p-3 text-right">總票數</th>
+              <th class="p-3 text-right">實發工資</th>
+              <th class="p-3 text-center">💰 轉賬狀態</th>
+              <th class="p-3 text-center">工資條核對</th>
+              <th class="p-3 text-center admin-only-col">操作</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody" class="divide-y divide-slate-100">
+            <tr><td colspan="8" class="p-6 text-center text-slate-400">今日暫無報數記錄。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </main>
 
-  <!-- ================= 模態視窗集合 (全部內容與表單完整修復) ================= -->
+  <!-- ================= 模態視窗集合 (17個彈窗內部全部實裝) ================= -->
 
   <!-- 1. 📍 圍欄管理 Modal -->
   <div id="modal-fences-zone" class="app-modal" style="display: none;">
@@ -378,7 +506,7 @@
         <h3 class="font-bold text-sm text-slate-900">📈 當日營運利潤核算中心</h3>
         <button type="button" onclick="closeModal('modal-profit-calc')">✕</button>
       </div>
-      <div class="bg-slate-50 p-3.5 rounded-xl border text-xs space-y-2.5">
+      <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-2.5">
         <div class="grid grid-cols-2 gap-2">
           <input type="date" id="profit-date" class="w-full bg-white border rounded-lg p-1.5 font-bold">
           <input type="number" id="profit-gross-revenue" placeholder="當天總收入" class="w-full bg-white border rounded-lg p-1.5 font-bold text-blue-700">
@@ -479,7 +607,7 @@
   <div id="modal-universal-export" class="app-modal" style="display: none;">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-2xl w-full shadow-2xl space-y-3">
       <div class="flex justify-between items-center border-b pb-2">
-        <h3 id="export-modal-title" class="font-bold text-sm text-slate-900">📤 匯出排班名冊</h3>
+        <h3 id="export-modal-title" class="font-bold text-sm text-slate-900">📤 匯出中心</h3>
         <button type="button" onclick="closeModal('modal-universal-export')">✕</button>
       </div>
       <textarea id="universal-export-textarea" rows="13" readonly class="w-full bg-slate-50 border rounded-xl p-3 font-mono text-xs focus:outline-none"></textarea>
@@ -490,9 +618,14 @@
     </div>
   </div>
 
-  <!-- JavaScript 核心引擎 (所有 17 個彈窗的內部渲染邏輯全部實裝) -->
+  <!-- JavaScript 核心引擎 -->
   <script>
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwG5x-iN6GjVd1jtdoz11Nwn79JLSLdLrIDr_xXfNCyfo1EBxfYPUFb5oW754GXf7H4fA/exec';
+
+    const defaultPrices = {
+      wage: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }
+    };
+    let priceSettings = JSON.parse(localStorage.getItem('MIA_PRICES_PERFECT')) || defaultPrices;
 
     const defaultZoneFences = {
       st: [
@@ -586,21 +719,151 @@
     let shiftReports = JSON.parse(localStorage.getItem('MIA_SHIFTS_PERFECT')) || [];
     let ticketsList = JSON.parse(localStorage.getItem('MIA_TICKETS_PERFECT')) || [];
     let penaltyList = JSON.parse(localStorage.getItem('MIA_PENALTIES_PERFECT')) || [];
+    let dailyReports = JSON.parse(localStorage.getItem('MIA_DAILY_REPORTS_PERFECT')) || [];
     let ktCounts = JSON.parse(localStorage.getItem('MIA_KT_COUNTS')) || {};
     let eastCounts = JSON.parse(localStorage.getItem('MIA_EAST_COUNTS')) || {};
     let stCounts = JSON.parse(localStorage.getItem('MIA_ST_COUNTS')) || {};
 
     let currentRole = localStorage.getItem('MIA_LOGGED_IN_USER') || 'admin';
     let currentAssignTab = 'east';
+    const photoBase64Map = { previewRefund: '', previewSigned: '', previewPending: '', previewReturn: '' };
 
     function openModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'flex'; }
     function closeModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
 
-    // 1. 圍欄管理
-    function openModal1() {
-      renderM1Fences();
-      openModal('modal-fences-zone');
+    // 實時計算薪資
+    function calcSalaryLive() {
+      const eastC = Number(document.getElementById('repEastCount')?.value) || 0;
+      const eastP = Number(document.getElementById('repEastPrice')?.value) || priceSettings.wage.east;
+      const ktLgC = Number(document.getElementById('repKtLgCount')?.value) || 0;
+      const ktLgP = Number(document.getElementById('repKtLgPrice')?.value) || priceSettings.wage.ktlg;
+      const ktIndC = Number(document.getElementById('repKtIndCount')?.value) || 0;
+      const ktIndP = Number(document.getElementById('repKtIndPrice')?.value) || priceSettings.wage.ktind;
+      const stC = Number(document.getElementById('repStCount')?.value) || 0;
+      const stP = Number(document.getElementById('repStPrice')?.value) || priceSettings.wage.st;
+
+      const car = Number(document.getElementById('repCarAllowance')?.value) || 0;
+      const claim = Number(document.getElementById('repClaim')?.value) || 0;
+      const bonus = Number(document.getElementById('repBonus')?.value) || 0;
+      const penalty = Number(document.getElementById('repPenalty')?.value) || 0;
+
+      const prevAdv = Number(document.getElementById('repPrevAdvance')?.value) || 0;
+      const newAdv = Number(document.getElementById('repNewAdvance')?.value) || 0;
+      const deduct = Number(document.getElementById('repDeductAmount')?.value) || 0;
+
+      const remainAdv = prevAdv + newAdv - deduct;
+      const remainAdvEl = document.getElementById('repFinalRemainAdvance');
+      if (remainAdvEl) remainAdvEl.textContent = `HK$ ${remainAdv.toFixed(2)}`;
+
+      const total = (eastC * eastP) + (ktLgC * ktLgP) + (ktIndC * ktIndP) + (stC * stP) + car + claim + bonus - penalty - deduct;
+      const el = document.getElementById('repLiveTotalSalary');
+      if (el) el.textContent = `HK$ ${total.toFixed(2)}`;
     }
+
+    function handleImagePreview(input, previewId) {
+      const previewDiv = document.getElementById(previewId);
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          photoBase64Map[previewId] = e.target.result;
+          if (previewDiv) {
+            previewDiv.innerHTML = `<span class="text-[10px] text-emerald-600 font-bold">✓ 已上傳憑證照片</span>`;
+            previewDiv.classList.remove('hidden');
+          }
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    function saveFullDailyReport(e) {
+      e.preventDefault();
+      const date = document.getElementById('repDate').value;
+      const staff = document.getElementById('repStaffSelect').value;
+      const eastC = Number(document.getElementById('repEastCount').value) || 0;
+      const ktLgC = Number(document.getElementById('repKtLgCount').value) || 0;
+      const ktIndC = Number(document.getElementById('repKtIndCount').value) || 0;
+      const stC = Number(document.getElementById('repStCount').value) || 0;
+      const totalPieces = eastC + ktLgC + ktIndC + stC;
+      const finalSalaryStr = document.getElementById('repLiveTotalSalary').textContent.replace('HK$ ', '');
+
+      const reportItem = {
+        id: `REP_${Date.now()}`,
+        date, staff, eastCount: eastC, ktLgCount: ktLgC, ktIndCount: ktIndC, stCount: stC,
+        totalPieces, finalSalary: Number(finalSalaryStr) || 0, transferStatus: '未轉賬',
+        refund: document.getElementById('repRefundItems').value,
+        signed: document.getElementById('repSignedItems').value,
+        pending: document.getElementById('repPendingPickupItems').value,
+        returns: document.getElementById('repReturnItems').value,
+        issue: document.getElementById('repDailyIssueNote').value
+      };
+
+      dailyReports.unshift(reportItem);
+      localStorage.setItem('MIA_DAILY_REPORTS_PERFECT', JSON.stringify(dailyReports));
+      renderReportsTable();
+
+      // 雲端同步
+      if (GOOGLE_SCRIPT_URL) {
+        try {
+          fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ key: '每日報數', data: reportItem }),
+            mode: 'no-cors'
+          });
+        } catch(err){}
+      }
+
+      alert(`✅ 成功提交【${staff}】的報數紀錄！`);
+    }
+
+    function renderReportsTable() {
+      const tbody = document.getElementById('reportTableBody');
+      if (!tbody) return;
+      const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
+      const todayReports = dailyReports.filter(r => r.date === today);
+
+      if (todayReports.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">今日暫無報數記錄。</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = todayReports.map(r => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-3 font-mono text-slate-600">${r.date}</td>
+          <td class="p-3 font-bold text-slate-900">${r.staff}</td>
+          <td class="p-3 text-center font-mono font-semibold text-blue-700">${r.eastCount || 0} / ${r.ktLgCount || 0} / ${r.ktIndCount || 0} / ${r.stCount || 0}</td>
+          <td class="p-3 text-right font-bold text-slate-900">${r.totalPieces} 票</td>
+          <td class="p-3 text-right font-black text-emerald-600 font-mono">HK$ ${r.finalSalary.toFixed(2)}</td>
+          <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">${r.transferStatus}</span></td>
+          <td class="p-3 text-center"><button type="button" onclick="viewSalarySlip('${r.staff}', ${r.finalSalary})" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded font-bold text-[11px]">查看工資條</button></td>
+          <td class="p-3 text-center admin-only-col"><button type="button" onclick="deleteDailyReport('${r.id}')" class="text-rose-500 hover:text-rose-700 font-bold">🗑️</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function viewSalarySlip(staff, salary) {
+      alert(`【工資條核對】\n====================\n姓名：${staff}\n應發實收：HK$ ${salary.toFixed(2)}\n====================\n如無異議將依此安排出糧。`);
+    }
+
+    function deleteDailyReport(id) {
+      if (confirm('確定刪除此條報數紀錄？')) {
+        dailyReports = dailyReports.filter(r => r.id !== id);
+        localStorage.setItem('MIA_DAILY_REPORTS_PERFECT', JSON.stringify(dailyReports));
+        renderReportsTable();
+      }
+    }
+
+    function clearReports() {
+      if (confirm('確定清空今日所有報數？')) {
+        const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
+        dailyReports = dailyReports.filter(r => r.date !== today);
+        localStorage.setItem('MIA_DAILY_REPORTS_PERFECT', JSON.stringify(dailyReports));
+        renderReportsTable();
+      }
+    }
+
+    // 圍欄管理
+    function openModal1() { renderM1Fences(); openModal('modal-fences-zone'); }
     function renderM1Fences() {
       const container = document.getElementById('m1-fences-container');
       if (!container) return;
@@ -637,7 +900,7 @@
       }
     }
 
-    // 3, 4, 4b 貨量填寫
+    // 貨量填寫
     function openModal3() {
       const c = document.getElementById('m3-list');
       c.innerHTML = (zoneFences.kt || []).map(f => `
@@ -698,7 +961,7 @@
       closeModal('modal-st-counts');
     }
 
-    // 5. 14天報更
+    // 14天報更
     function openModal5() {
       const staffSel = document.getElementById('shift-staff-select');
       staffSel.innerHTML = accounts.filter(a => a.name !== 'Mia').map(a => `<option value="${a.name}">${a.name}</option>`).join('');
@@ -729,11 +992,8 @@
       c.innerHTML = shiftReports.map(s => `<div class="p-1.5 bg-slate-50 border rounded flex justify-between"><span>${s.date} - ${s.staff} (${s.zone})</span><span class="font-bold text-blue-700">${s.type}</span></div>`).join('');
     }
 
-    // 8. 車線調度
-    function openModal8() {
-      renderTruckRoutes();
-      openModal('modal-truck-routes');
-    }
+    // 車線調度
+    function openModal8() { renderTruckRoutes(); openModal('modal-truck-routes'); }
     function renderTruckRoutes() {
       const c = document.getElementById('truck-list');
       c.innerHTML = truckRoutes.map((t, idx) => `
@@ -762,11 +1022,8 @@
       }
     }
 
-    // 📦 物資採購
-    function openSuppliesModal() {
-      renderSupplies();
-      openModal('modal-supplies');
-    }
+    // 物資採購
+    function openSuppliesModal() { renderSupplies(); openModal('modal-supplies'); }
     function renderSupplies() {
       const c = document.getElementById('supplies-list');
       c.innerHTML = suppliesList.map((s, idx) => `
@@ -789,7 +1046,7 @@
       alert('物資登記成功！');
     }
 
-    // ⏱️ 圍欄進度
+    // 圍欄進度
     function openModalProgress() {
       const c = document.getElementById('progress-fences-list');
       c.innerHTML = Object.keys(zoneAssignments).map(z => {
@@ -805,11 +1062,8 @@
       openModal('modal-progress-view');
     }
 
-    // 📋 預約新人
-    function openRecruitsModal() {
-      renderRecruits();
-      openModal('modal-recruits-view');
-    }
+    // 預約新人
+    function openRecruitsModal() { renderRecruits(); openModal('modal-recruits-view'); }
     function renderRecruits() {
       const c = document.getElementById('recruits-list');
       c.innerHTML = recruitsList.length === 0 ? '<div class="text-slate-400">暫無新人檔案。</div>' : recruitsList.map(r => `
@@ -830,7 +1084,7 @@
       alert('新人檔案建立成功！');
     }
 
-    // ➕ 新增人員 Modal
+    // 新增人員 Modal
     function openAddRiderModal() {
       const c = document.getElementById('staff-category-list');
       c.innerHTML = accounts.map(a => `
@@ -852,7 +1106,7 @@
       alert('步兵建立成功！');
     }
 
-    // 📈 營運利潤 & 💰 分區埋數
+    // 營運利潤 & 分區埋數
     function openModalProfit() { openModal('modal-profit-calc'); }
     function saveDailyProfitRecord() { alert('利潤核算儲存成功！'); closeModal('modal-profit-calc'); }
     function openModalSettlementDaily() { openModal('modal-settlement-daily'); }
@@ -875,7 +1129,7 @@
       openModal('modal-penalty-leaderboard');
     }
 
-    // 👥 2- 區域排班模組核心控制
+    // 區域排班模組核心控制
     function openModal2() {
       switchAssignmentTab('east');
       openModal('modal-assignments');
@@ -1005,19 +1259,13 @@
       }
     }
 
-    function onStaffSelectChange(name) { calcSalaryLive(); }
-    function calcSalaryLive() {
-      const eastC = Number(document.getElementById('repEastCount')?.value) || 0;
-      const ktLgC = Number(document.getElementById('repKtLgCount')?.value) || 0;
-      const ktIndC = Number(document.getElementById('repKtIndCount')?.value) || 0;
-      const stC = Number(document.getElementById('repStCount')?.value) || 0;
-      const total = (eastC * 8.5) + (ktLgC * 8.0) + (ktIndC * 7.5) + (stC * 7.5);
-      const el = document.getElementById('repLiveTotalSalary');
-      if (el) el.textContent = `HK$ ${total.toFixed(2)}`;
-    }
-    function saveFullDailyReport(e) {
-      e.preventDefault();
-      alert('✅ 報數紀錄已成功提交！');
+    function onStaffSelectChange(name) {
+      // 帶入預設單價
+      document.getElementById('repEastPrice').value = priceSettings.wage.east;
+      document.getElementById('repKtLgPrice').value = priceSettings.wage.ktlg;
+      document.getElementById('repKtIndPrice').value = priceSettings.wage.ktind;
+      document.getElementById('repStPrice').value = priceSettings.wage.st;
+      calcSalaryLive();
     }
 
     function openUniversalExportModal(type) {
@@ -1064,8 +1312,16 @@
       if (dateInp) dateInp.value = today;
       if (repDateInp) repDateInp.value = today;
 
+      // 填入預設單價
+      document.getElementById('repEastPrice').value = priceSettings.wage.east;
+      document.getElementById('repKtLgPrice').value = priceSettings.wage.ktlg;
+      document.getElementById('repKtIndPrice').value = priceSettings.wage.ktind;
+      document.getElementById('repStPrice').value = priceSettings.wage.st;
+
       renderRoleView();
       renderAssignmentsBoard();
+      renderReportsTable();
+      calcSalaryLive();
     });
   </script>
 </body>
