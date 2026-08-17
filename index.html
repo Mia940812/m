@@ -650,7 +650,7 @@
     </div>
   </div>
 
-  <!-- JavaScript 核心引擎 -->
+  <!-- JavaScript 核心引擎 (含自動防崩潰容錯與修復) -->
   <script>
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwG5x-iN6GjVd1jtdoz11Nwn79JLSLdLrIDr_xXfNCyfo1EBxfYPUFb5oW754GXf7H4fA/exec';
 
@@ -670,11 +670,22 @@
       }
     }
 
+    // 🌟 安全載入票價設定（自動升級舊格式，防止 undefined 拋錯）
     const defaultPrices = {
       wage: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 },
       rev: { east: 11.5, ktlg: 11.0, ktind: 10.5, st: 10.5 }
     };
-    let priceSettings = JSON.parse(localStorage.getItem('MIA_PRICES_PERFECT')) || defaultPrices;
+
+    let priceSettings = (function() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('MIA_PRICES_PERFECT'));
+        if (saved && saved.wage && saved.rev && saved.wage.east !== undefined && saved.rev.east !== undefined) {
+          return saved;
+        }
+      } catch(e) {}
+      localStorage.setItem('MIA_PRICES_PERFECT', JSON.stringify(defaultPrices));
+      return defaultPrices;
+    })();
 
     const defaultZoneFences = {
       st: [{ name: 'F58' }, { name: '廣源邨' }],
@@ -784,6 +795,7 @@
     const progressOptions = ['🚚 派送中', '⚡ 快完成', '✅ 完成', '📍 剛剛到', '⚠️ 有阻滯', '⏳ 未開始', '🚫 不是我們'];
 
     function getStatusBadgeStyle(st) {
+      if (!st) return 'bg-amber-100 text-amber-800 border-amber-300';
       if (st.includes('完成') && !st.includes('快')) return 'bg-emerald-100 text-emerald-800 border-emerald-300';
       if (st.includes('快完成')) return 'bg-blue-100 text-blue-800 border-blue-300';
       if (st.includes('剛剛到')) return 'bg-purple-100 text-purple-800 border-purple-300';
@@ -877,15 +889,15 @@
       const ktindR = document.getElementById('cfg-rev-ktind');
       const stR = document.getElementById('cfg-rev-st');
 
-      if (eastW) eastW.value = priceSettings.wage.east || 8.5;
-      if (ktlgW) ktlgW.value = priceSettings.wage.ktlg || 8.0;
-      if (ktindW) ktindW.value = priceSettings.wage.ktind || 7.5;
-      if (stW) stW.value = priceSettings.wage.st || 7.5;
+      if (eastW) eastW.value = priceSettings.wage ? priceSettings.wage.east : 8.5;
+      if (ktlgW) ktlgW.value = priceSettings.wage ? priceSettings.wage.ktlg : 8.0;
+      if (ktindW) ktindW.value = priceSettings.wage ? priceSettings.wage.ktind : 7.5;
+      if (stW) stW.value = priceSettings.wage ? priceSettings.wage.st : 7.5;
 
-      if (eastR) eastR.value = priceSettings.rev.east || 11.5;
-      if (ktlgR) ktlgR.value = priceSettings.rev.ktlg || 11.0;
-      if (ktindR) ktindR.value = priceSettings.rev.ktind || 10.5;
-      if (stR) stR.value = priceSettings.rev.st || 10.5;
+      if (eastR) eastR.value = priceSettings.rev ? priceSettings.rev.east : 11.5;
+      if (ktlgR) ktlgR.value = priceSettings.rev ? priceSettings.rev.ktlg : 11.0;
+      if (ktindR) ktindR.value = priceSettings.rev ? priceSettings.rev.ktind : 10.5;
+      if (stR) stR.value = priceSettings.rev ? priceSettings.rev.st : 10.5;
 
       openModal('modal-price-settings');
     }
@@ -913,14 +925,15 @@
 
     // 實時計算薪資
     function calcSalaryLive() {
+      const pWage = priceSettings.wage || defaultPrices.wage;
       const eastC = Number(document.getElementById('repEastCount')?.value) || 0;
-      const eastP = Number(document.getElementById('repEastPrice')?.value) || priceSettings.wage.east;
+      const eastP = Number(document.getElementById('repEastPrice')?.value) || pWage.east;
       const ktLgC = Number(document.getElementById('repKtLgCount')?.value) || 0;
-      const ktLgP = Number(document.getElementById('repKtLgPrice')?.value) || priceSettings.wage.ktlg;
+      const ktLgP = Number(document.getElementById('repKtLgPrice')?.value) || pWage.ktlg;
       const ktIndC = Number(document.getElementById('repKtIndCount')?.value) || 0;
-      const ktIndP = Number(document.getElementById('repKtIndPrice')?.value) || priceSettings.wage.ktind;
+      const ktIndP = Number(document.getElementById('repKtIndPrice')?.value) || pWage.ktind;
       const stC = Number(document.getElementById('repStCount')?.value) || 0;
-      const stP = Number(document.getElementById('repStPrice')?.value) || priceSettings.wage.st;
+      const stP = Number(document.getElementById('repStPrice')?.value) || pWage.st;
 
       const car = Number(document.getElementById('repCarAllowance')?.value) || 0;
       const claim = Number(document.getElementById('repClaim')?.value) || 0;
@@ -1114,6 +1127,74 @@
       fenceSel.innerHTML = fences.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
     }
 
+    function openModal1() { renderM1Fences(); openModal('modal-fences-zone'); }
+    function openModal2() { switchAssignmentTab('east'); openModal('modal-assignments'); }
+
+    function openModal3() {
+      const c = document.getElementById('m3-list');
+      if (c) {
+        c.innerHTML = (zoneFences.kt || []).map(f => `
+          <div class="flex justify-between items-center p-1.5 bg-slate-50 border rounded">
+            <span class="font-bold">${f.name}</span>
+            <input type="number" id="kt-count-${f.name}" value="${ktCounts[f.name] || ''}" oninput="calcTotalZoneCounts('kt')" placeholder="件數" class="w-20 p-1 border rounded text-center font-bold">
+          </div>
+        `).join('');
+      }
+      calcTotalZoneCounts('kt');
+      openModal('modal-kt-counts');
+    }
+
+    function openModal4() {
+      const c = document.getElementById('m4-list');
+      if (c) {
+        c.innerHTML = (zoneFences.east || []).map(f => `
+          <div class="flex justify-between items-center p-1.5 bg-slate-50 border rounded">
+            <span class="font-bold">${f.name}</span>
+            <input type="number" id="east-count-${f.name}" value="${eastCounts[f.name] || ''}" oninput="calcTotalZoneCounts('east')" placeholder="件數" class="w-20 p-1 border rounded text-center font-bold">
+          </div>
+        `).join('');
+      }
+      calcTotalZoneCounts('east');
+      openModal('modal-east-counts');
+    }
+
+    function openModalStCounts() {
+      const c = document.getElementById('mst-list');
+      if (c) {
+        c.innerHTML = (zoneFences.st || []).map(f => `
+          <div class="flex justify-between items-center p-1.5 bg-slate-50 border rounded">
+            <span class="font-bold">${f.name}</span>
+            <input type="number" id="st-count-${f.name}" value="${stCounts[f.name] || ''}" oninput="calcTotalZoneCounts('st')" placeholder="件數" class="w-20 p-1 border rounded text-center font-bold">
+          </div>
+        `).join('');
+      }
+      calcTotalZoneCounts('st');
+      openModal('modal-st-counts');
+    }
+
+    function openModal5() {
+      const el = document.getElementById('shift-staff-select');
+      if (el) el.innerHTML = accounts.filter(a => a.name !== 'Mia').map(a => `<option value="${a.name}">${a.name} (${a.id})</option>`).join('');
+      let dOpts = '';
+      for (let i = 0; i < 14; i++) {
+        const d = new Date(); d.setDate(d.getDate() + i);
+        const str = d.toISOString().split('T')[0];
+        dOpts += `<option value="${str}">${str}</option>`;
+      }
+      const dEl = document.getElementById('shift-14days-select');
+      if (dEl) dEl.innerHTML = dOpts;
+      updateShiftFenceDropdown('east');
+      renderShiftsHistory();
+      openModal('modal-shift-reporting');
+    }
+
+    function openModal8() {
+      const dEl = document.getElementById('truck-driver-select');
+      if (dEl) dEl.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.category})</option>`).join('');
+      renderTruckRoutes();
+      openModal('modal-truck-routes');
+    }
+
     function submitShiftReport() {
       const staff = document.getElementById('shift-staff-select').value;
       const date = document.getElementById('shift-14days-select').value;
@@ -1172,6 +1253,7 @@
       }
     }
 
+    function openSuppliesModal() { renderSupplies(); openModal('modal-supplies'); }
     function renderSupplies() {
       document.getElementById('supplies-list').innerHTML = suppliesList.map((s, idx) => `
         <div class="p-2 bg-slate-50 border rounded-xl flex justify-between items-center">
@@ -1318,6 +1400,299 @@
       }
     }
 
+    function openTicketsModal() {
+      const tkSel = document.getElementById('tk-responsible-staff');
+      if (tkSel) tkSel.innerHTML = accounts.filter(a => a.name !== 'Mia').map(a => `<option value="${a.name}">${a.name} (${a.id})</option>`).join('');
+      renderTicketsList();
+      openModal('modal-tickets-view');
+    }
+
+    function renderTicketsList() {
+      const badge = document.getElementById('ticket-badge-count');
+      if (badge) badge.textContent = ticketsList.length;
+      const c = document.getElementById('tickets-container');
+      if (!c) return;
+      if (ticketsList.length === 0) {
+        c.innerHTML = '<div class="p-3 text-center text-slate-400">目前沒有任何異常工單。</div>';
+        return;
+      }
+      c.innerHTML = ticketsList.map((t, idx) => `
+        <div class="p-3 bg-slate-50 border border-rose-200 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-rose-600 text-white rounded text-[10px] font-bold">${t.type}</span>
+              <span class="font-black text-slate-900">[${t.tracking}]</span>
+              <span class="font-bold text-blue-700">責任人: ${t.staff}</span>
+            </div>
+            <div class="text-[11px] text-slate-500 mt-1">地點: ${t.zone} | 日期: ${t.date} | 說明: ${t.desc || '無'}</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="font-black text-rose-600 font-mono text-sm">-HK$ ${t.amount}</span>
+            <button type="button" onclick="deleteTicket(${idx})" class="text-xs text-rose-600 hover:text-rose-800 font-bold ml-2 border border-rose-200 bg-white px-2 py-1 rounded">🗑️ 刪除/結案</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function saveNewTicket() {
+      const tracking = document.getElementById('tk-tracking-no')?.value.trim();
+      const staff = document.getElementById('tk-responsible-staff')?.value;
+      const type = document.getElementById('tk-issue-type')?.value;
+      const amount = Number(document.getElementById('tk-penalty-amount')?.value) || 50;
+      const zone = document.getElementById('tk-zone')?.value || '全區';
+      const desc = document.getElementById('tk-issue-desc')?.value;
+
+      if (!tracking) return alert('請填寫運單號碼！');
+
+      ticketsList.unshift({ id: `TK${Date.now()}`, date: new Date().toISOString().split('T')[0], tracking, staff, type, amount, zone, desc });
+      localStorage.setItem('MIA_TICKETS_PERFECT', JSON.stringify(ticketsList));
+      if (document.getElementById('tk-tracking-no')) document.getElementById('tk-tracking-no').value = '';
+      if (document.getElementById('tk-issue-desc')) document.getElementById('tk-issue-desc').value = '';
+      renderTicketsList();
+      alert(`✅ 已成功增添工單並對【${staff}】扣款 HK$ ${amount}！`);
+    }
+
+    function deleteTicket(idx) {
+      if (confirm('確定刪除此工單記錄？')) {
+        ticketsList.splice(idx, 1);
+        localStorage.setItem('MIA_TICKETS_PERFECT', JSON.stringify(ticketsList));
+        renderTicketsList();
+      }
+    }
+
+    function exportTicketsText() {
+      let txt = `🚨 【Mia組 - 異常工單與扣罰名冊】\n========================================\n`;
+      ticketsList.forEach((t, i) => {
+        txt += `${i+1}. [${t.date}] 單號:${t.tracking} | 責任人:${t.staff} | 類型:${t.type} | 罰款:$${t.amount} | 地點:${t.zone} | 備註:${t.desc||'無'}\n`;
+      });
+      txt += `========================================\n總工單數: ${ticketsList.length} 宗`;
+      showUniversalExportModal('異常工單匯出', txt);
+    }
+
+    function calcTotalZoneCounts(zone) {
+      let sum = 0;
+      const fences = zoneFences[zone] || [];
+      const prefix = zone === 'east' ? 'east' : (zone === 'kt' ? 'kt' : 'st');
+      fences.forEach(f => {
+        sum += Number(document.getElementById(`${prefix}-count-${f.name}`)?.value) || 0;
+      });
+      const badge = document.getElementById(`${zone}-total-count-badge`);
+      if (badge) badge.textContent = `${sum} 票`;
+    }
+
+    function saveModal3() {
+      (zoneFences.kt || []).forEach(f => { const val = document.getElementById(`kt-count-${f.name}`)?.value; if (val !== undefined) ktCounts[f.name] = val; });
+      localStorage.setItem('MIA_KT_COUNTS', JSON.stringify(ktCounts));
+      alert('✅ 觀塘貨量儲存成功！'); closeModal('modal-kt-counts');
+    }
+
+    function saveModal4() {
+      (zoneFences.east || []).forEach(f => { const val = document.getElementById(`east-count-${f.name}`)?.value; if (val !== undefined) eastCounts[f.name] = val; });
+      localStorage.setItem('MIA_EAST_COUNTS', JSON.stringify(eastCounts));
+      alert('✅ 東區貨量儲存成功！'); closeModal('modal-east-counts');
+    }
+
+    function saveModalStCounts() {
+      (zoneFences.st || []).forEach(f => { const val = document.getElementById(`st-count-${f.name}`)?.value; if (val !== undefined) stCounts[f.name] = val; });
+      localStorage.setItem('MIA_ST_COUNTS', JSON.stringify(stCounts));
+      alert('✅ 沙田貨量儲存成功！'); closeModal('modal-st-counts');
+    }
+
+    function exportZoneCountsText(zone) {
+      const zName = zone === 'east' ? '東區' : (zone === 'kt' ? '觀塘區' : '沙田區');
+      const fences = zoneFences[zone] || [];
+      const countsMap = zone === 'east' ? eastCounts : (zone === 'kt' ? ktCounts : stCounts);
+      let total = 0;
+      let txt = `📦 【Mia組 - ${zName} 圍欄貨量統計】\n========================================\n`;
+      fences.forEach(f => {
+        const c = Number(countsMap[f.name]) || 0;
+        total += c;
+        txt += `• ${f.name}: ${c} 票\n`;
+      });
+      txt += `========================================\n【${zName} 總貨量】：${total} 票`;
+      showUniversalExportModal(`${zName}貨量匯出`, txt);
+    }
+
+    function openLeaderboardModal() {
+      const defaultRankingData = [
+        { rank: 1, name: '張兆偉', count: 1420, team: 'C組', badge: '🥇 派件冠軍' },
+        { rank: 2, name: '盧智聰', count: 1350, team: 'KM組', badge: '🥈 派件亞軍' },
+        { rank: 3, name: '吳瑋儒', count: 1280, team: 'KM組', badge: '🥉 派件季軍' },
+        { rank: 4, name: '徐子傑', count: 1190, team: 'A組', badge: '🎖️ 表現卓越' },
+        { rank: 5, name: '小肥', count: 1110, team: 'B組', badge: '🎖️ 表現卓越' }
+      ];
+
+      const poolEl = document.getElementById('lb-pool-total');
+      const totalPool = ticketsList.reduce((sum, t) => sum + (Number(t.amount) || 0), 350);
+      if (poolEl) poolEl.textContent = `HK$ ${totalPool.toFixed(2)}`;
+
+      const rList = document.getElementById('lb-rankings-list');
+      if (rList) {
+        rList.innerHTML = defaultRankingData.map(item => `
+          <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 flex items-center justify-center rounded-full bg-slate-800 text-white font-black text-xs">${item.rank}</span>
+              <span class="font-black text-slate-900">${item.name}</span>
+              <span class="px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded text-[10px] font-bold">${item.team}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-bold text-slate-500">${item.badge}</span>
+              <span class="font-black font-mono text-emerald-600">${item.count} 票</span>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      const zeroEl = document.getElementById('lb-zero-tickets-list');
+      if (zeroEl) {
+        const punishedStaff = ticketsList.map(t => t.staff);
+        const zeroStaff = accounts.filter(a => a.name !== 'Mia' && !punishedStaff.includes(a.name));
+        zeroEl.innerHTML = zeroStaff.length > 0 
+          ? zeroStaff.map(s => `<span class="px-2 py-1 bg-white border border-emerald-300 rounded-lg shadow-2xs">🌟 ${s.name}</span>`).join('')
+          : '<span class="text-slate-400">目前暫無</span>';
+      }
+
+      openModal('modal-penalty-leaderboard');
+    }
+
+    function openModalProfit() {
+      const pWage = priceSettings.wage || defaultPrices.wage;
+      const pRev = priceSettings.rev || defaultPrices.rev;
+
+      const eastC = Number(document.getElementById('repEastCount')?.value) || 0;
+      const ktLgC = Number(document.getElementById('repKtLgCount')?.value) || 0;
+      const ktIndC = Number(document.getElementById('repKtIndCount')?.value) || 0;
+      const stC = Number(document.getElementById('repStCount')?.value) || 0;
+      const totalPieces = eastC + ktLgC + ktIndC + stC;
+
+      const rev = totalPieces > 0 
+        ? ((eastC * pRev.east) + (ktLgC * pRev.ktlg) + (ktIndC * pRev.ktind) + (stC * pRev.st))
+        : 3850.00;
+      const cost = totalPieces > 0 
+        ? ((eastC * pWage.east) + (ktLgC * pWage.ktlg) + (ktIndC * pWage.ktind) + (stC * pWage.st))
+        : 2680.00;
+      const net = rev - cost;
+
+      const revEl = document.getElementById('profit-view-rev');
+      const costEl = document.getElementById('profit-view-cost');
+      const netEl = document.getElementById('profit-view-net');
+
+      if (revEl) revEl.textContent = `HK$ ${rev.toFixed(2)} ${totalPieces > 0 ? `(${totalPieces}票)` : '(預估)'}`;
+      if (costEl) costEl.textContent = `HK$ ${cost.toFixed(2)}`;
+      if (netEl) netEl.textContent = `HK$ ${net.toFixed(2)}`;
+
+      openModal('modal-profit-calc');
+    }
+
+    function openModalSettlementDaily() {
+      const c = document.getElementById('settle-breakdown-container');
+      const today = document.getElementById('global-system-date')?.value || new Date().toISOString().split('T')[0];
+      const todayReports = dailyReports.filter(r => r.date === today);
+
+      let eastSum = 0, ktLgSum = 0, ktIndSum = 0, stSum = 0, wageSum = 0;
+      todayReports.forEach(r => {
+        eastSum += (r.eastCount || 0);
+        ktLgSum += (r.ktLgCount || 0);
+        ktIndSum += (r.ktIndCount || 0);
+        stSum += (r.stCount || 0);
+        wageSum += (r.finalSalary || 0);
+      });
+
+      if (c) {
+        c.innerHTML = `
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <div class="p-3 bg-white border rounded-xl"><span class="text-slate-500 font-bold">📍 東區總票數</span><div class="font-black text-slate-900 text-sm mt-1">${eastSum} 票</div></div>
+            <div class="p-3 bg-white border rounded-xl"><span class="text-slate-500 font-bold">📍 麗港城總票數</span><div class="font-black text-slate-900 text-sm mt-1">${ktLgSum} 票</div></div>
+            <div class="p-3 bg-white border rounded-xl"><span class="text-slate-500 font-bold">📍 觀塘工區總票數</span><div class="font-black text-slate-900 text-sm mt-1">${ktIndSum} 票</div></div>
+            <div class="p-3 bg-white border rounded-xl"><span class="text-slate-500 font-bold">📍 沙田總票數</span><div class="font-black text-slate-900 text-sm mt-1">${stSum} 票</div></div>
+          </div>
+          <div class="p-3 bg-slate-50 border rounded-xl flex justify-between items-center text-xs">
+            <span class="font-bold">今日全部步兵應發總薪資：</span>
+            <span class="font-black text-rose-600 font-mono text-base">HK$ ${wageSum.toFixed(2)}</span>
+          </div>
+        `;
+      }
+      openModal('modal-settlement-daily');
+    }
+
+    function openRecruitsModal() { renderRecruits(); openModal('modal-recruits-view'); }
+    function renderRecruits() {
+      const c = document.getElementById('recruits-list');
+      if (!c) return;
+      if (recruitsList.length === 0) {
+        c.innerHTML = '<div class="text-slate-400 p-2">暫無預約新人檔案。</div>';
+        return;
+      }
+      c.innerHTML = recruitsList.map((r, idx) => `
+        <div class="p-2.5 bg-slate-50 border rounded-xl flex justify-between items-center text-xs">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-black text-slate-900">${r.name} (${r.phone})</span>
+              <span class="px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded text-[10px] font-bold">${r.role || '兼職步兵'}</span>
+              <span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">${r.status || '跟進中'}</span>
+            </div>
+            <div class="text-[11px] text-slate-500 mt-0.5">預約日期: ${r.date || '未定'} | 目標分區: ${r.zone || '全區'} | 備註: ${r.desc || '無'}</div>
+          </div>
+          <button type="button" onclick="deleteRecruit(${idx})" class="text-rose-500 hover:text-rose-700 font-bold ml-2">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function saveNewRecruitForm() {
+      const name = document.getElementById('recruit-name')?.value.trim();
+      const phone = document.getElementById('recruit-phone')?.value.trim();
+      const date = document.getElementById('recruit-date')?.value || new Date().toISOString().split('T')[0];
+      const zone = document.getElementById('recruit-zone')?.value;
+      const role = document.getElementById('recruit-role')?.value;
+      const status = document.getElementById('recruit-status')?.value;
+      const desc = document.getElementById('recruit-desc')?.value;
+
+      if (!name || !phone) return alert('請填寫新人姓名與電話！');
+
+      recruitsList.unshift({ id: Date.now(), name, phone, date, zone, role, status, desc });
+      localStorage.setItem('MIA_RECRUITS_PERFECT', JSON.stringify(recruitsList));
+      if (document.getElementById('recruit-name')) document.getElementById('recruit-name').value = '';
+      if (document.getElementById('recruit-phone')) document.getElementById('recruit-phone').value = '';
+      if (document.getElementById('recruit-desc')) document.getElementById('recruit-desc').value = '';
+      renderRecruits();
+      alert('✅ 新人檔案建立成功！');
+    }
+
+    function deleteRecruit(idx) {
+      if (confirm('確定刪除此新人檔案？')) {
+        recruitsList.splice(idx, 1);
+        localStorage.setItem('MIA_RECRUITS_PERFECT', JSON.stringify(recruitsList));
+        renderRecruits();
+      }
+    }
+
+    function exportRecruitsText() {
+      let txt = `📋 【Mia組 - 預約新人檔案清單】\n========================================\n`;
+      recruitsList.forEach((r, i) => {
+        txt += `${i+1}. 姓名:${r.name} | 電話:${r.phone} | 應徵:${r.role} | 分區:${r.zone} | 預約日:${r.date} | 狀態:${r.status} | 備註:${r.desc||'無'}\n`;
+      });
+      txt += `========================================\n總人數: ${recruitsList.length} 人`;
+      showUniversalExportModal('預約新人匯出', txt);
+    }
+
+    function exportDailyReportsText() {
+      const today = document.getElementById('global-system-date')?.value || new Date().toISOString().split('T')[0];
+      const todayReports = dailyReports.filter(r => r.date === today);
+      let txt = `📋 【Mia組 - ${today} 每日報數與薪資明細】\n========================================\n`;
+      todayReports.forEach((r, i) => {
+        txt += `${i+1}. ${r.staff} (${r.category}): 東${r.eastCount||0} / 麗${r.ktLgCount||0} / 工${r.ktIndCount||0} / 沙${r.stCount||0} | 總票:${r.totalPieces} | 實發:$${r.finalSalary} [${r.transferStatus}]\n`;
+      });
+      txt += `========================================`;
+      showUniversalExportModal('今日報數匯出', txt);
+    }
+
+    function openChangePasswordModal() {
+      const pSel = document.getElementById('pwd-target-account');
+      if (pSel) pSel.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
+      openModal('modal-change-password');
+    }
+    function saveNewPassword() { alert('密碼更新成功！'); closeModal('modal-change-password'); }
+
     function renderRoleView() {
       const selectEl = document.getElementById('current-user-role-select');
       if (selectEl) {
@@ -1372,13 +1747,6 @@
       calcSalaryLive();
     }
 
-    function openChangePasswordModal() {
-      const pSel = document.getElementById('pwd-target-account');
-      if (pSel) pSel.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
-      openModal('modal-change-password');
-    }
-    function saveNewPassword() { alert('密碼更新成功！'); closeModal('modal-change-password'); }
-
     window.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
       const dateInp = document.getElementById('global-system-date');
@@ -1386,10 +1754,11 @@
       if (dateInp) dateInp.value = today;
       if (repDateInp) repDateInp.value = today;
 
-      if (document.getElementById('repEastPrice')) document.getElementById('repEastPrice').value = priceSettings.wage.east;
-      if (document.getElementById('repKtLgPrice')) document.getElementById('repKtLgPrice').value = priceSettings.wage.ktlg;
-      if (document.getElementById('repKtIndPrice')) document.getElementById('repKtIndPrice').value = priceSettings.wage.ktind;
-      if (document.getElementById('repStPrice')) document.getElementById('repStPrice').value = priceSettings.wage.st;
+      const pWage = priceSettings.wage || defaultPrices.wage;
+      if (document.getElementById('repEastPrice')) document.getElementById('repEastPrice').value = pWage.east;
+      if (document.getElementById('repKtLgPrice')) document.getElementById('repKtLgPrice').value = pWage.ktlg;
+      if (document.getElementById('repKtIndPrice')) document.getElementById('repKtIndPrice').value = pWage.ktind;
+      if (document.getElementById('repStPrice')) document.getElementById('repStPrice').value = pWage.st;
 
       renderRoleView();
       renderAssignmentsBoard();
