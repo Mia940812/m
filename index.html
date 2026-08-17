@@ -82,7 +82,7 @@
           <h2 id="report-entry-title" class="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-2">
             <span class="w-2 h-4 bg-slate-800 rounded"></span> 📝 每日派件報數與薪資結算表單
           </h2>
-          <button type="button" onclick="openModalPriceSettings()" class="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded text-[11px] font-bold">⚙️ 修改全域預設票價</button>
+          <button type="button" id="btn-open-price-cfg" onclick="openModalPriceSettings()" class="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded text-[11px] font-bold">⚙️ 修改全域預設票價</button>
         </div>
         <span class="text-[11px] text-slate-400 font-semibold">自動匹配人員個別專屬票價 ➜ 實時計算同步</span>
       </div>
@@ -255,13 +255,13 @@
 
   <!-- ================= 模態視窗集合 ================= -->
 
-  <!-- ⏱️ 圍欄進度報告 Modal (5 項狀態切換 + 匯出) -->
+  <!-- ⏱️ 圍欄進度報告 Modal (7 項狀態切換 + 匯出) -->
   <div id="modal-progress-view" class="app-modal">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-3xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
         <div>
           <h3 class="font-bold text-sm text-slate-900">⏱️ 各區圍欄排班與實時派送進度報告</h3>
-          <span class="text-[11px] text-slate-400">可即時切換：🚚 派送中 / ⚡ 快完成 / ✅ 完成 / 📍 剛剛到 / ⚠️ 有阻滯</span>
+          <span class="text-[11px] text-slate-400">狀態：🚚 派送中 / ⚡ 快完成 / ✅ 完成 / 📍 剛剛到 / ⚠️ 有阻滯 / ⏳ 未開始 / 🚫 不是我們</span>
         </div>
         <button type="button" onclick="closeModal('modal-progress-view')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
       </div>
@@ -744,7 +744,7 @@
     };
     let zoneAssignments = JSON.parse(localStorage.getItem('MIA_ASSIGNS_PERFECT')) || initialAssignments;
 
-    // 🌟 實時進度狀態儲存 (預設為「派送中」)
+    // 🌟 實時進度狀態儲存
     let fenceProgressStatus = JSON.parse(localStorage.getItem('MIA_PROGRESS_STATUS_PERFECT')) || {};
 
     const initialTickets = [
@@ -776,14 +776,16 @@
     let currentRole = localStorage.getItem('MIA_LOGGED_IN_USER') || 'admin';
     let currentAssignTab = 'east';
 
-    // ⏱️ 各區進度報告（5 種狀態即時切換）
-    const progressOptions = ['🚚 派送中', '⚡ 快完成', '✅ 完成', '📍 剛剛到', '⚠️ 有阻滯'];
+    // ⏱️ 各區進度報告（7 種狀態）
+    const progressOptions = ['🚚 派送中', '⚡ 快完成', '✅ 完成', '📍 剛剛到', '⚠️ 有阻滯', '⏳ 未開始', '🚫 不是我們'];
 
     function getStatusBadgeStyle(st) {
       if (st.includes('完成') && !st.includes('快')) return 'bg-emerald-100 text-emerald-800 border-emerald-300';
       if (st.includes('快完成')) return 'bg-blue-100 text-blue-800 border-blue-300';
       if (st.includes('剛剛到')) return 'bg-purple-100 text-purple-800 border-purple-300';
       if (st.includes('有阻滯')) return 'bg-rose-100 text-rose-800 border-rose-300 font-black animate-pulse';
+      if (st.includes('未開始')) return 'bg-slate-100 text-slate-600 border-slate-300';
+      if (st.includes('不是我們')) return 'bg-zinc-200 text-zinc-800 border-zinc-400 font-bold';
       return 'bg-amber-100 text-amber-800 border-amber-300'; // 派送中
     }
 
@@ -811,7 +813,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
               ${fences.map(f => {
                 const staff = assigns.filter(a => a.fence === f.name).map(a => a.name);
-                const curStatus = fenceProgressStatus[f.name] || (staff.length > 0 ? '🚚 派送中' : '未開線');
+                const curStatus = fenceProgressStatus[f.name] || (staff.length > 0 ? '🚚 派送中' : '⏳ 未開始');
                 const badgeClass = getStatusBadgeStyle(curStatus);
 
                 return `
@@ -851,12 +853,48 @@
         txt += `\n📍 【${zName}】\n----------------------------------------\n`;
         fences.forEach(f => {
           const staff = assigns.filter(a => a.fence === f.name).map(a => a.name);
-          const st = fenceProgressStatus[f.name] || (staff.length > 0 ? '🚚 派送中' : '未開線');
-          txt += `• ${f.name}: ${staff.length > 0 ? `${staff.join('、')} [${st}]` : '(未排人)'}\n`;
+          const st = fenceProgressStatus[f.name] || (staff.length > 0 ? '🚚 派送中' : '⏳ 未開始');
+          txt += `• ${f.name}: ${staff.length > 0 ? `${staff.join('、')} [${st}]` : `(未排人) [${st}]`}\n`;
         });
       });
       txt += `\n========================================\n報告生成時間: ${new Date().toLocaleTimeString()}`;
       showUniversalExportModal('進度報告匯出', txt);
+    }
+
+    // ⚙️ 修改全域預設票價
+    function openModalPriceSettings() {
+      document.getElementById('cfg-wage-east').value = priceSettings.wage.east;
+      document.getElementById('cfg-wage-ktlg').value = priceSettings.wage.ktlg;
+      document.getElementById('cfg-wage-ktind').value = priceSettings.wage.ktind;
+      document.getElementById('cfg-wage-st').value = priceSettings.wage.st;
+
+      document.getElementById('cfg-rev-east').value = priceSettings.rev.east;
+      document.getElementById('cfg-rev-ktlg').value = priceSettings.rev.ktlg;
+      document.getElementById('cfg-rev-ktind').value = priceSettings.rev.ktind;
+      document.getElementById('cfg-rev-st').value = priceSettings.rev.st;
+
+      openModal('modal-price-settings');
+    }
+
+    function savePriceSettings() {
+      priceSettings = {
+        wage: {
+          east: Number(document.getElementById('cfg-wage-east').value) || 8.5,
+          ktlg: Number(document.getElementById('cfg-wage-ktlg').value) || 8.0,
+          ktind: Number(document.getElementById('cfg-wage-ktind').value) || 7.5,
+          st: Number(document.getElementById('cfg-wage-st').value) || 7.5
+        },
+        rev: {
+          east: Number(document.getElementById('cfg-rev-east').value) || 11.5,
+          ktlg: Number(document.getElementById('cfg-rev-ktlg').value) || 11.0,
+          ktind: Number(document.getElementById('cfg-rev-ktind').value) || 10.5,
+          st: Number(document.getElementById('cfg-rev-st').value) || 10.5
+        }
+      };
+      localStorage.setItem('MIA_PRICES_PERFECT', JSON.stringify(priceSettings));
+      alert('✅ 全域預設票價設定已成功儲存！');
+      closeModal('modal-price-settings');
+      calcSalaryLive();
     }
 
     // 實時計算薪資
@@ -1285,41 +1323,6 @@
         localStorage.setItem('MIA_ASSIGNS_PERFECT', JSON.stringify(zoneAssignments));
         renderAssignmentsBoard();
       }
-    }
-
-    function openModalPriceSettings() {
-      document.getElementById('cfg-wage-east').value = priceSettings.wage.east;
-      document.getElementById('cfg-wage-ktlg').value = priceSettings.wage.ktlg;
-      document.getElementById('cfg-wage-ktind').value = priceSettings.wage.ktind;
-      document.getElementById('cfg-wage-st').value = priceSettings.wage.st;
-
-      document.getElementById('cfg-rev-east').value = priceSettings.rev.east;
-      document.getElementById('cfg-rev-ktlg').value = priceSettings.rev.ktlg;
-      document.getElementById('cfg-rev-ktind').value = priceSettings.rev.ktind;
-      document.getElementById('cfg-rev-st').value = priceSettings.rev.st;
-
-      openModal('modal-price-settings');
-    }
-
-    function savePriceSettings() {
-      priceSettings = {
-        wage: {
-          east: Number(document.getElementById('cfg-wage-east').value) || 8.5,
-          ktlg: Number(document.getElementById('cfg-wage-ktlg').value) || 8.0,
-          ktind: Number(document.getElementById('cfg-wage-ktind').value) || 7.5,
-          st: Number(document.getElementById('cfg-wage-st').value) || 7.5
-        },
-        rev: {
-          east: Number(document.getElementById('cfg-rev-east').value) || 11.5,
-          ktlg: Number(document.getElementById('cfg-rev-ktlg').value) || 11.0,
-          ktind: Number(document.getElementById('cfg-rev-ktind').value) || 10.5,
-          st: Number(document.getElementById('cfg-rev-st').value) || 10.5
-        }
-      };
-      localStorage.setItem('MIA_PRICES_PERFECT', JSON.stringify(priceSettings));
-      alert('✅ 全域預設票價設定已成功儲存！');
-      closeModal('modal-price-settings');
-      calcSalaryLive();
     }
 
     function openTicketsModal() {
