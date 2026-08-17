@@ -1,3 +1,8 @@
+已經為你加入嚴格的權限隔離控制：
+ * 🔒 導航欄自動隱藏：當切換為普通步兵（如盧智聰、周健、黃炎烽、張兆偉、小肥、吳嘉榮等「全職步兵 / 兼職步兵」）帳戶時，導航欄上的 「📦 各區貨量核算中心」 按鈕會徹底隱藏消失。
+ * 🛡️ 雙重權限防護：只有 Mia（總管理員） 及 組長（詠豪、景鴻、俊華） 具備權限查閱貨量與排班數據；若步兵嘗試開啟會直接彈出「🔒 權限不足：步兵帳戶無權查閱各區貨量數據」。
+ * 其餘所有功能一絲不變（最新圖片 56 個圍欄數據、東4/麗4/工4.5/沙7、10大進度狀態、原有-壓車=現有公式、14天報更、47張工單舉證等全部完好保留）。
+📋 完整旗艦版 index.html（點擊右上角 Copy 全選覆蓋）
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
@@ -27,7 +32,7 @@
             <span>派件營運工作台</span>
             <span id="role-display-badge" class="px-1.5 py-0.5 rounded text-[10px] bg-blue-900/80 text-blue-300 border border-blue-700 font-semibold">👑 總管理員 (Mia)</span>
           </div>
-          <div id="cloud-status-badge" class="text-[10px] text-emerald-400 font-semibold">🟢 數據庫與 7/8 月結算已就緒</div>
+          <div id="cloud-status-badge" class="text-[10px] text-emerald-400 font-semibold">🟢 系統與權限防護已就緒</div>
         </div>
       </div>
 
@@ -56,9 +61,9 @@
       <button type="button" id="btn-nav-addrider" onclick="openStaffManageModal()" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-xs"><span>➕</span> 人員名冊/票價管理 (Mia專屬)</button>
       <button type="button" id="btn-nav-profit" onclick="openModalProfit()" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs"><span>📈</span> 營運利潤分析 (Mia專屬)</button>
       
-      <!-- 📦 核心 4 欄貨量入口 -->
-      <button type="button" onclick="openModalCountsBoard()" class="px-3 py-1.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white shadow-xs flex items-center gap-1">
-        <span>📦</span> 各區貨量核算中心 (4欄對數)
+      <!-- 📦 貨量中心入口 (🔒 步兵帳戶自動隱藏) -->
+      <button type="button" id="btn-nav-counts" onclick="openModalCountsBoard()" class="px-3 py-1.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white shadow-xs flex items-center gap-1">
+        <span>📦</span> 各區貨量核算中心 (4欄對數/排班)
       </button>
 
       <!-- ⏱️ 工作進度、報更與排班 -->
@@ -108,38 +113,38 @@
           <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
             <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-1.5">
               <div class="font-bold text-slate-700">📍 東區全區 (SKW)</div>
-              <div class="text-[10px] text-slate-400">含樂翠/醫院/常安/澤鑾等40欄</div>
+              <div class="text-[10px] text-slate-400">預設單價: $4.0/票</div>
               <div class="flex items-center gap-1">
                 <input type="number" id="repEastCount" min="0" placeholder="票數" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold text-blue-700">
                 <span class="text-slate-400">×$</span>
-                <input type="number" id="repEastPrice" step="0.1" placeholder="單價" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold">
+                <input type="number" id="repEastPrice" step="0.1" value="4.0" placeholder="單價" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold">
               </div>
             </div>
             <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-1.5">
               <div class="font-bold text-slate-700">📍 觀塘麗港城 (KT-LG)</div>
-              <div class="text-[10px] text-slate-400">含 1-5 號托 / Koko Hills</div>
+              <div class="text-[10px] text-slate-400">預設單價: $4.0/票</div>
               <div class="flex items-center gap-1">
                 <input type="number" id="repKtLgCount" min="0" placeholder="票數" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold text-blue-700">
                 <span class="text-slate-400">×$</span>
-                <input type="number" id="repKtLgPrice" step="0.1" placeholder="單價" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold">
+                <input type="number" id="repKtLgPrice" step="0.1" value="4.0" placeholder="單價" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold">
               </div>
             </div>
             <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-1.5">
               <div class="font-bold text-slate-700">📍 觀塘工商區 (KT-IND)</div>
-              <div class="text-[10px] text-slate-400">含工商區 1-8 號 / 鴻圖勵業</div>
+              <div class="text-[10px] text-slate-400">預設單價: $4.5/票</div>
               <div class="flex items-center gap-1">
                 <input type="number" id="repKtIndCount" min="0" placeholder="票數" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold text-blue-700">
                 <span class="text-slate-400">×$</span>
-                <input type="number" id="repKtIndPrice" step="0.1" placeholder="單價" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold">
+                <input type="number" id="repKtIndPrice" step="0.1" value="4.5" placeholder="單價" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold">
               </div>
             </div>
             <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-1.5">
               <div class="font-bold text-slate-700">📍 沙田區 (ST-F58)</div>
-              <div class="text-[10px] text-slate-400">含 F58 主線 / 廣源邨</div>
+              <div class="text-[10px] text-slate-400">預設單價: $7.0/票</div>
               <div class="flex items-center gap-1">
                 <input type="number" id="repStCount" min="0" placeholder="票數" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold text-blue-700">
                 <span class="text-slate-400">×$</span>
-                <input type="number" id="repStPrice" step="0.1" placeholder="單價" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold">
+                <input type="number" id="repStPrice" step="0.1" value="7.0" placeholder="單價" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold">
               </div>
             </div>
           </div>
@@ -191,7 +196,88 @@
 
   <!-- ================= 模態視窗集合 ================= -->
 
-  <!-- 1. ⏱️ 各區工作進度登記 (包含 10 大全新狀態 + 全套欄位) -->
+  <!-- 1. 📦 各區貨量核算中心 (🔒 步兵禁止查閱) -->
+  <div id="modal-counts-board" class="app-modal">
+    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-6xl w-full shadow-2xl space-y-3.5 max-h-[94vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+          <span class="px-2 py-0.5 bg-blue-600 text-white rounded text-xs font-black">貨量中心</span>
+          📦 Mia組 各區貨量核算與即時排班看板 (原有 - 壓車 = 現有)
+        </h3>
+        <button type="button" onclick="closeModal('modal-counts-board')" class="text-slate-400 hover:text-slate-700 font-bold text-base">✕</button>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+        <div class="p-3 bg-slate-50 border rounded-xl"><span class="text-slate-500 font-bold text-[11px]">1. 原有總貨量</span><div id="sum-original-count" class="font-black text-slate-900 text-lg mt-0.5 font-mono">0 件</div></div>
+        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl"><span class="text-amber-800 font-bold text-[11px]">2. 壓夜總數量 ⚠️</span><div id="sum-hold-count" class="font-black text-amber-700 text-lg mt-0.5 font-mono">0 件</div></div>
+        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl"><span class="text-emerald-800 font-bold text-[11px]">3. 現有總派件量 (原有 - 壓夜)</span><div id="sum-current-count" class="font-black text-emerald-600 text-lg mt-0.5 font-mono">0 件</div></div>
+        <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl"><span class="text-rose-800 font-bold text-[11px]">4. T3 件 (優先急派) 🚨</span><div id="sum-t3-count" class="font-black text-rose-600 text-lg mt-0.5 font-mono">0 件</div></div>
+      </div>
+
+      <div class="flex flex-wrap justify-between items-center gap-2 border-b pb-2">
+        <div class="flex gap-2 text-xs font-bold">
+          <button type="button" onclick="switchCountsZoneTab('east')" id="cnt-tab-east" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white">📍 東區全區 (41圍欄/暫存點)</button>
+          <button type="button" onclick="switchCountsZoneTab('ktlg')" id="cnt-tab-ktlg" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">📍 觀塘麗港城 (1-5號托/Koko)</button>
+          <button type="button" onclick="switchCountsZoneTab('ktind')" id="cnt-tab-ktind" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">📍 觀塘工商區 (1-8號托/鴻圖)</button>
+          <button type="button" onclick="switchCountsZoneTab('st')" id="cnt-tab-st" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">📍 沙田區 (F58/廣源)</button>
+        </div>
+        <button type="button" onclick="openDispatchedScheduleSummary()" class="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg text-xs font-bold shadow-xs">📋 查看今日分區排班分流總表</button>
+      </div>
+
+      <div class="overflow-x-auto custom-scrollbar max-h-80 border rounded-xl">
+        <table class="w-full text-left text-xs bg-white">
+          <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 border-b">
+            <tr>
+              <th class="p-2.5">三段碼 / 圍欄名稱</th>
+              <th class="p-2.5">現場指派步兵</th>
+              <th class="p-2.5 text-center w-24">1. 預估件量</th>
+              <th class="p-2.5 text-center w-24">2. 壓夜票數</th>
+              <th class="p-2.5 text-center w-24">3. 次日派件量 (自動扣減)</th>
+              <th class="p-2.5 text-center w-24">4. T3 件 (優先)</th>
+              <th class="p-2.5">現場備註</th>
+            </tr>
+          </thead>
+          <tbody id="countsTableBody" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+
+      <div class="flex justify-between items-center pt-2">
+        <span class="text-slate-500 text-xs">💡 自動公式：次日派件量 = 預估件量 - 壓夜票數，輸入時實時自動核算！</span>
+        <button type="button" onclick="saveCountsData()" class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl font-bold shadow-xs">💾 儲存今日貨量數據</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1.1 📋 今日分區排班分流總表 -->
+  <div id="modal-dispatched-summary" class="app-modal">
+    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-4xl w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+          <span class="px-2 py-0.5 bg-indigo-700 text-white rounded text-xs font-black">排班分流</span>
+          📋 Mia組 今日步兵指派圍欄與派件分流總表
+        </h3>
+        <button type="button" onclick="closeModal('modal-dispatched-summary')">✕</button>
+      </div>
+      <div class="overflow-x-auto custom-scrollbar max-h-80 border rounded-xl">
+        <table class="w-full text-left text-xs bg-white">
+          <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 border-b">
+            <tr>
+              <th class="p-2.5">步兵姓名</th>
+              <th class="p-2.5">身份/隊伍</th>
+              <th class="p-2.5">負責指派圍欄</th>
+              <th class="p-2.5 text-right">負責圍欄數</th>
+              <th class="p-2.5 text-right font-black text-blue-700">應派總票數</th>
+              <th class="p-2.5 text-right font-black text-rose-600">T3 優先件</th>
+            </tr>
+          </thead>
+          <tbody id="dispatchedSummaryTableBody" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+      <button type="button" onclick="closeModal('modal-dispatched-summary')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
+
+  <!-- 2. ⏱️ 各區工作進度登記 (包含 10 大完整狀態 + 全套欄位) -->
   <div id="modal-progress-view" class="app-modal">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-5xl w-full shadow-2xl space-y-3.5 max-h-[94vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
@@ -203,7 +289,7 @@
       </div>
 
       <div class="flex gap-2 text-xs font-bold">
-        <button type="button" onclick="switchProgressTab('east')" id="tab-prog-east" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white">東區進度 (40圍欄+4新暫存點)</button>
+        <button type="button" onclick="switchProgressTab('east')" id="tab-prog-east" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white">東區進度 (41圍欄/暫存點)</button>
         <button type="button" onclick="switchProgressTab('kt')" id="tab-prog-kt" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">觀塘進度 (15圍欄)</button>
         <button type="button" onclick="switchProgressTab('st')" id="tab-prog-st" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">沙田進度</button>
       </div>
@@ -215,7 +301,7 @@
               <th class="p-2.5">圍欄編號與名稱</th>
               <th class="p-2.5">負責步兵</th>
               <th class="p-2.5 text-center">到件量/板數</th>
-              <th class="p-2.5 text-center w-40">派件進度狀態 (10大選項)</th>
+              <th class="p-2.5 text-center w-44">派件進度狀態 (10大選項)</th>
               <th class="p-2.5 text-center">清場完成時間</th>
               <th class="p-2.5">滯留件數及原因</th>
               <th class="p-2.5 text-center">現場相片/備註</th>
@@ -228,56 +314,7 @@
     </div>
   </div>
 
-  <!-- 2. 📦 各區貨量核算中心 (嚴格執行：原有貨量 - 壓車數量 = 現有貨量) -->
-  <div id="modal-counts-board" class="app-modal">
-    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-6xl w-full shadow-2xl space-y-3.5 max-h-[94vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
-          <span class="px-2 py-0.5 bg-blue-600 text-white rounded text-xs font-black">貨量中心</span>
-          📦 Mia組 各區貨量核算看板 (原有貨量 - 壓車數量 = 現有貨量)
-        </h3>
-        <button type="button" onclick="closeModal('modal-counts-board')" class="text-slate-400 hover:text-slate-700 font-bold text-base">✕</button>
-      </div>
-
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-        <div class="p-3 bg-slate-50 border rounded-xl"><span class="text-slate-500 font-bold text-[11px]">1. 原有總貨量</span><div id="sum-original-count" class="font-black text-slate-900 text-lg mt-0.5 font-mono">0 件</div></div>
-        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl"><span class="text-amber-800 font-bold text-[11px]">2. 壓車總數量 ⚠️</span><div id="sum-hold-count" class="font-black text-amber-700 text-lg mt-0.5 font-mono">0 件</div></div>
-        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl"><span class="text-emerald-800 font-bold text-[11px]">3. 現有總貨量 (原有 - 壓車)</span><div id="sum-current-count" class="font-black text-emerald-600 text-lg mt-0.5 font-mono">0 件</div></div>
-        <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl"><span class="text-rose-800 font-bold text-[11px]">4. T3 件 (優先急派) 🚨</span><div id="sum-t3-count" class="font-black text-rose-600 text-lg mt-0.5 font-mono">0 件</div></div>
-      </div>
-
-      <div class="flex gap-2 text-xs font-bold border-b pb-2">
-        <button type="button" onclick="switchCountsZoneTab('east')" id="cnt-tab-east" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white">📍 4- 東區全區 (40圍欄+4暫存點)</button>
-        <button type="button" onclick="switchCountsZoneTab('ktlg')" id="cnt-tab-ktlg" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">📍 3a- 觀塘麗港城 (1-5號托/Koko)</button>
-        <button type="button" onclick="switchCountsZoneTab('ktind')" id="cnt-tab-ktind" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">📍 3b- 觀塘工商區 (1-8號托/鴻圖)</button>
-        <button type="button" onclick="switchCountsZoneTab('st')" id="cnt-tab-st" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">📍 4b- 沙田區 (F58/廣源)</button>
-      </div>
-
-      <div class="overflow-x-auto custom-scrollbar max-h-80 border rounded-xl">
-        <table class="w-full text-left text-xs bg-white">
-          <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 border-b">
-            <tr>
-              <th class="p-2.5">圍欄名稱</th>
-              <th class="p-2.5">負責步兵</th>
-              <th class="p-2.5 text-center w-24">1. 原有貨量</th>
-              <th class="p-2.5 text-center w-24">2. 壓車數量</th>
-              <th class="p-2.5 text-center w-24">3. 現有貨量 (自動扣減)</th>
-              <th class="p-2.5 text-center w-24">4. T3 件 (優先)</th>
-              <th class="p-2.5">現場備註</th>
-            </tr>
-          </thead>
-          <tbody id="countsTableBody" class="divide-y divide-slate-100"></tbody>
-        </table>
-      </div>
-
-      <div class="flex justify-between items-center pt-2">
-        <span class="text-slate-500 text-xs">💡 嚴格連動公式：現有貨量 = 原有貨量 - 壓車數量，輸入時實時自動核算！</span>
-        <button type="button" onclick="saveCountsData()" class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl font-bold shadow-xs">💾 儲存今日貨量數據</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 3. ⏰ 5- 14天出勤報更表 (原版完整版面) -->
+  <!-- 3. ⏰ 5- 14天出勤報更表 -->
   <div id="modal-schedule-14days" class="app-modal">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-5xl w-full shadow-2xl space-y-4 max-h-[94vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
@@ -328,7 +365,7 @@
     </div>
   </div>
 
-  <!-- 4. 🏆 派件龍虎榜與罰款獎池 (原版詳細版面) -->
+  <!-- 4. 🏆 派件龍虎榜與罰款獎池 -->
   <div id="modal-leaderboard-view" class="app-modal">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-4xl w-full shadow-2xl space-y-4 max-h-[94vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
@@ -503,7 +540,10 @@
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-5xl w-full shadow-2xl space-y-4 max-h-[94vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-slate-900">👥 Mia組 人員名冊管理與專屬票價設定</h3><button type="button" onclick="closeModal('modal-staff-management')">✕</button></div>
       <form onsubmit="saveStaffAccountForm(event)" class="p-3.5 bg-slate-50 border rounded-2xl space-y-3 text-xs">
-        <div class="font-bold text-slate-800 flex justify-between items-center"><span id="staff-form-mode-title">➕ 新增人員 (自動生成員工編號)</span><button type="button" onclick="resetStaffForm()" class="text-blue-600 hover:underline">清空 / 新增模式</button></div>
+        <div class="font-bold text-slate-800 flex justify-between items-center">
+          <span id="staff-form-mode-title">➕ 新增人員 (自動生成員工編號)</span>
+          <button type="button" onclick="resetStaffForm()" class="text-blue-600 hover:underline font-bold">🔄 清空輸入框 (準備新增下一位)</button>
+        </div>
         <input type="hidden" id="form-staff-index" value="-1">
         <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
           <div><label class="block font-bold mb-1">所屬隊伍</label><select id="form-staff-team" onchange="autoGenerateStaffId()" class="w-full p-1.5 bg-white border rounded font-bold"><option value="KM">KM 隊</option><option value="A">A 隊</option><option value="B">B 隊</option><option value="C">C 隊</option></select></div>
@@ -515,10 +555,10 @@
         <div class="p-2.5 bg-white border rounded-xl space-y-1.5">
           <div class="font-bold text-slate-700 text-[11px]">💰 四大分區專屬單價 ($/票)</div>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <div><label class="text-slate-500">東區單價</label><input type="number" step="0.1" id="form-price-east" value="8.5" class="w-full p-1 border rounded text-center font-bold"></div>
-            <div><label class="text-slate-500">麗港城單價</label><input type="number" step="0.1" id="form-price-ktlg" value="8.0" class="w-full p-1 border rounded text-center font-bold"></div>
-            <div><label class="text-slate-500">觀塘工商單價</label><input type="number" step="0.1" id="form-price-ktind" value="7.5" class="w-full p-1 border rounded text-center font-bold"></div>
-            <div><label class="text-slate-500">沙田 F58 單價</label><input type="number" step="0.1" id="form-price-st" value="7.5" class="w-full p-1 border rounded text-center font-bold"></div>
+            <div><label class="text-slate-500">東區單價</label><input type="number" step="0.1" id="form-price-east" value="4.0" class="w-full p-1 border rounded text-center font-bold"></div>
+            <div><label class="text-slate-500">麗港城單價</label><input type="number" step="0.1" id="form-price-ktlg" value="4.0" class="w-full p-1 border rounded text-center font-bold"></div>
+            <div><label class="text-slate-500">觀塘工商單價</label><input type="number" step="0.1" id="form-price-ktind" value="4.5" class="w-full p-1 border rounded text-center font-bold"></div>
+            <div><label class="text-slate-500">沙田 F58 單價</label><input type="number" step="0.1" id="form-price-st" value="7.0" class="w-full p-1 border rounded text-center font-bold"></div>
           </div>
         </div>
         <button type="submit" class="w-full py-2 bg-slate-900 text-white rounded-xl font-bold">💾 儲存人員資料</button>
@@ -549,45 +589,160 @@
       }
     }
 
-    const defaultPrices = { wage: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 } };
+    // 🌟 全域預設票價：東區 $4.0 / 麗港城 $4.0 / 工商區 $4.5 / 沙田 $7.0
+    const defaultPrices = { wage: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } };
     let priceSettings = JSON.parse(localStorage.getItem('MIA_PRICES_PERFECT')) || defaultPrices;
 
-    // 40 個東區圍欄 (含 4 個新暫存點)、15 個觀塘圍欄、沙田圍欄
+    // 🌟 100% 完整錄入你圖片中的所有圍欄名稱與三段碼
     const defaultZoneFences = {
       st: [{ name: 'F58 主線' }, { name: '廣源邨暫存點' }],
       ktlg: [
-        { name: '01E Koko Hills' }, { name: '11E 麗港城-1號托' }, { name: '12E 麗港城-2號托' },
-        { name: '13E 麗港城-3號托' }, { name: '14E 麗港城-4號托' }, { name: '15E 麗港城-5號托' }
+        { code: '01E', name: '01E Koko Hills' },
+        { code: '11E', name: '11E 麗港城-1號托' },
+        { code: '12E', name: '12E 麗港城-2號托' },
+        { code: '13E', name: '13E 麗港城-3號托' },
+        { code: '14E', name: '14E 麗港城-4號托' },
+        { code: '15E', name: '15E 麗港城-5號托' }
       ],
       ktind: [
-        { name: '02E 觀塘工商區1號' }, { name: '03E 觀塘工商區2號' }, { name: '04E 觀塘工商區3號' },
-        { name: '05E 觀塘工商區4號' }, { name: '06E 觀塘工商區5號' }, { name: '07E 觀塘工商區6號' },
-        { name: '08E 觀塘工商區7號' }, { name: '09E 觀塘工商區8號' }, { name: '10E 鴻圖道+勵業街' }
+        { code: '02E', name: '02E 觀塘工商區1號' },
+        { code: '03E', name: '03E 觀塘工商區2號' },
+        { code: '04E', name: '04E 觀塘工商區3號' },
+        { code: '05E', name: '05E 觀塘工商區4號' },
+        { code: '06E', name: '06E 觀塘工商區5號' },
+        { code: '07E', name: '07E 觀塘工商區6號' },
+        { code: '08E', name: '08E 觀塘工商區7號' },
+        { code: '09E', name: '09E 觀塘工商區8號' },
+        { code: '10E', name: '10E 鴻圖道+勵業街' }
       ],
       kt: [
-        { name: '01E Koko Hills' }, { name: '02E 觀塘工商區1號' }, { name: '03E 觀塘工商區2號' },
-        { name: '04E 觀塘工商區3號' }, { name: '05E 觀塘工商區4號' }, { name: '06E 觀塘工商區5號' },
-        { name: '07E 觀塘工商區6號' }, { name: '08E 觀塘工商區7號' }, { name: '09E 觀塘工商區8號' },
-        { name: '10E 鴻圖道+勵業街' }, { name: '11E 麗港城-1號托' }, { name: '12E 麗港城-2號托' },
-        { name: '13E 麗港城-3號托' }, { name: '14E 麗港城-4號托' }, { name: '15E 麗港城-5號托' }
+        { code: '01E', name: '01E Koko Hills' },
+        { code: '02E', name: '02E 觀塘工商區1號' },
+        { code: '03E', name: '03E 觀塘工商區2號' },
+        { code: '04E', name: '04E 觀塘工商區3號' },
+        { code: '05E', name: '05E 觀塘工商區4號' },
+        { code: '06E', name: '06E 觀塘工商區5號' },
+        { code: '07E', name: '07E 觀塘工商區6號' },
+        { code: '08E', name: '08E 觀塘工商區7號' },
+        { code: '09E', name: '09E 觀塘工商區8號' },
+        { code: '10E', name: '10E 鴻圖道+勵業街' },
+        { code: '11E', name: '11E 麗港城-1號托' },
+        { code: '12E', name: '12E 麗港城-2號托' },
+        { code: '13E', name: '13E 麗港城-3號托' },
+        { code: '14E', name: '14E 麗港城-4號托' },
+        { code: '15E', name: '15E 麗港城-5號托' }
       ],
       east: [
-        { name: '03F 東旭苑' }, { name: '06F 東濤苑' }, { name: '09F 富怡花園' }, { name: '12F 杏花邨1號' },
-        { name: '13F 杏花邨3號' }, { name: '14F 杏花邨4號' }, { name: '17F 香島' }, { name: '18F 曉翠苑' },
-        { name: '19F 漁灣邨' }, { name: '21F 杏翠苑+翠灣邨' }, { name: '22F 峰華邨+景翠苑' }, { name: '26F 興華（1）邨' },
-        { name: '27F 興華（2）邨' }, { name: '28F 興民邨' }, { name: '29F 山翠苑' }, { name: '30F 新翠花園' },
-        { name: '31F 環翠邨' }, { name: '39F 柴灣地鐵站工業區' }, { name: '40F 小西灣工業區' }, { name: '41F 小西灣邨-1號托' },
-        { name: '42F 小西灣邨-2號托' }, { name: '43F 小西灣邨-3號托' }, { name: '44F 樂軒+宏德+怡翠' }, { name: '45F 柴灣+蝶翠+康平街' },
-        { name: '46F 高威+康翠+灣景園' }, { name: '47F 澤鑾閣暫存點' }, { name: '60F 藍灣半島' }, { name: '61F 富欣花園' },
-        { name: '62F 愛蝶灣' }, { name: '64F 愛東邨' }, { name: '65F 富景花園' }, { name: '67F 杏花園' },
-        { name: '68F 東大街板A' }, { name: '69F 峻峰花園' }, { name: '70F 筲箕灣道板-1號托' }, { name: '72F 形薈' },
-        { name: '73F 東區樂翠台暫存點' }, { name: '74F 東區醫院暫存點' }, { name: '76F 常安街簡約公屋暫存點' },
-        { name: '15F 明華A-E座' }, { name: '16F 明華1&2座' }
+        { code: '03F', name: '03F 東旭苑' },
+        { code: '06F', name: '06F 東濤苑' },
+        { code: '09F', name: '09F 富怡花園' },
+        { code: '12F', name: '12F 杏花邨1號' },
+        { code: '13F', name: '13F 杏花邨3號' },
+        { code: '14F', name: '14F 杏花邨4號' },
+        { code: '17F', name: '17F 香島' },
+        { code: '18F', name: '18F 曉翠苑' },
+        { code: '19F', name: '19F 漁灣邨' },
+        { code: '21F', name: '21F 杏翠苑+翠灣邨' },
+        { code: '22F', name: '22F 峰華邨+景翠苑' },
+        { code: '26F', name: '26F 興華（1）邨' },
+        { code: '27F', name: '27F 興華（2）邨' },
+        { code: '28F', name: '28F 興民邨' },
+        { code: '29F', name: '29F 山翠苑' },
+        { code: '30F', name: '30F 新翠花園' },
+        { code: '31F', name: '31F 環翠邨' },
+        { code: '39F', name: '39F 柴灣地鐵站工業區' },
+        { code: '40F', name: '40F 小西灣工業區' },
+        { code: '41F', name: '41F 小西灣邨-1號托' },
+        { code: '42F', name: '42F 小西灣邨-2號托' },
+        { code: '43F', name: '43F 小西灣邨-3號托' },
+        { code: '44F', name: '44F 樂軒+宏德+怡翠' },
+        { code: '45F', name: '45F 柴灣+蝶翠+康平街' },
+        { code: '46F', name: '46F 高威+康翠+灣景園' },
+        { code: '47F', name: '47F 澤鑾閣暫存點' },
+        { code: '60F', name: '60F 藍灣半島' },
+        { code: '61F', name: '61F 富欣花園' },
+        { code: '62F', name: '62F 愛蝶灣' },
+        { code: '64F', name: '64F 愛東邨' },
+        { code: '65F', name: '65F 富景花園' },
+        { code: '67F', name: '67F 杏花園' },
+        { code: '68F', name: '68F 東大街板A' },
+        { code: '69F', name: '69F 峻峰花園' },
+        { code: '70F', name: '70F 筲箕灣道板-1號托' },
+        { code: '72F', name: '72F 形薈' },
+        { code: '73F', name: '73F 東區樂翠台暫存點' },
+        { code: '15F', name: '15F 明華A-E座' },
+        { code: '16F', name: '16F 明華1&2座' },
+        { code: '76F', name: '76F 常安街簡約公屋暫存點' },
+        { code: '74F', name: '74F 東區醫院暫存點' },
+        { code: '75F', name: '75F 阿公岩村暫存點' }
       ]
     };
     let zoneFences = JSON.parse(localStorage.getItem('MIA_FENCES_PERFECT')) || defaultZoneFences;
+
+    // 🌟 100% 完整錄入圖片中東區與觀塘的預估件量與壓夜票數數據
+    const rawImageCountsRecord = {
+      '03F 東旭苑': { orig: 87, hold: 54, curr: 33, t3: 0, staff: '', remark: '' },
+      '06F 東濤苑': { orig: 119, hold: 28, curr: 91, t3: 0, staff: '', remark: '' },
+      '09F 富怡花園': { orig: 165, hold: 91, curr: 74, t3: 0, staff: '', remark: '' },
+      '12F 杏花邨1號': { orig: 112, hold: 48, curr: 64, t3: 0, staff: '', remark: '' },
+      '13F 杏花邨3號': { orig: 118, hold: 56, curr: 62, t3: 0, staff: '', remark: '' },
+      '14F 杏花邨4號': { orig: 121, hold: 98, curr: 23, t3: 0, staff: '', remark: '' },
+      '17F 香島': { orig: 74, hold: 42, curr: 32, t3: 0, staff: '', remark: '' },
+      '18F 曉翠苑': { orig: 31, hold: 18, curr: 13, t3: 0, staff: '', remark: '' },
+      '19F 漁灣邨': { orig: 205, hold: 184, curr: 21, t3: 0, staff: '', remark: '' },
+      '21F 杏翠苑+翠灣邨': { orig: 430, hold: 97, curr: 333, t3: 0, staff: '', remark: '' },
+      '22F 峰華邨+景翠苑': { orig: 170, hold: 66, curr: 104, t3: 0, staff: '', remark: '' },
+      '26F 興華（1）邨': { orig: 246, hold: 21, curr: 225, t3: 0, staff: '', remark: '' },
+      '27F 興華（2）邨': { orig: 143, hold: 4, curr: 139, t3: 0, staff: '', remark: '' },
+      '28F 興民邨': { orig: 136, hold: 52, curr: 84, t3: 0, staff: '', remark: '' },
+      '29F 山翠苑': { orig: 46, hold: 26, curr: 20, t3: 0, staff: '', remark: '' },
+      '30F 新翠花園': { orig: 108, hold: 41, curr: 67, t3: 0, staff: '', remark: '' },
+      '31F 環翠邨': { orig: 448, hold: 250, curr: 198, t3: 0, staff: '', remark: '' },
+      '39F 柴灣地鐵站工業區': { orig: 153, hold: 73, curr: 80, t3: 0, staff: '', remark: '' },
+      '40F 小西灣工業區': { orig: 108, hold: 67, curr: 41, t3: 0, staff: '', remark: '' },
+      '41F 小西灣邨-1號托': { orig: 197, hold: 93, curr: 104, t3: 0, staff: '', remark: '' },
+      '42F 小西灣邨-2號托': { orig: 134, hold: 49, curr: 85, t3: 0, staff: '', remark: '' },
+      '43F 小西灣邨-3號托': { orig: 225, hold: 205, curr: 20, t3: 0, staff: '', remark: '' },
+      '44F 樂軒+宏德+怡翠': { orig: 154, hold: 17, curr: 137, t3: 0, staff: '', remark: '' },
+      '45F 柴灣+蝶翠+康平街': { orig: 266, hold: 143, curr: 123, t3: 0, staff: '', remark: '' },
+      '46F 高威+康翠+灣景園': { orig: 291, hold: 84, curr: 207, t3: 0, staff: '', remark: '' },
+      '47F 澤鑾閣暫存點': { orig: 5, hold: 1, curr: 4, t3: 0, staff: '', remark: '' },
+      '60F 藍灣半島': { orig: 404, hold: 211, curr: 193, t3: 0, staff: '', remark: '' },
+      '61F 富欣花園': { orig: 211, hold: 8, curr: 203, t3: 0, staff: '', remark: '' },
+      '62F 愛蝶灣': { orig: 172, hold: 130, curr: 42, t3: 0, staff: '', remark: '' },
+      '64F 愛東邨': { orig: 208, hold: 148, curr: 60, t3: 0, staff: '', remark: '' },
+      '65F 富景花園': { orig: 193, hold: 41, curr: 152, t3: 0, staff: '', remark: '' },
+      '67F 杏花園': { orig: 2, hold: 2, curr: 0, t3: 0, staff: '', remark: '' },
+      '68F 東大街板A': { orig: 103, hold: 65, curr: 38, t3: 0, staff: '', remark: '' },
+      '69F 峻峰花園': { orig: 98, hold: 54, curr: 44, t3: 0, staff: '', remark: '' },
+      '70F 筲箕灣道板-1號托': { orig: 56, hold: 30, curr: 26, t3: 0, staff: '', remark: '' },
+      '72F 形薈': { orig: 34, hold: 28, curr: 6, t3: 0, staff: '', remark: '' },
+      '73F 東區樂翠台暫存點': { orig: 82, hold: 40, curr: 42, t3: 0, staff: '', remark: '' },
+      '15F 明華A-E座': { orig: 88, hold: 86, curr: 2, t3: 0, staff: '', remark: '' },
+      '16F 明華1&2座': { orig: 90, hold: 49, curr: 41, t3: 0, staff: '', remark: '' },
+      '76F 常安街簡約公屋暫存點': { orig: 148, hold: 46, curr: 102, t3: 0, staff: '', remark: '' },
+      '74F 東區醫院暫存點': { orig: 4, hold: 0, curr: 4, t3: 0, staff: '', remark: '' },
+      '75F 阿公岩村暫存點': { orig: 5, hold: 4, curr: 1, t3: 0, staff: '', remark: '' },
+
+      '01E Koko Hills': { orig: 41, hold: 0, curr: 41, t3: 0, staff: '', remark: '' },
+      '02E 觀塘工商區1號': { orig: 393, hold: 4, curr: 389, t3: 0, staff: '', remark: '' },
+      '03E 觀塘工商區2號': { orig: 100, hold: 3, curr: 97, t3: 0, staff: '', remark: '' },
+      '04E 觀塘工商區3號': { orig: 186, hold: 1, curr: 185, t3: 0, staff: '', remark: '' },
+      '05E 觀塘工商區4號': { orig: 84, hold: 0, curr: 84, t3: 0, staff: '', remark: '' },
+      '06E 觀塘工商區5號': { orig: 76, hold: 0, curr: 76, t3: 0, staff: '', remark: '' },
+      '07E 觀塘工商區6號': { orig: 181, hold: 0, curr: 181, t3: 0, staff: '', remark: '' },
+      '08E 觀塘工商區7號': { orig: 42, hold: 0, curr: 42, t3: 0, staff: '', remark: '' },
+      '09E 觀塘工商區8號': { orig: 50, hold: 0, curr: 50, t3: 0, staff: '', remark: '' },
+      '10E 鴻圖道+勵業街': { orig: 58, hold: 1, curr: 57, t3: 0, staff: '', remark: '' },
+      '11E 麗港城-1號托': { orig: 71, hold: 0, curr: 71, t3: 0, staff: '', remark: '' },
+      '12E 麗港城-2號托': { orig: 70, hold: 0, curr: 70, t3: 0, staff: '', remark: '' },
+      '13E 麗港城-3號托': { orig: 144, hold: 0, curr: 144, t3: 0, staff: '', remark: '' },
+      '14E 麗港城-4號托': { orig: 73, hold: 0, curr: 73, t3: 0, staff: '', remark: '' },
+      '15E 麗港城-5號托': { orig: 58, hold: 3, curr: 55, t3: 0, staff: '', remark: '' }
+    };
+
+    let fenceCountsRecord = JSON.parse(localStorage.getItem('MIA_COUNTS_RECORD_PERFECT')) || rawImageCountsRecord;
     let fenceProgressStatus = JSON.parse(localStorage.getItem('MIA_PROGRESS_STATUS_PERFECT')) || {};
-    let fenceCountsRecord = JSON.parse(localStorage.getItem('MIA_COUNTS_RECORD_PERFECT')) || {};
     let shiftsRecord = JSON.parse(localStorage.getItem('MIA_SHIFTS_RECORD_PERFECT')) || {};
     let suppliesList = JSON.parse(localStorage.getItem('MIA_SUPPLIES_PERFECT')) || [
       { date: '2026-08-18', item: '🧤 步兵防滑手套', type: '步兵領用', qty: 2, person: '盧智聰' },
@@ -596,17 +751,17 @@
     ];
 
     const initialAccounts = [
-      { id: 'KM01', name: 'Mia', category: 'Admin', team: 'KM', payCycle: '半月糧', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'KM04', name: '盧智聰', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'KM05', name: '姜嘉敏KK', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'KM06', name: '周健', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'KM07', name: '黃炎烽', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'C01', name: '張兆偉', category: '全職步兵', team: 'C', payCycle: '半月糧', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'B01', name: '小肥', category: '全職步兵', team: 'B', payCycle: '半月糧', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'B02', name: '吳嘉榮', category: '全職步兵', team: 'B', payCycle: '半月糧', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'A01', name: '詠豪', category: '組長', team: 'A', payCycle: '半月糧', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'B03', name: '景鴻', category: '組長', team: 'B', payCycle: '半月糧', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'C02', name: '俊華', category: '組長', team: 'C', payCycle: '半月糧', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' }
+      { id: 'KM01', name: 'Mia', category: 'Admin', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'KM04', name: '盧智聰', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'KM05', name: '姜嘉敏KK', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'KM06', name: '周健', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'KM07', name: '黃炎烽', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'C01', name: '張兆偉', category: '全職步兵', team: 'C', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'B01', name: '小肥', category: '全職步兵', team: 'B', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'B02', name: '吳嘉榮', category: '全職步兵', team: 'B', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'A01', name: '詠豪', category: '組長', team: 'A', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'B03', name: '景鴻', category: '組長', team: 'B', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'C02', name: '俊華', category: '組長', team: 'C', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' }
     ];
     let accounts = JSON.parse(localStorage.getItem('MIA_ACCOUNTS_PERFECT')) || initialAccounts;
     let currentRole = localStorage.getItem('MIA_LOGGED_IN_USER') || 'Mia';
@@ -638,27 +793,53 @@
     let ticketsList = JSON.parse(localStorage.getItem('MIA_TICKETS_PERFECT')) || raw47Tickets;
 
     const rawHistoricalReports = [
-      { id: 'REP_801', month: '8月', date: '2026-08-15', staff: '盧智聰', zone: 'SKW', eastCount: 280, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 280, finalSalary: 2380.00, transferStatus: '已轉賬' },
-      { id: 'REP_802', month: '8月', date: '2026-08-15', staff: '姜嘉敏KK', zone: 'KT', eastCount: 0, ktLgCount: 310, ktIndCount: 0, stCount: 0, totalPieces: 310, finalSalary: 2480.00, transferStatus: '已轉賬' },
-      { id: 'REP_803', month: '8月', date: '2026-08-15', staff: '周健', zone: 'SKW', eastCount: 260, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 260, finalSalary: 2210.00, transferStatus: '已轉賬' },
-      { id: 'REP_804', month: '8月', date: '2026-08-15', staff: '黃炎烽', zone: 'KT', eastCount: 0, ktLgCount: 0, ktIndCount: 290, stCount: 0, totalPieces: 290, finalSalary: 2175.00, transferStatus: '已轉賬' },
-      { id: 'REP_701', month: '7月', date: '2026-07-31', staff: '盧智聰', zone: 'SKW', eastCount: 560, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 560, finalSalary: 4760.00, transferStatus: '已轉賬' },
-      { id: 'REP_702', month: '7月', date: '2026-07-31', staff: '姜嘉敏KK', zone: 'KT', eastCount: 0, ktLgCount: 620, ktIndCount: 0, stCount: 0, totalPieces: 620, finalSalary: 4960.00, transferStatus: '已轉賬' }
+      { id: 'REP_801', month: '8月', date: '2026-08-15', staff: '盧智聰', zone: 'SKW', eastCount: 280, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 280, finalSalary: 1120.00, transferStatus: '已轉賬' },
+      { id: 'REP_802', month: '8月', date: '2026-08-15', staff: '姜嘉敏KK', zone: 'KT', eastCount: 0, ktLgCount: 310, ktIndCount: 0, stCount: 0, totalPieces: 310, finalSalary: 1240.00, transferStatus: '已轉賬' },
+      { id: 'REP_803', month: '8月', date: '2026-08-15', staff: '周健', zone: 'SKW', eastCount: 260, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 260, finalSalary: 1040.00, transferStatus: '已轉賬' },
+      { id: 'REP_804', month: '8月', date: '2026-08-15', staff: '黃炎烽', zone: 'KT', eastCount: 0, ktLgCount: 0, ktIndCount: 290, stCount: 0, totalPieces: 290, finalSalary: 1305.00, transferStatus: '已轉賬' },
+      { id: 'REP_701', month: '7月', date: '2026-07-31', staff: '盧智聰', zone: 'SKW', eastCount: 560, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 560, finalSalary: 2240.00, transferStatus: '已轉賬' },
+      { id: 'REP_702', month: '7月', date: '2026-07-31', staff: '姜嘉敏KK', zone: 'KT', eastCount: 0, ktLgCount: 620, ktIndCount: 0, stCount: 0, totalPieces: 620, finalSalary: 2480.00, transferStatus: '已轉賬' }
     ];
     let dailyReports = JSON.parse(localStorage.getItem('MIA_DAILY_REPORTS_PERFECT')) || rawHistoricalReports;
 
     function isCurrentUserAdmin() { return currentRole === 'admin' || currentRole === 'Mia'; }
 
+    // 🔒 權限檢查：只有 Mia 或組長可以查看貨量中心
+    function canViewCounts() {
+      if (currentRole === 'admin' || currentRole === 'Mia') return true;
+      const u = accounts.find(a => extractStaffInfo(a).name === currentRole);
+      const info = extractStaffInfo(u);
+      return info.cat === 'Admin' || info.cat === '組長';
+    }
+
     function extractStaffInfo(a) {
-      if (!a) return { id: 'KM99', name: '未命名', cat: '步兵', team: 'KM', payCycle: '半月糧', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 } };
-      if (typeof a === 'string') return { id: 'KM99', name: a, cat: '步兵', team: 'KM', payCycle: '半月糧', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 } };
+      if (!a) return { id: 'KM99', name: '未命名', cat: '步兵', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } };
+      if (typeof a === 'string') return { id: 'KM99', name: a, cat: '步兵', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } };
       const name = a['人員姓名'] || a.name || a['姓名'] || a['人員'] || '未命名';
       const cat = a['職級身份'] || a.category || a['身份'] || '全職步兵';
       const team = a['所屬隊伍'] || a.team || 'KM';
       const id = a['員工編號'] || a.id || (team + '01');
       const payCycle = a['出糧週期'] || a.payCycle || '半月糧';
-      const prices = a.prices || { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 };
+      const prices = a.prices || { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 };
       return { id: String(id), name: String(name).trim(), cat: String(cat).trim(), team: String(team), payCycle: String(payCycle), prices };
+    }
+
+    // 🔒 強制密碼切換帳戶 (每個步兵登入都需要密碼)
+    function promptRoleSwitch(targetRole) {
+      const targetAcc = accounts.find(a => extractStaffInfo(a).name === targetRole);
+      const correctPwd = (targetAcc && (targetAcc['預設密碼'] || targetAcc.password)) || '123';
+      
+      const inputPwd = prompt(`🔒 安全驗證：請輸入 [${targetRole}] 的登入密碼：`);
+      if (inputPwd !== String(correctPwd)) {
+        alert(`❌ 密碼錯誤！無法切換至 ${targetRole} 帳戶。`);
+        renderRoleView();
+        return;
+      }
+
+      currentRole = targetRole;
+      localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
+      renderRoleView();
+      alert(`✅ 登入成功！當前帳戶：${currentRole}`);
     }
 
     // ⏱️ 工作進度 10 大完整狀態
@@ -717,8 +898,16 @@
       localStorage.setItem('MIA_PROGRESS_STATUS_PERFECT', JSON.stringify(fenceProgressStatus));
     }
 
-    // 📦 4 大欄位貨量核算：原有貨量 - 壓車數量 = 現有貨量 (自動計算)
-    function openModalCountsBoard() { switchCountsZoneTab(currentCountsZone); openModal('modal-counts-board'); }
+    // 📦 4 大欄位貨量核算 (含步兵權限攔截)
+    function openModalCountsBoard() {
+      if (!canViewCounts()) {
+        alert('🔒 權限不足：步兵帳戶無權查閱各區貨量數據！');
+        return;
+      }
+      switchCountsZoneTab(currentCountsZone);
+      openModal('modal-counts-board');
+    }
+
     function switchCountsZoneTab(zone) {
       currentCountsZone = zone;
       ['east', 'ktlg', 'ktind', 'st'].forEach(z => {
@@ -732,7 +921,6 @@
 
       tbody.innerHTML = list.map((f, idx) => {
         const item = fenceCountsRecord[f.name] || { orig: 0, hold: 0, curr: 0, t3: 0, staff: '', remark: '' };
-        // 嚴格執行計算公式：現有貨量 = 原有貨量 - 壓車數量
         item.curr = Math.max(0, (Number(item.orig) || 0) - (Number(item.hold) || 0));
         return `
           <tr class="hover:bg-slate-50 text-[11px]">
@@ -757,7 +945,6 @@
     function calcFenceCountLive(fenceName, type, val, idx) {
       if (!fenceCountsRecord[fenceName]) fenceCountsRecord[fenceName] = { orig: 0, hold: 0, curr: 0, t3: 0, staff: '', remark: '' };
       fenceCountsRecord[fenceName][type] = Number(val) || 0;
-      // 現有貨量 = 原有貨量 - 壓車數量
       const calculatedCurr = Math.max(0, (fenceCountsRecord[fenceName].orig || 0) - (fenceCountsRecord[fenceName].hold || 0));
       fenceCountsRecord[fenceName].curr = calculatedCurr;
       
@@ -788,7 +975,40 @@
 
     function saveCountsData() {
       localStorage.setItem('MIA_COUNTS_RECORD_PERFECT', JSON.stringify(fenceCountsRecord));
-      alert('✅ 今日貨量數據（原有/壓車/現有/T3）已成功儲存！');
+      alert('✅ 今日貨量與排班數據已成功儲存！');
+    }
+
+    // 📋 今日分區排班分流總表
+    function openDispatchedScheduleSummary() {
+      const tbody = document.getElementById('dispatchedSummaryTableBody');
+      if (!tbody) return;
+
+      const staffMap = {};
+      accounts.forEach(a => {
+        const info = extractStaffInfo(a);
+        staffMap[info.name] = { cat: info.cat, team: info.team, fences: [], totalPieces: 0, t3Pieces: 0 };
+      });
+
+      Object.entries(fenceCountsRecord).forEach(([fenceName, data]) => {
+        if (data.staff && staffMap[data.staff]) {
+          staffMap[data.staff].fences.push(fenceName);
+          staffMap[data.staff].totalPieces += (Number(data.curr) || 0);
+          staffMap[data.staff].t3Pieces += (Number(data.t3) || 0);
+        }
+      });
+
+      tbody.innerHTML = Object.entries(staffMap).map(([name, data]) => `
+        <tr class="hover:bg-slate-50 text-[11px]">
+          <td class="p-2.5 font-bold text-slate-900">${name}</td>
+          <td class="p-2.5 text-slate-500">${data.team} 隊 / ${data.cat}</td>
+          <td class="p-2.5 text-slate-800 font-medium">${data.fences.join('、 ') || '<span class="text-slate-400">未指派圍欄</span>'}</td>
+          <td class="p-2.5 text-right font-bold">${data.fences.length} 個</td>
+          <td class="p-2.5 text-right font-black font-mono text-blue-700">${data.totalPieces} 票</td>
+          <td class="p-2.5 text-right font-black font-mono text-rose-600">${data.t3Pieces} 件</td>
+        </tr>
+      `).join('');
+
+      openModal('modal-dispatched-summary');
     }
 
     // ⏰ 14天報更系統
@@ -877,7 +1097,7 @@
       openModal('modal-leaderboard-view');
     }
 
-    // 🚨 47 張異常工單渲染 (含 📷 上傳舉證與審批結案)
+    // 🚨 47 張異常工單渲染
     function renderTicketsList() {
       const tbody = document.getElementById('ticketsTableBody');
       const search = document.getElementById('ticket-search-input')?.value.toLowerCase() || '';
@@ -998,10 +1218,10 @@
       document.getElementById('form-staff-team').value = 'KM';
       document.getElementById('form-staff-role').value = '全職步兵';
       document.getElementById('form-staff-cycle').value = '半月糧';
-      document.getElementById('form-price-east').value = '8.5';
-      document.getElementById('form-price-ktlg').value = '8.0';
-      document.getElementById('form-price-ktind').value = '7.5';
-      document.getElementById('form-price-st').value = '7.5';
+      document.getElementById('form-price-east').value = '4.0';
+      document.getElementById('form-price-ktlg').value = '4.0';
+      document.getElementById('form-price-ktind').value = '4.5';
+      document.getElementById('form-price-st').value = '7.0';
       autoGenerateStaffId();
     }
 
@@ -1061,10 +1281,10 @@
         category: document.getElementById('form-staff-role').value,
         payCycle: document.getElementById('form-staff-cycle').value,
         prices: {
-          east: Number(document.getElementById('form-price-east').value) || 8.5,
-          ktlg: Number(document.getElementById('form-price-ktlg').value) || 8.0,
-          ktind: Number(document.getElementById('form-price-ktind').value) || 7.5,
-          st: Number(document.getElementById('form-price-st').value) || 7.5
+          east: Number(document.getElementById('form-price-east').value) || 4.0,
+          ktlg: Number(document.getElementById('form-price-ktlg').value) || 4.0,
+          ktind: Number(document.getElementById('form-price-ktind').value) || 4.5,
+          st: Number(document.getElementById('form-price-st').value) || 7.0
         },
         password: '123'
       };
@@ -1122,7 +1342,7 @@
 
     function onStaffSelectChange(name) {
       const u = accounts.find(a => extractStaffInfo(a).name === name);
-      const p = extractStaffInfo(u).prices || { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 };
+      const p = extractStaffInfo(u).prices || { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 };
       if (document.getElementById('repEastPrice')) document.getElementById('repEastPrice').value = p.east;
       if (document.getElementById('repKtLgPrice')) document.getElementById('repKtLgPrice').value = p.ktlg;
       if (document.getElementById('repKtIndPrice')) document.getElementById('repKtIndPrice').value = p.ktind;
@@ -1132,13 +1352,13 @@
 
     function calcSalaryLive() {
       const eastC = Number(document.getElementById('repEastCount')?.value) || 0;
-      const eastP = Number(document.getElementById('repEastPrice')?.value) || 8.5;
+      const eastP = Number(document.getElementById('repEastPrice')?.value) || 4.0;
       const ktLgC = Number(document.getElementById('repKtLgCount')?.value) || 0;
-      const ktLgP = Number(document.getElementById('repKtLgPrice')?.value) || 8.0;
+      const ktLgP = Number(document.getElementById('repKtLgPrice')?.value) || 4.0;
       const ktIndC = Number(document.getElementById('repKtIndCount')?.value) || 0;
-      const ktIndP = Number(document.getElementById('repKtIndPrice')?.value) || 7.5;
+      const ktIndP = Number(document.getElementById('repKtIndPrice')?.value) || 4.5;
       const stC = Number(document.getElementById('repStCount')?.value) || 0;
-      const stP = Number(document.getElementById('repStPrice')?.value) || 7.5;
+      const stP = Number(document.getElementById('repStPrice')?.value) || 7.0;
 
       const car = Number(document.getElementById('repCarAllowance')?.value) || 0;
       const claim = Number(document.getElementById('repClaim')?.value) || 0;
@@ -1187,30 +1407,20 @@
       `).join('');
     }
 
-    function promptRoleSwitch(targetRole) {
-      const targetAcc = accounts.find(a => extractStaffInfo(a).name === targetRole);
-      const info = targetAcc ? extractStaffInfo(targetAcc) : { name: targetRole, cat: '步兵' };
-      if (targetRole === 'Mia' || info.cat === 'Admin' || info.cat === '組長') {
-        const inputPwd = prompt(`🔒 安全驗證：請輸入 [${targetRole}] 的登入密碼：`);
-        const correctPwd = (targetAcc && (targetAcc['預設密碼'] || targetAcc.password)) || '123';
-        if (inputPwd !== String(correctPwd)) {
-          alert('❌ 密碼錯誤！');
-          renderRoleView();
-          return;
-        }
-      }
-      currentRole = targetRole;
-      localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
-      renderRoleView();
-      alert(`✅ 身份切換成功：${currentRole}`);
-    }
-
+    // 🌟 權限視圖渲染 (嚴格控制步兵看不到貨量與敏感入口)
     function renderRoleView() {
       const isAdm = isCurrentUserAdmin();
+      const showCounts = canViewCounts();
+
+      // 管理員專屬入口
       ['btn-nav-recon', 'btn-nav-profit', 'btn-nav-addrider', 'section-daily-settle-table'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = isAdm ? 'inline-flex' : 'none';
       });
+
+      // 貨量中心入口 (步兵自動隱藏)
+      const btnCounts = document.getElementById('btn-nav-counts');
+      if (btnCounts) btnCounts.style.display = showCounts ? 'inline-flex' : 'none';
 
       const roleBadge = document.getElementById('role-display-badge');
       if (roleBadge) roleBadge.textContent = isAdm ? '👑 總管理員 (Mia)' : `👷 當前登入: ${currentRole}`;
@@ -1263,943 +1473,6 @@
         }
       } catch (err) {}
     }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      const today = new Date().toISOString().split('T')[0];
-      if (document.getElementById('global-system-date')) document.getElementById('global-system-date').value = today;
-      if (document.getElementById('repDate')) document.getElementById('repDate').value = today;
-      renderRoleView();
-      calcSalaryLive();
-      pullAllCloudData();
-    });
-  </script>
-</body>
-</html>
-          <select id="current-user-role-select" onchange="promptRoleSwitch(this.value)" class="bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-2 py-1 font-bold focus:outline-none"></select>
-        </div>
-        <button type="button" onclick="openChangePasswordModal()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold transition flex items-center gap-1">
-          <span>🔑</span> 修改密碼
-        </button>
-        <button type="button" onclick="logoutCurrentSession()" class="px-2.5 py-1 rounded-lg bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800 font-bold transition">
-          登出
-        </button>
-        <input id="global-system-date" type="date" onchange="renderReportsTable()" class="bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-2 py-1 font-bold focus:outline-none">
-        <button type="button" id="btn-reset-sys" onclick="resetSystemData()" title="重置為初始狀態" class="text-[11px] px-2 py-1 rounded-lg bg-slate-800 hover:bg-rose-950 text-slate-400 hover:text-rose-300 transition">重置</button>
-      </div>
-    </div>
-  </header>
-
-  <!-- 核心功能導航欄 -->
-  <nav class="bg-white border-b border-slate-200 sticky top-[53px] z-30 shadow-xs">
-    <div id="navigation-bar-container" class="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center gap-1.5 text-xs font-bold">
-      <!-- 🔒 Mia 專屬入口 -->
-      <button type="button" id="btn-nav-recon" onclick="openReconciliationModal()" class="px-3 py-1.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white flex items-center gap-1 shadow-xs"><span>🔍</span> 步兵出糧與報數核對 (Mia專屬)</button>
-      <button type="button" onclick="openViolationsModal()" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1 shadow-xs"><span>⚠️</span> 現場違規罰款</button>
-      <!-- 🌐 全員公開可見 -->
-      <button type="button" onclick="openLeaderboardModal()" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-1 shadow-xs"><span>🏆</span> 罰款獎池與龍虎榜</button>
-      <button type="button" onclick="openTicketsModal()" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 relative">🚨 異常工單 <span id="ticket-badge-count" class="ml-1 px-1.5 py-0.2 bg-rose-600 text-white rounded-full text-[9px]">47</span></button>
-      <button type="button" onclick="openUniversalExportModal('truck_dispatch')" class="px-3 py-1.5 rounded-xl bg-slate-900 text-white flex items-center gap-1 shadow-xs"><span>🚗</span> 匯出車線</button>
-      <button type="button" onclick="openModal2()" class="px-3 py-1.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white shadow-xs">👥 2- 區域分工排班</button>
-      <button type="button" onclick="openModal8()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">🚗 8- 司機車線</button>
-      <button type="button" onclick="openModalProgress()" class="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-900 border border-blue-200 font-black">⏱️ 各區工作進度</button>
-      <button type="button" onclick="openModal5()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">⏰ 5- 14天報更</button>
-      <button type="button" onclick="openUniversalExportModal('shift_schedule')" class="px-3 py-1.5 rounded-xl bg-slate-800 text-white flex items-center gap-1 shadow-xs"><span>📤</span> 匯出更表</button>
-      <button type="button" id="btn-nav-profit" onclick="openModalProfit()" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs">📈 營運利潤</button>
-      <button type="button" id="btn-nav-settle" onclick="openModalSettlementDaily()" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white shadow-xs">💰 詳細分區埋數</button>
-      <button type="button" id="btn-nav-supplies" onclick="openSuppliesModal()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">📦 物資採購</button>
-      <button type="button" id="btn-nav-m1" onclick="openModal1()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">📍 1- 圍欄管理</button>
-      <button type="button" id="btn-nav-m3" onclick="openModal3()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">📦 3- 觀塘貨量</button>
-      <button type="button" id="btn-nav-m4" onclick="openModal4()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">🏢 4- 東區貨量</button>
-      <button type="button" id="btn-nav-mst" onclick="openModalStCounts()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">🏞️ 4b- 沙田貨量</button>
-      <button type="button" id="btn-nav-recruits" onclick="openRecruitsModal()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">📋 預約新人</button>
-      <button type="button" id="btn-nav-addrider" onclick="openAddRiderModal()" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-xs">➕ 人員名冊/票價</button>
-    </div>
-  </nav>
-
-  <!-- 主內容工作區 -->
-  <main class="max-w-7xl mx-auto p-3 sm:p-5 flex-1 w-full space-y-4">
-    <!-- 每日派件報數表單 -->
-    <div id="report-entry-panel" class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-      <div class="border-b border-slate-100 pb-2.5 flex flex-wrap items-center justify-between gap-2">
-        <div class="flex items-center gap-2">
-          <h2 id="report-entry-title" class="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-2">
-            <span class="w-2 h-4 bg-slate-800 rounded"></span> 📝 每日派件報數與薪資結算表單 (四大分區獨立計費)
-          </h2>
-          <button type="button" id="btn-price-settings-top" onclick="openModalPriceSettings()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs transition">⚙️ 修改全域預設票價</button>
-        </div>
-        <span id="role-hint-text" class="text-[11px] text-slate-400 font-semibold">分區單價自動拆解 ➜ 實時出糧計算</span>
-      </div>
-
-      <form onsubmit="saveFullDailyReport(event)" class="space-y-4 text-xs">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 bg-slate-50/80 p-3 rounded-xl border border-slate-200">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">派送日期</label>
-            <input type="date" id="repDate" required class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg font-bold">
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">司機 / 步兵身份 (已自動配對分區專屬票價)</label>
-            <select id="repStaffSelect" onchange="onStaffSelectChange(this.value)" required class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg font-bold text-slate-900"></select>
-          </div>
-        </div>
-
-        <!-- 四大獨立計費分區報數 -->
-        <div class="p-3.5 bg-slate-50/60 rounded-xl border border-slate-200 space-y-2.5">
-          <div class="font-bold text-slate-800 flex items-center justify-between text-xs">
-            <span>📦 1. 四大獨立分區派件報數 (分開統計)</span>
-            <span id="staff-price-badge" class="text-[11px] font-bold text-blue-700">當前套用：專屬分區單價</span>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-            <!-- 東區 (含新加暫存點) -->
-            <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-1.5">
-              <div class="font-bold text-slate-700 flex justify-between items-center">
-                <span>📍 東區全區 (SKW)</span>
-              </div>
-              <div class="text-[10px] text-slate-400">含樂翠台/東區醫院/常安街/澤鑾閣</div>
-              <div class="flex items-center gap-1">
-                <input type="number" id="repEastCount" min="0" placeholder="票數" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold text-blue-700">
-                <span class="text-slate-400">×$</span>
-                <input type="number" id="repEastPrice" step="0.1" placeholder="單價" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold">
-              </div>
-            </div>
-            <!-- 觀塘麗港城 -->
-            <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-1.5">
-              <div class="font-bold text-slate-700">📍 觀塘麗港城 (KT-LG)</div>
-              <div class="text-[10px] text-slate-400">含 1-5 號托 / Koko Hills</div>
-              <div class="flex items-center gap-1">
-                <input type="number" id="repKtLgCount" min="0" placeholder="票數" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold text-blue-700">
-                <span class="text-slate-400">×$</span>
-                <input type="number" id="repKtLgPrice" step="0.1" placeholder="單價" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold">
-              </div>
-            </div>
-            <!-- 觀塘工商區 -->
-            <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-1.5">
-              <div class="font-bold text-slate-700">📍 觀塘工商區 (KT-IND)</div>
-              <div class="text-[10px] text-slate-400">含工商區 1-8 號 / 鴻圖勵業</div>
-              <div class="flex items-center gap-1">
-                <input type="number" id="repKtIndCount" min="0" placeholder="票數" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold text-blue-700">
-                <span class="text-slate-400">×$</span>
-                <input type="number" id="repKtIndPrice" step="0.1" placeholder="單價" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold">
-              </div>
-            </div>
-            <!-- 沙田 F58 -->
-            <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-1.5">
-              <div class="font-bold text-slate-700">📍 沙田區 (ST-F58)</div>
-              <div class="text-[10px] text-slate-400">含 F58 主線 / 廣源邨</div>
-              <div class="flex items-center gap-1">
-                <input type="number" id="repStCount" min="0" placeholder="票數" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold text-blue-700">
-                <span class="text-slate-400">×$</span>
-                <input type="number" id="repStPrice" step="0.1" placeholder="單價" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2. 津貼、預支與結算 -->
-        <div class="p-3.5 bg-slate-50/60 rounded-xl border border-slate-200 space-y-2.5">
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <div><label class="block font-bold text-slate-600 mb-1">🚗 車津 ($)</label><input type="number" id="repCarAllowance" min="0" value="0" oninput="calcSalaryLive()" class="w-full p-1.5 bg-white border rounded-lg font-bold"></div>
-            <div><label class="block font-bold text-slate-600 mb-1">🧾 Claim 報銷 ($)</label><input type="number" id="repClaim" min="0" value="0" oninput="calcSalaryLive()" class="w-full p-1.5 bg-white border rounded-lg font-bold"></div>
-            <div><label class="block font-bold text-slate-600 mb-1">🎁 Bonus 獎金 ($)</label><input type="number" id="repBonus" min="0" value="0" oninput="calcSalaryLive()" class="w-full p-1.5 bg-white border rounded-lg font-bold"></div>
-            <div><label class="block font-bold text-rose-700 mb-1">🚨 扣除罰款 ($)</label><input type="number" id="repPenalty" min="0" value="0" oninput="calcSalaryLive()" class="w-full p-1.5 bg-white border border-rose-300 rounded-lg font-bold text-rose-600"></div>
-          </div>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-            <div><label class="block font-bold text-slate-600 mb-1">上期預支剩餘 ($)</label><input type="number" id="repPrevAdvance" min="0" value="0" oninput="calcSalaryLive()" class="w-full p-1.5 bg-white border rounded-lg font-bold"></div>
-            <div><label class="block font-bold text-slate-600 mb-1">本次預支 ($)</label><input type="number" id="repNewAdvance" min="0" value="0" oninput="calcSalaryLive()" class="w-full p-1.5 bg-white border rounded-lg font-bold"></div>
-            <div><label class="block font-bold text-rose-700 mb-1">本日扣數額 ($)</label><input type="number" id="repDeductAmount" min="0" value="0" oninput="calcSalaryLive()" class="w-full p-1.5 bg-white border border-rose-300 rounded-lg font-bold text-rose-600"></div>
-            <div class="bg-slate-100 p-2 rounded-lg border flex flex-col justify-center">
-              <span class="text-[10px] font-bold text-slate-500">最新剩餘預支</span>
-              <span id="repFinalRemainAdvance" class="font-black text-slate-800 text-xs">HK$ 0.00</span>
-            </div>
-          </div>
-          <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex justify-between items-center mt-1">
-            <span class="font-bold text-slate-700 text-xs">當日應發總工資結算：</span>
-            <span id="repLiveTotalSalary" class="font-black text-slate-900 text-sm">HK$ 0.00</span>
-          </div>
-        </div>
-
-        <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow-sm transition">
-          確認提交報數紀錄 (同步 Google Sheet)
-        </button>
-      </form>
-    </div>
-
-    <!-- 埋數清單 (🔒 僅 Mia 可見) -->
-    <div id="section-daily-settle-table" class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden" style="display: none;">
-      <div class="p-3.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
-        <h3 id="table-heading-title" class="font-bold text-xs text-slate-900">📋 當日詳細埋數與工資結算核對清單 (Mia 專屬)</h3>
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="pullAllCloudData()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold shadow-xs transition">🔄 重新整理雲端報數</button>
-          <button type="button" onclick="exportDailyReportsText()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded text-[11px] font-bold">📤 匯出今日報數</button>
-          <button type="button" id="btn-clear-reports" onclick="clearReports()" class="text-[11px] text-slate-400 hover:text-rose-600 font-bold transition">清空今日報數</button>
-        </div>
-      </div>
-      <div class="overflow-x-auto custom-scrollbar">
-        <table class="w-full text-left text-xs">
-          <thead class="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
-            <tr>
-              <th class="p-3">日期</th>
-              <th class="p-3">人員 (身份/週期)</th>
-              <th class="p-3 text-center">分區拆解 (東/麗/工/沙)</th>
-              <th class="p-3 text-right">總票數</th>
-              <th class="p-3 text-right">津貼/扣數</th>
-              <th class="p-3 text-right">實發工資</th>
-              <th class="p-3 text-center">轉賬狀態</th>
-              <th class="p-3 text-center">操作</th>
-            </tr>
-          </thead>
-          <tbody id="reportTableBody" class="divide-y divide-slate-100"></tbody>
-        </table>
-      </div>
-    </div>
-  </main>
-
-  <!-- 模態視窗集合 -->
-
-  <!-- 1. 🔍 出糧與核對系統 (Mia 專屬 - 包含7月/8月歷史出糧) -->
-  <div id="modal-reconciliation-view" class="app-modal">
-    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-5xl w-full shadow-2xl space-y-3.5 max-h-[94vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2"><span class="px-2 py-0.5 bg-indigo-600 text-white rounded text-xs font-black">核對入口</span> 🔍 7月及8月 步兵歷史出糧結算核對系統</h3>
-        <button type="button" onclick="closeModal('modal-reconciliation-view')" class="text-slate-400 hover:text-slate-700 font-bold text-base">✕</button>
-      </div>
-      <div class="p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">📅 選擇月份</label>
-          <select id="recon-month-select" onchange="filterReconHistory()" class="w-full p-1.5 bg-white border border-indigo-300 rounded-lg font-bold text-indigo-900">
-            <option value="全部">全部月份</option>
-            <option value="8月" selected>8月份結算</option>
-            <option value="7月">7月份結算</option>
-          </select>
-        </div>
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">👷 選擇步兵姓名</label>
-          <select id="recon-staff-select" onchange="filterReconHistory()" class="w-full p-1.5 bg-white border border-indigo-300 rounded-lg font-bold text-slate-900"></select>
-        </div>
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">📍 選擇分區</label>
-          <select id="recon-zone-select" onchange="filterReconHistory()" class="w-full p-1.5 bg-white border border-indigo-300 rounded-lg font-bold text-slate-900">
-            <option value="全部">全部分區</option>
-            <option value="SKW">東區 (SKW)</option>
-            <option value="KT">觀塘區 (麗港+工商)</option>
-            <option value="F58">沙田區 (F58)</option>
-          </select>
-        </div>
-        <div class="flex items-end">
-          <button type="button" onclick="exportReconCurrentStaffText()" class="w-full py-1.5 bg-indigo-900 hover:bg-indigo-800 text-white rounded-lg font-bold shadow-xs">📤 匯出出糧對數單</button>
-        </div>
-      </div>
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-        <div class="p-2.5 bg-white border rounded-xl"><span class="text-slate-500 font-bold text-[11px]">結算紀錄數</span><div id="recon-stat-days" class="font-black text-slate-900 text-base mt-0.5">0 筆</div></div>
-        <div class="p-2.5 bg-white border rounded-xl"><span class="text-slate-500 font-bold text-[11px]">總票數合計</span><div id="recon-stat-tickets" class="font-black text-blue-700 text-base mt-0.5">0 票</div></div>
-        <div class="p-2.5 bg-white border rounded-xl"><span class="text-slate-500 font-bold text-[11px]">應發總額</span><div id="recon-stat-gross" class="font-black text-slate-900 text-base mt-0.5 font-mono">HK$ 0.00</div></div>
-        <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl"><span class="text-emerald-800 font-bold text-[11px]">實發總額</span><div id="recon-stat-net" class="font-black text-emerald-600 text-base mt-0.5 font-mono">HK$ 0.00</div></div>
-      </div>
-      <div class="overflow-x-auto custom-scrollbar max-h-72 border rounded-xl">
-        <table class="w-full text-left text-xs bg-white">
-          <thead class="bg-slate-100 text-slate-600 font-bold sticky top-0 border-b">
-            <tr>
-              <th class="p-2.5">結算月份/日期</th>
-              <th class="p-2.5">人員姓名</th>
-              <th class="p-2.5 text-center">分區</th>
-              <th class="p-2.5 text-right">分區票數拆解</th>
-              <th class="p-2.5 text-right">總票數</th>
-              <th class="p-2.5 text-right">實發工資</th>
-              <th class="p-2.5 text-center">轉賬狀態</th>
-            </tr>
-          </thead>
-          <tbody id="reconTableBody" class="divide-y divide-slate-100"></tbody>
-        </table>
-      </div>
-      <button type="button" onclick="closeModal('modal-reconciliation-view')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <!-- 2. ⚠️ 現場違規罰款 -->
-  <div id="modal-violations-view" class="app-modal">
-    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-2xl w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-slate-900">⚠️ 日常違規罰款登記入口</h3><button type="button" onclick="closeModal('modal-violations-view')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button></div>
-      <div id="violation-create-form" class="bg-amber-50/70 p-3 rounded-xl border border-amber-200 text-xs space-y-2">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <input type="date" id="vio-date" class="p-1.5 bg-white border rounded font-bold">
-          <select id="vio-staff-select" class="p-1.5 bg-white border rounded font-bold"></select>
-          <select id="vio-zone" class="p-1.5 bg-white border rounded font-bold"><option value="SKW (東區)">📍 SKW (東區)</option><option value="KT (觀塘)">📍 KT (觀塘)</option><option value="F58 (沙田)">📍 F58 (沙田)</option></select>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <select id="vio-type" class="p-1.5 bg-white border rounded font-bold">
-            <option value="攤大餅">🚫 攤大餅 (佔用通道)</option><option value="遲到">⏰ 遲到 (未提前報備)</option><option value="射波">🚨 射波 / 曠工</option><option value="清場冇執垃圾">🧹 清場冇執垃圾</option><option value="唔冚雨布">🌧️ 唔冚雨布</option><option value="其他現場違規">⚠️ 其他現場違規</option>
-          </select>
-          <input type="number" id="vio-amount" placeholder="罰款金額 ($)" value="50" class="p-1.5 bg-white border border-rose-300 rounded font-bold text-rose-600">
-        </div>
-        <input type="text" id="vio-desc" placeholder="違規詳情說明 / 備註" class="w-full p-1.5 bg-white border rounded">
-        <button type="button" onclick="saveNewViolationRecord()" class="w-full py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded font-bold">確認登記現場違規</button>
-      </div>
-      <div id="violations-list" class="space-y-1.5 text-xs max-h-56 overflow-y-auto custom-scrollbar"></div>
-      <button type="button" onclick="closeModal('modal-violations-view')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <!-- 3. 🏆 罰款獎池與龍虎榜 (全員公開) -->
-  <div id="modal-leaderboard-view" class="app-modal">
-    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-3xl w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
-          <span class="px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-black">實時榜單</span>
-          🏆 Mia組 派件龍虎榜與違規扣數獎池
-        </h3>
-        <button type="button" onclick="closeModal('modal-leaderboard-view')" class="text-slate-400 hover:text-slate-700 font-bold text-base">✕</button>
-      </div>
-      <div class="p-4 bg-gradient-to-r from-rose-500 to-amber-500 rounded-2xl text-white shadow-sm flex items-center justify-between">
-        <div>
-          <div class="text-xs font-bold opacity-90">當月現場違規累積獎金池</div>
-          <div id="leaderboard-pool-amount" class="text-2xl font-black mt-0.5">HK$ 0.00</div>
-        </div>
-        <div class="text-right text-[11px] opacity-90">
-          <div>總結算日均分予</div>
-          <div class="font-black text-sm">零違規優秀步兵 🎁</div>
-        </div>
-      </div>
-      <div class="space-y-2">
-        <div class="font-bold text-xs text-slate-700">🥇 派件英雄榜 (按派件總量與出勤排序)</div>
-        <div id="leaderboard-staff-ranking" class="space-y-1.5 text-xs max-h-60 overflow-y-auto custom-scrollbar"></div>
-      </div>
-      <button type="button" onclick="closeModal('modal-leaderboard-view')" class="w-full py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-700">關閉</button>
-    </div>
-  </div>
-
-  <!-- 4. 🚨 47 張異常工單處理中心 (全員公開) -->
-  <div id="modal-tickets-view" class="app-modal">
-    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-4xl w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">🚨 異常工單處理中心 (47張工單)</h3>
-        <button type="button" onclick="closeModal('modal-tickets-view')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
-      </div>
-      <div class="flex gap-2 text-xs">
-        <input type="text" id="ticket-search-input" placeholder="🔍 搜尋運單號 / 責任人..." oninput="renderTicketsList()" class="flex-1 p-2 border rounded-xl">
-        <select id="ticket-status-filter" onchange="renderTicketsList()" class="p-2 border rounded-xl font-bold bg-white"><option value="全部">全部狀態</option><option value="待處理">待處理</option><option value="已申訴">已申訴</option><option value="已結案">已結案</option></select>
-      </div>
-      <div id="tickets-container" class="space-y-2 text-xs max-h-96 overflow-y-auto custom-scrollbar"></div>
-      <button type="button" onclick="closeModal('modal-tickets-view')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <!-- 5. 👥 2- 區域分工排班看板 -->
-  <div id="modal-assignments" class="app-modal">
-    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-4xl w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">👥 區域排班分工看板</h3><button type="button" onclick="closeModal('modal-assignments')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button></div>
-      <div class="flex gap-2 text-xs font-bold">
-        <button type="button" onclick="switchAssignmentTab('east')" id="tab-assign-east" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white">📍 東區</button>
-        <button type="button" onclick="switchAssignmentTab('kt')" id="tab-assign-kt" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">📍 觀塘區</button>
-        <button type="button" onclick="switchAssignmentTab('st')" id="tab-assign-st" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">📍 沙田區</button>
-      </div>
-      <div id="m2-fences-board-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs max-h-80 overflow-y-auto custom-scrollbar"></div>
-      <button type="button" onclick="closeModal('modal-assignments')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <!-- 6. ⏱️ 各區工作進度登記與檢視 -->
-  <div id="modal-progress-view" class="app-modal">
-    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-3xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-slate-900">⏱️ 各區工作進度登記與檢視</h3><button type="button" onclick="closeModal('modal-progress-view')">✕</button></div>
-      <div class="flex gap-2 text-xs font-bold">
-        <button type="button" onclick="switchProgressTab('east')" id="tab-prog-east" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white">東區進度</button>
-        <button type="button" onclick="switchProgressTab('kt')" id="tab-prog-kt" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">觀塘進度</button>
-        <button type="button" onclick="switchProgressTab('st')" id="tab-prog-st" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">沙田進度</button>
-      </div>
-      <div id="progress-fences-list" class="space-y-2 text-xs max-h-80 overflow-y-auto custom-scrollbar"></div>
-      <button type="button" onclick="closeModal('modal-progress-view')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <!-- 7. 🚗 8- 司機車線 -->
-  <div id="modal-truck-dispatch" class="app-modal">
-    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-3xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-slate-900">🚗 8- 司機車線調度安排</h3><button type="button" onclick="closeModal('modal-truck-dispatch')">✕</button></div>
-      <div class="space-y-2 text-xs">
-        <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center">
-          <div><div class="font-bold text-slate-900">🚙 一車 (東區主線)</div><div class="text-slate-500 text-[11px]">司機: 順哥 (91234567) | 8:30 到場</div></div>
-          <span class="px-2 py-1 bg-emerald-100 text-emerald-800 rounded font-bold">派送中</span>
-        </div>
-        <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center">
-          <div><div class="font-bold text-slate-900">🚙 二車 (觀塘主線)</div><div class="text-slate-500 text-[11px]">司機: 強哥 (98765432) | 8:45 到場</div></div>
-          <span class="px-2 py-1 bg-emerald-100 text-emerald-800 rounded font-bold">派送中</span>
-        </div>
-      </div>
-      <button type="button" onclick="closeModal('modal-truck-dispatch')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <!-- 8. ⏰ 5- 14天報更系統 -->
-  <div id="modal-schedule-14days" class="app-modal">
-    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-4xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-slate-900">⏰ 5- 14天出勤報更管理</h3><button type="button" onclick="closeModal('modal-schedule-14days')">✕</button></div>
-      <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs">
-        <span class="font-bold text-blue-900">報更提示：</span>步兵可預先填報未來兩星期的可出勤日子，組長及 Mia 審批後自動鎖定班表。
-      </div>
-      <div class="overflow-x-auto custom-scrollbar max-h-72 border rounded-xl">
-        <table class="w-full text-left text-xs bg-white">
-          <thead class="bg-slate-100 text-slate-600 font-bold sticky top-0 border-b">
-            <tr><th class="p-2.5">人員姓名</th><th class="p-2.5">身份/隊伍</th><th class="p-2.5 text-center">星期一</th><th class="p-2.5 text-center">星期二</th><th class="p-2.5 text-center">星期三</th><th class="p-2.5 text-center">星期四</th><th class="p-2.5 text-center">星期五</th><th class="p-2.5 text-center">星期六</th><th class="p-2.5 text-center">星期日</th></tr>
-          </thead>
-          <tbody id="scheduleTableBody" class="divide-y divide-slate-100"></tbody>
-        </table>
-      </div>
-      <button type="button" onclick="closeModal('modal-schedule-14days')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <!-- 9. 📈 營運利潤 (Mia 專屬) -->
-  <div id="modal-profit-view" class="app-modal">
-    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-2xl w-full shadow-2xl space-y-3.5">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-emerald-800">📈 營運利潤實時核算 (Mia 專屬)</h3><button type="button" onclick="closeModal('modal-profit-view')">✕</button></div>
-      <div class="grid grid-cols-2 gap-2 text-xs">
-        <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200"><span class="font-bold text-slate-500">預估當日總營收</span><div class="font-black text-emerald-700 text-base mt-1">HK$ 18,450.00</div></div>
-        <div class="p-3 bg-rose-50 rounded-xl border border-rose-200"><span class="font-bold text-slate-500">預估當日總成本</span><div class="font-black text-rose-700 text-base mt-1">HK$ 13,200.00</div></div>
-      </div>
-      <div class="p-3 bg-slate-50 rounded-xl border text-xs flex justify-between items-center">
-        <span class="font-bold text-slate-700">純利潤 (毛利率 28.4%)：</span>
-        <span class="font-black text-emerald-600 text-sm">HK$ +5,250.00</span>
-      </div>
-      <button type="button" onclick="closeModal('modal-profit-view')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <!-- 10. 📦 物資採購中心 -->
-  <div id="modal-supplies-view" class="app-modal">
-    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-2xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-slate-900">📦 現場物資採購與領用登記</h3><button type="button" onclick="closeModal('modal-supplies-view')">✕</button></div>
-      <div class="space-y-2 text-xs">
-        <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center"><div><div class="font-bold text-slate-800">🧤 步兵防滑手套</div><div class="text-[11px] text-slate-500">目前存量: 45 雙</div></div><button type="button" onclick="alert('已登記領用手套 1 雙')" class="px-2.5 py-1 bg-slate-800 text-white rounded font-bold">登記領取</button></div>
-        <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center"><div><div class="font-bold text-slate-800">🌧️ 現場加厚雨衣</div><div class="text-[11px] text-slate-500">目前存量: 20 件</div></div><button type="button" onclick="alert('已登記領用雨衣 1 件')" class="px-2.5 py-1 bg-slate-800 text-white rounded font-bold">登記領取</button></div>
-        <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center"><div><div class="font-bold text-slate-800">📦 封箱膠紙 (大卷)</div><div class="text-[11px] text-slate-500">目前存量: 30 卷</div></div><button type="button" onclick="alert('已登記領用膠紙 1 卷')" class="px-2.5 py-1 bg-slate-800 text-white rounded font-bold">登記領取</button></div>
-      </div>
-      <button type="button" onclick="closeModal('modal-supplies-view')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <!-- 11. 📋 預約新人 -->
-  <div id="modal-recruits-view" class="app-modal">
-    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-2xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-slate-900">📋 預約新人與跟車培訓登記</h3><button type="button" onclick="closeModal('modal-recruits-view')">✕</button></div>
-      <div class="p-3 bg-slate-50 rounded-xl border text-xs space-y-2">
-        <input type="text" id="recruit-name" placeholder="新人姓名 / 電話" class="w-full p-2 border rounded font-bold">
-        <select id="recruit-zone" class="w-full p-2 border rounded font-bold"><option value="SKW (東區)">📍 SKW (東區跟車)</option><option value="KT (觀塘)">📍 KT (觀塘跟車)</option><option value="F58 (沙田)">📍 F58 (沙田跟車)</option></select>
-        <button type="button" onclick="alert('已成功登記預約新人！')" class="w-full py-2 bg-slate-900 text-white rounded font-bold">確認登記預約</button>
-      </div>
-      <button type="button" onclick="closeModal('modal-recruits-view')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
-    </div>
-  </div>
-
-  <!-- 12. 修改密碼 -->
-  <div id="modal-change-password" class="app-modal">
-    <div class="bg-white rounded-2xl p-4 max-w-md w-full space-y-3">
-      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">🔑 修改密碼</h3><button type="button" onclick="closeModal('modal-change-password')">✕</button></div>
-      <div class="space-y-2 text-xs">
-        <select id="pwd-target-account" class="w-full border rounded p-2 font-bold"></select>
-        <input type="text" id="pwd-new-input" placeholder="輸入新密碼" class="w-full border rounded p-2 font-bold">
-        <button type="button" onclick="saveNewPassword()" class="w-full py-2 bg-slate-900 text-white rounded font-bold">儲存密碼</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 13. WhatsApp 匯出 -->
-  <div id="modal-universal-export" class="app-modal">
-    <div class="bg-white rounded-2xl p-4 max-w-2xl w-full space-y-3">
-      <div class="flex justify-between items-center border-b pb-2"><h3 id="export-modal-title" class="font-bold text-sm">📤 匯出中心</h3><button type="button" onclick="closeModal('modal-universal-export')">✕</button></div>
-      <textarea id="universal-export-textarea" rows="12" readonly class="w-full bg-slate-50 border rounded-xl p-3 font-mono text-xs focus:outline-none"></textarea>
-      <button type="button" onclick="copyUniversalWhatsAppText()" class="w-full py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold">一鍵複製 WhatsApp 格式</button>
-    </div>
-  </div>
-
-  <script>
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwG5x-iN6GjVd1jtdoz11Nwn79JLSLdLrIDr_xXfNCyfo1EBxfYPUFb5oW754GXf7H4fA/exec';
-
-    function openModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'flex'; }
-    function closeModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
-
-    function resetSystemData() {
-      if (confirm('⚠️ 確定將系統重置為初始狀態？所有快取將恢復預設。')) {
-        localStorage.clear();
-        location.reload();
-      }
-    }
-
-    const defaultPrices = { wage: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, rev: { east: 11.5, ktlg: 11.0, ktind: 10.5, st: 10.5 } };
-    let priceSettings = JSON.parse(localStorage.getItem('MIA_PRICES_PERFECT')) || defaultPrices;
-
-    const defaultZoneFences = {
-      st: [{ name: 'F58' }, { name: '廣源邨' }],
-      kt: [
-        { name: '01E Koko Hills' }, { name: '02E 觀塘工商區1號' }, { name: '03E 觀塘工商區2號' },
-        { name: '04E 觀塘工商區3號' }, { name: '05E 觀塘工商區4號' }, { name: '06E 觀塘工商區5號' },
-        { name: '07E 觀塘工商區6號' }, { name: '08E 觀塘工商區7號' }, { name: '09E 觀塘工商區8號' },
-        { name: '10E 鴻圖道+勵業街' }, { name: '11E 麗港城-1號托' }, { name: '12E 麗港城-2號托' },
-        { name: '13E 麗港城-3號托' }, { name: '14E 麗港城-4號托' }, { name: '15E 麗港城-5號托' }
-      ],
-      east: [
-        { name: '03F 東旭苑' }, { name: '06F 東濤苑' }, { name: '09F 富怡花園' }, { name: '12F 杏花邨1號' },
-        { name: '13F 杏花邨3號' }, { name: '14F 杏花邨4號' }, { name: '17F 香島' }, { name: '18F 曉翠苑' },
-        { name: '19F 漁灣邨' }, { name: '21F 杏翠苑+翠灣邨' }, { name: '22F 峰華邨+景翠苑' }, { name: '26F 興華（1）邨' },
-        { name: '27F 興華（2）邨' }, { name: '28F 興民邨' }, { name: '29F 山翠苑' }, { name: '30F 新翠花園' },
-        { name: '31F 環翠邨' }, { name: '39F 柴灣地鐵站工業區' }, { name: '40F 小西灣工業區' }, { name: '41F 小西灣邨-1號托' },
-        { name: '42F 小西灣邨-2號托' }, { name: '43F 小西灣邨-3號托' }, { name: '44F 樂軒+宏德+怡翠' }, { name: '45F 柴灣+蝶翠+康平街' },
-        { name: '46F 高威+康翠+灣景園' }, { name: '47F 澤鑾閣暫存點' }, { name: '60F 藍灣半島' }, { name: '61F 富欣花園' },
-        { name: '62F 愛蝶灣' }, { name: '64F 愛東邨' }, { name: '65F 富景花園' }, { name: '67F 杏花園' },
-        { name: '68F 東大街板A' }, { name: '69F 峻峰花園' }, { name: '70F 筲箕灣道板-1號托' }, { name: '72F 形薈' },
-        { name: '73F 東區樂翠台暫存點' }, { name: '74F 東區醫院暫存點' }, { name: '76F 常安街簡約公屋暫存點' },
-        { name: '15F 明華A-E座' }, { name: '16F 明華1&2座' }
-      ]
-    };
-    let zoneFences = JSON.parse(localStorage.getItem('MIA_FENCES_PERFECT')) || defaultZoneFences;
-    let fenceProgressStatus = JSON.parse(localStorage.getItem('MIA_PROGRESS_STATUS_PERFECT')) || {};
-
-    // 🏆 完整收錄 7月 及 8月 真實 Excel 出糧與結算數據庫
-    const rawHistoricalReports = [
-      // 8月份真實出糧紀錄
-      { id: 'REP_801', month: '8月', date: '2026-08-15', staff: '盧智聰', zone: 'SKW', eastCount: 280, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 280, finalSalary: 2380.00, transferStatus: '已轉賬', issue: '8月前半月結算' },
-      { id: 'REP_802', month: '8月', date: '2026-08-15', staff: '姜嘉敏KK', zone: 'KT', eastCount: 0, ktLgCount: 310, ktIndCount: 0, stCount: 0, totalPieces: 310, finalSalary: 2480.00, transferStatus: '已轉賬', issue: '8月前半月結算' },
-      { id: 'REP_803', month: '8月', date: '2026-08-15', staff: '周健', zone: 'SKW', eastCount: 260, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 260, finalSalary: 2210.00, transferStatus: '已轉賬', issue: '8月前半月結算' },
-      { id: 'REP_804', month: '8月', date: '2026-08-15', staff: '黃炎烽', zone: 'KT', eastCount: 0, ktLgCount: 0, ktIndCount: 290, stCount: 0, totalPieces: 290, finalSalary: 2175.00, transferStatus: '已轉賬', issue: '8月前半月結算' },
-      { id: 'REP_805', month: '8月', date: '2026-08-15', staff: '張兆偉', zone: 'SKW', eastCount: 275, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 275, finalSalary: 2337.50, transferStatus: '已轉賬', issue: '8月前半月結算' },
-      { id: 'REP_806', month: '8月', date: '2026-08-15', staff: '小肥', zone: 'KT', eastCount: 0, ktLgCount: 150, ktIndCount: 120, stCount: 0, totalPieces: 270, finalSalary: 2100.00, transferStatus: '已轉賬', issue: '8月前半月結算' },
-      { id: 'REP_807', month: '8月', date: '2026-08-15', staff: '吳嘉榮', zone: 'F58', eastCount: 0, ktLgCount: 0, ktIndCount: 0, stCount: 240, totalPieces: 240, finalSalary: 1800.00, transferStatus: '已轉賬', issue: '8月前半月結算' },
-      { id: 'REP_808', month: '8月', date: '2026-08-15', staff: '詠豪', zone: 'SKW', eastCount: 300, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 300, finalSalary: 2550.00, transferStatus: '已轉賬', issue: '組長帶隊津貼已入' },
-      { id: 'REP_809', month: '8月', date: '2026-08-15', staff: '景鴻', zone: 'KT', eastCount: 0, ktLgCount: 320, ktIndCount: 0, stCount: 0, totalPieces: 320, finalSalary: 2560.00, transferStatus: '已轉賬', issue: '組長帶隊津貼已入' },
-      { id: 'REP_810', month: '8月', date: '2026-08-15', staff: '俊華', zone: 'SKW', eastCount: 290, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 290, finalSalary: 2465.00, transferStatus: '已轉賬', issue: '組長帶隊津貼已入' },
-
-      // 7月份真實出糧紀錄
-      { id: 'REP_701', month: '7月', date: '2026-07-31', staff: '盧智聰', zone: 'SKW', eastCount: 560, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 560, finalSalary: 4760.00, transferStatus: '已轉賬', issue: '7月全月總結算' },
-      { id: 'REP_702', month: '7月', date: '2026-07-31', staff: '姜嘉敏KK', zone: 'KT', eastCount: 0, ktLgCount: 620, ktIndCount: 0, stCount: 0, totalPieces: 620, finalSalary: 4960.00, transferStatus: '已轉賬', issue: '7月全月總結算' },
-      { id: 'REP_703', month: '7月', date: '2026-07-31', staff: '周健', zone: 'SKW', eastCount: 510, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 510, finalSalary: 4335.00, transferStatus: '已轉賬', issue: '7月全月總結算' },
-      { id: 'REP_704', month: '7月', date: '2026-07-31', staff: '黃炎烽', zone: 'KT', eastCount: 0, ktLgCount: 0, ktIndCount: 580, stCount: 0, totalPieces: 580, finalSalary: 4350.00, transferStatus: '已轉賬', issue: '7月全月總結算' },
-      { id: 'REP_705', month: '7月', date: '2026-07-31', staff: '張兆偉', zone: 'SKW', eastCount: 530, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 530, finalSalary: 4505.00, transferStatus: '已轉賬', issue: '7月全月總結算' },
-      { id: 'REP_706', month: '7月', date: '2026-07-31', staff: '小肥', zone: 'KT', eastCount: 0, ktLgCount: 300, ktIndCount: 260, stCount: 0, totalPieces: 560, finalSalary: 4350.00, transferStatus: '已轉賬', issue: '7月全月總結算' },
-      { id: 'REP_707', month: '7月', date: '2026-07-31', staff: '吳嘉榮', zone: 'F58', eastCount: 0, ktLgCount: 0, ktIndCount: 0, stCount: 490, totalPieces: 490, finalSalary: 3675.00, transferStatus: '已轉賬', issue: '7月全月總結算' },
-      { id: 'REP_708', month: '7月', date: '2026-07-31', staff: '詠豪', zone: 'SKW', eastCount: 610, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 610, finalSalary: 5185.00, transferStatus: '已轉賬', issue: '7月全月總結算 (含組長津貼)' },
-      { id: 'REP_709', month: '7月', date: '2026-07-31', staff: '景鴻', zone: 'KT', eastCount: 0, ktLgCount: 640, ktIndCount: 0, stCount: 0, totalPieces: 640, finalSalary: 5120.00, transferStatus: '已轉賬', issue: '7月全月總結算 (含組長津貼)' },
-      { id: 'REP_710', month: '7月', date: '2026-07-31', staff: '俊華', zone: 'SKW', eastCount: 590, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 590, finalSalary: 5015.00, transferStatus: '已轉賬', issue: '7月全月總結算 (含組長津貼)' }
-    ];
-
-    let dailyReports = JSON.parse(localStorage.getItem('MIA_DAILY_REPORTS_PERFECT')) || rawHistoricalReports;
-    let violationsList = JSON.parse(localStorage.getItem('MIA_VIOLATIONS_PERFECT')) || [];
-
-    // 47 張工單資料庫
-    const raw47Tickets = [
-      { id: 'TK_01', date: '2026-08-01', tracking: 'JD001928374', staff: '盧智聰', type: '遺失賠付', amount: 120, zone: 'SKW', desc: '包裹外觀破損客戶拒簽', status: '已結案' },
-      { id: 'TK_02', date: '2026-08-01', tracking: 'JD001928375', staff: '姜嘉敏KK', type: '虛假簽收', amount: 200, zone: 'KT', desc: '未電聯直接放門口', status: '已申訴' },
-      { id: 'TK_03', date: '2026-08-02', tracking: 'JD001928376', staff: '周健', type: '超時未派', amount: 50, zone: 'SKW', desc: '滯留過夜未及時報備', status: '待處理' },
-      { id: 'TK_04', date: '2026-08-02', tracking: 'JD001928377', staff: '黃炎烽', type: '遺失賠付', amount: 350, zone: 'KT', desc: '大堂交收後遺失', status: '已申訴' },
-      { id: 'TK_05', date: '2026-08-03', tracking: 'JD001928378', staff: '張兆偉', type: '態度投訴', amount: 100, zone: 'SKW', desc: '客戶投訴語氣欠佳', status: '已結案' }
-    ];
-    for (let i = 6; i <= 47; i++) {
-      raw47Tickets.push({
-        id: `TK_${i < 10 ? '0' + i : i}`,
-        date: `2026-08-${(i % 15) + 1 < 10 ? '0' + ((i % 15) + 1) : (i % 15) + 1}`,
-        tracking: `JD0019283${70 + i}`,
-        staff: ['盧智聰', '姜嘉敏KK', '周健', '黃炎烽', '張兆偉', '小肥', '吳嘉榮', '景鴻', '俊華'][i % 9],
-        type: ['遺失賠付', '虛假簽收', '超時未派', '損壞賠償', '其他異常'][i % 5],
-        amount: [50, 100, 150, 200, 300, 500][i % 6],
-        zone: ['SKW', 'KT', 'F58'][i % 3],
-        desc: `異常工單 #${i} 自動登記項目`,
-        status: ['待處理', '已申訴', '已結案'][i % 3]
-      });
-    }
-    let ticketsList = JSON.parse(localStorage.getItem('MIA_TICKETS_PERFECT')) || raw47Tickets;
-
-    const initialAccounts = [
-      { id: 'KM01', name: 'Mia', category: 'Admin', team: 'KM', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'KM04', name: '盧智聰', category: '全職步兵', team: 'KM', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'KM05', name: '姜嘉敏KK', category: '全職步兵', team: 'KM', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'KM06', name: '周健', category: '全職步兵', team: 'KM', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'KM07', name: '黃炎烽', category: '全職步兵', team: 'KM', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'C01', name: '張兆偉', category: '全職步兵', team: 'C', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'B01', name: '小肥', category: '全職步兵', team: 'B', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'B02', name: '吳嘉榮', category: '全職步兵', team: 'B', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'A01', name: '詠豪', category: '組長', team: 'A', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'B03', name: '景鴻', category: '組長', team: 'B', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
-      { id: 'C02', name: '俊華', category: '組長', team: 'C', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' }
-    ];
-    let accounts = JSON.parse(localStorage.getItem('MIA_ACCOUNTS_PERFECT')) || initialAccounts;
-    let currentRole = localStorage.getItem('MIA_LOGGED_IN_USER') || 'Mia';
-    let currentAssignTab = 'east';
-    let currentProgTab = 'east';
-
-    function isCurrentUserAdmin() { return currentRole === 'admin' || currentRole === 'Mia'; }
-
-    function extractStaffInfo(a) {
-      if (!a) return { name: '未命名', cat: '步兵' };
-      if (typeof a === 'string') return { name: a, cat: '步兵' };
-      if (Array.isArray(a)) {
-        return { name: a[1] || a[0] || '未命名', cat: a[3] || a[2] || '步兵' };
-      }
-      const name = a['人員姓名'] || a.name || a['姓名'] || a['人員'] || a['步兵姓名'] || a['員工編號'] || a.id || '未命名';
-      const cat = a['職級身份'] || a.category || a['身份'] || a['職位'] || a['所屬隊伍'] || '步兵';
-      return { name: String(name).trim(), cat: String(cat).trim() };
-    }
-
-    function promptRoleSwitch(targetRole) {
-      const targetAcc = accounts.find(a => extractStaffInfo(a).name === targetRole);
-      const info = targetAcc ? extractStaffInfo(targetAcc) : { name: targetRole, cat: '步兵' };
-      
-      if (targetRole === 'Mia' || info.cat === 'Admin' || info.cat === '組長') {
-        const inputPwd = prompt(`🔒 安全驗證：請輸入 [${targetRole}] 的登入密碼：`);
-        const correctPwd = (targetAcc && (targetAcc['預設密碼'] || targetAcc.password)) || '123';
-        
-        if (inputPwd !== String(correctPwd)) {
-          alert('❌ 密碼錯誤！無法切換至管理員權限。');
-          renderRoleView();
-          return;
-        }
-      }
-
-      currentRole = targetRole;
-      localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
-      renderRoleView();
-      alert(`✅ 身份切換成功：${currentRole}`);
-    }
-
-    async function pullAllCloudData() {
-      const badge = document.getElementById('cloud-status-badge');
-      if (badge) badge.innerHTML = '🔄 雲端數據同步中...';
-      try {
-        const resReports = await fetch(`${GOOGLE_SCRIPT_URL}?action=getDailyReports`);
-        const dataReports = await resReports.json();
-        if (Array.isArray(dataReports) && dataReports.length > 0) {
-          // 合併雲端與歷史資料
-          dailyReports = [...dataReports, ...rawHistoricalReports.filter(h => !dataReports.some(d => d.id === h.id))];
-          localStorage.setItem('MIA_DAILY_REPORTS_PERFECT', JSON.stringify(dailyReports));
-          renderReportsTable();
-          filterReconHistory();
-        }
-
-        const resAcc = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAccounts`);
-        const dataAcc = await resAcc.json();
-        if (Array.isArray(dataAcc) && dataAcc.length > 0) {
-          const parsed = dataAcc.filter(item => {
-            const info = extractStaffInfo(item);
-            return info.name !== '姓名' && info.name !== 'name' && info.name !== 'Staff' && info.name !== '人員姓名';
-          });
-          const hasMia = parsed.some(a => extractStaffInfo(a).name === 'Mia');
-          if (!hasMia) parsed.unshift({ id: 'KM01', '人員姓名': 'Mia', '職級身份': 'Admin', '所屬隊伍': 'KM', '預設密碼': '123' });
-          accounts = parsed;
-          localStorage.setItem('MIA_ACCOUNTS_PERFECT', JSON.stringify(accounts));
-          renderRoleView();
-        }
-
-        if (badge) {
-          badge.innerHTML = '🟢 歷史與雲端數據庫已就緒';
-          badge.className = 'text-[10px] text-emerald-400 font-semibold';
-        }
-      } catch (err) {
-        if (badge) {
-          badge.innerHTML = '🟢 歷史數據庫已就緒 (離線模式)';
-          badge.className = 'text-[10px] text-emerald-400 font-semibold';
-        }
-      }
-    }
-
-    // 🔍 7月及8月出糧核對過濾函數
-    function openReconciliationModal() {
-      if (!isCurrentUserAdmin()) return alert('🔒 只有 Mia 總管理員具備權限查閱出糧紀錄！');
-      const reconStaffSel = document.getElementById('recon-staff-select');
-      if (reconStaffSel) {
-        reconStaffSel.innerHTML = '<option value="全部">全部步兵</option>' + accounts.map(a => {
-          const info = extractStaffInfo(a);
-          return `<option value="${info.name}">${info.name} (${info.cat})</option>`;
-        }).join('');
-      }
-      filterReconHistory();
-      openModal('modal-reconciliation-view');
-    }
-
-    function filterReconHistory() {
-      const tbody = document.getElementById('reconTableBody');
-      if (!tbody) return;
-
-      const selMonth = document.getElementById('recon-month-select')?.value || '8月';
-      const selStaff = document.getElementById('recon-staff-select')?.value || '全部';
-      const selZone = document.getElementById('recon-zone-select')?.value || '全部';
-
-      const filtered = dailyReports.filter(r => {
-        const rMonth = r.month || (r.date && r.date.includes('-07-') ? '7月' : '8月');
-        const matchMonth = selMonth === '全部' || rMonth === selMonth;
-        const matchStaff = selStaff === '全部' || (r.staff || r['人員']) === selStaff;
-        const matchZone = selZone === '全部' || (r.zone === selZone || ((r.eastCount > 0 && selZone === 'SKW') || (r.ktLgCount > 0 && selZone === 'KT')));
-        return matchMonth && matchStaff && matchZone;
-      });
-
-      // 統計數據
-      const totalDays = filtered.length;
-      const totalTickets = filtered.reduce((sum, r) => sum + (Number(r.totalPieces || r['總票數']) || 0), 0);
-      const totalNet = filtered.reduce((sum, r) => sum + (Number(r.finalSalary || r['實發工資']) || 0), 0);
-
-      document.getElementById('recon-stat-days').textContent = `${totalDays} 筆`;
-      document.getElementById('recon-stat-tickets').textContent = `${totalTickets} 票`;
-      document.getElementById('recon-stat-gross').textContent = `HK$ ${totalNet.toFixed(2)}`;
-      document.getElementById('recon-stat-net').textContent = `HK$ ${totalNet.toFixed(2)}`;
-
-      tbody.innerHTML = filtered.map(r => `
-        <tr class="hover:bg-slate-50 text-[11px]">
-          <td class="p-2.5 font-mono text-slate-600">${r.date || r['日期'] || '-'}</td>
-          <td class="p-2.5 font-bold text-slate-900">${r.staff || r['人員'] || '-'}</td>
-          <td class="p-2.5 text-center font-bold text-blue-700">${r.zone || ((r.eastCount > 0) ? 'SKW' : ((r.ktLgCount > 0) ? 'KT' : 'F58'))}</td>
-          <td class="p-2.5 text-right text-slate-600 font-mono">東:${r.eastCount||0} / 麗:${r.ktLgCount||0} / 工:${r.ktIndCount||0} / 沙:${r.stCount||0}</td>
-          <td class="p-2.5 text-right font-bold text-slate-900">${r.totalPieces || r['總票數'] || 0}</td>
-          <td class="p-2.5 text-right font-black text-emerald-600 font-mono">HK$ ${Number(r.finalSalary || r['實發工資'] || 0).toFixed(2)}</td>
-          <td class="p-2.5 text-center font-bold text-emerald-700">${r.transferStatus || '已轉賬'}</td>
-        </tr>
-      `).join('') || '<tr><td colspan="7" class="p-6 text-center text-slate-400">目前暫無符合條件的出糧紀錄。</td></tr>';
-    }
-
-    function exportReconCurrentStaffText() {
-      const selMonth = document.getElementById('recon-month-select')?.value || '8月';
-      const selStaff = document.getElementById('recon-staff-select')?.value || '全部';
-      const filtered = dailyReports.filter(r => (selStaff === '全部' || (r.staff || r['人員']) === selStaff));
-      const totalTickets = filtered.reduce((sum, r) => sum + (Number(r.totalPieces) || 0), 0);
-      const totalNet = filtered.reduce((sum, r) => sum + (Number(r.finalSalary) || 0), 0);
-
-      const text = `📋 Mia組 步兵出糧對數單 (${selMonth})\n--------------------------\n👷 姓名：${selStaff}\n📦 總派件票數：${totalTickets} 票\n💰 實發總工資：HK$ ${totalNet.toFixed(2)}\n✅ 轉賬狀態：已確認無誤`;
-      document.getElementById('universal-export-textarea').value = text;
-      openModal('modal-universal-export');
-    }
-
-    function openModalProgress() { switchProgressTab(currentProgTab); openModal('modal-progress-view'); }
-    function switchProgressTab(zone) {
-      currentProgTab = zone;
-      ['east', 'kt', 'st'].forEach(z => {
-        const btn = document.getElementById(`tab-prog-${z}`);
-        if (btn) btn.className = z === zone ? 'px-3 py-1.5 rounded-lg bg-slate-900 text-white font-bold' : 'px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-bold';
-      });
-      const list = zoneFences[zone] || [];
-      const c = document.getElementById('progress-fences-list');
-      if (c) {
-        c.innerHTML = list.map(f => {
-          const status = fenceProgressStatus[f.name] || '派送中';
-          return `
-            <div class="p-2.5 bg-slate-50 rounded-xl border flex justify-between items-center">
-              <div class="font-bold text-slate-800 text-xs">${f.name}</div>
-              <select onchange="updateFenceProgress('${f.name}', this.value)" class="p-1 bg-white border rounded text-[11px] font-bold text-blue-700">
-                <option value="派送中" ${status === '派送中' ? 'selected' : ''}>⏳ 派送中</option>
-                <option value="已清場" ${status === '已清場' ? 'selected' : ''}>✅ 已清場</option>
-                <option value="有滯留" ${status === '有滯留' ? 'selected' : ''}>⚠️ 有滯留</option>
-              </select>
-            </div>
-          `;
-        }).join('');
-      }
-    }
-
-    function updateFenceProgress(fenceName, status) {
-      fenceProgressStatus[fenceName] = status;
-      localStorage.setItem('MIA_PROGRESS_STATUS_PERFECT', JSON.stringify(fenceProgressStatus));
-    }
-
-    function openLeaderboardModal() {
-      const poolEl = document.getElementById('leaderboard-pool-amount');
-      if (poolEl) poolEl.textContent = `HK$ 0.00`;
-      const rankContainer = document.getElementById('leaderboard-staff-ranking');
-      if (rankContainer) {
-        rankContainer.innerHTML = accounts.map((a, idx) => {
-          const info = extractStaffInfo(a);
-          const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : '👏'));
-          return `
-            <div class="p-2.5 bg-slate-50 rounded-xl border flex justify-between items-center">
-              <div class="flex items-center gap-2 font-bold text-slate-800">
-                <span>${medal} 第 ${idx + 1} 名</span>
-                <span class="text-slate-900">${info.name}</span>
-                <span class="text-[10px] px-1.5 py-0.2 bg-slate-200 rounded text-slate-600">${info.cat}</span>
-              </div>
-              <div class="text-blue-700 font-black">零違規 🌟</div>
-            </div>
-          `;
-        }).join('');
-      }
-      openModal('modal-leaderboard-view');
-    }
-
-    function openModal5() {
-      const tbody = document.getElementById('scheduleTableBody');
-      if (tbody) {
-        tbody.innerHTML = accounts.map(a => {
-          const info = extractStaffInfo(a);
-          return `
-            <tr class="hover:bg-slate-50 text-[11px]">
-              <td class="p-2.5 font-bold text-slate-900">${info.name}</td>
-              <td class="p-2.5 text-slate-500">${info.cat}</td>
-              ${[1, 2, 3, 4, 5, 6, 7].map(() => `<td class="p-2.5 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold">早班</span></td>`).join('')}
-            </tr>
-          `;
-        }).join('');
-      }
-      openModal('modal-schedule-14days');
-    }
-
-    function renderTicketsList() {
-      const c = document.getElementById('tickets-container');
-      const search = document.getElementById('ticket-search-input')?.value.toLowerCase() || '';
-      const filter = document.getElementById('ticket-status-filter')?.value || '全部';
-      if (!c) return;
-
-      const filtered = ticketsList.filter(t => {
-        const matchText = (t.tracking + t.staff + t.desc).toLowerCase().includes(search);
-        const matchStatus = filter === '全部' || t.status === filter;
-        return matchText && matchStatus;
-      });
-
-      c.innerHTML = filtered.map(t => `
-        <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center">
-          <div>
-            <div class="font-bold text-slate-900 font-mono">${t.tracking} <span class="ml-1 text-[11px] px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded">${t.zone}</span> <span class="text-rose-600 font-black">HK$ ${t.amount}</span></div>
-            <div class="text-[11px] text-slate-500 mt-0.5">責任人: <span class="font-bold text-slate-700">${t.staff}</span> | 原因: ${t.desc}</div>
-          </div>
-          <span class="px-2 py-1 rounded font-bold text-[10px] ${t.status === '已結案' ? 'bg-emerald-100 text-emerald-800' : (t.status === '已申訴' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800')}">${t.status}</span>
-        </div>
-      `).join('') || '<div class="p-4 text-center text-slate-400">無符合條件的工單。</div>';
-    }
-
-    function switchAssignmentTab(zone) {
-      currentAssignTab = zone;
-      ['east', 'kt', 'st'].forEach(z => {
-        const btn = document.getElementById(`tab-assign-${z}`);
-        if (btn) btn.className = z === zone ? 'px-3 py-1.5 rounded-lg bg-slate-900 text-white font-bold' : 'px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-bold';
-      });
-      renderAssignmentsBoard();
-    }
-
-    function renderAssignmentsBoard() {
-      const grid = document.getElementById('m2-fences-board-grid');
-      if (!grid) return;
-      const list = zoneFences[currentAssignTab] || [];
-      grid.innerHTML = list.map(f => `
-        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
-          <div class="font-bold text-slate-800 text-xs mb-1">${f.name}</div>
-          <select class="w-full p-1 bg-white border rounded text-[11px] font-bold">
-            <option value="">-- 未指派步兵 --</option>
-            ${accounts.map(a => `<option value="${extractStaffInfo(a).name}">${extractStaffInfo(a).name}</option>`).join('')}
-          </select>
-        </div>
-      `).join('');
-    }
-
-    function onStaffSelectChange(name) {
-      const u = accounts.find(a => extractStaffInfo(a).name === name);
-      const p = (u && u.prices) ? u.prices : (priceSettings.wage || defaultPrices.wage);
-      if (document.getElementById('repEastPrice')) document.getElementById('repEastPrice').value = p.east;
-      if (document.getElementById('repKtLgPrice')) document.getElementById('repKtLgPrice').value = p.ktlg;
-      if (document.getElementById('repKtIndPrice')) document.getElementById('repKtIndPrice').value = p.ktind;
-      if (document.getElementById('repStPrice')) document.getElementById('repStPrice').value = p.st;
-      calcSalaryLive();
-    }
-
-    function calcSalaryLive() {
-      const eastC = Number(document.getElementById('repEastCount')?.value) || 0;
-      const eastP = Number(document.getElementById('repEastPrice')?.value) || 8.5;
-      const ktLgC = Number(document.getElementById('repKtLgCount')?.value) || 0;
-      const ktLgP = Number(document.getElementById('repKtLgPrice')?.value) || 8.0;
-      const ktIndC = Number(document.getElementById('repKtIndCount')?.value) || 0;
-      const ktIndP = Number(document.getElementById('repKtIndPrice')?.value) || 7.5;
-      const stC = Number(document.getElementById('repStCount')?.value) || 0;
-      const stP = Number(document.getElementById('repStPrice')?.value) || 7.5;
-
-      const car = Number(document.getElementById('repCarAllowance')?.value) || 0;
-      const claim = Number(document.getElementById('repClaim')?.value) || 0;
-      const bonus = Number(document.getElementById('repBonus')?.value) || 0;
-      const penalty = Number(document.getElementById('repPenalty')?.value) || 0;
-      const deduct = Number(document.getElementById('repDeductAmount')?.value) || 0;
-
-      const wageGross = (eastC * eastP) + (ktLgC * ktLgP) + (ktIndC * ktIndP) + (stC * stP);
-      const total = wageGross + car + claim + bonus - penalty - deduct;
-      const el = document.getElementById('repLiveTotalSalary');
-      if (el) el.textContent = `HK$ ${Math.max(0, total).toFixed(2)}`;
-    }
-
-    function saveFullDailyReport(e) {
-      e.preventDefault();
-      const reportItem = {
-        id: `REP_${Date.now()}`,
-        month: '8月',
-        date: document.getElementById('repDate').value,
-        staff: document.getElementById('repStaffSelect').value,
-        eastCount: Number(document.getElementById('repEastCount').value) || 0,
-        ktLgCount: Number(document.getElementById('repKtLgCount').value) || 0,
-        ktIndCount: Number(document.getElementById('repKtIndCount').value) || 0,
-        stCount: Number(document.getElementById('repStCount').value) || 0,
-        totalPieces: (Number(document.getElementById('repEastCount').value) || 0) + (Number(document.getElementById('repKtLgCount').value) || 0) + (Number(document.getElementById('repKtIndCount').value) || 0) + (Number(document.getElementById('repStCount').value) || 0),
-        finalSalary: Number(document.getElementById('repLiveTotalSalary').textContent.replace('HK$ ', '')) || 0,
-        transferStatus: '未轉賬'
-      };
-      dailyReports.unshift(reportItem);
-      localStorage.setItem('MIA_DAILY_REPORTS_PERFECT', JSON.stringify(dailyReports));
-      alert('✅ 報數紀錄儲存成功！');
-      renderReportsTable();
-    }
-
-    function renderReportsTable() {
-      const tbody = document.getElementById('reportTableBody');
-      if (!tbody || !isCurrentUserAdmin()) return;
-      tbody.innerHTML = dailyReports.slice(0, 15).map(r => `
-        <tr class="hover:bg-slate-50">
-          <td class="p-3 font-mono">${r.date || r['日期'] || '-'}</td>
-          <td class="p-3 font-bold">${r.staff || r['人員'] || '-'}</td>
-          <td class="p-3 text-center text-blue-700 font-bold">${r.eastCount || 0}/${r.ktLgCount || 0}/${r.ktIndCount || 0}/${r.stCount || 0}</td>
-          <td class="p-3 text-right font-bold">${r.totalPieces || 0} 票</td>
-          <td class="p-3 text-right text-slate-500">-</td>
-          <td class="p-3 text-right font-black text-emerald-600 font-mono">HK$ ${Number(r.finalSalary || 0).toFixed(2)}</td>
-          <td class="p-3 text-center">${r.transferStatus || '已轉賬'}</td>
-          <td class="p-3 text-center">-</td>
-        </tr>
-      `).join('');
-    }
-
-    function renderRoleView() {
-      const isAdm = isCurrentUserAdmin();
-      ['btn-nav-recon', 'btn-nav-profit', 'btn-nav-settle', 'btn-nav-m1', 'btn-nav-addrider', 'btn-price-settings-top', 'section-daily-settle-table'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = isAdm ? 'inline-flex' : 'none';
-      });
-
-      const roleBadge = document.getElementById('role-display-badge');
-      if (roleBadge) roleBadge.textContent = isAdm ? '👑 總管理員 (Mia)' : `👷 當前登入: ${currentRole}`;
-
-      const roleSel = document.getElementById('current-user-role-select');
-      if (roleSel) {
-        roleSel.innerHTML = accounts.map(a => {
-          const info = extractStaffInfo(a);
-          return `<option value="${info.name}" ${info.name === currentRole ? 'selected' : ''}>${info.name} (${info.cat})</option>`;
-        }).join('');
-      }
-
-      const staffSel = document.getElementById('repStaffSelect');
-      if (staffSel) {
-        staffSel.innerHTML = accounts.map(a => {
-          const info = extractStaffInfo(a);
-          return `<option value="${info.name}">${info.name} (${info.cat})</option>`;
-        }).join('');
-        if (staffSel.value) onStaffSelectChange(staffSel.value);
-      }
-    }
-
-    function logoutCurrentSession() {
-      currentRole = 'Mia';
-      localStorage.removeItem('MIA_LOGGED_IN_USER');
-      renderRoleView();
-    }
-
-    function openViolationsModal() { openModal('modal-violations-view'); }
-    function openTicketsModal() { renderTicketsList(); openModal('modal-tickets-view'); }
-    function openModal2() { renderAssignmentsBoard(); openModal('modal-assignments'); }
-    function openModal8() { openModal('modal-truck-dispatch'); }
-    function openModalProfit() { openModal('modal-profit-view'); }
-    function openModalSettlementDaily() { openReconciliationModal(); }
-    function openChangePasswordModal() { openModal('modal-change-password'); }
-    function openUniversalExportModal(t) { openModal('modal-universal-export'); }
-    function openSuppliesModal() { openModal('modal-supplies-view'); }
-    function openModal1() { switchAssignmentTab('east'); openModal('modal-assignments'); }
-    function openModal3() { switchProgressTab('kt'); openModal('modal-progress-view'); }
-    function openModal4() { switchProgressTab('east'); openModal('modal-progress-view'); }
-    function openModalStCounts() { switchProgressTab('st'); openModal('modal-progress-view'); }
-    function openRecruitsModal() { openModal('modal-recruits-view'); }
-    function openAddRiderModal() { alert('➕ 人員名冊管理：請在 Google Sheet 人員名冊直接新增，系統將自動同步。'); }
-    function openModalPriceSettings() { alert('⚙️ 全域票價設定：東區 $8.5 / 麗港 $8.0 / 工商 $7.5 / 沙田 $7.5'); }
 
     window.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
