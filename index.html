@@ -477,12 +477,12 @@
       `).join('');
     }
 
-        // 智能提取人員姓名與職位（自動相容陣列、物件、中英文各類格式）
+         // 精準適配 Google Sheet「人員名冊」真實欄位（人員姓名、職級身份）
     function extractStaffInfo(a) {
       if (!a) return { name: '未命名', cat: '步兵' };
       if (typeof a === 'string') return { name: a, cat: '步兵' };
       
-      // 支援陣列格式 (例如 [id, name, team, category...])
+      // 支援陣列格式 (第 1 欄為員工編號，第 2 欄為人員姓名，第 4 欄為職級身份)
       if (Array.isArray(a)) {
         return {
           name: a[1] || a[0] || '未命名',
@@ -490,11 +490,12 @@
         };
       }
 
-      // 支援物件格式
-      const name = a.name || a['姓名'] || a['人員'] || a['步兵姓名'] || a['Staff'] || a['Name'] || a.id || '未命名';
-      const cat = a.category || a['身份'] || a['身份類別'] || a['類別'] || a['組別'] || a['Role'] || '步兵';
+      // 支援 Google Sheet 表頭真實名稱：人員姓名、職級身份
+      const name = a['人員姓名'] || a.name || a['姓名'] || a['人員'] || a['步兵姓名'] || a['員工編號'] || a.id || '未命名';
+      const cat = a['職級身份'] || a.category || a['身份'] || a['職位'] || a['所屬隊伍'] || '步兵';
       return { name: String(name).trim(), cat: String(cat).trim() };
     }
+
 
     function renderRoleView() {
       const isAdm = isCurrentUserAdmin();
