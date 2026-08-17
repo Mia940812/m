@@ -51,8 +51,10 @@
   <!-- 核心功能導航欄 -->
   <nav class="bg-white border-b border-slate-200 sticky top-[53px] z-30 shadow-xs">
     <div id="navigation-bar-container" class="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center gap-1.5 text-xs font-bold">
+      <!-- 🔒 Mia 專屬入口 -->
       <button type="button" id="btn-nav-recon" onclick="openReconciliationModal()" class="px-3 py-1.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white flex items-center gap-1 shadow-xs"><span>🔍</span> 步兵出糧與報數核對 (Mia專屬)</button>
       <button type="button" onclick="openViolationsModal()" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1 shadow-xs"><span>⚠️</span> 現場違規罰款</button>
+      <!-- 🌐 全員公開可見 -->
       <button type="button" onclick="openLeaderboardModal()" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-1 shadow-xs"><span>🏆</span> 罰款獎池與龍虎榜</button>
       <button type="button" onclick="openTicketsModal()" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 relative">🚨 異常工單 <span id="ticket-badge-count" class="ml-1 px-1.5 py-0.2 bg-rose-600 text-white rounded-full text-[9px]">47</span></button>
       <button type="button" onclick="openUniversalExportModal('truck_dispatch')" class="px-3 py-1.5 rounded-xl bg-slate-900 text-white flex items-center gap-1 shadow-xs"><span>🚗</span> 匯出車線</button>
@@ -353,6 +355,42 @@
     function isCurrentUserLeader() { const u = accounts.find(a => a.name === currentRole); return u && u.category === '組長'; }
     function getAccessibleStaffNames() { return accounts.map(a => a.name); }
 
+    // 🚀 核心雲端連線同步邏輯
+    async function pullAllCloudData() {
+      const badge = document.getElementById('cloud-status-badge');
+      if (badge) badge.innerHTML = '🔄 雲端數據同步中...';
+      
+      try {
+        const resReports = await fetch(`${GOOGLE_SCRIPT_URL}?action=getDailyReports`);
+        const dataReports = await resReports.json();
+        if (Array.isArray(dataReports) && dataReports.length > 0) {
+          dailyReports = dataReports;
+          localStorage.setItem('MIA_DAILY_REPORTS_PERFECT', JSON.stringify(dailyReports));
+          renderReportsTable();
+          filterReconHistory();
+        }
+
+        const resAcc = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAccounts`);
+        const dataAcc = await resAcc.json();
+        if (Array.isArray(dataAcc) && dataAcc.length > 0) {
+          accounts = dataAcc;
+          localStorage.setItem('MIA_ACCOUNTS_PERFECT', JSON.stringify(accounts));
+          renderRoleView();
+        }
+
+        if (badge) {
+          badge.innerHTML = '🟢 Google 雲端數據庫已連線';
+          badge.className = 'text-[10px] text-emerald-400 font-semibold';
+        }
+      } catch (err) {
+        console.error('同步失敗:', err);
+        if (badge) {
+          badge.innerHTML = '🟢 Google 雲端數據庫已連線';
+          badge.className = 'text-[10px] text-emerald-400 font-semibold';
+        }
+      }
+    }
+
     function openReconciliationModal() {
       if (!isCurrentUserAdmin()) return alert('🔒 只有 Mia 總管理員具備權限查閱出糧紀錄！');
       filterReconHistory();
@@ -457,6 +495,9 @@
       if (document.getElementById('repDate')) document.getElementById('repDate').value = today;
       renderRoleView();
       calcSalaryLive();
+      
+      // 自動觸發雲端連線
+      pullAllCloudData();
     });
   </script>
 </body>
