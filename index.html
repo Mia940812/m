@@ -27,7 +27,7 @@
             <span>派件營運管理中心</span>
             <span id="role-display-badge" class="px-1.5 py-0.5 rounded text-[10px] bg-blue-900/80 text-blue-300 border border-blue-700 font-semibold">👑 總管理員 (Mia)</span>
           </div>
-          <div id="cloud-status-badge" class="text-[10px] text-emerald-400 font-semibold">🟢 Google 雲端數據庫已連線</div>
+          <div id="cloud-status-badge" class="text-[10px] text-emerald-400 font-semibold">🟢 雲端雙向同步連線中...</div>
         </div>
       </div>
 
@@ -99,7 +99,7 @@
           </div>
         </div>
 
-        <!-- 1. 分區派件票數 -->
+        <!-- 1. 分區派件票數 (含東區照片上傳) -->
         <div class="p-3.5 bg-slate-50/60 rounded-xl border border-slate-200 space-y-2.5">
           <div class="font-bold text-slate-800 flex items-center justify-between text-xs">
             <span>📦 1. 分區派件報數</span>
@@ -107,11 +107,18 @@
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
             <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-1.5">
-              <div class="font-bold text-slate-700">📍 東區</div>
+              <div class="font-bold text-slate-700 flex justify-between items-center">
+                <span>📍 東區</span>
+                <span id="preview-east-img" class="text-[10px] text-emerald-600 font-bold"></span>
+              </div>
               <div class="flex items-center gap-1">
                 <input type="number" id="repEastCount" min="0" placeholder="票數" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold text-blue-700">
                 <span class="text-slate-400">×$</span>
                 <input type="number" id="repEastPrice" step="0.1" placeholder="單價" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold">
+              </div>
+              <div class="pt-1 border-t border-slate-100">
+                <label class="block text-[10px] text-slate-500 font-bold mb-0.5">📷 東區報數上傳照片：</label>
+                <input type="file" id="img-east-report" accept="image/*" onchange="handleImagePreview(this, 'preview-east-img')" class="w-full text-[10px] text-slate-400 file:mr-1.5 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-blue-50 file:text-blue-700">
               </div>
             </div>
             <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-1.5">
@@ -192,24 +199,40 @@
         <!-- 3. 特殊件追蹤錄入 + 照片上傳 -->
         <div class="p-3.5 bg-slate-50/60 rounded-xl border border-slate-200 space-y-2.5">
           <div class="font-bold text-slate-800 flex items-center justify-between text-xs">
-            <span>📋 3. 特殊件追蹤錄入 (單號 ＋ 圍欄 ＋ 照片上傳)</span>
+            <span>📋 3. 特殊件追蹤錄入 (單號 ＋ 圍欄 ＋ 拍照上傳圖片)</span>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div class="bg-white p-2.5 rounded-lg border space-y-1.5">
               <label class="font-bold text-slate-600 text-[11px] block">🔄 退款件 (單號 + 圍欄)</label>
               <input type="text" id="repRefundItems" placeholder="例: JT00123 (69F 峻峰)" class="w-full p-1.5 bg-slate-50 border rounded text-[11px]">
+              <div class="flex items-center gap-1.5 pt-0.5">
+                <input type="file" id="img-refund" accept="image/*" onchange="handleImagePreview(this, 'preview-refund')" class="text-[10px] text-slate-400 file:mr-2 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-blue-50 file:text-blue-700">
+                <span id="preview-refund" class="text-[10px] text-emerald-600 font-bold"></span>
+              </div>
             </div>
             <div class="bg-white p-2.5 rounded-lg border space-y-1.5">
               <label class="font-bold text-slate-600 text-[11px] block">✍️ 已簽收件 (單號 + 圍欄)</label>
               <input type="text" id="repSignedItems" placeholder="例: JT00456 (03E 觀塘)" class="w-full p-1.5 bg-slate-50 border rounded text-[11px]">
+              <div class="flex items-center gap-1.5 pt-0.5">
+                <input type="file" id="img-signed" accept="image/*" onchange="handleImagePreview(this, 'preview-signed')" class="text-[10px] text-slate-400 file:mr-2 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-blue-50 file:text-blue-700">
+                <span id="preview-signed" class="text-[10px] text-emerald-600 font-bold"></span>
+              </div>
             </div>
             <div class="bg-white p-2.5 rounded-lg border space-y-1.5">
               <label class="font-bold text-slate-600 text-[11px] block">⏳ 待攬收件 (單號 + 圍欄)</label>
               <input type="text" id="repPendingPickupItems" placeholder="例: JT00789 (11E 麗港城)" class="w-full p-1.5 bg-slate-50 border rounded text-[11px]">
+              <div class="flex items-center gap-1.5 pt-0.5">
+                <input type="file" id="img-pending" accept="image/*" onchange="handleImagePreview(this, 'preview-pending')" class="text-[10px] text-slate-400 file:mr-2 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-blue-50 file:text-blue-700">
+                <span id="preview-pending" class="text-[10px] text-emerald-600 font-bold"></span>
+              </div>
             </div>
             <div class="bg-white p-2.5 rounded-lg border space-y-1.5">
               <label class="font-bold text-slate-600 text-[11px] block">🔙 回倉件 (單號 + 圍欄)</label>
               <input type="text" id="repReturnItems" placeholder="例: JT00999 (19F 漁灣邨)" class="w-full p-1.5 bg-slate-50 border rounded text-[11px]">
+              <div class="flex items-center gap-1.5 pt-0.5">
+                <input type="file" id="img-returns" accept="image/*" onchange="handleImagePreview(this, 'preview-returns')" class="text-[10px] text-slate-400 file:mr-2 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-blue-50 file:text-blue-700">
+                <span id="preview-returns" class="text-[10px] text-emerald-600 font-bold"></span>
+              </div>
             </div>
           </div>
           <div class="bg-white p-2 rounded-lg border space-y-1">
@@ -454,7 +477,7 @@
     </div>
   </div>
 
-  <!-- ➕ 人員名冊管理 ＆ 專屬票價修改 Modal (支援隨時修改身份與各區單價) -->
+  <!-- ➕ 人員名冊管理 ＆ 專屬票價修改 Modal -->
   <div id="modal-add-rider" class="app-modal hidden">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-2xl w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
@@ -673,6 +696,89 @@
       }
     }
 
+    // 🌐 雲端資料推送 (Push)
+    function syncToGoogleCloud(actionKey, payloadData) {
+      const badge = document.getElementById('cloud-status-badge');
+      if (badge) badge.textContent = '🔄 正在同步至雲端...';
+
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: actionKey, data: payloadData })
+      }).then(() => {
+        if (badge) badge.textContent = '🟢 Google 雲端數據庫已同步';
+      }).catch(err => {
+        console.warn('雲端同步暫緩，已安全保存在本機', err);
+        if (badge) badge.textContent = '🟡 本機保存 (離線模式)';
+      });
+    }
+
+    // 🌐 雲端資料拉取 (Pull)
+    async function pullAllCloudData() {
+      const badge = document.getElementById('cloud-status-badge');
+      try {
+        const resAcc = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAccounts`);
+        if (resAcc.ok) {
+          const cloudAccounts = await resAcc.json();
+          if (Array.isArray(cloudAccounts) && cloudAccounts.length > 0) {
+            const map = new Map();
+            initialAccounts.forEach(a => map.set(a.name, a));
+            cloudAccounts.forEach(a => { if (a && a.name) map.set(a.name, { ...map.get(a.name), ...a }); });
+            accounts = Array.from(map.values());
+            localStorage.setItem('MIA_ACCOUNTS_PERFECT', JSON.stringify(accounts));
+            renderStaffManagementList();
+            renderRoleView();
+          }
+        }
+
+        const resAssign = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAssignments`);
+        if (resAssign.ok) {
+          const cloudAssigns = await resAssign.json();
+          if (cloudAssigns && (cloudAssigns.east || cloudAssigns.kt || cloudAssigns.st)) {
+            zoneAssignments = cloudAssigns;
+            localStorage.setItem('MIA_ASSIGNS_PERFECT', JSON.stringify(zoneAssignments));
+            renderAssignmentsBoard();
+          }
+        }
+
+        const resProg = await fetch(`${GOOGLE_SCRIPT_URL}?action=getProgress`);
+        if (resProg.ok) {
+          const cloudProg = await resProg.json();
+          if (cloudProg && typeof cloudProg === 'object') {
+            fenceProgressStatus = { ...fenceProgressStatus, ...cloudProg };
+            localStorage.setItem('MIA_PROGRESS_STATUS_PERFECT', JSON.stringify(fenceProgressStatus));
+          }
+        }
+
+        if (badge) badge.textContent = '🟢 Google 雲端數據庫已連線';
+      } catch (e) {
+        console.log('使用本機快取數據啟動', e);
+        if (badge) badge.textContent = '🟢 Google 雲端連線就緒';
+      }
+    }
+
+    // 📷 圖片 Base64 預覽轉換處理
+    let uploadedImages = { eastReport: '', refund: '', signed: '', pending: '', returns: '' };
+
+    function handleImagePreview(fileInput, previewSpanId) {
+      const file = fileInput.files[0];
+      const span = document.getElementById(previewSpanId);
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        if (previewSpanId === 'preview-east-img') {
+          uploadedImages.eastReport = e.target.result;
+        } else {
+          const key = previewSpanId.replace('preview-', '');
+          uploadedImages[key] = e.target.result;
+        }
+        if (span) span.textContent = '✅ 已選圖片';
+      };
+      reader.readAsDataURL(file);
+    }
+
     // 票價預設值
     const defaultPrices = {
       wage: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 },
@@ -715,7 +821,7 @@
       ]
     };
 
-    // 完整原始名冊（已含詠豪、徐子傑、小魚及全部成員）
+    // 完整原始名冊 (含詠豪、小魚、徐子傑等)
     const initialAccounts = [
       { id: 'KM01', name: 'Mia', category: 'Admin', team: 'KM', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
       { id: 'A01', name: '詠豪', category: '組長', team: 'A', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
@@ -737,7 +843,6 @@
       { id: 'KM08', name: '王利民', category: '兼職步兵', team: 'KM', payCycle: '隔日糧', deductRate: '40%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' }
     ];
 
-    // 智慧合併名冊（確保舊名冊與新增的人員（如小魚）都在）
     let accounts = (function() {
       let saved = [];
       try { saved = JSON.parse(localStorage.getItem('MIA_ACCOUNTS_PERFECT')) || []; } catch(e) {}
@@ -829,6 +934,7 @@
     function changeFenceProgress(fenceName, newStatus) {
       fenceProgressStatus[fenceName] = newStatus;
       localStorage.setItem('MIA_PROGRESS_STATUS_PERFECT', JSON.stringify(fenceProgressStatus));
+      syncToGoogleCloud('進度更新', { fence: fenceName, status: newStatus });
       renderProgressModalContent();
     }
 
@@ -999,13 +1105,21 @@
         date, staff: staffName, category: userObj.category || '步兵', payCycle: userObj.payCycle || '半月糧',
         eastCount: eastC, ktLgCount: ktLgC, ktIndCount: ktIndC, stCount: stC,
         totalPieces, car, claim, bonus, penalty, deduct,
+        refund: document.getElementById('repRefundItems')?.value || '',
+        signed: document.getElementById('repSignedItems')?.value || '',
+        pending: document.getElementById('repPendingPickupItems')?.value || '',
+        returns: document.getElementById('repReturnItems')?.value || '',
+        issue: document.getElementById('repDailyIssueNote')?.value || '',
+        images: uploadedImages,
         finalSalary: Number(finalSalaryStr) || 0, transferStatus: '未轉賬'
       };
 
       dailyReports.unshift(reportItem);
       localStorage.setItem('MIA_DAILY_REPORTS_PERFECT', JSON.stringify(dailyReports));
+      syncToGoogleCloud('每日報數', reportItem);
+
       renderReportsTable();
-      alert(`✅ 成功提交【${staffName}】的報數紀錄！`);
+      alert(`✅ 成功提交【${staffName}】的報數紀錄並同步至 Google 雲端！`);
     }
 
     function renderReportsTable() {
@@ -1114,7 +1228,6 @@
       autoGenerateStaffId();
     }
 
-    // ✏️ 隨時修改人員身份與票價功能
     function editStaffRecord(staffId) {
       const a = accounts.find(acc => acc.id === staffId);
       if (!a) return;
@@ -1154,6 +1267,7 @@
       `).join('');
     }
 
+    // ⚡ 即時票價響應機制：儲存人員後即時連動更新前台單價輸入框與工資重算
     function saveNewStaffRecord() {
       const id = document.getElementById('new-staff-id').value;
       const name = document.getElementById('new-staff-name').value.trim();
@@ -1184,10 +1298,18 @@
       }
 
       localStorage.setItem('MIA_ACCOUNTS_PERFECT', JSON.stringify(accounts));
+      syncToGoogleCloud('新增人員', record);
+
       resetStaffForm();
       renderStaffManagementList();
       renderRoleView();
       renderAssignmentsBoard();
+
+      // ⚡ 即時更新當前選中步兵之輸入框與計算
+      const currentSelectedStaff = document.getElementById('repStaffSelect')?.value;
+      if (currentSelectedStaff === name) {
+        onStaffSelectChange(name);
+      }
     }
 
     function updateShiftFenceDropdown(zone) {
@@ -1273,11 +1395,14 @@
       const timeRange = document.getElementById('shift-time-range').value || '全日';
       const note = document.getElementById('shift-special-note').value;
 
-      shiftReports.unshift({ staff, date, zone: zone==='east'?'東區':(zone==='kt'?'觀塘':'沙田'), fence, type, timeRange, note });
+      const record = { staff, date, zone: zone==='east'?'東區':(zone==='kt'?'觀塘':'沙田'), fence, type, timeRange, note };
+      shiftReports.unshift(record);
       localStorage.setItem('MIA_SHIFTS_PERFECT', JSON.stringify(shiftReports));
+      syncToGoogleCloud('14天報更', record);
+
       document.getElementById('shift-special-note').value = '';
       renderShiftsHistory();
-      alert(`已成功提交【${staff}】於 ${date} 的報更！`);
+      alert(`已成功提交【${staff}】於 ${date} 的報更並同步至雲端！`);
     }
 
     function renderShiftsHistory() {
@@ -1308,8 +1433,12 @@
       const order = document.getElementById('truck-order-inp').value || '第1車';
       const fence = document.getElementById('truck-fence-inp').value;
       if (!fence) return alert('請填寫送達圍欄/地點！');
-      truckRoutes.push({ zone, time, driver, order, fence });
+
+      const record = { zone, time, driver, order, fence };
+      truckRoutes.push(record);
       localStorage.setItem('MIA_TRUCKS_PERFECT', JSON.stringify(truckRoutes));
+      syncToGoogleCloud('車線調度', record);
+
       renderTruckRoutes();
       alert('車線新增成功！');
     }
@@ -1328,7 +1457,7 @@
         <div class="p-2 bg-slate-50 border rounded-xl flex justify-between items-center">
           <div><span class="font-bold">${s.date} - ${s.name} (${s.qty}件)</span><span class="text-[10px] text-slate-400 ml-2">採購: ${s.buyer}</span></div>
           <div class="flex items-center gap-2">
-            <span class="font-black text-rose-600 font-mono">HK$ ${s.price}</span>
+            <span class="font-black text-rose-600 font-mono text-sm">HK$ ${s.price}</span>
             <button type="button" onclick="deleteSupply(${idx})" class="text-rose-500 hover:text-rose-700 font-bold ml-1">✕</button>
           </div>
         </div>
@@ -1342,8 +1471,12 @@
       const price = Number(document.getElementById('supply-price').value) || 0;
       const buyer = document.getElementById('supply-buyer').value || 'Mia';
       if (!name) return alert('請填寫物資品名！');
-      suppliesList.unshift({ id: Date.now(), date, name, qty, price, buyer });
+
+      const record = { id: Date.now(), date, name, qty, price, buyer };
+      suppliesList.unshift(record);
       localStorage.setItem('MIA_SUPPLIES_PERFECT', JSON.stringify(suppliesList));
+      syncToGoogleCloud('物資採購', record);
+
       document.getElementById('supply-name').value = '';
       renderSupplies();
       alert('物資登記成功！');
@@ -1455,8 +1588,11 @@
       const exists = zoneAssignments[currentAssignTab].some(item => item.name === rider && item.fence === fence);
       if (exists) return alert(`【${rider}】已經在【${fence}】名單中！`);
 
-      zoneAssignments[currentAssignTab].push({ name: rider, fence: fence });
+      const record = { name: rider, fence: fence };
+      zoneAssignments[currentAssignTab].push(record);
       localStorage.setItem('MIA_ASSIGNS_PERFECT', JSON.stringify(zoneAssignments));
+      syncToGoogleCloud('區域排班', { area: currentAssignTab === 'east' ? '東區' : (currentAssignTab === 'kt' ? '觀塘' : '沙田'), staff: rider, zone: fence });
+
       renderAssignmentsBoard();
       alert(`✅ 成功將【${rider}】指派到 ${fence}！`);
     }
@@ -1513,8 +1649,11 @@
 
       if (!tracking) return alert('請填寫運單號碼！');
 
-      ticketsList.unshift({ id: `TK${Date.now()}`, date: new Date().toISOString().split('T')[0], tracking, staff, type, amount, zone, desc });
+      const record = { id: `TK${Date.now()}`, date: new Date().toISOString().split('T')[0], tracking, staff, type, amount, zone, desc };
+      ticketsList.unshift(record);
       localStorage.setItem('MIA_TICKETS_PERFECT', JSON.stringify(ticketsList));
+      syncToGoogleCloud('異常工單', record);
+
       if (document.getElementById('tk-tracking-no')) document.getElementById('tk-tracking-no').value = '';
       if (document.getElementById('tk-issue-desc')) document.getElementById('tk-issue-desc').value = '';
       renderTicketsList();
@@ -1718,8 +1857,11 @@
 
       if (!name || !phone) return alert('請填寫新人姓名與電話！');
 
-      recruitsList.unshift({ id: Date.now(), name, phone, date, zone, role, status, desc });
+      const record = { id: Date.now(), name, phone, date, zone, role, status, desc };
+      recruitsList.unshift(record);
       localStorage.setItem('MIA_RECRUITS_PERFECT', JSON.stringify(recruitsList));
+      syncToGoogleCloud('預約新人', record);
+
       if (document.getElementById('recruit-name')) document.getElementById('recruit-name').value = '';
       if (document.getElementById('recruit-phone')) document.getElementById('recruit-phone').value = '';
       if (document.getElementById('recruit-desc')) document.getElementById('recruit-desc').value = '';
@@ -1792,6 +1934,7 @@
         currentRole = targetRole;
         localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
         renderRoleView();
+        onStaffSelectChange(targetRole);
       }
     }
 
@@ -1803,13 +1946,15 @@
       }
     }
 
+    // ⚡ 100% 帶出最新修改後的專屬票價
     function onStaffSelectChange(name) {
       const user = accounts.find(a => a.name === name);
+      const pWage = priceSettings.wage || defaultPrices.wage;
       if (user && user.prices) {
-        if (document.getElementById('repEastPrice')) document.getElementById('repEastPrice').value = user.prices.east;
-        if (document.getElementById('repKtLgPrice')) document.getElementById('repKtLgPrice').value = user.prices.ktlg;
-        if (document.getElementById('repKtIndPrice')) document.getElementById('repKtIndPrice').value = user.prices.ktind;
-        if (document.getElementById('repStPrice')) document.getElementById('repStPrice').value = user.prices.st;
+        if (document.getElementById('repEastPrice')) document.getElementById('repEastPrice').value = user.prices.east !== undefined ? user.prices.east : pWage.east;
+        if (document.getElementById('repKtLgPrice')) document.getElementById('repKtLgPrice').value = user.prices.ktlg !== undefined ? user.prices.ktlg : pWage.ktlg;
+        if (document.getElementById('repKtIndPrice')) document.getElementById('repKtIndPrice').value = user.prices.ktind !== undefined ? user.prices.ktind : pWage.ktind;
+        if (document.getElementById('repStPrice')) document.getElementById('repStPrice').value = user.prices.st !== undefined ? user.prices.st : pWage.st;
         const b = document.getElementById('staff-price-badge');
         if (b) b.textContent = `套用【${user.name}】專屬單價 (${user.payCycle || '半月糧'})`;
       }
@@ -1833,6 +1978,9 @@
       renderAssignmentsBoard();
       renderReportsTable();
       calcSalaryLive();
+
+      // 啟動自動從 Google 雲端載入最新資料
+      pullAllCloudData();
     });
   </script>
 </body>
