@@ -1366,25 +1366,41 @@
     }
 
     function saveFullDailyReport(e) {
-      e.preventDefault();
-      const reportItem = {
-        id: `REP_${Date.now()}`,
-        month: '8月',
-        date: document.getElementById('repDate').value,
-        staff: document.getElementById('repStaffSelect').value,
-        eastCount: Number(document.getElementById('repEastCount').value) || 0,
-        ktLgCount: Number(document.getElementById('repKtLgCount').value) || 0,
-        ktIndCount: Number(document.getElementById('repKtIndCount').value) || 0,
-        stCount: Number(document.getElementById('repStCount').value) || 0,
-        totalPieces: (Number(document.getElementById('repEastCount').value) || 0) + (Number(document.getElementById('repKtLgCount').value) || 0) + (Number(document.getElementById('repKtIndCount').value) || 0) + (Number(document.getElementById('repStCount').value) || 0),
-        finalSalary: Number(document.getElementById('repLiveTotalSalary').textContent.replace('HK$ ', '')) || 0,
-        transferStatus: '未轉賬'
-      };
-      dailyReports.unshift(reportItem);
-      localStorage.setItem('MIA_DAILY_REPORTS_PERFECT', JSON.stringify(dailyReports));
-      alert('✅ 報數紀錄儲存成功！');
-      renderReportsTable();
-    }
+  e.preventDefault();
+  
+  // 1. 準備發送畀 Google Sheet 的資料包 (Payload)
+  const payload = {
+    action: "addDaily", 
+    staffId: 1, // ⚠️ 注意：之後要改做動態攞取員工ID
+    workDate: document.getElementById('repDate').value,
+    orderCount: (Number(document.getElementById('repEastCount').value) || 0) + 
+                (Number(document.getElementById('repKtLgCount').value) || 0) + 
+                (Number(document.getElementById('repKtIndCount').value) || 0) + 
+                (Number(document.getElementById('repStCount').value) || 0),
+    unitPrice: 4.0, 
+    fine: 0, 
+    compensate: 0, 
+    newComOrders: 0, 
+    newComRate: 0 
+  };
+
+  // 2. 發送請求去你個 Google Apps Script
+  fetch('https://script.google.com/macros/s/AKfycbwG5x-iN6GjVd1jtdoz11Nwn79JLSLdLrIDr_xXfNCyfo1EBxfYPUFb5oW754GXf7H4fA/exec', {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).then(() => {
+    alert("✅ 數據已成功傳送至雲端表格！");
+  }).catch(err => {
+    console.error('同步失敗:', err);
+    alert("❌ 同步失敗，請檢查網絡或 Apps Script 設定");
+  });
+
+  // 3. 畫面依然更新，保持原有體驗
+  renderReportsTable();
+}
+
 
     function renderReportsTable() {
       const tbody = document.getElementById('reportTableBody');
