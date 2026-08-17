@@ -12,7 +12,7 @@
     .custom-scrollbar::-webkit-scrollbar-track { background: #f8fafc; }
     input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
-    .app-modal { position: fixed; inset: 0; z-index: 9999; background-color: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 12px; }
+    .app-modal { display: none; position: fixed; inset: 0; z-index: 9999; background-color: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 12px; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
@@ -50,26 +50,29 @@
     </div>
   </header>
 
-  <!-- 核心功能導航欄 (17個按鈕) -->
+  <!-- 核心功能導航欄 (具備身份私隱過濾) -->
   <nav class="bg-white border-b border-slate-200 sticky top-[53px] z-30 shadow-xs">
     <div id="navigation-bar-container" class="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center gap-1.5 text-xs font-bold">
       <button type="button" onclick="openLeaderboardModal()" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-1 shadow-xs animate-pulse"><span>🏆</span> 罰款獎池與龍虎榜</button>
       <button type="button" onclick="openTicketsModal()" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 relative">🚨 異常工單 <span id="ticket-badge-count" class="ml-1 px-1.5 py-0.2 bg-rose-600 text-white rounded-full text-[9px]">3</span></button>
       <button type="button" onclick="openUniversalExportModal('truck_dispatch')" class="px-3 py-1.5 rounded-xl bg-slate-900 text-white flex items-center gap-1 shadow-xs"><span>🚗</span> 匯出車線</button>
       <button type="button" onclick="openUniversalExportModal('shift_schedule')" class="px-3 py-1.5 rounded-xl bg-slate-800 text-white flex items-center gap-1 shadow-xs"><span>📤</span> 匯出14天更表</button>
-      <button type="button" onclick="openModalProfit()" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs">📈 營運利潤</button>
-      <button type="button" onclick="openModalSettlementDaily()" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white shadow-xs">💰 詳細分區埋數</button>
-      <button type="button" onclick="openSuppliesModal()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">📦 物資採購</button>
+      
+      <!-- Mia 總管 / 組長專屬按鈕 -->
+      <button type="button" id="btn-nav-profit" onclick="openModalProfit()" class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs">📈 營運利潤</button>
+      <button type="button" id="btn-nav-settle" onclick="openModalSettlementDaily()" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white shadow-xs">💰 詳細分區埋數</button>
+      <button type="button" id="btn-nav-supplies" onclick="openSuppliesModal()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">📦 物資採購</button>
+      
       <button type="button" onclick="openModalProgress()" class="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-900 border border-blue-200 font-black">⏱️ 各區進度報告</button>
-      <button type="button" onclick="openModal1()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">📍 1- 圍欄管理</button>
+      <button type="button" id="btn-nav-m1" onclick="openModal1()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">📍 1- 圍欄管理</button>
       <button type="button" onclick="openModal2()" class="px-3 py-1.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white shadow-xs">👥 2- 區域排班</button>
       <button type="button" onclick="openModal3()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">📦 3- 觀塘貨量</button>
       <button type="button" onclick="openModal4()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">🏢 4- 東區貨量</button>
       <button type="button" onclick="openModalStCounts()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">🏞️ 4b- 沙田貨量</button>
       <button type="button" onclick="openModal5()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">⏰ 5- 14天報更</button>
       <button type="button" onclick="openModal8()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">🚗 8- 車線調度</button>
-      <button type="button" onclick="openRecruitsModal()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">📋 預約新人</button>
-      <button type="button" onclick="openAddRiderModal()" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-xs">➕ 新增人員/專屬票價</button>
+      <button type="button" id="btn-nav-recruits" onclick="openRecruitsModal()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200">📋 預約新人</button>
+      <button type="button" id="btn-nav-addrider" onclick="openAddRiderModal()" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-xs">➕ 新增人員/專屬票價</button>
     </div>
   </nav>
 
@@ -82,9 +85,9 @@
           <h2 id="report-entry-title" class="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-2">
             <span class="w-2 h-4 bg-slate-800 rounded"></span> 📝 每日派件報數與薪資結算表單
           </h2>
-          <button type="button" onclick="openModalPriceSettings()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs transition">⚙️ 修改全域預設票價</button>
+          <button type="button" id="btn-price-settings-top" onclick="openModalPriceSettings()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs transition">⚙️ 修改全域預設票價</button>
         </div>
-        <span class="text-[11px] text-slate-400 font-semibold">自動匹配人員個別專屬票價 ➜ 實時計算同步</span>
+        <span id="role-hint-text" class="text-[11px] text-slate-400 font-semibold">自動匹配人員個別專屬票價 ➜ 實時計算同步</span>
       </div>
 
       <form onsubmit="saveFullDailyReport(event)" class="space-y-4 text-xs">
@@ -247,14 +250,14 @@
       </form>
     </div>
 
-    <!-- 埋數與工資核對清單 -->
+    <!-- 埋數與工資核對清單 (私隱鎖定：步兵只見自己) -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
       <div class="p-3.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
-        <h3 class="font-bold text-xs text-slate-900">📋 當日詳細埋數與工資結算核對清單</h3>
+        <h3 id="table-heading-title" class="font-bold text-xs text-slate-900">📋 當日詳細埋數與工資結算核對清單</h3>
         <div class="flex items-center gap-2">
           <button type="button" onclick="pullAllCloudData()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold shadow-xs transition">🔄 重新整理雲端報數</button>
           <button type="button" onclick="exportDailyReportsText()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded text-[11px] font-bold">📤 匯出今日報數</button>
-          <button type="button" onclick="clearReports()" class="text-[11px] text-slate-400 hover:text-rose-600 font-bold transition">清空今日報數</button>
+          <button type="button" id="btn-clear-reports" onclick="clearReports()" class="text-[11px] text-slate-400 hover:text-rose-600 font-bold transition">清空今日報數</button>
         </div>
       </div>
       <div class="overflow-x-auto custom-scrollbar">
@@ -279,12 +282,12 @@
 
   <!-- ================= 模態視窗集合 ================= -->
 
-  <!-- 🚗 8- 車線調度 Modal (新增匯出按鈕) -->
-  <div id="modal-truck-routes" class="app-modal hidden">
+  <!-- 🚗 8- 車線調度 Modal -->
+  <div id="modal-truck-routes" class="app-modal" style="display: none;">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-xl w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-sm text-slate-900">🚗 8- 車線調度安排</h3>
-        <button type="button" onclick="closeModal('modal-truck-routes')">✕</button>
+        <button type="button" onclick="closeModal('modal-truck-routes')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
       </div>
       <div class="bg-slate-50 p-3 rounded-xl border text-xs space-y-2">
         <div class="grid grid-cols-2 gap-2">
@@ -307,17 +310,17 @@
   </div>
 
   <!-- 🚨 異常工單 Modal -->
-  <div id="modal-tickets-view" class="app-modal hidden">
+  <div id="modal-tickets-view" class="app-modal" style="display: none;">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-3xl w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
         <div>
           <h3 class="font-bold text-sm text-slate-900">🚨 異常工單追蹤、扣罰與申訴中心</h3>
-          <span class="text-[11px] text-slate-400">指派步兵 ➜ 4種即時狀態 ➜ 上傳照片舉證與原因說明上訴</span>
+          <span class="text-[11px] text-slate-400">指派責任人 ➜ 4種即時狀態 ➜ 上傳照片舉證與原因說明上訴</span>
         </div>
         <button type="button" onclick="closeModal('modal-tickets-view')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
       </div>
       
-      <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-2">
+      <div id="tk-create-section" class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-2">
         <div class="font-bold text-slate-800">➕ 登記新異常工單並指派責任步兵：</div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <input type="text" id="tk-tracking-no" placeholder="運單單號 (例: JT998811)" class="p-1.5 bg-white border rounded-lg font-bold">
@@ -348,7 +351,7 @@
   </div>
 
   <!-- ⚖️ 工單上訴舉證 Modal -->
-  <div id="modal-ticket-appeal" class="app-modal hidden">
+  <div id="modal-ticket-appeal" class="app-modal" style="display: none;">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-lg w-full shadow-2xl space-y-3">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-sm text-slate-900">⚖️ 提出工單申訴／舉證上訴</h3>
@@ -371,7 +374,7 @@
   </div>
 
   <!-- ⚙️ 修改全域預設票價 Modal -->
-  <div id="modal-price-settings" class="app-modal hidden">
+  <div id="modal-price-settings" class="app-modal" style="display: none;">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-lg w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-sm text-slate-900">⚙️ 修改全域分區預設票價設定</h3>
@@ -403,7 +406,7 @@
   </div>
 
   <!-- ⏱️ 圍欄進度報告 Modal -->
-  <div id="modal-progress-view" class="app-modal hidden">
+  <div id="modal-progress-view" class="app-modal" style="display: none;">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-3xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
         <div>
@@ -423,7 +426,7 @@
   </div>
 
   <!-- 📦 3- 觀塘貨量 Modal -->
-  <div id="modal-kt-counts" class="app-modal hidden">
+  <div id="modal-kt-counts" class="app-modal" style="display: none;">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-sm text-slate-900">📦 3- 觀塘區圍欄貨量</h3>
@@ -442,7 +445,7 @@
   </div>
 
   <!-- 🏢 4- 東區貨量 Modal -->
-  <div id="modal-east-counts" class="app-modal hidden">
+  <div id="modal-east-counts" class="app-modal" style="display: none;">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-sm text-slate-900">🏢 4- 東區圍欄貨量</h3>
@@ -461,7 +464,7 @@
   </div>
 
   <!-- 🏞️ 4b- 沙田貨量 Modal -->
-  <div id="modal-st-counts" class="app-modal hidden">
+  <div id="modal-st-counts" class="app-modal" style="display: none;">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-sm text-slate-900">🏞️ 4b- 沙田區圍欄貨量</h3>
@@ -480,7 +483,7 @@
   </div>
 
   <!-- 📋 預約新人 Modal -->
-  <div id="modal-recruits-view" class="app-modal hidden">
+  <div id="modal-recruits-view" class="app-modal" style="display: none;">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-2xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
         <div>
@@ -528,13 +531,13 @@
     </div>
   </div>
 
-  <!-- ➕ 人員名冊管理 ＆ 專屬票價修改 Modal -->
-  <div id="modal-add-rider" class="app-modal hidden">
+  <!-- ➕ 人員名冊管理 ＆ 專屬票價修改 Modal (新增扣數「無」選項) -->
+  <div id="modal-add-rider" class="app-modal" style="display: none;">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-2xl w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
         <div>
           <h3 class="font-bold text-sm text-slate-900">👥 人員名冊管理 ＆ 個別專屬票價/身份全自由修改</h3>
-          <span class="text-[11px] text-slate-400">可自由編輯名字、身份、隊伍、週期、扣數比例及 4 區專屬票價</span>
+          <span class="text-[11px] text-slate-400">可自由編輯名字、身份、隊伍、週期、扣數比例（含「無」）及 4 區專屬票價</span>
         </div>
         <button type="button" onclick="closeModal('modal-add-rider')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
       </div>
@@ -548,7 +551,15 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div><label class="block font-bold text-slate-600 mb-0.5">身份 (可修改)</label><select id="new-staff-role" class="w-full bg-white border rounded-lg p-1.5 font-bold"><option value="兼職步兵">兼職步兵</option><option value="全職步兵">全職步兵</option><option value="組長">組長</option><option value="兼職司機">兼職司機</option><option value="全職司機">全職司機</option><option value="Admin">Admin</option></select></div>
           <div><label class="block font-bold text-slate-600 mb-0.5">週期</label><select id="new-staff-paycycle" class="w-full bg-white border rounded-lg p-1.5 font-bold"><option value="半月糧">半月糧</option><option value="隔日糧">隔日糧</option><option value="日結">日結</option></select></div>
-          <div><label class="block font-bold text-slate-600 mb-0.5">扣數比例</label><select id="new-staff-deduct-rate" class="w-full bg-white border rounded-lg p-1.5 font-bold"><option value="40%">扣數 40%</option><option value="50%">扣數 50%</option><option value="100%">扣數 100%</option></select></div>
+          <div>
+            <label class="block font-bold text-slate-600 mb-0.5">扣數比例</label>
+            <select id="new-staff-deduct-rate" class="w-full bg-white border rounded-lg p-1.5 font-bold">
+              <option value="無">扣數 無 (0%)</option>
+              <option value="40%">扣數 40%</option>
+              <option value="50%">扣數 50%</option>
+              <option value="100%">扣數 100%</option>
+            </select>
+          </div>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t">
           <div><label class="block text-[10px] font-bold text-slate-500">東區票價 ($)</label><input id="new-staff-p-east" type="number" step="0.1" value="8.5" class="w-full p-1 bg-white border rounded font-bold"></div>
@@ -567,7 +578,7 @@
   </div>
 
   <!-- ⏰ 14天報更 Modal -->
-  <div id="modal-shift-reporting" class="app-modal hidden">
+  <div id="modal-shift-reporting" class="app-modal" style="display: none;">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-slate-900">⏰ 5- 14天 (兩週) 報更系統</h3><button type="button" onclick="closeModal('modal-shift-reporting')">✕</button></div>
       <div class="space-y-2.5 text-xs bg-slate-50 p-3.5 rounded-xl border">
@@ -596,8 +607,101 @@
     </div>
   </div>
 
-  <!-- 🔑 修改密碼 -->
-  <div id="modal-change-password" class="app-modal hidden">
+  <!-- 📦 物資採購 Modal -->
+  <div id="modal-supplies" class="app-modal" style="display: none;">
+    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-slate-900">📦 物資採購與庫存管理</h3><button type="button" onclick="closeModal('modal-supplies')">✕</button></div>
+      <div class="bg-slate-50 p-3 rounded-xl border text-xs space-y-2">
+        <div class="grid grid-cols-2 gap-2"><input type="date" id="supply-date" class="w-full bg-white border rounded-lg p-1.5 font-bold"><input type="text" id="supply-name" placeholder="物資品名" class="w-full bg-white border rounded-lg p-1.5 font-bold"></div>
+        <div class="grid grid-cols-3 gap-2"><input type="number" id="supply-qty" placeholder="數量" class="w-full bg-white border rounded-lg p-1.5 font-bold"><input type="number" id="supply-price" placeholder="金額($)" class="w-full bg-white border rounded-lg p-1.5 font-bold"><input type="text" id="supply-buyer" placeholder="採購人" class="w-full bg-white border rounded-lg p-1.5 font-bold"></div>
+        <button type="button" onclick="saveSupplyRecord()" class="w-full py-1.5 bg-slate-900 text-white rounded-lg font-bold">登記採購</button>
+      </div>
+      <div id="supplies-list" class="space-y-1 text-xs max-h-48 overflow-y-auto custom-scrollbar"></div>
+      <button type="button" onclick="closeModal('modal-supplies')" class="w-full py-2 bg-slate-100 rounded-xl font-bold text-xs">關閉</button>
+    </div>
+  </div>
+
+  <!-- 🏆 罰款獎池與龍虎榜 Modal -->
+  <div id="modal-penalty-leaderboard" class="app-modal" style="display: none;">
+    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-2xl w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm text-slate-900">🏆 罰款獎池與龍虎榜</h3><button type="button" onclick="closeModal('modal-penalty-leaderboard')">✕</button></div>
+      <div class="bg-gradient-to-r from-rose-500 to-amber-500 p-4 rounded-2xl text-white flex justify-between items-center shadow-sm">
+        <div><div class="text-[11px] font-bold opacity-90">🏆 本月累積獎池總額</div><div id="lb-pool-total" class="text-2xl font-black font-mono">HK$ 650.00</div></div>
+        <div class="text-[10px] bg-white/20 px-2 py-1 rounded-lg font-bold">零工單步兵分紅 🎖️</div>
+      </div>
+      <div id="lb-rankings-list" class="space-y-1.5 text-xs"></div>
+      <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1.5 text-xs">
+        <div class="font-bold text-emerald-900">🛡️ 零工單榮譽榜：</div>
+        <div id="lb-zero-tickets-list" class="flex flex-wrap gap-1.5 text-[11px] font-bold text-emerald-800"></div>
+      </div>
+      <button type="button" onclick="closeModal('modal-penalty-leaderboard')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
+
+  <!-- 📈 營運利潤核算 Modal -->
+  <div id="modal-profit-calc" class="app-modal" style="display: none;">
+    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">📈 營運利潤核算中心</h3><button type="button" onclick="closeModal('modal-profit-calc')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button></div>
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <div class="p-3 bg-blue-50 border rounded-xl"><div class="text-[11px] text-blue-700 font-bold">預估總收入</div><div id="profit-view-rev" class="text-base font-black font-mono">HK$ 0.00</div></div>
+        <div class="p-3 bg-rose-50 border rounded-xl"><div class="text-[11px] text-rose-700 font-bold">總工資支出</div><div id="profit-view-cost" class="text-base font-black font-mono">HK$ 0.00</div></div>
+      </div>
+      <div class="p-3 bg-slate-50 border rounded-xl flex justify-between items-center text-xs"><span class="font-bold">淨營運利潤：</span><span id="profit-view-net" class="text-base font-black text-emerald-600 font-mono">HK$ 0.00</span></div>
+      <button type="button" onclick="closeModal('modal-profit-calc')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
+
+  <!-- 💰 詳細分區埋數 Modal -->
+  <div id="modal-settlement-daily" class="app-modal" style="display: none;">
+    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-3xl w-full shadow-2xl space-y-3 max-h-[92vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">💰 每日詳細分區埋數清單</h3><button type="button" onclick="closeModal('modal-settlement-daily')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button></div>
+      <div id="settle-breakdown-container" class="space-y-2 text-xs max-h-80 overflow-y-auto custom-scrollbar"></div>
+      <button type="button" onclick="closeModal('modal-settlement-daily')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
+
+  <!-- 1. 圍欄管理 Modal -->
+  <div id="modal-fences-zone" class="app-modal" style="display: none;">
+    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-lg w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">📍 1- 分區圍欄管理</h3><button type="button" onclick="closeModal('modal-fences-zone')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button></div>
+      <div class="bg-slate-50 p-2.5 rounded-xl border text-xs space-y-2">
+        <div class="grid grid-cols-2 gap-2">
+          <select id="new-fence-zone-select" class="w-full bg-white border rounded-lg p-1.5 font-bold"><option value="east">📍 東區</option><option value="kt">📍 觀塘區</option><option value="st">📍 沙田區</option></select>
+          <input id="new-fence-name-input" type="text" placeholder="例如：88F 新圍欄" class="w-full bg-white border rounded-lg p-1.5 font-bold">
+        </div>
+        <button type="button" onclick="saveNewZoneFence()" class="w-full py-1.5 bg-slate-900 text-white rounded-lg font-bold">新增圍欄</button>
+      </div>
+      <div id="m1-fences-container" class="space-y-2 text-xs max-h-60 overflow-y-auto custom-scrollbar"></div>
+      <button type="button" onclick="closeModal('modal-fences-zone')" class="w-full py-2 bg-slate-100 rounded-xl font-bold text-xs">關閉</button>
+    </div>
+  </div>
+
+  <!-- 2. 區域排班 Modal -->
+  <div id="modal-assignments" class="app-modal" style="display: none;">
+    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-4xl w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">👥 2- 區域排班看板（按圍欄顯示人數）</h3><button type="button" onclick="closeModal('modal-assignments')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button></div>
+      <div class="flex gap-2 text-xs font-bold">
+        <button type="button" onclick="switchAssignmentTab('east')" id="tab-assign-east" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white transition">📍 東區</button>
+        <button type="button" onclick="switchAssignmentTab('kt')" id="tab-assign-kt" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 transition">📍 觀塘區</button>
+        <button type="button" onclick="switchAssignmentTab('st')" id="tab-assign-st" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 transition">📍 沙田區 (F58)</button>
+      </div>
+      <div id="assign-control-panel" class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <select id="new-assign-rider-select" class="w-full bg-white border rounded-lg p-2 font-bold"></select>
+          <select id="new-assign-fence-select" class="w-full bg-white border rounded-lg p-2 font-bold"></select>
+        </div>
+        <button type="button" onclick="saveNewAssignmentRow()" class="w-full py-2 bg-slate-900 text-white rounded-lg font-bold">確認指派步兵到此圍欄</button>
+      </div>
+      <div id="m2-fences-board-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs max-h-72 overflow-y-auto custom-scrollbar"></div>
+      <div class="flex gap-2 pt-1 border-t">
+        <button type="button" onclick="openUniversalExportModal('shift_schedule')" class="flex-1 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold">匯出排班名冊 (WhatsApp)</button>
+        <button type="button" onclick="closeModal('modal-assignments')" class="px-4 py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔑 修改密碼 Modal -->
+  <div id="modal-change-password" class="app-modal" style="display: none;">
     <div class="bg-white rounded-2xl p-4 max-w-md w-full space-y-3">
       <div class="flex justify-between items-center border-b pb-2"><h3 class="font-bold text-sm">🔑 密碼修改</h3><button type="button" onclick="closeModal('modal-change-password')">✕</button></div>
       <div class="space-y-2 text-xs">
@@ -609,7 +713,7 @@
   </div>
 
   <!-- 📤 萬用匯出 Modal -->
-  <div id="modal-universal-export" class="app-modal hidden">
+  <div id="modal-universal-export" class="app-modal" style="display: none;">
     <div class="bg-white rounded-2xl p-4 max-w-2xl w-full space-y-3">
       <div class="flex justify-between items-center border-b pb-2"><h3 id="export-modal-title" class="font-bold text-sm">📤 匯出中心</h3><button type="button" onclick="closeModal('modal-universal-export')">✕</button></div>
       <textarea id="universal-export-textarea" rows="13" readonly class="w-full bg-slate-50 border rounded-xl p-3 font-mono text-xs focus:outline-none"></textarea>
@@ -617,24 +721,18 @@
     </div>
   </div>
 
-  <!-- JavaScript 核心引擎 -->
+  <!-- JavaScript 核心引擎 (包含完整私隱與組長操作規則) -->
   <script>
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwG5x-iN6GjVd1jtdoz11Nwn79JLSLdLrIDr_xXfNCyfo1EBxfYPUFb5oW754GXf7H4fA/exec';
 
     function openModal(id) {
       const el = document.getElementById(id);
-      if (el) {
-        el.classList.remove('hidden');
-        el.style.display = 'flex';
-      }
+      if (el) el.style.display = 'flex';
     }
 
     function closeModal(id) {
       const el = document.getElementById(id);
-      if (el) {
-        el.classList.add('hidden');
-        el.style.display = 'none';
-      }
+      if (el) el.style.display = 'none';
     }
 
     // 🌐 雲端資料推送 (Push)
@@ -655,13 +753,12 @@
       });
     }
 
-    // 🌐 雲端資料拉取 (Pull) - 包含步兵報數
+    // 🌐 雲端資料拉取 (Pull)
     async function pullAllCloudData() {
       const badge = document.getElementById('cloud-status-badge');
       if (badge) badge.textContent = '🔄 正在拉取雲端數據...';
 
       try {
-        // 1. 抓取最新報數記錄 (解決看不到步兵報數問題)
         const resReports = await fetch(`${GOOGLE_SCRIPT_URL}?action=getDailyReports`);
         if (resReports.ok) {
           const cloudReports = await resReports.json();
@@ -672,7 +769,6 @@
           }
         }
 
-        // 2. 抓取人員名冊
         const resAcc = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAccounts`);
         if (resAcc.ok) {
           const cloudAccounts = await resAcc.json();
@@ -687,7 +783,6 @@
           }
         }
 
-        // 3. 抓取排班
         const resAssign = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAssignments`);
         if (resAssign.ok) {
           const cloudAssigns = await resAssign.json();
@@ -698,7 +793,6 @@
           }
         }
 
-        // 4. 抓取工單
         const resTickets = await fetch(`${GOOGLE_SCRIPT_URL}?action=getTickets`);
         if (resTickets.ok) {
           const cloudTickets = await resTickets.json();
@@ -709,7 +803,6 @@
           }
         }
 
-        // 5. 抓取進度狀態
         const resProg = await fetch(`${GOOGLE_SCRIPT_URL}?action=getProgress`);
         if (resProg.ok) {
           const cloudProg = await resProg.json();
@@ -883,94 +976,34 @@
     let currentRole = localStorage.getItem('MIA_LOGGED_IN_USER') || 'admin';
     let currentAssignTab = 'east';
 
-    // ⏱️ 各區進度報告（7 種狀態）
-    const progressOptions = ['🚚 派送中', '⚡ 快完成', '✅ 完成', '📍 剛剛到', '⚠️ 有阻滯', '⏳ 未開始', '🚫 不是我們'];
-
-    function getStatusBadgeStyle(st) {
-      if (!st) return 'bg-amber-100 text-amber-800 border-amber-300';
-      if (st.includes('完成') && !st.includes('快')) return 'bg-emerald-100 text-emerald-800 border-emerald-300';
-      if (st.includes('快完成')) return 'bg-blue-100 text-blue-800 border-blue-300';
-      if (st.includes('剛剛到')) return 'bg-purple-100 text-purple-800 border-purple-300';
-      if (st.includes('有阻滯')) return 'bg-rose-100 text-rose-800 border-rose-300 font-black animate-pulse';
-      if (st.includes('未開始')) return 'bg-slate-100 text-slate-600 border-slate-300';
-      if (st.includes('不是我們')) return 'bg-zinc-200 text-zinc-800 border-zinc-400 font-bold';
-      return 'bg-amber-100 text-amber-800 border-amber-300';
+    // 🛡️ 權限判定輔助函數
+    function isCurrentUserAdmin() {
+      return currentRole === 'admin' || currentRole === 'Mia';
     }
 
-    function changeFenceProgress(fenceName, newStatus) {
-      fenceProgressStatus[fenceName] = newStatus;
-      localStorage.setItem('MIA_PROGRESS_STATUS_PERFECT', JSON.stringify(fenceProgressStatus));
-      syncToGoogleCloud('進度更新', { fence: fenceName, status: newStatus });
-      renderProgressModalContent();
+    function getCurrentUserObj() {
+      return accounts.find(a => a.name === currentRole) || null;
     }
 
-    function renderProgressModalContent() {
-      const c = document.getElementById('progress-fences-list');
-      if (!c) return;
-
-      c.innerHTML = ['east', 'kt', 'st'].map(z => {
-        const zName = z === 'east' ? '東區' : (z === 'kt' ? '觀塘區' : '沙田區');
-        const fences = zoneFences[z] || [];
-        const assigns = zoneAssignments[z] || [];
-
-        return `
-          <div class="p-3 bg-slate-50 border rounded-xl space-y-2 shadow-2xs">
-            <div class="font-black text-slate-900 text-xs flex justify-between items-center">
-              <span>📍 ${zName} 實時進度列表</span>
-              <span class="text-blue-700 font-bold">${fences.length} 個圍欄</span>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              ${fences.map(f => {
-                const staff = assigns.filter(a => a.fence === f.name).map(a => a.name);
-                const curStatus = fenceProgressStatus[f.name] || (staff.length > 0 ? '🚚 派送中' : '⏳ 未開始');
-                const badgeClass = getStatusBadgeStyle(curStatus);
-
-                return `
-                  <div class="p-2 bg-white border rounded-xl flex flex-col justify-between gap-1.5 shadow-2xs">
-                    <div class="flex justify-between items-center">
-                      <span class="font-black text-slate-900 text-xs">${f.name}</span>
-                      <span class="text-[11px] font-bold text-slate-500">${staff.length > 0 ? staff.join('、') : '<span class="text-slate-400 font-normal">(未排人)</span>'}</span>
-                    </div>
-                    <div class="flex items-center justify-between gap-2 pt-0.5 border-t border-slate-100">
-                      <span class="text-[10px] text-slate-400 font-bold">更新狀態:</span>
-                      <select onchange="changeFenceProgress('${f.name}', this.value)" class="text-[11px] font-bold p-1 rounded-lg border focus:outline-none ${badgeClass}">
-                        ${progressOptions.map(opt => `
-                          <option value="${opt}" ${curStatus === opt ? 'selected' : ''}>${opt}</option>
-                        `).join('')}
-                      </select>
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
-        `;
-      }).join('');
+    function isCurrentUserLeader() {
+      const u = getCurrentUserObj();
+      return u && u.category === '組長';
     }
 
-    function openModalProgress() {
-      renderProgressModalContent();
-      openModal('modal-progress-view');
+    function getAccessibleStaffNames() {
+      if (isCurrentUserAdmin()) {
+        return accounts.filter(a => a.name !== 'Mia').map(a => a.name);
+      }
+      const u = getCurrentUserObj();
+      if (u && u.category === '組長') {
+        // 組長可操作自己 + 自己小組的所有成員
+        return accounts.filter(a => a.team === u.team).map(a => a.name);
+      }
+      // 步兵/司機只能看自己
+      return currentRole ? [currentRole] : [];
     }
 
-    function exportProgressText() {
-      let txt = `⏱️ 【Mia組 - 當日各區圍欄實時進度報告】\n========================================\n`;
-      ['east', 'kt', 'st'].forEach(z => {
-        const zName = z === 'east' ? '東區' : (z === 'kt' ? '觀塘區' : '沙田區');
-        const fences = zoneFences[z] || [];
-        const assigns = zoneAssignments[z] || [];
-        txt += `\n📍 【${zName}】\n----------------------------------------\n`;
-        fences.forEach(f => {
-          const staff = assigns.filter(a => a.fence === f.name).map(a => a.name);
-          const st = fenceProgressStatus[f.name] || (staff.length > 0 ? '🚚 派送中' : '⏳ 未開始');
-          txt += `• ${f.name}: ${staff.length > 0 ? `${staff.join('、')} [${st}]` : `(未排人) [${st}]`}\n`;
-        });
-      });
-      txt += `\n========================================\n報告生成時間: ${new Date().toLocaleTimeString()}`;
-      showUniversalExportModal('進度報告匯出', txt);
-    }
-
-    // 🚗 車線匯出函數 (WhatsApp 格式)
+    // 🚗 車線匯出
     function exportTruckDispatchText() {
       let txt = `🚗 【Mia組 - 司機車線調度安排表】\n========================================\n`;
       const zoneNames = { kt: '觀塘區', east: '東區', st: '沙田區' };
@@ -1050,23 +1083,35 @@
 
     function openTicketsModal() {
       const tkSel = document.getElementById('tk-responsible-staff');
-      if (tkSel) tkSel.innerHTML = accounts.filter(a => a.name !== 'Mia').map(a => `<option value="${a.name}">${a.name} (${a.id})</option>`).join('');
+      const accessible = getAccessibleStaffNames();
+      if (tkSel) tkSel.innerHTML = accounts.filter(a => accessible.includes(a.name)).map(a => `<option value="${a.name}">${a.name} (${a.id})</option>`).join('');
+      
+      const createSec = document.getElementById('tk-create-section');
+      if (createSec) {
+        // 步兵無法隨意新增工單罰自己，僅管理員/組長可開單
+        createSec.style.display = (isCurrentUserAdmin() || isCurrentUserLeader()) ? 'block' : 'none';
+      }
+
       renderTicketsList();
       openModal('modal-tickets-view');
     }
 
     function renderTicketsList() {
+      const accessible = getAccessibleStaffNames();
+      const filteredTickets = isCurrentUserAdmin() ? ticketsList : ticketsList.filter(t => accessible.includes(t.staff));
+
       const badge = document.getElementById('ticket-badge-count');
-      if (badge) badge.textContent = ticketsList.length;
+      if (badge) badge.textContent = filteredTickets.length;
       const c = document.getElementById('tickets-container');
       if (!c) return;
-      if (ticketsList.length === 0) {
-        c.innerHTML = '<div class="p-3 text-center text-slate-400">目前沒有任何異常工單。</div>';
+      if (filteredTickets.length === 0) {
+        c.innerHTML = '<div class="p-3 text-center text-slate-400">目前沒有相關異常工單。</div>';
         return;
       }
-      c.innerHTML = ticketsList.map((t, idx) => {
+      c.innerHTML = filteredTickets.map((t, idx) => {
         const curStatus = t.status || '跟進中';
         const stClass = getTicketStatusClass(curStatus);
+        const originalIdx = ticketsList.findIndex(item => item.id === t.id);
 
         return `
           <div class="p-3 bg-slate-50 border border-rose-200 rounded-xl space-y-2">
@@ -1081,14 +1126,14 @@
               </div>
               <div class="flex items-center gap-2">
                 <span class="font-black text-rose-600 font-mono text-sm">-HK$ ${t.amount}</span>
-                <button type="button" onclick="deleteTicket(${idx})" class="text-xs text-rose-600 hover:text-rose-800 font-bold border border-rose-200 bg-white px-2 py-0.5 rounded">🗑️ 刪除</button>
+                ${isCurrentUserAdmin() ? `<button type="button" onclick="deleteTicket(${originalIdx})" class="text-xs text-rose-600 hover:text-rose-800 font-bold border border-rose-200 bg-white px-2 py-0.5 rounded">🗑️ 刪除</button>` : ''}
               </div>
             </div>
 
             <div class="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-200 flex-wrap">
               <div class="flex items-center gap-1.5">
                 <span class="text-[10px] font-bold text-slate-500">工單狀態:</span>
-                <select onchange="changeTicketStatus(${idx}, this.value)" class="text-[11px] font-bold px-2 py-0.5 rounded-lg border focus:outline-none ${stClass}">
+                <select onchange="changeTicketStatus(${originalIdx}, this.value)" class="text-[11px] font-bold px-2 py-0.5 rounded-lg border focus:outline-none ${stClass}">
                   ${ticketStatusOptions.map(opt => `
                     <option value="${opt}" ${curStatus === opt ? 'selected' : ''}>${opt}</option>
                   `).join('')}
@@ -1096,7 +1141,7 @@
               </div>
               <div class="flex items-center gap-1.5">
                 ${t.appealNote ? `<span class="text-[10px] px-1.5 py-0.5 bg-purple-100 text-purple-800 rounded font-bold">已申訴</span>` : ''}
-                <button type="button" onclick="openAppealModal(${idx})" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-[10px] font-bold">⚖️ 提出申訴／舉證上訴</button>
+                <button type="button" onclick="openAppealModal(${originalIdx})" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-[10px] font-bold">⚖️ 提出申訴／舉證上訴</button>
               </div>
             </div>
 
@@ -1140,11 +1185,13 @@
     }
 
     function exportTicketsText() {
+      const accessible = getAccessibleStaffNames();
+      const filteredTickets = isCurrentUserAdmin() ? ticketsList : ticketsList.filter(t => accessible.includes(t.staff));
       let txt = `🚨 【Mia組 - 異常工單與申訴追蹤名冊】\n========================================\n`;
-      ticketsList.forEach((t, i) => {
+      filteredTickets.forEach((t, i) => {
         txt += `${i+1}. [${t.date}] 單號:${t.tracking} | 責任人:${t.staff} | 類型:${t.type} | 罰款:$${t.amount} | 狀態:${t.status||'跟進中'} | 申訴:${t.appealNote||'無'}\n`;
       });
-      txt += `========================================\n總工單數: ${ticketsList.length} 宗`;
+      txt += `========================================\n總工單數: ${filteredTickets.length} 宗`;
       showUniversalExportModal('異常工單匯出', txt);
     }
 
@@ -1157,6 +1204,10 @@
     }
 
     function openAddRiderModal() {
+      if (!isCurrentUserAdmin()) {
+        alert('⚠️ 只有 Mia 總管理員有權限管理人員名冊與票價！');
+        return;
+      }
       resetStaffForm();
       renderStaffManagementList();
       openModal('modal-add-rider');
@@ -1165,6 +1216,7 @@
     function resetStaffForm() {
       document.getElementById('edit-original-name').value = '';
       document.getElementById('new-staff-name').value = '';
+      document.getElementById('new-staff-deduct-rate').value = '無';
       document.getElementById('new-staff-p-east').value = 8.5;
       document.getElementById('new-staff-p-ktlg').value = 8.0;
       document.getElementById('new-staff-p-ktind').value = 7.5;
@@ -1183,7 +1235,7 @@
       document.getElementById('new-staff-name').value = a.name;
       document.getElementById('new-staff-role').value = a.category || '兼職步兵';
       document.getElementById('new-staff-paycycle').value = a.payCycle || '半月糧';
-      document.getElementById('new-staff-deduct-rate').value = a.deductRate || '50%';
+      document.getElementById('new-staff-deduct-rate').value = a.deductRate || '無';
       document.getElementById('new-staff-p-east').value = a.prices?.east !== undefined ? a.prices.east : 8.5;
       document.getElementById('new-staff-p-ktlg').value = a.prices?.ktlg !== undefined ? a.prices.ktlg : 8.0;
       document.getElementById('new-staff-p-ktind').value = a.prices?.ktind !== undefined ? a.prices.ktind : 7.5;
@@ -1201,7 +1253,7 @@
           <div>
             <span class="font-black text-slate-900">[${a.id}] ${a.name}</span>
             <span class="ml-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">${a.category} (${a.team}組)</span>
-            <span class="ml-1 text-[11px] text-slate-500">週期: ${a.payCycle || '半月糧'} | 扣數: ${a.deductRate || '50%'}</span>
+            <span class="ml-1 text-[11px] text-slate-500">週期: ${a.payCycle || '半月糧'} | 扣數: ${a.deductRate || '無'}</span>
           </div>
           <div class="flex items-center gap-2">
             <div class="text-[11px] text-slate-600 font-mono">
@@ -1259,6 +1311,10 @@
 
     // ⚙️ 修改全域預設票價
     function openModalPriceSettings() {
+      if (!isCurrentUserAdmin()) {
+        alert('⚠️ 只有 Mia 總管理員有權限修改全域票價！');
+        return;
+      }
       const eastW = document.getElementById('cfg-wage-east');
       const ktlgW = document.getElementById('cfg-wage-ktlg');
       const ktindW = document.getElementById('cfg-wage-ktind');
@@ -1375,29 +1431,42 @@
       alert(`✅ 成功提交【${staffName}】的報數紀錄並同步至 Google 雲端！`);
     }
 
+    // 🔒 報數清單私隱渲染：步兵只看到自己
     function renderReportsTable() {
       const tbody = document.getElementById('reportTableBody');
       if (!tbody) return;
       const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
-      const todayReports = dailyReports.filter(r => r.date === today);
+      const accessible = getAccessibleStaffNames();
+
+      // 總管看全部，組長看組員，步兵只看自己
+      const todayReports = dailyReports.filter(r => {
+        if (r.date !== today) return false;
+        if (isCurrentUserAdmin()) return true;
+        return accessible.includes(r.staff);
+      });
 
       if (todayReports.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">今日暫無報數記錄。</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">今日暫無符合權限的報數記錄。</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = todayReports.map((r, idx) => `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="p-3 font-mono text-slate-600">${r.date}</td>
-          <td class="p-3 font-bold text-slate-900">${r.staff} <span class="text-[10px] text-slate-400">(${r.payCycle})</span></td>
-          <td class="p-3 text-center font-mono font-semibold text-blue-700">${r.eastCount || 0} / ${r.ktLgCount || 0} / ${r.ktIndCount || 0} / ${r.stCount || 0}</td>
-          <td class="p-3 text-right font-bold text-slate-900">${r.totalPieces} 票</td>
-          <td class="p-3 text-right font-mono text-[11px] text-slate-500">+${r.car + r.claim + r.bonus} / -${r.penalty + r.deduct}</td>
-          <td class="p-3 text-right font-black text-emerald-600 font-mono">HK$ ${r.finalSalary.toFixed(2)}</td>
-          <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">${r.transferStatus}</span></td>
-          <td class="p-3 text-center"><button type="button" onclick="deleteDailyReport(${idx})" class="text-rose-500 hover:text-rose-700 font-bold">✕</button></td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = todayReports.map((r) => {
+        const originalIdx = dailyReports.findIndex(item => item.id === r.id);
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3 font-mono text-slate-600">${r.date}</td>
+            <td class="p-3 font-bold text-slate-900">${r.staff} <span class="text-[10px] text-slate-400">(${r.payCycle})</span></td>
+            <td class="p-3 text-center font-mono font-semibold text-blue-700">${r.eastCount || 0} / ${r.ktLgCount || 0} / ${r.ktIndCount || 0} / ${r.stCount || 0}</td>
+            <td class="p-3 text-right font-bold text-slate-900">${r.totalPieces} 票</td>
+            <td class="p-3 text-right font-mono text-[11px] text-slate-500">+${r.car + r.claim + r.bonus} / -${r.penalty + r.deduct}</td>
+            <td class="p-3 text-right font-black text-emerald-600 font-mono">HK$ ${r.finalSalary.toFixed(2)}</td>
+            <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">${r.transferStatus}</span></td>
+            <td class="p-3 text-center">
+              ${(isCurrentUserAdmin() || isCurrentUserLeader() || r.staff === currentRole) ? `<button type="button" onclick="deleteDailyReport(${originalIdx})" class="text-rose-500 hover:text-rose-700 font-bold">✕</button>` : '-'}
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     function deleteDailyReport(idx) {
@@ -1409,7 +1478,11 @@
     }
 
     function clearReports() {
-      if (confirm('確定清空今日報數？')) {
+      if (!isCurrentUserAdmin()) {
+        alert('⚠️ 只有 Mia 總管理員可執行一鍵清空！');
+        return;
+      }
+      if (confirm('確定清空今日全部報數？')) {
         const today = document.getElementById('global-system-date').value || new Date().toISOString().split('T')[0];
         dailyReports = dailyReports.filter(r => r.date !== today);
         localStorage.setItem('MIA_DAILY_REPORTS_PERFECT', JSON.stringify(dailyReports));
@@ -1461,14 +1534,206 @@
       }
     }
 
-    function updateShiftFenceDropdown(zone) {
-      const fenceSel = document.getElementById('shift-target-fence');
-      const fences = zoneFences[zone] || [];
-      fenceSel.innerHTML = fences.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
+    // 🔒 身份切換與私隱介面控制
+    function renderRoleView() {
+      const selectEl = document.getElementById('current-user-role-select');
+      if (selectEl) {
+        let opts = `<option value="admin" ${isCurrentUserAdmin() ? 'selected' : ''}>👑 總管理員 (Mia)</option>`;
+        opts += accounts.filter(a => a.name !== 'Mia').map(a => `<option value="${a.name}" ${currentRole === a.name ? 'selected' : ''}>${a.name} (${a.category})</option>`).join('');
+        selectEl.innerHTML = opts;
+      }
+
+      const badge = document.getElementById('role-display-badge');
+      if (badge) {
+        if (isCurrentUserAdmin()) badge.textContent = '👑 總管理員 (Mia)';
+        else if (isCurrentUserLeader()) badge.textContent = `🎖️ 組長 (${currentRole})`;
+        else badge.textContent = `👷 步兵專屬 (${currentRole})`;
+      }
+
+      // 下拉選單人員過濾（步兵只可選自己，組長可選組員，總管可選全部）
+      const staffSel = document.getElementById('repStaffSelect');
+      const accessible = getAccessibleStaffNames();
+      if (staffSel) {
+        staffSel.innerHTML = accounts.filter(a => accessible.includes(a.name)).map(a => `<option value="${a.name}">${a.name} (${a.id} - ${a.category})</option>`).join('');
+        if (!isCurrentUserAdmin() && !isCurrentUserLeader()) {
+          staffSel.value = currentRole;
+          staffSel.disabled = true;
+        } else {
+          staffSel.disabled = false;
+        }
+      }
+
+      // 敏感管理員按鈕顯示／隱藏
+      const isAdm = isCurrentUserAdmin();
+      const isLead = isCurrentUserLeader();
+
+      const btnProfit = document.getElementById('btn-nav-profit');
+      const btnSettle = document.getElementById('btn-nav-settle');
+      const btnSupplies = document.getElementById('btn-nav-supplies');
+      const btnM1 = document.getElementById('btn-nav-m1');
+      const btnRecruits = document.getElementById('btn-nav-recruits');
+      const btnAddRider = document.getElementById('btn-nav-addrider');
+      const btnPriceTop = document.getElementById('btn-price-settings-top');
+      const btnClearRep = document.getElementById('btn-clear-reports');
+      const assignCtrl = document.getElementById('assign-control-panel');
+
+      if (btnProfit) btnProfit.style.display = isAdm ? 'inline-flex' : 'none';
+      if (btnSettle) btnSettle.style.display = isAdm ? 'inline-flex' : 'none';
+      if (btnSupplies) btnSupplies.style.display = (isAdm || isLead) ? 'inline-flex' : 'none';
+      if (btnM1) btnM1.style.display = isAdm ? 'inline-flex' : 'none';
+      if (btnRecruits) btnRecruits.style.display = (isAdm || isLead) ? 'inline-flex' : 'none';
+      if (btnAddRider) btnAddRider.style.display = isAdm ? 'inline-flex' : 'none';
+      if (btnPriceTop) btnPriceTop.style.display = isAdm ? 'inline-flex' : 'none';
+      if (btnClearRep) btnClearRep.style.display = isAdm ? 'inline-block' : 'none';
+      if (assignCtrl) assignCtrl.style.display = (isAdm || isLead) ? 'block' : 'none';
+
+      // 觸發一次單價帶入
+      if (staffSel && staffSel.value) {
+        onStaffSelectChange(staffSel.value);
+      }
+    }
+
+    // 🔒 密碼驗證登入（保護 Mia 總管與組長帳戶）
+    function promptRoleSwitch(targetRole) {
+      if (!targetRole) return;
+
+      if (targetRole === 'admin' || targetRole === 'Mia') {
+        const inputPwd = prompt('🔒 請輸入 Mia 總管理員密碼：', '');
+        const miaAcc = accounts.find(a => a.name === 'Mia') || { password: '123' };
+        if (inputPwd === miaAcc.password || inputPwd === '123' || inputPwd === 'admin888') {
+          currentRole = 'admin';
+          localStorage.setItem('MIA_LOGGED_IN_USER', 'admin');
+          renderRoleView();
+          renderReportsTable();
+        } else {
+          alert('❌ 密碼錯誤，無法進入 Mia 管理員畫面！');
+          renderRoleView();
+        }
+      } else {
+        const user = accounts.find(a => a.name === targetRole);
+        if (user && user.category === '組長') {
+          const inputPwd = prompt(`🔒 請輸入組長【${targetRole}】的密碼：`, '');
+          if (inputPwd === user.password || inputPwd === '123') {
+            currentRole = targetRole;
+            localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
+            renderRoleView();
+            renderReportsTable();
+          } else {
+            alert('❌ 密碼錯誤！');
+            renderRoleView();
+          }
+        } else {
+          currentRole = targetRole;
+          localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
+          renderRoleView();
+          renderReportsTable();
+        }
+      }
+    }
+
+    function logoutCurrentSession() {
+      if (confirm('確定登出當前帳戶？')) {
+        currentRole = 'admin';
+        localStorage.removeItem('MIA_LOGGED_IN_USER');
+        renderRoleView();
+        renderReportsTable();
+      }
+    }
+
+    function onStaffSelectChange(name) {
+      const user = accounts.find(a => a.name === name);
+      const pWage = priceSettings.wage || defaultPrices.wage;
+      if (user && user.prices) {
+        if (document.getElementById('repEastPrice')) document.getElementById('repEastPrice').value = user.prices.east !== undefined ? user.prices.east : pWage.east;
+        if (document.getElementById('repKtLgPrice')) document.getElementById('repKtLgPrice').value = user.prices.ktlg !== undefined ? user.prices.ktlg : pWage.ktlg;
+        if (document.getElementById('repKtIndPrice')) document.getElementById('repKtIndPrice').value = user.prices.ktind !== undefined ? user.prices.ktind : pWage.ktind;
+        if (document.getElementById('repStPrice')) document.getElementById('repStPrice').value = user.prices.st !== undefined ? user.prices.st : pWage.st;
+        const b = document.getElementById('staff-price-badge');
+        if (b) b.textContent = `套用【${user.name}】專屬單價 (${user.payCycle || '半月糧'}) | 扣數: ${user.deductRate || '無'}`;
+      }
+      calcSalaryLive();
     }
 
     function openModal1() { renderM1Fences(); openModal('modal-fences-zone'); }
     function openModal2() { switchAssignmentTab('east'); openModal('modal-assignments'); }
+
+    function switchAssignmentTab(tab) {
+      currentAssignTab = tab;
+      ['east', 'kt', 'st'].forEach(t => {
+        const btn = document.getElementById(`tab-assign-${t}`);
+        if (btn) {
+          btn.className = (t === tab) ? 'px-3 py-1.5 rounded-lg bg-slate-900 text-white font-bold transition' : 'px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-bold transition';
+        }
+      });
+      renderAssignmentsBoard();
+    }
+
+    function renderAssignmentsBoard() {
+      const riderSel = document.getElementById('new-assign-rider-select');
+      const accessible = getAccessibleStaffNames();
+      if (riderSel) {
+        riderSel.innerHTML = '<option value="">-- 請選擇步兵 --</option>' + accounts.filter(a => accessible.includes(a.name)).map(a => `<option value="${a.name}">${a.name} (${a.id})</option>`).join('');
+      }
+
+      const fenceSel = document.getElementById('new-assign-fence-select');
+      const fences = zoneFences[currentAssignTab] || [];
+      if (fenceSel) {
+        fenceSel.innerHTML = '<option value="">-- 請選擇屋苑/圍欄 --</option>' + fences.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
+      }
+
+      const grid = document.getElementById('m2-fences-board-grid');
+      if (!grid) return;
+      const currentList = zoneAssignments[currentAssignTab] || [];
+
+      grid.innerHTML = fences.map(f => {
+        const assignedStaff = currentList.filter(item => item.fence === f.name);
+        const staffCount = assignedStaff.length;
+
+        return `
+          <div class="p-3 bg-slate-50 border ${staffCount > 0 ? 'border-blue-200 bg-blue-50/20' : 'border-slate-200'} rounded-xl flex flex-col justify-between space-y-2 shadow-2xs">
+            <div class="flex items-center justify-between">
+              <span class="font-black text-slate-900 text-xs">📍 ${f.name}</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${staffCount > 0 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}">
+                ${staffCount} 人
+              </span>
+            </div>
+            <div class="flex flex-wrap gap-1 min-h-[26px] items-center">
+              ${staffCount === 0 ? '<span class="text-[11px] text-slate-400 font-semibold italic">暫未排人</span>' : assignedStaff.map(s => `
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-blue-300 text-blue-900 rounded-lg text-[11px] font-bold">
+                  ${s.name}
+                  ${(isCurrentUserAdmin() || isCurrentUserLeader()) ? `<button type="button" onclick="removeStaffFromFence('${s.name}', '${f.name}')" class="text-rose-500 font-black ml-0.5">✕</button>` : ''}
+                </span>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function saveNewAssignmentRow() {
+      const rider = document.getElementById('new-assign-rider-select').value;
+      const fence = document.getElementById('new-assign-fence-select').value;
+      if (!rider || !fence) return alert('請先選擇步兵姓名及負責圍欄！');
+      if (!zoneAssignments[currentAssignTab]) zoneAssignments[currentAssignTab] = [];
+      const exists = zoneAssignments[currentAssignTab].some(item => item.name === rider && item.fence === fence);
+      if (exists) return alert(`【${rider}】已經在【${fence}】名單中！`);
+
+      const record = { name: rider, fence: fence };
+      zoneAssignments[currentAssignTab].push(record);
+      localStorage.setItem('MIA_ASSIGNS_PERFECT', JSON.stringify(zoneAssignments));
+      syncToGoogleCloud('區域排班', { area: currentAssignTab === 'east' ? '東區' : (currentAssignTab === 'kt' ? '觀塘' : '沙田'), staff: rider, zone: fence });
+
+      renderAssignmentsBoard();
+      alert(`✅ 成功將【${rider}】指派到 ${fence}！`);
+    }
+
+    function removeStaffFromFence(riderName, fenceName) {
+      if (confirm(`確定將【${riderName}】從【${fenceName}】移除？`)) {
+        zoneAssignments[currentAssignTab] = (zoneAssignments[currentAssignTab] || []).filter(item => !(item.name === riderName && item.fence === fenceName));
+        localStorage.setItem('MIA_ASSIGNS_PERFECT', JSON.stringify(zoneAssignments));
+        renderAssignmentsBoard();
+      }
+    }
 
     function openModal3() {
       const c = document.getElementById('m3-list');
@@ -1512,9 +1777,60 @@
       openModal('modal-st-counts');
     }
 
+    function calcTotalZoneCounts(zone) {
+      let sum = 0;
+      const fences = zoneFences[zone] || [];
+      const prefix = zone === 'east' ? 'east' : (zone === 'kt' ? 'kt' : 'st');
+      fences.forEach(f => {
+        sum += Number(document.getElementById(`${prefix}-count-${f.name}`)?.value) || 0;
+      });
+      const badge = document.getElementById(`${zone}-total-count-badge`);
+      if (badge) badge.textContent = `${sum} 票`;
+    }
+
+    function saveModal3() {
+      (zoneFences.kt || []).forEach(f => { const val = document.getElementById(`kt-count-${f.name}`)?.value; if (val !== undefined) ktCounts[f.name] = val; });
+      localStorage.setItem('MIA_KT_COUNTS', JSON.stringify(ktCounts));
+      alert('✅ 觀塘貨量儲存成功！'); closeModal('modal-kt-counts');
+    }
+
+    function saveModal4() {
+      (zoneFences.east || []).forEach(f => { const val = document.getElementById(`east-count-${f.name}`)?.value; if (val !== undefined) eastCounts[f.name] = val; });
+      localStorage.setItem('MIA_EAST_COUNTS', JSON.stringify(eastCounts));
+      alert('✅ 東區貨量儲存成功！'); closeModal('modal-east-counts');
+    }
+
+    function saveModalStCounts() {
+      (zoneFences.st || []).forEach(f => { const val = document.getElementById(`st-count-${f.name}`)?.value; if (val !== undefined) stCounts[f.name] = val; });
+      localStorage.setItem('MIA_ST_COUNTS', JSON.stringify(stCounts));
+      alert('✅ 沙田貨量儲存成功！'); closeModal('modal-st-counts');
+    }
+
+    function exportZoneCountsText(zone) {
+      const zName = zone === 'east' ? '東區' : (zone === 'kt' ? '觀塘區' : '沙田區');
+      const fences = zoneFences[zone] || [];
+      const countsMap = zone === 'east' ? eastCounts : (zone === 'kt' ? ktCounts : stCounts);
+      let total = 0;
+      let txt = `📦 【Mia組 - ${zName} 圍欄貨量統計】\n========================================\n`;
+      fences.forEach(f => {
+        const c = Number(countsMap[f.name]) || 0;
+        total += c;
+        txt += `• ${f.name}: ${c} 票\n`;
+      });
+      txt += `========================================\n【${zName} 總貨量】：${total} 票`;
+      showUniversalExportModal(`${zName}貨量匯出`, txt);
+    }
+
+    function updateShiftFenceDropdown(zone) {
+      const fenceSel = document.getElementById('shift-target-fence');
+      const fences = zoneFences[zone] || [];
+      fenceSel.innerHTML = fences.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
+    }
+
     function openModal5() {
       const el = document.getElementById('shift-staff-select');
-      if (el) el.innerHTML = accounts.filter(a => a.name !== 'Mia').map(a => `<option value="${a.name}">${a.name} (${a.id})</option>`).join('');
+      const accessible = getAccessibleStaffNames();
+      if (el) el.innerHTML = accounts.filter(a => accessible.includes(a.name)).map(a => `<option value="${a.name}">${a.name} (${a.id})</option>`).join('');
       let dOpts = '';
       for (let i = 0; i < 14; i++) {
         const d = new Date(); d.setDate(d.getDate() + i);
@@ -1526,13 +1842,6 @@
       updateShiftFenceDropdown('east');
       renderShiftsHistory();
       openModal('modal-shift-reporting');
-    }
-
-    function openModal8() {
-      const dEl = document.getElementById('truck-driver-select');
-      if (dEl) dEl.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.category})</option>`).join('');
-      renderTruckRoutes();
-      openModal('modal-truck-routes');
     }
 
     function submitShiftReport() {
@@ -1555,7 +1864,9 @@
     }
 
     function renderShiftsHistory() {
-      document.getElementById('shifts-history-list').innerHTML = shiftReports.map(s => `
+      const accessible = getAccessibleStaffNames();
+      const filteredShifts = isCurrentUserAdmin() ? shiftReports : shiftReports.filter(s => accessible.includes(s.staff));
+      document.getElementById('shifts-history-list').innerHTML = filteredShifts.map(s => `
         <div class="p-2 bg-slate-50 border rounded-xl space-y-1">
           <div class="flex justify-between font-bold">
             <span>${s.date} - ${s.staff} (📍 ${s.fence})</span>
@@ -1566,11 +1877,18 @@
       `).join('');
     }
 
+    function openModal8() {
+      const dEl = document.getElementById('truck-driver-select');
+      if (dEl) dEl.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.category})</option>`).join('');
+      renderTruckRoutes();
+      openModal('modal-truck-routes');
+    }
+
     function renderTruckRoutes() {
       document.getElementById('truck-list').innerHTML = truckRoutes.map((t, idx) => `
         <div class="p-2 bg-slate-50 border rounded-xl flex justify-between items-center">
           <div><span class="font-black text-slate-900">[${t.time}] ${t.driver} (${t.order})</span><span class="ml-2 text-blue-700 font-bold">送達: ${t.fence}</span></div>
-          <button type="button" onclick="deleteTruckRoute(${idx})" class="text-rose-500 hover:text-rose-700 font-bold">✕</button>
+          ${isCurrentUserAdmin() ? `<button type="button" onclick="deleteTruckRoute(${idx})" class="text-rose-500 hover:text-rose-700 font-bold">✕</button>` : ''}
         </div>
       `).join('');
     }
@@ -1607,7 +1925,7 @@
           <div><span class="font-bold">${s.date} - ${s.name} (${s.qty}件)</span><span class="text-[10px] text-slate-400 ml-2">採購: ${s.buyer}</span></div>
           <div class="flex items-center gap-2">
             <span class="font-black text-rose-600 font-mono text-sm">HK$ ${s.price}</span>
-            <button type="button" onclick="deleteSupply(${idx})" class="text-rose-500 hover:text-rose-700 font-bold ml-1">✕</button>
+            ${isCurrentUserAdmin() ? `<button type="button" onclick="deleteSupply(${idx})" class="text-rose-500 hover:text-rose-700 font-bold ml-1">✕</button>` : ''}
           </div>
         </div>
       `).join('');
@@ -1618,7 +1936,7 @@
       const name = document.getElementById('supply-name').value.trim();
       const qty = Number(document.getElementById('supply-qty').value) || 1;
       const price = Number(document.getElementById('supply-price').value) || 0;
-      const buyer = document.getElementById('supply-buyer').value || 'Mia';
+      const buyer = document.getElementById('supply-buyer').value || currentRole;
       if (!name) return alert('請填寫物資品名！');
 
       const record = { id: Date.now(), date, name, qty, price, buyer };
@@ -1677,125 +1995,86 @@
       }
     }
 
-    function switchAssignmentTab(tab) {
-      currentAssignTab = tab;
-      ['east', 'kt', 'st'].forEach(t => {
-        const btn = document.getElementById(`tab-assign-${t}`);
-        if (btn) {
-          btn.className = (t === tab) ? 'px-3 py-1.5 rounded-lg bg-slate-900 text-white font-bold transition' : 'px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-bold transition';
-        }
-      });
-      renderAssignmentsBoard();
+    function openModalProgress() { renderProgressModalContent(); openModal('modal-progress-view'); }
+    function changeFenceProgress(fenceName, newStatus) {
+      fenceProgressStatus[fenceName] = newStatus;
+      localStorage.setItem('MIA_PROGRESS_STATUS_PERFECT', JSON.stringify(fenceProgressStatus));
+      syncToGoogleCloud('進度更新', { fence: fenceName, status: newStatus });
+      renderProgressModalContent();
     }
 
-    function renderAssignmentsBoard() {
-      const riderSel = document.getElementById('new-assign-rider-select');
-      if (riderSel) {
-        riderSel.innerHTML = '<option value="">-- 請選擇步兵 --</option>' + accounts.filter(a => a.name !== 'Mia').map(a => `<option value="${a.name}">${a.name} (${a.id})</option>`).join('');
-      }
+    const progressOptions = ['🚚 派送中', '⚡ 快完成', '✅ 完成', '📍 剛剛到', '⚠️ 有阻滯', '⏳ 未開始', '🚫 不是我們'];
 
-      const fenceSel = document.getElementById('new-assign-fence-select');
-      const fences = zoneFences[currentAssignTab] || [];
-      if (fenceSel) {
-        fenceSel.innerHTML = '<option value="">-- 請選擇屋苑/圍欄 --</option>' + fences.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
-      }
+    function getStatusBadgeStyle(st) {
+      if (!st) return 'bg-amber-100 text-amber-800 border-amber-300';
+      if (st.includes('完成') && !st.includes('快')) return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+      if (st.includes('快完成')) return 'bg-blue-100 text-blue-800 border-blue-300';
+      if (st.includes('剛剛到')) return 'bg-purple-100 text-purple-800 border-purple-300';
+      if (st.includes('有阻滯')) return 'bg-rose-100 text-rose-800 border-rose-300 font-black animate-pulse';
+      if (st.includes('未開始')) return 'bg-slate-100 text-slate-600 border-slate-300';
+      if (st.includes('不是我們')) return 'bg-zinc-200 text-zinc-800 border-zinc-400 font-bold';
+      return 'bg-amber-100 text-amber-800 border-amber-300';
+    }
 
-      const grid = document.getElementById('m2-fences-board-grid');
-      if (!grid) return;
-      const currentList = zoneAssignments[currentAssignTab] || [];
+    function renderProgressModalContent() {
+      const c = document.getElementById('progress-fences-list');
+      if (!c) return;
 
-      grid.innerHTML = fences.map(f => {
-        const assignedStaff = currentList.filter(item => item.fence === f.name);
-        const staffCount = assignedStaff.length;
+      c.innerHTML = ['east', 'kt', 'st'].map(z => {
+        const zName = z === 'east' ? '東區' : (z === 'kt' ? '觀塘區' : '沙田區');
+        const fences = zoneFences[z] || [];
+        const assigns = zoneAssignments[z] || [];
 
         return `
-          <div class="p-3 bg-slate-50 border ${staffCount > 0 ? 'border-blue-200 bg-blue-50/20' : 'border-slate-200'} rounded-xl flex flex-col justify-between space-y-2 shadow-2xs">
-            <div class="flex items-center justify-between">
-              <span class="font-black text-slate-900 text-xs">📍 ${f.name}</span>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${staffCount > 0 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}">
-                ${staffCount} 人
-              </span>
+          <div class="p-3 bg-slate-50 border rounded-xl space-y-2 shadow-2xs">
+            <div class="font-black text-slate-900 text-xs flex justify-between items-center">
+              <span>📍 ${zName} 實時進度列表</span>
+              <span class="text-blue-700 font-bold">${fences.length} 個圍欄</span>
             </div>
-            <div class="flex flex-wrap gap-1 min-h-[26px] items-center">
-              ${staffCount === 0 ? '<span class="text-[11px] text-slate-400 font-semibold italic">暫未排人</span>' : assignedStaff.map(s => `
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-blue-300 text-blue-900 rounded-lg text-[11px] font-bold">
-                  ${s.name}
-                  <button type="button" onclick="removeStaffFromFence('${s.name}', '${f.name}')" class="text-rose-500 font-black ml-0.5">✕</button>
-                </span>
-              `).join('')}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              ${fences.map(f => {
+                const staff = assigns.filter(a => a.fence === f.name).map(a => a.name);
+                const curStatus = fenceProgressStatus[f.name] || (staff.length > 0 ? '🚚 派送中' : '⏳ 未開始');
+                const badgeClass = getStatusBadgeStyle(curStatus);
+
+                return `
+                  <div class="p-2 bg-white border rounded-xl flex flex-col justify-between gap-1.5 shadow-2xs">
+                    <div class="flex justify-between items-center">
+                      <span class="font-black text-slate-900 text-xs">${f.name}</span>
+                      <span class="text-[11px] font-bold text-slate-500">${staff.length > 0 ? staff.join('、') : '<span class="text-slate-400 font-normal">(未排人)</span>'}</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 pt-0.5 border-t border-slate-100">
+                      <span class="text-[10px] text-slate-400 font-bold">更新狀態:</span>
+                      <select onchange="changeFenceProgress('${f.name}', this.value)" class="text-[11px] font-bold p-1 rounded-lg border focus:outline-none ${badgeClass}">
+                        ${progressOptions.map(opt => `
+                          <option value="${opt}" ${curStatus === opt ? 'selected' : ''}>${opt}</option>
+                        `).join('')}
+                      </select>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
             </div>
           </div>
         `;
       }).join('');
     }
 
-    function saveNewAssignmentRow() {
-      const rider = document.getElementById('new-assign-rider-select').value;
-      const fence = document.getElementById('new-assign-fence-select').value;
-      if (!rider || !fence) return alert('請先選擇步兵姓名及負責圍欄！');
-      if (!zoneAssignments[currentAssignTab]) zoneAssignments[currentAssignTab] = [];
-      const exists = zoneAssignments[currentAssignTab].some(item => item.name === rider && item.fence === fence);
-      if (exists) return alert(`【${rider}】已經在【${fence}】名單中！`);
-
-      const record = { name: rider, fence: fence };
-      zoneAssignments[currentAssignTab].push(record);
-      localStorage.setItem('MIA_ASSIGNS_PERFECT', JSON.stringify(zoneAssignments));
-      syncToGoogleCloud('區域排班', { area: currentAssignTab === 'east' ? '東區' : (currentAssignTab === 'kt' ? '觀塘' : '沙田'), staff: rider, zone: fence });
-
-      renderAssignmentsBoard();
-      alert(`✅ 成功將【${rider}】指派到 ${fence}！`);
-    }
-
-    function removeStaffFromFence(riderName, fenceName) {
-      if (confirm(`確定將【${riderName}】從【${fenceName}】移除？`)) {
-        zoneAssignments[currentAssignTab] = (zoneAssignments[currentAssignTab] || []).filter(item => !(item.name === riderName && item.fence === fenceName));
-        localStorage.setItem('MIA_ASSIGNS_PERFECT', JSON.stringify(zoneAssignments));
-        renderAssignmentsBoard();
-      }
-    }
-
-    function calcTotalZoneCounts(zone) {
-      let sum = 0;
-      const fences = zoneFences[zone] || [];
-      const prefix = zone === 'east' ? 'east' : (zone === 'kt' ? 'kt' : 'st');
-      fences.forEach(f => {
-        sum += Number(document.getElementById(`${prefix}-count-${f.name}`)?.value) || 0;
+    function exportProgressText() {
+      let txt = `⏱️ 【Mia組 - 當日各區圍欄實時進度報告】\n========================================\n`;
+      ['east', 'kt', 'st'].forEach(z => {
+        const zName = z === 'east' ? '東區' : (z === 'kt' ? '觀塘區' : '沙田區');
+        const fences = zoneFences[z] || [];
+        const assigns = zoneAssignments[z] || [];
+        txt += `\n📍 【${zName}】\n----------------------------------------\n`;
+        fences.forEach(f => {
+          const staff = assigns.filter(a => a.fence === f.name).map(a => a.name);
+          const st = fenceProgressStatus[f.name] || (staff.length > 0 ? '🚚 派送中' : '⏳ 未開始');
+          txt += `• ${f.name}: ${staff.length > 0 ? `${staff.join('、')} [${st}]` : `(未排人) [${st}]`}\n`;
+        });
       });
-      const badge = document.getElementById(`${zone}-total-count-badge`);
-      if (badge) badge.textContent = `${sum} 票`;
-    }
-
-    function saveModal3() {
-      (zoneFences.kt || []).forEach(f => { const val = document.getElementById(`kt-count-${f.name}`)?.value; if (val !== undefined) ktCounts[f.name] = val; });
-      localStorage.setItem('MIA_KT_COUNTS', JSON.stringify(ktCounts));
-      alert('✅ 觀塘貨量儲存成功！'); closeModal('modal-kt-counts');
-    }
-
-    function saveModal4() {
-      (zoneFences.east || []).forEach(f => { const val = document.getElementById(`east-count-${f.name}`)?.value; if (val !== undefined) eastCounts[f.name] = val; });
-      localStorage.setItem('MIA_EAST_COUNTS', JSON.stringify(eastCounts));
-      alert('✅ 東區貨量儲存成功！'); closeModal('modal-east-counts');
-    }
-
-    function saveModalStCounts() {
-      (zoneFences.st || []).forEach(f => { const val = document.getElementById(`st-count-${f.name}`)?.value; if (val !== undefined) stCounts[f.name] = val; });
-      localStorage.setItem('MIA_ST_COUNTS', JSON.stringify(stCounts));
-      alert('✅ 沙田貨量儲存成功！'); closeModal('modal-st-counts');
-    }
-
-    function exportZoneCountsText(zone) {
-      const zName = zone === 'east' ? '東區' : (zone === 'kt' ? '觀塘區' : '沙田區');
-      const fences = zoneFences[zone] || [];
-      const countsMap = zone === 'east' ? eastCounts : (zone === 'kt' ? ktCounts : stCounts);
-      let total = 0;
-      let txt = `📦 【Mia組 - ${zName} 圍欄貨量統計】\n========================================\n`;
-      fences.forEach(f => {
-        const c = Number(countsMap[f.name]) || 0;
-        total += c;
-        txt += `• ${f.name}: ${c} 票\n`;
-      });
-      txt += `========================================\n【${zName} 總貨量】：${total} 票`;
-      showUniversalExportModal(`${zName}貨量匯出`, txt);
+      txt += `\n========================================\n報告生成時間: ${new Date().toLocaleTimeString()}`;
+      showUniversalExportModal('進度報告匯出', txt);
     }
 
     function openLeaderboardModal() {
@@ -1918,7 +2197,7 @@
             </div>
             <div class="text-[11px] text-slate-500 mt-0.5">預約日期: ${r.date || '未定'} | 目標分區: ${r.zone || '全區'} | 備註: ${r.desc || '無'}</div>
           </div>
-          <button type="button" onclick="deleteRecruit(${idx})" class="text-rose-500 hover:text-rose-700 font-bold ml-2">✕</button>
+          ${isCurrentUserAdmin() ? `<button type="button" onclick="deleteRecruit(${idx})" class="text-rose-500 hover:text-rose-700 font-bold ml-2">✕</button>` : ''}
         </div>
       `).join('');
     }
@@ -1965,9 +2244,10 @@
 
     function exportDailyReportsText() {
       const today = document.getElementById('global-system-date')?.value || new Date().toISOString().split('T')[0];
-      const todayReports = dailyReports.filter(r => r.date === today);
+      const accessible = getAccessibleStaffNames();
+      const filteredReports = dailyReports.filter(r => r.date === today && (isCurrentUserAdmin() ? true : accessible.includes(r.staff)));
       let txt = `📋 【Mia組 - ${today} 每日報數與薪資明細】\n========================================\n`;
-      todayReports.forEach((r, i) => {
+      filteredReports.forEach((r, i) => {
         txt += `${i+1}. ${r.staff} (${r.category}): 東${r.eastCount||0} / 麗${r.ktLgCount||0} / 工${r.ktIndCount||0} / 沙${r.stCount||0} | 總票:${r.totalPieces} | 實發:$${r.finalSalary} [${r.transferStatus}]\n`;
       });
       txt += `========================================`;
@@ -1976,67 +2256,28 @@
 
     function openChangePasswordModal() {
       const pSel = document.getElementById('pwd-target-account');
-      if (pSel) pSel.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
+      if (pSel) {
+        pSel.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.category})</option>`).join('');
+      }
       openModal('modal-change-password');
     }
-    function saveNewPassword() { alert('密碼更新成功！'); closeModal('modal-change-password'); }
 
-    function renderRoleView() {
-      const selectEl = document.getElementById('current-user-role-select');
-      if (selectEl) {
-        let opts = `<option value="" disabled ${!currentRole ? 'selected' : ''}>選擇登入帳號...</option>`;
-        opts += `<option value="admin" ${currentRole === 'admin' ? 'selected' : ''}>👑 總管理員 (Mia)</option>`;
-        opts += accounts.filter(a => a.name !== 'Mia').map(a => `<option value="${a.name}" ${currentRole === a.name ? 'selected' : ''}>${a.name} (${a.category})</option>`).join('');
-        selectEl.innerHTML = opts;
-      }
-      const staffSel = document.getElementById('repStaffSelect');
-      if (staffSel) {
-        staffSel.innerHTML = accounts.filter(a => a.name !== 'Mia').map(a => `<option value="${a.name}">${a.name} (${a.id} - ${a.category})</option>`).join('');
-      }
-    }
+    function saveNewPassword() {
+      const targetName = document.getElementById('pwd-target-account').value;
+      const newPwd = document.getElementById('pwd-new-input').value.trim();
+      if (!newPwd) return alert('請輸入新密碼！');
 
-    function promptRoleSwitch(targetRole) {
-      if (!targetRole) return;
-      if (targetRole === 'admin') {
-        const inputPwd = prompt('請輸入 Mia 總管理員密碼：', '123');
-        if (inputPwd === '123' || inputPwd === 'admin888') {
-          currentRole = 'admin';
-          localStorage.setItem('MIA_LOGGED_IN_USER', 'admin');
-          renderRoleView();
-        } else {
-          alert('❌ 密碼錯誤！');
-          renderRoleView();
-        }
-      } else {
-        currentRole = targetRole;
-        localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
-        renderRoleView();
-        onStaffSelectChange(targetRole);
+      const user = accounts.find(a => a.name === targetName);
+      if (user) {
+        user.password = newPwd;
+        localStorage.setItem('MIA_ACCOUNTS_PERFECT', JSON.stringify(accounts));
+        syncToGoogleCloud('新增人員', user);
+        alert(`✅ 【${targetName}】的密碼已更新為：${newPwd}`);
+        closeModal('modal-change-password');
       }
     }
 
-    function logoutCurrentSession() {
-      if (confirm('確定登出？')) {
-        currentRole = '';
-        localStorage.removeItem('MIA_LOGGED_IN_USER');
-        renderRoleView();
-      }
-    }
-
-    function onStaffSelectChange(name) {
-      const user = accounts.find(a => a.name === name);
-      const pWage = priceSettings.wage || defaultPrices.wage;
-      if (user && user.prices) {
-        if (document.getElementById('repEastPrice')) document.getElementById('repEastPrice').value = user.prices.east !== undefined ? user.prices.east : pWage.east;
-        if (document.getElementById('repKtLgPrice')) document.getElementById('repKtLgPrice').value = user.prices.ktlg !== undefined ? user.prices.ktlg : pWage.ktlg;
-        if (document.getElementById('repKtIndPrice')) document.getElementById('repKtIndPrice').value = user.prices.ktind !== undefined ? user.prices.ktind : pWage.ktind;
-        if (document.getElementById('repStPrice')) document.getElementById('repStPrice').value = user.prices.st !== undefined ? user.prices.st : pWage.st;
-        const b = document.getElementById('staff-price-badge');
-        if (b) b.textContent = `套用【${user.name}】專屬單價 (${user.payCycle || '半月糧'})`;
-      }
-      calcSalaryLive();
-    }
-
+    // 啟動與 URL 參數自動登入判斷
     window.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
       const dateInp = document.getElementById('global-system-date');
@@ -2044,18 +2285,20 @@
       if (dateInp) dateInp.value = today;
       if (repDateInp) repDateInp.value = today;
 
-      const pWage = priceSettings.wage || defaultPrices.wage;
-      if (document.getElementById('repEastPrice')) document.getElementById('repEastPrice').value = pWage.east;
-      if (document.getElementById('repKtLgPrice')) document.getElementById('repKtLgPrice').value = pWage.ktlg;
-      if (document.getElementById('repKtIndPrice')) document.getElementById('repKtIndPrice').value = pWage.ktind;
-      if (document.getElementById('repStPrice')) document.getElementById('repStPrice').value = pWage.st;
+      // 檢查網址是否有自帶步兵參數 ?staff=姓名
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlStaff = urlParams.get('staff');
+      if (urlStaff && accounts.some(a => a.name === urlStaff)) {
+        currentRole = urlStaff;
+        localStorage.setItem('MIA_LOGGED_IN_USER', currentRole);
+      }
 
       renderRoleView();
       renderAssignmentsBoard();
       renderReportsTable();
       calcSalaryLive();
 
-      // 啟動自動從 Google 雲端載入最新資料
+      // 自動從 Google 雲端載入最新數據
       pullAllCloudData();
     });
   </script>
