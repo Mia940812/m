@@ -118,10 +118,6 @@
                 <span class="text-slate-400">×$</span>
                 <input type="number" id="repEastPrice" step="0.1" placeholder="單價" oninput="calcSalaryLive()" class="w-1/2 p-1.5 bg-slate-50 border rounded text-center font-bold">
               </div>
-              <div class="pt-1 border-t border-slate-100">
-                <label class="block text-[10px] text-slate-500 font-bold mb-0.5">📷 東區報數照片：</label>
-                <input type="file" id="img-east-report" accept="image/*" onchange="handleImagePreview(this, 'preview-east-img')" class="w-full text-[10px] text-slate-400 file:mr-1.5 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-blue-50 file:text-blue-700">
-              </div>
             </div>
             <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-1.5">
               <div class="font-bold text-slate-700">📍 觀塘麗港城</div>
@@ -352,8 +348,7 @@
     let currentAssignTab = 'east';
 
     function isCurrentUserAdmin() { return currentRole === 'admin' || currentRole === 'Mia'; }
-    function isCurrentUserLeader() { const u = accounts.find(a => a.name === currentRole); return u && u.category === '組長'; }
-    function getAccessibleStaffNames() { return accounts.map(a => a.name); }
+    function isCurrentUserLeader() { const u = accounts.find(a => (a.name || a['姓名']) === currentRole); return u && (u.category === '組長' || u['身份'] === '組長'); }
 
     // 🚀 核心雲端連線同步邏輯
     async function pullAllCloudData() {
@@ -402,26 +397,47 @@
       if (!tbody) return;
       tbody.innerHTML = dailyReports.slice(0, 50).map(r => `
         <tr class="hover:bg-slate-50 text-[11px]">
-          <td class="p-2.5 font-mono text-slate-600">${r.date}</td>
-          <td class="p-2.5 font-bold text-slate-900">${r.staff}</td>
-          <td class="p-2.5 text-center font-bold text-blue-700">${r.eastCount > 0 ? 'SKW' : (r.ktLgCount > 0 ? 'KT' : 'F58')}</td>
-          <td class="p-2.5 text-right font-bold text-slate-900">${r.totalPieces}</td>
-          <td class="p-2.5 text-right font-black text-emerald-600 font-mono">HK$ ${r.finalSalary}</td>
-          <td class="p-2.5 text-center font-bold">${r.transferStatus || '未轉賬'}</td>
-          <td class="p-2.5 text-slate-500">${r.issue || '-'}</td>
+          <td class="p-2.5 font-mono text-slate-600">${r.date || r['日期'] || '-'}</td>
+          <td class="p-2.5 font-bold text-slate-900">${r.staff || r['人員'] || '-'}</td>
+          <td class="p-2.5 text-center font-bold text-blue-700">${(r.eastCount || r['東區'] || 0) > 0 ? 'SKW' : ((r.ktLgCount || r['觀塘麗港'] || 0) > 0 ? 'KT' : 'F58')}</td>
+          <td class="p-2.5 text-right font-bold text-slate-900">${r.totalPieces || r['總票數'] || 0}</td>
+          <td class="p-2.5 text-right font-black text-emerald-600 font-mono">HK$ ${r.finalSalary || r['實發工資'] || 0}</td>
+          <td class="p-2.5 text-center font-bold">${r.transferStatus || r['轉賬狀態'] || '未轉賬'}</td>
+          <td class="p-2.5 text-slate-500">${r.issue || r['備註'] || '-'}</td>
         </tr>
       `).join('') || '<tr><td colspan="7" class="p-6 text-center text-slate-400">目前暫無出糧紀錄。</td></tr>';
     }
 
+    function onStaffSelectChange(name) {
+      const u = accounts.find(a => (a.name || a['姓名']) === name);
+      const p = (u && u.prices) ? u.prices : (priceSettings.wage || defaultPrices.wage);
+      if (document.getElementById('repEastPrice')) document.getElementById('repEastPrice').value = p.east;
+      if (document.getElementById('repKtLgPrice')) document.getElementById('repKtLgPrice').value = p.ktlg;
+      if (document.getElementById('repKtIndPrice')) document.getElementById('repKtIndPrice').value = p.ktind;
+      if (document.getElementById('repStPrice')) document.getElementById('repStPrice').value = p.st;
+      calcSalaryLive();
+    }
+
     function calcSalaryLive() {
-      const pWage = priceSettings.wage || defaultPrices.wage;
       const eastC = Number(document.getElementById('repEastCount')?.value) || 0;
+      const eastP = Number(document.getElementById('repEastPrice')?.value) || 8.5;
       const ktLgC = Number(document.getElementById('repKtLgCount')?.value) || 0;
+      const ktLgP = Number(document.getElementById('repKtLgPrice')?.value) || 8.0;
       const ktIndC = Number(document.getElementById('repKtIndCount')?.value) || 0;
+      const ktIndP = Number(document.getElementById('repKtIndPrice')?.value) || 7.5;
       const stC = Number(document.getElementById('repStCount')?.value) || 0;
-      const total = (eastC * pWage.east) + (ktLgC * pWage.ktlg) + (ktIndC * pWage.ktind) + (stC * pWage.st);
+      const stP = Number(document.getElementById('repStPrice')?.value) || 7.5;
+
+      const car = Number(document.getElementById('repCarAllowance')?.value) || 0;
+      const claim = Number(document.getElementById('repClaim')?.value) || 0;
+      const bonus = Number(document.getElementById('repBonus')?.value) || 0;
+      const penalty = Number(document.getElementById('repPenalty')?.value) || 0;
+      const deduct = Number(document.getElementById('repDeductAmount')?.value) || 0;
+
+      const wageGross = (eastC * eastP) + (ktLgC * ktLgP) + (ktIndC * ktIndP) + (stC * stP);
+      const total = wageGross + car + claim + bonus - penalty - deduct;
       const el = document.getElementById('repLiveTotalSalary');
-      if (el) el.textContent = `HK$ ${total.toFixed(2)}`;
+      if (el) el.textContent = `HK$ ${Math.max(0, total).toFixed(2)}`;
     }
 
     function saveFullDailyReport(e) {
@@ -434,7 +450,7 @@
         ktLgCount: Number(document.getElementById('repKtLgCount').value) || 0,
         ktIndCount: Number(document.getElementById('repKtIndCount').value) || 0,
         stCount: Number(document.getElementById('repStCount').value) || 0,
-        totalPieces: (Number(document.getElementById('repEastCount').value) || 0) + (Number(document.getElementById('repKtLgCount').value) || 0),
+        totalPieces: (Number(document.getElementById('repEastCount').value) || 0) + (Number(document.getElementById('repKtLgCount').value) || 0) + (Number(document.getElementById('repKtIndCount').value) || 0) + (Number(document.getElementById('repStCount').value) || 0),
         finalSalary: Number(document.getElementById('repLiveTotalSalary').textContent.replace('HK$ ', '')) || 0,
         transferStatus: '未轉賬'
       };
@@ -449,12 +465,12 @@
       if (!tbody || !isCurrentUserAdmin()) return;
       tbody.innerHTML = dailyReports.map(r => `
         <tr class="hover:bg-slate-50">
-          <td class="p-3 font-mono">${r.date}</td>
-          <td class="p-3 font-bold">${r.staff}</td>
+          <td class="p-3 font-mono">${r.date || r['日期'] || '-'}</td>
+          <td class="p-3 font-bold">${r.staff || r['人員'] || '-'}</td>
           <td class="p-3 text-center text-blue-700 font-bold">${r.eastCount || 0}/${r.ktLgCount || 0}/${r.ktIndCount || 0}/${r.stCount || 0}</td>
-          <td class="p-3 text-right font-bold">${r.totalPieces} 票</td>
+          <td class="p-3 text-right font-bold">${r.totalPieces || 0} 票</td>
           <td class="p-3 text-right text-slate-500">-</td>
-          <td class="p-3 text-right font-black text-emerald-600 font-mono">HK$ ${r.finalSalary}</td>
+          <td class="p-3 text-right font-black text-emerald-600 font-mono">HK$ ${r.finalSalary || 0}</td>
           <td class="p-3 text-center">${r.transferStatus || '未轉賬'}</td>
           <td class="p-3 text-center">-</td>
         </tr>
@@ -467,8 +483,28 @@
         const el = document.getElementById(id);
         if (el) el.style.display = isAdm ? 'inline-flex' : 'none';
       });
+
+      const getStaffName = (a) => a.name || a['姓名'] || a['人員'] || a['步兵姓名'] || (typeof a === 'string' ? a : '未知');
+      const getStaffCat = (a) => a.category || a['身份'] || a['身份類別'] || a['類別'] || '步兵';
+
+      const roleSel = document.getElementById('current-user-role-select');
+      if (roleSel) {
+        roleSel.innerHTML = accounts.map(a => {
+          const n = getStaffName(a);
+          const c = getStaffCat(a);
+          return `<option value="${n}" ${n === currentRole ? 'selected' : ''}>${n} (${c})</option>`;
+        }).join('');
+      }
+
       const staffSel = document.getElementById('repStaffSelect');
-      if (staffSel) staffSel.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.category})</option>`).join('');
+      if (staffSel) {
+        staffSel.innerHTML = accounts.map(a => {
+          const n = getStaffName(a);
+          const c = getStaffCat(a);
+          return `<option value="${n}">${n} (${c})</option>`;
+        }).join('');
+        if (staffSel.value) onStaffSelectChange(staffSel.value);
+      }
     }
 
     function promptRoleSwitch(targetRole) {
@@ -488,6 +524,20 @@
     function openModal2() { openModal('modal-assignments'); }
     function openModalProgress() { openModal('modal-progress-view'); }
     function openChangePasswordModal() { openModal('modal-change-password'); }
+    function openUniversalExportModal(t) { openModal('modal-universal-export'); }
+    function openModalProfit() { alert('📈 營運利潤分析面板'); }
+    function openModalSettlementDaily() { alert('💰 分區每日埋數面板'); }
+    function openSuppliesModal() { alert('📦 物資採購登記'); }
+    function openModal1() { alert('📍 圍欄管理清單'); }
+    function openModal3() { alert('📦 觀塘貨量看板'); }
+    function openModal4() { alert('🏢 東區貨量看板'); }
+    function openModalStCounts() { alert('🏞️ 沙田貨量看板'); }
+    function openRecruitsModal() { alert('📋 預約新人登記'); }
+    function openAddRiderModal() { alert('➕ 人員名冊管理'); }
+    function openLeaderboardModal() { alert('🏆 罰款獎池與龍虎榜'); }
+    function openModalPriceSettings() { alert('⚙️ 全域票價設定'); }
+    function openModal8() { alert('🚗 司機車線調度'); }
+    function openModal5() { alert('⏰ 14天報更管理'); }
 
     window.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
@@ -495,8 +545,6 @@
       if (document.getElementById('repDate')) document.getElementById('repDate').value = today;
       renderRoleView();
       calcSalaryLive();
-      
-      // 自動觸發雲端連線
       pullAllCloudData();
     });
   </script>
