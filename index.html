@@ -278,6 +278,72 @@
 
   <!-- ================= 模態視窗集合 ================= -->
 
+  <!-- 🚨 異常工單 Modal (支援指派步兵、4種狀態與舉證上訴) -->
+  <div id="modal-tickets-view" class="app-modal hidden">
+    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-3xl w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b pb-2">
+        <div>
+          <h3 class="font-bold text-sm text-slate-900">🚨 異常工單追蹤、扣罰與申訴中心</h3>
+          <span class="text-[11px] text-slate-400">指派步兵 ➜ 4種即時狀態 ➜ 上傳照片舉證與原因說明上訴</span>
+        </div>
+        <button type="button" onclick="closeModal('modal-tickets-view')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
+      </div>
+      
+      <!-- 登記新異常工單 -->
+      <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-2">
+        <div class="font-bold text-slate-800">➕ 登記新異常工單並指派責任步兵：</div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <input type="text" id="tk-tracking-no" placeholder="運單單號 (例: JT998811)" class="p-1.5 bg-white border rounded-lg font-bold">
+          <select id="tk-responsible-staff" class="p-1.5 bg-white border rounded-lg font-bold"></select>
+          <select id="tk-issue-type" class="p-1.5 bg-white border rounded-lg font-bold">
+            <option value="破損/損壞">💥 破損 / 損壞</option>
+            <option value="遺失/短少">❓ 遺失 / 短少</option>
+            <option value="錯派/誤投">❌ 錯派 / 誤投</option>
+            <option value="嚴重客訴/態度差">🗣️ 嚴重客訴 / 態度差</option>
+            <option value="無故延誤">⏳ 無故延誤</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <input type="number" id="tk-penalty-amount" placeholder="罰款金額 ($)" class="p-1.5 bg-white border border-rose-300 rounded-lg font-bold text-rose-600">
+          <input type="text" id="tk-zone" placeholder="地點/圍欄" class="p-1.5 bg-white border rounded-lg">
+          <input type="text" id="tk-issue-desc" placeholder="問題詳細說明" class="p-1.5 bg-white border rounded-lg">
+        </div>
+        <button type="button" onclick="saveNewTicket()" class="w-full py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold shadow-xs">確認建立工單並指派步兵</button>
+      </div>
+
+      <!-- 工單清單 -->
+      <div class="flex justify-between items-center pt-1">
+        <div class="font-bold text-xs text-slate-700">當前工單列表（含狀態跟進與舉證上訴）：</div>
+        <button type="button" onclick="exportTicketsText()" class="px-2.5 py-1 bg-slate-800 text-white rounded text-[11px] font-bold">📤 匯出工單清單</button>
+      </div>
+      <div id="tickets-container" class="space-y-2 text-xs max-h-60 overflow-y-auto custom-scrollbar"></div>
+      <button type="button" onclick="closeModal('modal-tickets-view')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
+    </div>
+  </div>
+
+  <!-- ⚖️ 工單上訴舉證 Modal (照片上傳 + 框框原因說明) -->
+  <div id="modal-ticket-appeal" class="app-modal hidden">
+    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-lg w-full shadow-2xl space-y-3">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-sm text-slate-900">⚖️ 提出工單申訴／舉證上訴</h3>
+        <button type="button" onclick="closeModal('modal-ticket-appeal')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
+      </div>
+      <div class="space-y-2 text-xs">
+        <div class="p-2 bg-slate-50 rounded-lg border font-bold text-slate-800" id="appeal-ticket-info"></div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">📷 上傳舉證相片 (派送證明/簽收底單/現場照片)：</label>
+          <input type="file" id="appeal-image-input" accept="image/*" onchange="handleAppealImage(this)" class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 font-semibold">
+          <div id="appeal-image-status" class="text-[11px] text-emerald-600 font-bold mt-1"></div>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">✍️ 詳細申訴原因說明 (必填)：</label>
+          <textarea id="appeal-reason-input" rows="3" placeholder="請詳細說明非本人責任之原因（例：客戶已當面簽收，附上電聯記錄與門牌照片舉證）..." class="w-full p-2 bg-white border border-slate-300 rounded-lg font-medium focus:outline-none"></textarea>
+        </div>
+        <button type="button" onclick="submitTicketAppeal()" class="w-full py-2 bg-slate-900 text-white rounded-xl font-bold shadow-xs">確認提交上訴 (同步 Google 雲端)</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ⚙️ 修改全域預設票價 Modal -->
   <div id="modal-price-settings" class="app-modal hidden">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-lg w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
@@ -327,47 +393,6 @@
         <button type="button" onclick="exportProgressText()" class="flex-1 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold">📤 匯出進度報告 (WhatsApp)</button>
         <button type="button" onclick="closeModal('modal-progress-view')" class="px-4 py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
       </div>
-    </div>
-  </div>
-
-  <!-- 🚨 異常工單 Modal -->
-  <div id="modal-tickets-view" class="app-modal hidden">
-    <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-3xl w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <div class="flex justify-between items-center border-b pb-2">
-        <div>
-          <h3 class="font-bold text-sm text-slate-900">🚨 異常工單追蹤與扣罰中心</h3>
-          <span class="text-[11px] text-slate-400">支援新增工單、扣除步兵薪資、刪除工單及匯出</span>
-        </div>
-        <button type="button" onclick="closeModal('modal-tickets-view')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
-      </div>
-      
-      <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-2">
-        <div class="font-bold text-slate-800">➕ 登記新異常工單：</div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <input type="text" id="tk-tracking-no" placeholder="運單單號 (例: JT998811)" class="p-1.5 bg-white border rounded-lg font-bold">
-          <select id="tk-responsible-staff" class="p-1.5 bg-white border rounded-lg font-bold"></select>
-          <select id="tk-issue-type" class="p-1.5 bg-white border rounded-lg font-bold">
-            <option value="破損/損壞">💥 破損 / 損壞</option>
-            <option value="遺失/短少">❓ 遺失 / 短少</option>
-            <option value="錯派/誤投">❌ 錯派 / 誤投</option>
-            <option value="嚴重客訴/態度差">🗣️ 嚴重客訴 / 態度差</option>
-            <option value="無故延誤">⏳ 無故延誤</option>
-          </select>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <input type="number" id="tk-penalty-amount" placeholder="罰款金額 ($)" class="p-1.5 bg-white border border-rose-300 rounded-lg font-bold text-rose-600">
-          <input type="text" id="tk-zone" placeholder="地點/圍欄" class="p-1.5 bg-white border rounded-lg">
-          <input type="text" id="tk-issue-desc" placeholder="詳細說明" class="p-1.5 bg-white border rounded-lg">
-        </div>
-        <button type="button" onclick="saveNewTicket()" class="w-full py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold shadow-xs">確認建立工單並扣罰</button>
-      </div>
-
-      <div class="flex justify-between items-center pt-1">
-        <div class="font-bold text-xs text-slate-700">當前工單列表：</div>
-        <button type="button" onclick="exportTicketsText()" class="px-2.5 py-1 bg-slate-800 text-white rounded text-[11px] font-bold">📤 匯出工單清單</button>
-      </div>
-      <div id="tickets-container" class="space-y-2 text-xs max-h-56 overflow-y-auto custom-scrollbar"></div>
-      <button type="button" onclick="closeModal('modal-tickets-view')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
     </div>
   </div>
 
@@ -477,34 +502,38 @@
     </div>
   </div>
 
-  <!-- ➕ 人員名冊管理 ＆ 專屬票價修改 Modal -->
+  <!-- ➕ 人員名冊管理 ＆ 專屬票價修改 Modal (開放全欄位自由編輯：姓名、身份、隊伍、票價等) -->
   <div id="modal-add-rider" class="app-modal hidden">
     <div class="bg-white rounded-2xl p-4 sm:p-5 max-w-2xl w-full shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto custom-scrollbar">
       <div class="flex justify-between items-center border-b pb-2">
         <div>
-          <h3 class="font-bold text-sm text-slate-900">👥 人員名冊管理 ＆ 個別專屬票價/扣數設定</h3>
-          <span class="text-[11px] text-slate-400">可隨時新增人員，或點擊下方清單「✏️ 修改」即時變更身份與單價</span>
+          <h3 class="font-bold text-sm text-slate-900">👥 人員名冊管理 ＆ 個別專屬票價/身份全自由修改</h3>
+          <span class="text-[11px] text-slate-400">可自由編輯名字、身份、隊伍、週期、扣數比例及 4 區專屬票價</span>
         </div>
         <button type="button" onclick="closeModal('modal-add-rider')" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
       </div>
       <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-2.5">
+        <input type="hidden" id="edit-original-name" value="">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div><label class="block font-bold text-slate-600 mb-0.5">所屬隊伍</label><select id="new-staff-team" onchange="autoGenerateStaffId()" class="w-full bg-white border rounded-lg p-1.5 font-bold"><option value="KM">自營 (KM)</option><option value="A">A組</option><option value="B">B組</option><option value="C">C組</option><option value="D">D組(司機)</option></select></div>
-          <div><label class="block font-bold text-slate-600 mb-0.5">系統帳號</label><input id="new-staff-id" type="text" readonly class="w-full bg-slate-200 border rounded-lg p-1.5 font-mono font-bold text-blue-800"></div>
-          <div><label class="block font-bold text-slate-600 mb-0.5">姓名</label><input id="new-staff-name" type="text" placeholder="例如：陳大文" class="w-full bg-white border rounded-lg p-1.5 font-bold"></div>
+          <div><label class="block font-bold text-slate-600 mb-0.5">系統帳號</label><input id="new-staff-id" type="text" class="w-full bg-white border rounded-lg p-1.5 font-mono font-bold text-blue-800"></div>
+          <div><label class="block font-bold text-slate-600 mb-0.5">姓名 (可隨時修改)</label><input id="new-staff-name" type="text" placeholder="例如：陳大文" class="w-full bg-white border rounded-lg p-1.5 font-bold text-slate-900"></div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <div><label class="block font-bold text-slate-600 mb-0.5">身份</label><select id="new-staff-role" class="w-full bg-white border rounded-lg p-1.5 font-bold"><option value="兼職步兵">兼職步兵</option><option value="全職步兵">全職步兵</option><option value="組長">組長</option><option value="兼職司機">兼職司機</option><option value="全職司機">全職司機</option><option value="Admin">Admin</option></select></div>
+          <div><label class="block font-bold text-slate-600 mb-0.5">身份 (可修改)</label><select id="new-staff-role" class="w-full bg-white border rounded-lg p-1.5 font-bold"><option value="兼職步兵">兼職步兵</option><option value="全職步兵">全職步兵</option><option value="組長">組長</option><option value="兼職司機">兼職司機</option><option value="全職司機">全職司機</option><option value="Admin">Admin</option></select></div>
           <div><label class="block font-bold text-slate-600 mb-0.5">週期</label><select id="new-staff-paycycle" class="w-full bg-white border rounded-lg p-1.5 font-bold"><option value="半月糧">半月糧</option><option value="隔日糧">隔日糧</option><option value="日結">日結</option></select></div>
           <div><label class="block font-bold text-slate-600 mb-0.5">扣數比例</label><select id="new-staff-deduct-rate" class="w-full bg-white border rounded-lg p-1.5 font-bold"><option value="40%">扣數 40%</option><option value="50%">扣數 50%</option><option value="100%">扣數 100%</option></select></div>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t">
-          <div><label class="block text-[10px] font-bold text-slate-500">東區票價</label><input id="new-staff-p-east" type="number" step="0.1" value="8.5" class="w-full p-1 bg-white border rounded font-bold"></div>
-          <div><label class="block text-[10px] font-bold text-slate-500">麗港城票價</label><input id="new-staff-p-ktlg" type="number" step="0.1" value="8.0" class="w-full p-1 bg-white border rounded font-bold"></div>
-          <div><label class="block text-[10px] font-bold text-slate-500">工商區票價</label><input id="new-staff-p-ktind" type="number" step="0.1" value="7.5" class="w-full p-1 bg-white border rounded font-bold"></div>
-          <div><label class="block text-[10px] font-bold text-slate-500">沙田票價</label><input id="new-staff-p-st" type="number" step="0.1" value="7.5" class="w-full p-1 bg-white border rounded font-bold"></div>
+          <div><label class="block text-[10px] font-bold text-slate-500">東區票價 ($)</label><input id="new-staff-p-east" type="number" step="0.1" value="8.5" class="w-full p-1 bg-white border rounded font-bold"></div>
+          <div><label class="block text-[10px] font-bold text-slate-500">麗港城票價 ($)</label><input id="new-staff-p-ktlg" type="number" step="0.1" value="8.0" class="w-full p-1 bg-white border rounded font-bold"></div>
+          <div><label class="block text-[10px] font-bold text-slate-500">工商區票價 ($)</label><input id="new-staff-p-ktind" type="number" step="0.1" value="7.5" class="w-full p-1 bg-white border rounded font-bold"></div>
+          <div><label class="block text-[10px] font-bold text-slate-500">沙田票價 ($)</label><input id="new-staff-p-st" type="number" step="0.1" value="7.5" class="w-full p-1 bg-white border rounded font-bold"></div>
         </div>
-        <button type="button" id="btn-save-staff-action" onclick="saveNewStaffRecord()" class="w-full py-2 bg-slate-900 text-white rounded-lg font-bold shadow-xs">確認建立人員</button>
+        <div class="flex gap-2 pt-1">
+          <button type="button" id="btn-save-staff-action" onclick="saveNewStaffRecord()" class="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-bold shadow-xs">確認建立 / 儲存人員資料</button>
+          <button type="button" onclick="resetStaffForm()" class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-bold">重設</button>
+        </div>
       </div>
       <div id="staff-category-list" class="space-y-2 text-xs max-h-56 overflow-y-auto custom-scrollbar"></div>
       <button type="button" onclick="closeModal('modal-add-rider')" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-bold">關閉</button>
@@ -742,6 +771,16 @@
           }
         }
 
+        const resTickets = await fetch(`${GOOGLE_SCRIPT_URL}?action=getTickets`);
+        if (resTickets.ok) {
+          const cloudTickets = await resTickets.json();
+          if (Array.isArray(cloudTickets) && cloudTickets.length > 0) {
+            ticketsList = cloudTickets;
+            localStorage.setItem('MIA_TICKETS_PERFECT', JSON.stringify(ticketsList));
+            renderTicketsList();
+          }
+        }
+
         const resProg = await fetch(`${GOOGLE_SCRIPT_URL}?action=getProgress`);
         if (resProg.ok) {
           const cloudProg = await resProg.json();
@@ -779,7 +818,6 @@
       reader.readAsDataURL(file);
     }
 
-    // 票價預設值
     const defaultPrices = {
       wage: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 },
       rev: { east: 11.5, ktlg: 11.0, ktind: 10.5, st: 10.5 }
@@ -821,7 +859,6 @@
       ]
     };
 
-    // 完整原始名冊 (含詠豪、小魚、徐子傑等)
     const initialAccounts = [
       { id: 'KM01', name: 'Mia', category: 'Admin', team: 'KM', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
       { id: 'A01', name: '詠豪', category: '組長', team: 'A', payCycle: '半月糧', deductRate: '50%', prices: { east: 8.5, ktlg: 8.0, ktind: 7.5, st: 7.5 }, password: '123' },
@@ -888,10 +925,11 @@
     let zoneFences = JSON.parse(localStorage.getItem('MIA_FENCES_PERFECT')) || defaultZoneFences;
     let fenceProgressStatus = JSON.parse(localStorage.getItem('MIA_PROGRESS_STATUS_PERFECT')) || {};
 
+    // 🚨 工單清單（含指派步兵、4種狀態、上訴照片與原因）
     const initialTickets = [
-      { id: 'TK1001', date: '2026-08-16', tracking: 'JT88239012', staff: '張兆偉', type: '破損/損壞', amount: 150, zone: '40F 小西灣工業區', desc: '外箱破損' },
-      { id: 'TK1002', date: '2026-08-16', tracking: 'JT88239055', staff: '周健', type: '錯派/誤投', amount: 50, zone: '03E 觀塘工商區2號', desc: '錯派至隔離公司' },
-      { id: 'TK1003', date: '2026-08-17', tracking: 'JT88239108', staff: '倪志康', type: '嚴重客訴/態度差', amount: 100, zone: '03F 東旭苑', desc: '未電聯即放門口' }
+      { id: 'TK1001', date: '2026-08-16', tracking: 'JT88239012', staff: '張兆偉', type: '破損/損壞', amount: 150, zone: '40F 小西灣工業區', desc: '外箱破損', status: '跟進中', appealNote: '', appealImg: '' },
+      { id: 'TK1002', date: '2026-08-16', tracking: 'JT88239055', staff: '周健', type: '錯派/誤投', amount: 50, zone: '03E 觀塘工商區2號', desc: '錯派至隔離公司', status: '已處理', appealNote: '已跟進取回重派', appealImg: '' },
+      { id: 'TK1003', date: '2026-08-17', tracking: 'JT88239108', staff: '倪志康', type: '嚴重客訴/態度差', amount: 100, zone: '03F 東旭苑', desc: '未電聯即放門口', status: '跟進中', appealNote: '', appealImg: '' }
     ];
     let ticketsList = JSON.parse(localStorage.getItem('MIA_TICKETS_PERFECT')) || initialTickets;
 
@@ -1002,6 +1040,278 @@
       });
       txt += `\n========================================\n報告生成時間: ${new Date().toLocaleTimeString()}`;
       showUniversalExportModal('進度報告匯出', txt);
+    }
+
+    // 🚨 異常工單模組（4種狀態 + 指派步兵 + 上訴舉證）
+    const ticketStatusOptions = ['跟進中', '已處理', '已經私賠', '無法聯絡'];
+    let currentAppealTicketIdx = -1;
+    let appealUploadedImageBase64 = '';
+
+    function getTicketStatusClass(st) {
+      if (st === '已處理') return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+      if (st === '已經私賠') return 'bg-amber-100 text-amber-800 border-amber-300';
+      if (st === '無法聯絡') return 'bg-rose-100 text-rose-800 border-rose-300 font-bold';
+      return 'bg-blue-100 text-blue-800 border-blue-300'; // 跟進中
+    }
+
+    function changeTicketStatus(idx, newStatus) {
+      if (!ticketsList[idx]) return;
+      ticketsList[idx].status = newStatus;
+      localStorage.setItem('MIA_TICKETS_PERFECT', JSON.stringify(ticketsList));
+      syncToGoogleCloud('異常工單', ticketsList[idx]);
+      renderTicketsList();
+    }
+
+    function openAppealModal(idx) {
+      currentAppealTicketIdx = idx;
+      const t = ticketsList[idx];
+      if (!t) return;
+
+      document.getElementById('appeal-ticket-info').textContent = `單號：${t.tracking} | 責任步兵：${t.staff} | 扣罰：HK$ ${t.amount}`;
+      document.getElementById('appeal-reason-input').value = t.appealNote || '';
+      document.getElementById('appeal-image-input').value = '';
+      document.getElementById('appeal-image-status').textContent = t.appealImg ? '✅ 已有舉證圖片' : '';
+      appealUploadedImageBase64 = t.appealImg || '';
+
+      openModal('modal-ticket-appeal');
+    }
+
+    function handleAppealImage(fileInput) {
+      const file = fileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        appealUploadedImageBase64 = e.target.result;
+        document.getElementById('appeal-image-status').textContent = '✅ 已載入新舉證圖片';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function submitTicketAppeal() {
+      if (currentAppealTicketIdx < 0 || !ticketsList[currentAppealTicketIdx]) return;
+      const reason = document.getElementById('appeal-reason-input').value.trim();
+      if (!reason) return alert('請填寫詳細申訴原因說明框！');
+
+      ticketsList[currentAppealTicketIdx].appealNote = reason;
+      ticketsList[currentAppealTicketIdx].appealImg = appealUploadedImageBase64;
+      localStorage.setItem('MIA_TICKETS_PERFECT', JSON.stringify(ticketsList));
+
+      syncToGoogleCloud('異常工單', ticketsList[currentAppealTicketIdx]);
+
+      alert('✅ 工單申訴舉證已成功提交並同步至雲端！');
+      closeModal('modal-ticket-appeal');
+      renderTicketsList();
+    }
+
+    function openTicketsModal() {
+      const tkSel = document.getElementById('tk-responsible-staff');
+      if (tkSel) tkSel.innerHTML = accounts.filter(a => a.name !== 'Mia').map(a => `<option value="${a.name}">${a.name} (${a.id})</option>`).join('');
+      renderTicketsList();
+      openModal('modal-tickets-view');
+    }
+
+    function renderTicketsList() {
+      const badge = document.getElementById('ticket-badge-count');
+      if (badge) badge.textContent = ticketsList.length;
+      const c = document.getElementById('tickets-container');
+      if (!c) return;
+      if (ticketsList.length === 0) {
+        c.innerHTML = '<div class="p-3 text-center text-slate-400">目前沒有任何異常工單。</div>';
+        return;
+      }
+      c.innerHTML = ticketsList.map((t, idx) => {
+        const curStatus = t.status || '跟進中';
+        const stClass = getTicketStatusClass(curStatus);
+
+        return `
+          <div class="p-3 bg-slate-50 border border-rose-200 rounded-xl space-y-2">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="px-2 py-0.5 bg-rose-600 text-white rounded text-[10px] font-bold">${t.type}</span>
+                  <span class="font-black text-slate-900 font-mono">[${t.tracking}]</span>
+                  <span class="font-bold text-blue-700">指派責任步兵: ${t.staff}</span>
+                </div>
+                <div class="text-[11px] text-slate-500 mt-1">地點: ${t.zone} | 日期: ${t.date} | 說明: ${t.desc || '無'}</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-black text-rose-600 font-mono text-sm">-HK$ ${t.amount}</span>
+                <button type="button" onclick="deleteTicket(${idx})" class="text-xs text-rose-600 hover:text-rose-800 font-bold border border-rose-200 bg-white px-2 py-0.5 rounded">🗑️ 刪除</button>
+              </div>
+            </div>
+
+            <!-- 跟進狀態與上訴區 -->
+            <div class="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-200 flex-wrap">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-bold text-slate-500">工單狀態:</span>
+                <select onchange="changeTicketStatus(${idx}, this.value)" class="text-[11px] font-bold px-2 py-0.5 rounded-lg border focus:outline-none ${stClass}">
+                  ${ticketStatusOptions.map(opt => `
+                    <option value="${opt}" ${curStatus === opt ? 'selected' : ''}>${opt}</option>
+                  `).join('')}
+                </select>
+              </div>
+              <div class="flex items-center gap-1.5">
+                ${t.appealNote ? `<span class="text-[10px] px-1.5 py-0.5 bg-purple-100 text-purple-800 rounded font-bold">已申訴</span>` : ''}
+                <button type="button" onclick="openAppealModal(${idx})" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-[10px] font-bold">⚖️ 提出申訴／舉證上訴</button>
+              </div>
+            </div>
+
+            ${t.appealNote ? `
+              <div class="p-2 bg-white rounded-lg border border-purple-200 text-[11px] text-purple-900">
+                <span class="font-bold">📋 上訴理由：</span>${t.appealNote}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function saveNewTicket() {
+      const tracking = document.getElementById('tk-tracking-no')?.value.trim();
+      const staff = document.getElementById('tk-responsible-staff')?.value;
+      const type = document.getElementById('tk-issue-type')?.value;
+      const amount = Number(document.getElementById('tk-penalty-amount')?.value) || 50;
+      const zone = document.getElementById('tk-zone')?.value || '全區';
+      const desc = document.getElementById('tk-issue-desc')?.value;
+
+      if (!tracking) return alert('請填寫運單號碼！');
+
+      const record = { id: `TK${Date.now()}`, date: new Date().toISOString().split('T')[0], tracking, staff, type, amount, zone, desc, status: '跟進中', appealNote: '', appealImg: '' };
+      ticketsList.unshift(record);
+      localStorage.setItem('MIA_TICKETS_PERFECT', JSON.stringify(ticketsList));
+      syncToGoogleCloud('異常工單', record);
+
+      if (document.getElementById('tk-tracking-no')) document.getElementById('tk-tracking-no').value = '';
+      if (document.getElementById('tk-issue-desc')) document.getElementById('tk-issue-desc').value = '';
+      renderTicketsList();
+      alert(`✅ 已成功建立工單並指派給【${staff}】！`);
+    }
+
+    function deleteTicket(idx) {
+      if (confirm('確定刪除此工單記錄？')) {
+        ticketsList.splice(idx, 1);
+        localStorage.setItem('MIA_TICKETS_PERFECT', JSON.stringify(ticketsList));
+        renderTicketsList();
+      }
+    }
+
+    function exportTicketsText() {
+      let txt = `🚨 【Mia組 - 異常工單與申訴追蹤名冊】\n========================================\n`;
+      ticketsList.forEach((t, i) => {
+        txt += `${i+1}. [${t.date}] 單號:${t.tracking} | 責任人:${t.staff} | 類型:${t.type} | 罰款:$${t.amount} | 狀態:${t.status||'跟進中'} | 申訴:${t.appealNote||'無'}\n`;
+      });
+      txt += `========================================\n總工單數: ${ticketsList.length} 宗`;
+      showUniversalExportModal('異常工單匯出', txt);
+    }
+
+    // 👥 人員名冊管理（全欄位自由編輯：姓名、身份、隊伍、專屬票價）
+    function autoGenerateStaffId() {
+      const team = document.getElementById('new-staff-team').value;
+      const count = accounts.filter(a => a.team === team).length + 1;
+      const numStr = count < 10 ? `0${count}` : `${count}`;
+      document.getElementById('new-staff-id').value = `${team}${numStr}`;
+    }
+
+    function openAddRiderModal() {
+      resetStaffForm();
+      renderStaffManagementList();
+      openModal('modal-add-rider');
+    }
+
+    function resetStaffForm() {
+      document.getElementById('edit-original-name').value = '';
+      document.getElementById('new-staff-name').value = '';
+      document.getElementById('new-staff-p-east').value = 8.5;
+      document.getElementById('new-staff-p-ktlg').value = 8.0;
+      document.getElementById('new-staff-p-ktind').value = 7.5;
+      document.getElementById('new-staff-p-st').value = 7.5;
+      document.getElementById('btn-save-staff-action').textContent = '確認建立 / 儲存人員資料';
+      autoGenerateStaffId();
+    }
+
+    function editStaffRecord(staffId) {
+      const a = accounts.find(acc => acc.id === staffId);
+      if (!a) return;
+
+      document.getElementById('edit-original-name').value = a.name;
+      document.getElementById('new-staff-team').value = a.team || 'KM';
+      document.getElementById('new-staff-id').value = a.id;
+      document.getElementById('new-staff-name').value = a.name;
+      document.getElementById('new-staff-role').value = a.category || '兼職步兵';
+      document.getElementById('new-staff-paycycle').value = a.payCycle || '半月糧';
+      document.getElementById('new-staff-deduct-rate').value = a.deductRate || '50%';
+      document.getElementById('new-staff-p-east').value = a.prices?.east !== undefined ? a.prices.east : 8.5;
+      document.getElementById('new-staff-p-ktlg').value = a.prices?.ktlg !== undefined ? a.prices.ktlg : 8.0;
+      document.getElementById('new-staff-p-ktind').value = a.prices?.ktind !== undefined ? a.prices.ktind : 7.5;
+      document.getElementById('new-staff-p-st').value = a.prices?.st !== undefined ? a.prices.st : 7.5;
+
+      document.getElementById('btn-save-staff-action').textContent = `💾 儲存【${a.name}】全欄位修改`;
+      openModal('modal-add-rider');
+    }
+
+    function renderStaffManagementList() {
+      const c = document.getElementById('staff-category-list');
+      if (!c) return;
+      c.innerHTML = accounts.map(a => `
+        <div class="p-2.5 bg-slate-50 border rounded-xl flex flex-wrap justify-between items-center gap-2">
+          <div>
+            <span class="font-black text-slate-900">[${a.id}] ${a.name}</span>
+            <span class="ml-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">${a.category} (${a.team}組)</span>
+            <span class="ml-1 text-[11px] text-slate-500">週期: ${a.payCycle || '半月糧'} | 扣數: ${a.deductRate || '50%'}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="text-[11px] text-slate-600 font-mono">
+              東$${a.prices?.east || 8.5}/麗$${a.prices?.ktlg || 8}/工$${a.prices?.ktind || 7.5}/沙$${a.prices?.st || 7.5}
+            </div>
+            <button type="button" onclick="editStaffRecord('${a.id}')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold shadow-2xs">✏️ 修改</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function saveNewStaffRecord() {
+      const origName = document.getElementById('edit-original-name').value.trim();
+      const id = document.getElementById('new-staff-id').value.trim();
+      const name = document.getElementById('new-staff-name').value.trim();
+      const team = document.getElementById('new-staff-team').value;
+      const category = document.getElementById('new-staff-role').value;
+      const payCycle = document.getElementById('new-staff-paycycle').value;
+      const deductRate = document.getElementById('new-staff-deduct-rate').value;
+      const eastP = Number(document.getElementById('new-staff-p-east').value) || 8.5;
+      const ktlgP = Number(document.getElementById('new-staff-p-ktlg').value) || 8.0;
+      const ktindP = Number(document.getElementById('new-staff-p-ktind').value) || 7.5;
+      const stP = Number(document.getElementById('new-staff-p-st').value) || 7.5;
+
+      if (!name) return alert('請填寫人員姓名！');
+
+      const existingIdx = accounts.findIndex(a => (origName && a.name === origName) || a.id === id);
+      const record = {
+        id, name, team, category, payCycle, deductRate,
+        prices: { east: eastP, ktlg: ktlgP, ktind: ktindP, st: stP },
+        password: '123'
+      };
+
+      if (existingIdx >= 0) {
+        accounts[existingIdx] = record;
+        alert(`✅ 成功儲存【${name}】的姓名、身份與票價修改！`);
+      } else {
+        accounts.push(record);
+        alert(`✅ 成功建立人員【${id} ${name}】(${category})！`);
+      }
+
+      localStorage.setItem('MIA_ACCOUNTS_PERFECT', JSON.stringify(accounts));
+      syncToGoogleCloud('新增人員', record);
+
+      resetStaffForm();
+      renderStaffManagementList();
+      renderRoleView();
+      renderAssignmentsBoard();
+
+      // ⚡ 即時更新報數輸入框與薪資試算
+      const currentSelectedStaff = document.getElementById('repStaffSelect')?.value;
+      if (currentSelectedStaff === name || currentSelectedStaff === origName) {
+        onStaffSelectChange(name);
+      }
     }
 
     // ⚙️ 修改全域預設票價
@@ -1200,115 +1510,6 @@
         navigator.clipboard.writeText(textarea.value).then(() => {
           alert('✅ 已成功複製 WhatsApp 格式至剪貼簿！');
         });
-      }
-    }
-
-    function autoGenerateStaffId() {
-      const team = document.getElementById('new-staff-team').value;
-      const count = accounts.filter(a => a.team === team).length + 1;
-      const numStr = count < 10 ? `0${count}` : `${count}`;
-      document.getElementById('new-staff-id').value = `${team}${numStr}`;
-    }
-
-    function openAddRiderModal() {
-      resetStaffForm();
-      autoGenerateStaffId();
-      renderStaffManagementList();
-      openModal('modal-add-rider');
-    }
-
-    function resetStaffForm() {
-      document.getElementById('new-staff-name').value = '';
-      document.getElementById('new-staff-name').readOnly = false;
-      document.getElementById('new-staff-p-east').value = 8.5;
-      document.getElementById('new-staff-p-ktlg').value = 8.0;
-      document.getElementById('new-staff-p-ktind').value = 7.5;
-      document.getElementById('new-staff-p-st').value = 7.5;
-      document.getElementById('btn-save-staff-action').textContent = '確認建立人員';
-      autoGenerateStaffId();
-    }
-
-    function editStaffRecord(staffId) {
-      const a = accounts.find(acc => acc.id === staffId);
-      if (!a) return;
-
-      document.getElementById('new-staff-team').value = a.team || 'KM';
-      document.getElementById('new-staff-id').value = a.id;
-      document.getElementById('new-staff-name').value = a.name;
-      document.getElementById('new-staff-name').readOnly = true;
-      document.getElementById('new-staff-role').value = a.category || '兼職步兵';
-      document.getElementById('new-staff-paycycle').value = a.payCycle || '半月糧';
-      document.getElementById('new-staff-deduct-rate').value = a.deductRate || '50%';
-      document.getElementById('new-staff-p-east').value = a.prices?.east || 8.5;
-      document.getElementById('new-staff-p-ktlg').value = a.prices?.ktlg || 8.0;
-      document.getElementById('new-staff-p-ktind').value = a.prices?.ktind || 7.5;
-      document.getElementById('new-staff-p-st').value = a.prices?.st || 7.5;
-
-      document.getElementById('btn-save-staff-action').textContent = `💾 儲存【${a.name}】修改`;
-      openModal('modal-add-rider');
-    }
-
-    function renderStaffManagementList() {
-      const c = document.getElementById('staff-category-list');
-      c.innerHTML = accounts.map(a => `
-        <div class="p-2.5 bg-slate-50 border rounded-xl flex flex-wrap justify-between items-center gap-2">
-          <div>
-            <span class="font-black text-slate-900">[${a.id}] ${a.name}</span>
-            <span class="ml-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">${a.category} (${a.team}組)</span>
-            <span class="ml-1 text-[11px] text-slate-500">週期: ${a.payCycle || '半月糧'} | 扣數: ${a.deductRate || '50%'}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <div class="text-[11px] text-slate-600 font-mono">
-              東$${a.prices?.east || 8.5}/麗$${a.prices?.ktlg || 8}/工$${a.prices?.ktind || 7.5}/沙$${a.prices?.st || 7.5}
-            </div>
-            <button type="button" onclick="editStaffRecord('${a.id}')" class="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold">✏️ 修改</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // ⚡ 即時票價響應機制：儲存人員後即時連動更新前台單價輸入框與工資重算
-    function saveNewStaffRecord() {
-      const id = document.getElementById('new-staff-id').value;
-      const name = document.getElementById('new-staff-name').value.trim();
-      const team = document.getElementById('new-staff-team').value;
-      const category = document.getElementById('new-staff-role').value;
-      const payCycle = document.getElementById('new-staff-paycycle').value;
-      const deductRate = document.getElementById('new-staff-deduct-rate').value;
-      const eastP = Number(document.getElementById('new-staff-p-east').value) || 8.5;
-      const ktlgP = Number(document.getElementById('new-staff-p-ktlg').value) || 8.0;
-      const ktindP = Number(document.getElementById('new-staff-p-ktind').value) || 7.5;
-      const stP = Number(document.getElementById('new-staff-p-st').value) || 7.5;
-
-      if (!name) return alert('請填寫人員姓名！');
-
-      const existingIdx = accounts.findIndex(a => a.id === id || a.name === name);
-      const record = {
-        id, name, team, category, payCycle, deductRate,
-        prices: { east: eastP, ktlg: ktlgP, ktind: ktindP, st: stP },
-        password: '123'
-      };
-
-      if (existingIdx >= 0) {
-        accounts[existingIdx] = { ...accounts[existingIdx], ...record };
-        alert(`✅ 成功更新【${name}】的身份與專屬票價！`);
-      } else {
-        accounts.push(record);
-        alert(`✅ 成功建立【${id} ${name}】(${category})！`);
-      }
-
-      localStorage.setItem('MIA_ACCOUNTS_PERFECT', JSON.stringify(accounts));
-      syncToGoogleCloud('新增人員', record);
-
-      resetStaffForm();
-      renderStaffManagementList();
-      renderRoleView();
-      renderAssignmentsBoard();
-
-      // ⚡ 即時更新當前選中步兵之輸入框與計算
-      const currentSelectedStaff = document.getElementById('repStaffSelect')?.value;
-      if (currentSelectedStaff === name) {
-        onStaffSelectChange(name);
       }
     }
 
@@ -1605,78 +1806,6 @@
       }
     }
 
-    function openTicketsModal() {
-      const tkSel = document.getElementById('tk-responsible-staff');
-      if (tkSel) tkSel.innerHTML = accounts.filter(a => a.name !== 'Mia').map(a => `<option value="${a.name}">${a.name} (${a.id})</option>`).join('');
-      renderTicketsList();
-      openModal('modal-tickets-view');
-    }
-
-    function renderTicketsList() {
-      const badge = document.getElementById('ticket-badge-count');
-      if (badge) badge.textContent = ticketsList.length;
-      const c = document.getElementById('tickets-container');
-      if (!c) return;
-      if (ticketsList.length === 0) {
-        c.innerHTML = '<div class="p-3 text-center text-slate-400">目前沒有任何異常工單。</div>';
-        return;
-      }
-      c.innerHTML = ticketsList.map((t, idx) => `
-        <div class="p-3 bg-slate-50 border border-rose-200 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="px-2 py-0.5 bg-rose-600 text-white rounded text-[10px] font-bold">${t.type}</span>
-              <span class="font-black text-slate-900">[${t.tracking}]</span>
-              <span class="font-bold text-blue-700">責任人: ${t.staff}</span>
-            </div>
-            <div class="text-[11px] text-slate-500 mt-1">地點: ${t.zone} | 日期: ${t.date} | 說明: ${t.desc || '無'}</div>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="font-black text-rose-600 font-mono text-sm">-HK$ ${t.amount}</span>
-            <button type="button" onclick="deleteTicket(${idx})" class="text-xs text-rose-600 hover:text-rose-800 font-bold ml-2 border border-rose-200 bg-white px-2 py-1 rounded">🗑️ 刪除/結案</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function saveNewTicket() {
-      const tracking = document.getElementById('tk-tracking-no')?.value.trim();
-      const staff = document.getElementById('tk-responsible-staff')?.value;
-      const type = document.getElementById('tk-issue-type')?.value;
-      const amount = Number(document.getElementById('tk-penalty-amount')?.value) || 50;
-      const zone = document.getElementById('tk-zone')?.value || '全區';
-      const desc = document.getElementById('tk-issue-desc')?.value;
-
-      if (!tracking) return alert('請填寫運單號碼！');
-
-      const record = { id: `TK${Date.now()}`, date: new Date().toISOString().split('T')[0], tracking, staff, type, amount, zone, desc };
-      ticketsList.unshift(record);
-      localStorage.setItem('MIA_TICKETS_PERFECT', JSON.stringify(ticketsList));
-      syncToGoogleCloud('異常工單', record);
-
-      if (document.getElementById('tk-tracking-no')) document.getElementById('tk-tracking-no').value = '';
-      if (document.getElementById('tk-issue-desc')) document.getElementById('tk-issue-desc').value = '';
-      renderTicketsList();
-      alert(`✅ 已成功增添工單並對【${staff}】扣款 HK$ ${amount}！`);
-    }
-
-    function deleteTicket(idx) {
-      if (confirm('確定刪除此工單記錄？')) {
-        ticketsList.splice(idx, 1);
-        localStorage.setItem('MIA_TICKETS_PERFECT', JSON.stringify(ticketsList));
-        renderTicketsList();
-      }
-    }
-
-    function exportTicketsText() {
-      let txt = `🚨 【Mia組 - 異常工單與扣罰名冊】\n========================================\n`;
-      ticketsList.forEach((t, i) => {
-        txt += `${i+1}. [${t.date}] 單號:${t.tracking} | 責任人:${t.staff} | 類型:${t.type} | 罰款:$${t.amount} | 地點:${t.zone} | 備註:${t.desc||'無'}\n`;
-      });
-      txt += `========================================\n總工單數: ${ticketsList.length} 宗`;
-      showUniversalExportModal('異常工單匯出', txt);
-    }
-
     function calcTotalZoneCounts(zone) {
       let sum = 0;
       const fences = zoneFences[zone] || [];
@@ -1946,7 +2075,6 @@
       }
     }
 
-    // ⚡ 100% 帶出最新修改後的專屬票價
     function onStaffSelectChange(name) {
       const user = accounts.find(a => a.name === name);
       const pWage = priceSettings.wage || defaultPrices.wage;
