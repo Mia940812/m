@@ -27,21 +27,20 @@
         <div class="text-xs font-bold flex items-center gap-2">
           <span>派件營運工作台</span>
           <span id="current-user-badge" class="px-1.5 py-0.5 rounded text-[10px] bg-blue-900/80 text-blue-300 border border-blue-700 font-semibold">👑 總管理員 (Mia)</span>
-          <span id="sync-status" class="text-[10px] text-emerald-400 font-semibold">🟢 已連線試算表</span>
+          <span id="sync-status" class="text-[10px] text-emerald-400 font-semibold">🟢 系統正常運作</span>
         </div>
       </div>
       <div class="flex items-center gap-2 text-xs">
-        <span class="text-slate-400 text-[11px]">登入身份:</span>
+        <span class="text-slate-400 text-[11px]">切換帳戶:</span>
         <select id="user-role-select" onchange="switchUserRole(this.value)" class="bg-slate-800 border border-slate-700 text-slate-200 rounded px-2 py-1 font-bold"></select>
         <button type="button" id="btn-reset-data" onclick="resetSystemData()" class="px-2 py-1 rounded bg-rose-900 hover:bg-rose-800 text-rose-200 text-[11px] font-bold">清空數據</button>
       </div>
     </div>
   </header>
 
-  <!-- 頂部切換導航欄 -->
+  <!-- 頂部切換導航欄（100% 保證點擊即切換，無彈窗卡死） -->
   <nav class="bg-white border-b border-slate-200 sticky top-[49px] z-40 shadow-xs">
     <div class="max-w-7xl mx-auto px-2 py-2 flex flex-wrap items-center gap-1.5 text-xs font-bold">
-      <!-- 公開功能 -->
       <button type="button" onclick="showTab('tab-schedule')" id="btn-tab-schedule" class="nav-btn active px-3.5 py-1.5 rounded-xl border bg-indigo-50 text-indigo-900 border-indigo-200">⏰ 14天公仔報更</button>
       <button type="button" onclick="showTab('tab-progress')" id="btn-tab-progress" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-emerald-50 text-emerald-900 border-emerald-200">⏱️ 各區進度/7大完成度 (5大核心+單號)</button>
       <button type="button" onclick="showTab('tab-assignments')" id="btn-tab-assignments" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-blue-50 text-blue-900 border-blue-200">👥 區域分工排班看板</button>
@@ -49,7 +48,7 @@
       <button type="button" onclick="showTab('tab-leaderboard')" id="btn-tab-leaderboard" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-rose-600 text-white">🏆 罰款獎池與龍虎榜</button>
       <button type="button" onclick="showTab('tab-report')" id="btn-tab-report" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-slate-100 text-slate-800">📝 每日報數</button>
 
-      <!-- 👑 Mia 專屬功能 -->
+      <!-- Mia 專屬隱私功能（普通步兵自動隱藏） -->
       <button type="button" onclick="showTab('tab-recon')" id="btn-tab-recon" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-indigo-700 text-white">🔍 出糧核對 (Mia專屬)</button>
       <button type="button" onclick="showTab('tab-staff')" id="btn-tab-staff" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-slate-900 text-white">👥 人員名冊/票價管理 (Mia專屬)</button>
       <button type="button" onclick="showTab('tab-counts')" id="btn-tab-counts" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-blue-700 text-white">📦 貨量核算中心 (Mia專屬)</button>
@@ -62,7 +61,7 @@
     </div>
   </nav>
 
-  <!-- 主工作區域 -->
+  <!-- 主內容工作區 -->
   <main class="max-w-7xl mx-auto p-3 sm:p-5 flex-1 w-full space-y-4">
 
     <!-- 1. 14天公仔報更 -->
@@ -133,7 +132,7 @@
       </div>
     </div>
 
-    <!-- 3. 👥 區域分工排班看板（保留完整排班並賦予 Mia 權限） -->
+    <!-- 3. 👥 區域分工排班看板 -->
     <div id="tab-assignments" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
@@ -674,13 +673,218 @@
   </div>
 
   <script>
-    function renderProgressCards(zoneKey) {
-      const container = document.getElementById('progressCardsContainer');
-      if (!container) return;
-      const isAdmin = (currentRole === 'Admin');
+    // ================= 全域常數與安全宣告（置頂避免 TDZ 錯誤） =================
+    var currentUser = 'Mia';
+    var currentRole = 'Admin';
+    var currentZone = 'SKW';
 
-      container.innerHTML = (fencesData[zoneKey] || []).map(f => {
-        const p = progressRecord[f.id] || { 
+    var statusOptions7 = [
+      "🟢 100% 已清場 (全數派完+執垃圾)",
+      "🟡 80% 派送中 (尾聲階段/剩少量)",
+      "🔵 50% 派送中 (進度正常/過半)",
+      "🟠 20% 派送中 (剛起步派送)",
+      "⚠️ 滯留/有待處理件 (需跟進)",
+      "📦 待攬/等待接駁中",
+      "⏳ 未開始/貨未到齊"
+    ];
+
+    var initialAccounts = [
+      { id: 'KM01', name: 'Mia', category: 'Admin', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'A01', name: '詠豪', category: '組長', team: 'A', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'B03', name: '景鴻', category: '組長', team: 'B', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'C02', name: '俊華', category: '組長', team: 'C', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'KM04', name: '盧智聰', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'KM05', name: '姜嘉敏KK', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'KM06', name: '周健', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'KM07', name: '黃奕峰', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'C01', name: '張兆偉', category: '全職步兵', team: 'C', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'B01', name: '小肥', category: '全職步兵', team: 'B', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'B02', name: '吳嘉榮', category: '全職步兵', team: 'B', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'KM08', name: '吳瑋儒', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'A02', name: '小魚', category: '兼職步兵', team: 'A', payCycle: '隔日糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'DR01', name: '煒爺', category: '司機', team: 'KM', payCycle: '月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
+      { id: 'DR02', name: '龍', category: '司機', team: 'KM', payCycle: '月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' }
+    ];
+
+    var fencesData = {
+      SKW: [
+        { id: 'SKW_01', name: 'SKW-01 愛蝶灣/愛東邨', defaultStaff: '詠豪' },
+        { id: 'SKW_02', name: 'SKW-02 東旭苑/東濤苑', defaultStaff: '小魚' }
+      ],
+      KTLG: [
+        { id: 'LG_01', name: 'LG-01 麗港城 1-12座', defaultStaff: '小肥' },
+        { id: 'LG_02', name: 'LG-02 麗港城 13-24座', defaultStaff: '吳嘉榮' }
+      ],
+      KTIND: [
+        { id: 'IND_01', name: 'IND-01 開源道/巧明街', defaultStaff: '張兆偉' },
+        { id: 'IND_02', name: 'IND-02 鴻圖道/偉業街', defaultStaff: '俊華' }
+      ],
+      ST: [
+        { id: 'ST_01', name: 'ST-01 康林苑/廣林苑', defaultStaff: '盧智聰' },
+        { id: 'ST_02', name: 'ST-02 帝堡城 1-8座', defaultStaff: '姜嘉敏KK' }
+      ]
+    };
+
+    var accounts = JSON.parse(localStorage.getItem('MIA_ACCOUNTS_CLEAN')) || initialAccounts;
+    var dailyReports = JSON.parse(localStorage.getItem('MIA_DAILY_REPORTS_CLEAN')) || [];
+    var violationsList = JSON.parse(localStorage.getItem('MIA_VIOLATIONS_CLEAN')) || [];
+    var ticketsList = JSON.parse(localStorage.getItem('MIA_TICKETS_CLEAN')) || [];
+    var shiftsRecord = JSON.parse(localStorage.getItem('MIA_SHIFTS_CLEAN')) || {};
+    var progressRecord = JSON.parse(localStorage.getItem('MIA_PROGRESS_DATA')) || {};
+    var countsList = JSON.parse(localStorage.getItem('MIA_COUNTS_DATA')) || [];
+    var truckList = JSON.parse(localStorage.getItem('MIA_TRUCK_DATA')) || [];
+    var suppliesList = JSON.parse(localStorage.getItem('MIA_SUPPLIES_DATA')) || [];
+    var recruitsList = JSON.parse(localStorage.getItem('MIA_RECRUITS_DATA')) || [];
+
+    // ================= 核心 Tab 切換 =================
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(function(el) { el.classList.remove('active'); });
+      document.querySelectorAll('.nav-btn').forEach(function(el) { el.classList.remove('active'); });
+      
+      var target = document.getElementById(tabId);
+      if (target) target.classList.add('active');
+      
+      var btn = document.getElementById('btn-' + tabId);
+      if (btn) btn.classList.add('active');
+
+      if (tabId === 'tab-schedule') renderIconVisualSchedule();
+      if (tabId === 'tab-progress') switchProgressZone(currentZone);
+      if (tabId === 'tab-tickets') renderTicketsList();
+      if (tabId === 'tab-leaderboard') renderLeaderboard();
+      if (tabId === 'tab-violations') renderViolationsTable();
+      if (tabId === 'tab-recon') filterReconHistory();
+      if (tabId === 'tab-staff') renderStaffTable();
+      if (tabId === 'tab-profit') renderProfitSummary();
+      if (tabId === 'tab-assignments') renderAssignmentsGrid();
+      if (tabId === 'tab-counts') renderCountsTable();
+      if (tabId === 'tab-truck') renderTruckTable();
+      if (tabId === 'tab-supplies') renderSuppliesTable();
+      if (tabId === 'tab-recruits') renderRecruitsTable();
+      if (tabId === 'tab-export') generateExportText('schedule');
+    }
+
+    // ================= 權限與帳戶切換 =================
+    function switchUserRole(name) {
+      currentUser = name;
+      var u = accounts.find(function(a) { return a.name === name; });
+      currentRole = (u && u.category) || '全職步兵';
+      
+      var badge = document.getElementById('current-user-badge');
+      if (badge) badge.textContent = (currentRole === 'Admin') ? '👑 總管理員 (Mia)' : '👤 ' + u.name + ' (' + u.category + ')';
+
+      var isAdmin = (currentRole === 'Admin');
+      document.querySelectorAll('.admin-only').forEach(function(el) {
+        el.style.display = isAdmin ? '' : 'none';
+      });
+
+      var resetBtn = document.getElementById('btn-reset-data');
+      if (resetBtn) resetBtn.style.display = isAdmin ? 'inline-block' : 'none';
+
+      var repStaff = document.getElementById('repStaffSelect');
+      if (repStaff) {
+        if (!isAdmin) {
+          repStaff.innerHTML = '<option value="' + currentUser + '">' + currentUser + ' (' + currentRole + ')</option>';
+          repStaff.value = currentUser;
+          repStaff.disabled = true;
+        } else {
+          repStaff.disabled = false;
+          repStaff.innerHTML = accounts.map(function(a) { return '<option value="' + a.name + '">' + a.name + ' (' + a.category + ')</option>'; }).join('');
+        }
+        onStaffSelectChange(repStaff.value);
+      }
+
+      var tkForm = document.getElementById('form-new-ticket');
+      if (tkForm) tkForm.style.display = isAdmin ? 'grid' : 'none';
+
+      renderReportsTable();
+      renderTicketsList();
+      renderViolationsTable();
+    }
+
+    function resetSystemData() {
+      if (currentRole !== 'Admin') { alert('⚠️ 只有 Mia 擁有清空權限！'); return; }
+      if (confirm('確定清空所有數據嗎？')) {
+        dailyReports = []; violationsList = []; ticketsList = []; shiftsRecord = {}; progressRecord = {}; countsList = []; truckList = []; suppliesList = []; recruitsList = [];
+        localStorage.clear();
+        renderReportsTable();
+        alert('數據已重置！');
+      }
+    }
+
+    // ================= 14 天公仔報更 =================
+    function renderIconVisualSchedule() {
+      var headerRow = document.getElementById('scheduleTableHeaderRow');
+      var tbody = document.getElementById('scheduleTableBody');
+      if (!headerRow || !tbody) return;
+
+      var dateList = [];
+      var thHtml = '<th class="p-2.5 border-r border-slate-700 bg-slate-900 sticky left-0 z-10 min-w-[80px]">人員</th><th class="p-2.5 border-r border-slate-700 min-w-[50px]">隊伍</th>';
+      var weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+      
+      for (var i = 0; i < 14; i++) {
+        var d = new Date(); d.setDate(d.getDate() + i);
+        var dStr = (d.getMonth() + 1) + '/' + d.getDate();
+        var wStr = weekdays[d.getDay()];
+        var isWeekend = d.getDay() === 0 || d.getDay() === 6;
+        var dKey = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        dateList.push(dKey);
+        thHtml += '<th class="p-2 text-center border-r border-slate-700 font-mono text-[11px] ' + (isWeekend ? 'bg-slate-800 text-amber-300' : '') + '">' + dStr + '<br><span class="text-[9px] font-normal">' + wStr + '</span></th>';
+      }
+      headerRow.innerHTML = thHtml;
+
+      tbody.innerHTML = accounts.map(function(acc) {
+        var cells = '';
+        dateList.forEach(function(dKey) {
+          var shiftKey = acc.name + '_' + dKey;
+          var shiftData = shiftsRecord[shiftKey] || { icon: '未排', note: '' };
+          cells += '<td class="p-1 text-center border-r border-slate-200">' +
+            '<button type="button" onclick="cycleShiftIcon(\'' + acc.name + '\', \'' + dKey + '\')" class="w-full py-1 px-1 rounded text-[11px] font-bold border transition bg-white hover:bg-slate-100">' +
+            '<div>' + shiftData.icon + '</div>' +
+            (shiftData.note ? '<div class="text-[8px] text-slate-500 font-normal truncate">' + shiftData.note + '</div>' : '') +
+            '</button></td>';
+        });
+        return '<tr class="hover:bg-slate-50 transition"><td class="p-2 font-bold text-slate-900 border-r bg-white sticky left-0 z-10">' + acc.name + '</td><td class="p-1.5 text-slate-500 font-bold border-r text-center">' + acc.team + '</td>' + cells + '</tr>';
+      }).join('');
+    }
+
+    function cycleShiftIcon(staffName, dateKey) {
+      var icons = ['☀️ 全天', '⛅ 半日', '📍 東區', '📍 觀塘', '📍 沙田', '🏖️ 放假', '🔥 救火', '未排'];
+      var key = staffName + '_' + dateKey;
+      var current = (shiftsRecord[key] && shiftsRecord[key].icon) || '未排';
+      var nextIcon = icons[(icons.indexOf(current) + 1) % icons.length];
+      shiftsRecord[key] = { icon: nextIcon, note: (shiftsRecord[key] && shiftsRecord[key].note) || '' };
+      localStorage.setItem('MIA_SHIFTS_CLEAN', JSON.stringify(shiftsRecord));
+      
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.saveShiftToSheet(staffName, dateKey, nextIcon, shiftsRecord[key].note);
+      }
+      renderIconVisualSchedule();
+    }
+
+    function saveCustomShiftForm(e) {
+      e.preventDefault();
+      var staff = document.getElementById('form-shift-staff').value;
+      var date = document.getElementById('form-shift-date').value;
+      var icon = document.getElementById('form-shift-icon').value;
+      var note = document.getElementById('form-shift-note').value.trim();
+      shiftsRecord[staff + '_' + date] = { icon: icon, note: note };
+      localStorage.setItem('MIA_SHIFTS_CLEAN', JSON.stringify(shiftsRecord));
+      
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.saveShiftToSheet(staff, date, icon, note);
+      }
+      renderIconVisualSchedule();
+      alert('✅ 已為 ' + staff + ' 儲存 ' + date + ' 的報更並同步！');
+    }
+
+    // ================= 各區工作進度 (7大完成度) =================
+    function renderProgressCards(zoneKey) {
+      var container = document.getElementById('progressCardsContainer');
+      if (!container) return;
+      var isAdmin = (currentRole === 'Admin');
+
+      container.innerHTML = (fencesData[zoneKey] || []).map(function(f) {
+        var p = progressRecord[f.id] || { 
           completionStatus: "⏳ 未開始/貨未到齊",
           signed: 0, signedTracks: '', 
           refund: 0, refundTracks: '', 
@@ -692,131 +896,460 @@
           photo: '' 
         };
 
-        return `
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5 text-xs shadow-2xs">
-            <div class="flex justify-between items-center border-b pb-2">
-              <span class="font-black text-slate-900 text-sm">${f.name}</span>
-              ${isAdmin ? `
-                <select onchange="updateProgressField('${f.id}', 'staff', this.value); renderAssignmentsGrid();" class="bg-white border rounded px-2 py-1 font-bold text-blue-700">
-                  <option value="">選擇負責步兵</option>
-                  ${accounts.map(a => `<option value="${a.name}" ${p.staff === a.name ? 'selected' : ''}>${a.name}</option>`).join('')}
-                </select>
-              ` : `
-                <span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-black">負責: ${p.staff || '未指派'}</span>
-              `}
-            </div>
+        var optionsHtml = statusOptions7.map(function(opt) {
+          return '<option value="' + opt + '" ' + (p.completionStatus === opt ? 'selected' : '') + '>' + opt + '</option>';
+        }).join('');
 
-            <!-- 🌟 7 大實時完成度下拉選項 -->
-            <div class="p-2 bg-white border border-blue-200 rounded-xl">
-              <label class="block font-black text-slate-800 mb-1">📊 當日圍欄實時完成度 (7大狀態)：</label>
-              <select onchange="updateProgressField('${f.id}', 'completionStatus', this.value)" class="w-full p-1.5 bg-blue-50/60 border border-blue-300 rounded font-black text-xs text-slate-900">
-                ${statusOptions7.map(opt => `<option value="${opt}" ${p.completionStatus === opt ? 'selected' : ''}>${opt}</option>`).join('')}
-              </select>
-            </div>
+        var staffOptionsHtml = accounts.map(function(a) {
+          return '<option value="' + a.name + '" ' + (p.staff === a.name ? 'selected' : '') + '>' + a.name + '</option>';
+        }).join('');
 
-            <!-- 5 大核心件數與單號 -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              <div class="bg-white p-2 border rounded-lg">
-                <span class="font-bold text-emerald-800 block mb-1">✅ 已簽收件</span>
-                <input type="number" min="0" value="${p.signed}" onchange="updateProgressField('${f.id}', 'signed', this.value)" class="w-full p-1 bg-emerald-50/50 border rounded font-black text-emerald-700 mb-1">
-                <input type="text" placeholder="貼上單號..." value="${p.signedTracks||''}" onchange="updateProgressField('${f.id}', 'signedTracks', this.value)" class="w-full p-1 border rounded text-[10px] font-mono">
-              </div>
-              <div class="bg-white p-2 border rounded-lg">
-                <span class="font-bold text-rose-800 block mb-1">💸 已退款件</span>
-                <input type="number" min="0" value="${p.refund}" onchange="updateProgressField('${f.id}', 'refund', this.value)" class="w-full p-1 bg-rose-50/50 border rounded font-black text-rose-700 mb-1">
-                <input type="text" placeholder="貼上單號..." value="${p.refundTracks||''}" onchange="updateProgressField('${f.id}', 'refundTracks', this.value)" class="w-full p-1 border rounded text-[10px] font-mono">
-              </div>
-              <div class="bg-white p-2 border rounded-lg">
-                <span class="font-bold text-slate-700 block mb-1">🧹 清場狀態</span>
-                <select onchange="updateProgressField('${f.id}', 'isCleaned', this.value)" class="w-full p-1 bg-slate-50 border rounded font-bold mt-1">
-                  <option value="未清場" ${p.isCleaned==='未清場'?'selected':''}>⏳ 未清場</option>
-                  <option value="已清場" ${p.isCleaned==='已清場'?'selected':''}>✨ 已清場</option>
-                </select>
-              </div>
-              <div class="bg-white p-2 border rounded-lg">
-                <span class="font-bold text-indigo-800 block mb-1">📦 待攬紀錄</span>
-                <input type="number" min="0" value="${p.pendingPickup}" onchange="updateProgressField('${f.id}', 'pendingPickup', this.value)" class="w-full p-1 bg-indigo-50/50 border rounded font-black text-indigo-700 mb-1">
-                <input type="text" placeholder="貼上單號..." value="${p.pendingTracks||''}" onchange="updateProgressField('${f.id}', 'pendingTracks', this.value)" class="w-full p-1 border rounded text-[10px] font-mono">
-              </div>
-              <div class="bg-white p-2 border rounded-lg">
-                <span class="font-bold text-slate-800 block mb-1">🚫 回倉件數</span>
-                <input type="number" min="0" value="${p.returned}" onchange="updateProgressField('${f.id}', 'returned', this.value)" class="w-full p-1 bg-slate-100 border rounded font-black text-slate-700 mb-1">
-                <input type="text" placeholder="貼上單號..." value="${p.returnedTracks||''}" onchange="updateProgressField('${f.id}', 'returnedTracks', this.value)" class="w-full p-1 border rounded text-[10px] font-mono">
-              </div>
-              <div class="bg-white p-2 border rounded-lg">
-                <span class="font-bold text-amber-800 block mb-1">⚠️ 滯留/未簽收</span>
-                <input type="number" min="0" value="${p.hold}" onchange="updateProgressField('${f.id}', 'hold', this.value)" class="w-full p-1 bg-amber-50/50 border rounded font-black text-amber-700 mb-1">
-                <input type="text" placeholder="貼上單號..." value="${p.holdTracks||''}" onchange="updateProgressField('${f.id}', 'holdTracks', this.value)" class="w-full p-1 border rounded text-[10px] font-mono">
-              </div>
-            </div>
-
-            <!-- 📷 現場影相舉證 -->
-            <div class="flex items-center gap-2 pt-1 border-t">
-              <label class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded cursor-pointer font-bold text-[10px]">
-                📷 現場影相舉證
-                <input type="file" accept="image/*" onchange="uploadFencePhoto(event, '${f.id}')" class="hidden">
-              </label>
-              ${p.photo ? `<img src="${p.photo}" onclick="viewLargeImage('${p.photo}')" class="w-7 h-7 object-cover rounded border cursor-pointer shadow-xs"> <span class="text-[10px] text-emerald-600 font-bold">已拍照</span>` : '<span class="text-[10px] text-slate-400">未影相</span>'}
-            </div>
-          </div>
-        `;
+        return '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5 text-xs shadow-2xs">' +
+          '<div class="flex justify-between items-center border-b pb-2">' +
+            '<span class="font-black text-slate-900 text-sm">' + f.name + '</span>' +
+            (isAdmin ? '<select onchange="updateProgressField(\'' + f.id + '\', \'staff\', this.value); renderAssignmentsGrid();" class="bg-white border rounded px-2 py-1 font-bold text-blue-700"><option value="">選擇負責步兵</option>' + staffOptionsHtml + '</select>' : '<span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-black">負責: ' + (p.staff || '未指派') + '</span>') +
+          '</div>' +
+          '<div class="p-2 bg-white border border-blue-200 rounded-xl">' +
+            '<label class="block font-black text-slate-800 mb-1">📊 當日圍欄實時完成度 (7大狀態)：</label>' +
+            '<select onchange="updateProgressField(\'' + f.id + '\', \'completionStatus', this.value)" class="w-full p-1.5 bg-blue-50/60 border border-blue-300 rounded font-black text-xs text-slate-900">' + optionsHtml + '</select>' +
+          '</div>' +
+          '<div class="grid grid-cols-2 sm:grid-cols-3 gap-2">' +
+            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-emerald-800 block mb-1">✅ 已簽收件</span><input type="number" min="0" value="' + p.signed + '" onchange="updateProgressField(\'' + f.id + '\', \'signed\', this.value)" class="w-full p-1 bg-emerald-50/50 border rounded font-black text-emerald-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.signedTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'signedTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-rose-800 block mb-1">💸 已退款件</span><input type="number" min="0" value="' + p.refund + '" onchange="updateProgressField(\'' + f.id + '\', \'refund\', this.value)" class="w-full p-1 bg-rose-50/50 border rounded font-black text-rose-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.refundTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'refundTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-slate-700 block mb-1">🧹 清場狀態</span><select onchange="updateProgressField(\'' + f.id + '\', \'isCleaned\', this.value)" class="w-full p-1 bg-slate-50 border rounded font-bold mt-1"><option value="未清場" ' + (p.isCleaned==='未清場'?'selected':'') + '>⏳ 未清場</option><option value="已清場" ' + (p.isCleaned==='已清場'?'selected':'') + '>✨ 已清場</option></select></div>' +
+            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-indigo-800 block mb-1">📦 待攬紀錄</span><input type="number" min="0" value="' + p.pendingPickup + '" onchange="updateProgressField(\'' + f.id + '\', \'pendingPickup\', this.value)" class="w-full p-1 bg-indigo-50/50 border rounded font-black text-indigo-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.pendingTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'pendingTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-slate-800 block mb-1">🚫 回倉件數</span><input type="number" min="0" value="' + p.returned + '" onchange="updateProgressField(\'' + f.id + '\', \'returned\', this.value)" class="w-full p-1 bg-slate-100 border rounded font-black text-slate-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.returnedTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'returnedTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-amber-800 block mb-1">⚠️ 滯留/未簽收</span><input type="number" min="0" value="' + p.hold + '" onchange="updateProgressField(\'' + f.id + '\', \'hold\', this.value)" class="w-full p-1 bg-amber-50/50 border rounded font-black text-amber-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.holdTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'holdTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+          '</div>' +
+          '<div class="flex items-center gap-2 pt-1 border-t">' +
+            '<label class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded cursor-pointer font-bold text-[10px]">📷 現場影相舉證<input type="file" accept="image/*" onchange="uploadFencePhoto(event, \'' + f.id + '\')" class="hidden"></label>' +
+            (p.photo ? '<img src="' + p.photo + '" onclick="viewLargeImage(\'' + p.photo + '\')" class="w-7 h-7 object-cover rounded border cursor-pointer shadow-xs"> <span class="text-[10px] text-emerald-600 font-bold">已拍照</span>' : '<span class="text-[10px] text-slate-400">未影相</span>') +
+          '</div>' +
+        '</div>';
       }).join('');
     }
 
     function switchProgressZone(zoneKey) {
       currentZone = zoneKey;
-      ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(z => {
-        const btn = document.getElementById(`prog-tab-${z}`);
+      ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(function(z) {
+        var btn = document.getElementById('prog-tab-' + z);
         if (btn) btn.className = (z === zoneKey) ? 'px-3 py-1.5 rounded-lg bg-slate-900 text-white' : 'px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700';
       });
       renderProgressCards(zoneKey);
     }
 
-    // 區域分工看板（Mia 可指派，全體可看）
+    function updateProgressField(fenceId, field, val) {
+      if (!progressRecord[fenceId]) progressRecord[fenceId] = {};
+      progressRecord[fenceId][field] = val;
+      localStorage.setItem('MIA_PROGRESS_DATA', JSON.stringify(progressRecord));
+    }
+
+    function uploadFencePhoto(e, fenceId) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(evt) {
+        updateProgressField(fenceId, 'photo', evt.target.result);
+        switchProgressZone(currentZone);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function syncProgressToSheet() {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.saveProgressToSheet(JSON.stringify(progressRecord));
+        alert('✅ 進度與完成度狀態已同步至 Google Sheets！');
+      }
+    }
+
+    // ================= 區域分工看板 =================
     function renderAssignmentsGrid() {
-      const container = document.getElementById('assignments-grid');
+      var container = document.getElementById('assignments-grid');
       if (!container) return;
-      const isAdmin = (currentRole === 'Admin');
-      let html = '';
+      var isAdmin = (currentRole === 'Admin');
+      var html = '';
       
-      ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(z => {
-        const zoneNames = { SKW: '東區 (SKW)', KTLG: '麗港城 (KT-LG)', KTIND: '觀塘工商 (KT-IND)', ST: '沙田 (ST-F58)' };
-        const fences = fencesData[z] || [];
-        html += `
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">
-            <div class="font-bold text-xs text-slate-900 border-b pb-1 flex justify-between">
-              <span>${zoneNames[z]}</span>
-              <span class="text-[10px] text-slate-400">${fences.length} 圍欄</span>
-            </div>
-            <div class="space-y-2">
-              ${fences.map(f => {
-                const assigned = (progressRecord[f.id] && progressRecord[f.id].staff) || f.defaultStaff || '未指派';
-                const status = (progressRecord[f.id] && progressRecord[f.id].completionStatus) || '⏳ 未開始';
-                return `
-                  <div class="p-2 bg-white border rounded-lg space-y-1 text-xs">
-                    <div class="font-bold text-slate-800">${f.name}</div>
-                    <div class="flex justify-between items-center text-[11px]">
-                      <span class="text-slate-500">負責人:</span>
-                      ${isAdmin ? `
-                        <select onchange="updateProgressField('${f.id}', 'staff', this.value); renderProgressCards(currentZone);" class="bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5 font-black text-blue-800">
-                          ${accounts.map(a => `<option value="${a.name}" ${assigned === a.name ? 'selected' : ''}>${a.name}</option>`).join('')}
-                        </select>
-                      ` : `
-                        <span class="px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded font-black">${assigned}</span>
-                      `}
-                    </div>
-                    <div class="text-[10px] text-slate-500 truncate">狀態: ${status}</div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
-        `;
+      ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(function(z) {
+        var zoneNames = { SKW: '東區 (SKW)', KTLG: '麗港城 (KT-LG)', KTIND: '觀塘工商 (KT-IND)', ST: '沙田 (ST-F58)' };
+        var fences = fencesData[z] || [];
+        html += '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">' +
+          '<div class="font-bold text-xs text-slate-900 border-b pb-1 flex justify-between">' +
+            '<span>' + zoneNames[z] + '</span><span class="text-[10px] text-slate-400">' + fences.length + ' 圍欄</span>' +
+          '</div>' +
+          '<div class="space-y-2">';
+        
+        fences.forEach(function(f) {
+          var assigned = (progressRecord[f.id] && progressRecord[f.id].staff) || f.defaultStaff || '未指派';
+          var status = (progressRecord[f.id] && progressRecord[f.id].completionStatus) || '⏳ 未開始';
+          var staffOptions = accounts.map(function(a) {
+            return '<option value="' + a.name + '" ' + (assigned === a.name ? 'selected' : '') + '>' + a.name + '</option>';
+          }).join('');
+
+          html += '<div class="p-2 bg-white border rounded-lg space-y-1 text-xs">' +
+            '<div class="font-bold text-slate-800">' + f.name + '</div>' +
+            '<div class="flex justify-between items-center text-[11px]">' +
+              '<span class="text-slate-500">負責人:</span>' +
+              (isAdmin ? '<select onchange="updateProgressField(\'' + f.id + '\', \'staff\', this.value); renderProgressCards(currentZone);" class="bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5 font-black text-blue-800">' + staffOptions + '</select>' : '<span class="px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded font-black">' + assigned + '</span>') +
+            '</div>' +
+            '<div class="text-[10px] text-slate-500 truncate">狀態: ' + status + '</div>' +
+          '</div>';
+        });
+
+        html += '</div></div>';
       });
       container.innerHTML = html;
     }
 
-    // 貨量核算中心
+    // ================= 異常工單 =================
+    function saveNewTicketRecord(e) {
+      e.preventDefault();
+      var payload = {
+        id: 'TK_' + Date.now(),
+        tracking: document.getElementById('tk-input-tracking').value.trim(),
+        staff: document.getElementById('tk-input-staff').value,
+        type: document.getElementById('tk-input-type').value,
+        fine: Number(document.getElementById('tk-input-fine').value) || 0,
+        desc: document.getElementById('tk-input-desc').value.trim(),
+        status: '待處理',
+        appealText: '',
+        photo: ''
+      };
+      ticketsList.unshift(payload);
+      localStorage.setItem('MIA_TICKETS_CLEAN', JSON.stringify(ticketsList));
+      
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.saveTicketToSheet(payload);
+      }
+      renderTicketsList();
+      alert('✅ 工單已指派並同步至試算表！');
+    }
+
+    function renderTicketsList() {
+      var tbody = document.getElementById('ticketsTableBody');
+      if (!tbody) return;
+      var isAdmin = (currentRole === 'Admin');
+      var filtered = isAdmin ? ticketsList : ticketsList.filter(function(t) { return t.staff === currentUser; });
+
+      tbody.innerHTML = filtered.map(function(t, idx) {
+        return '<tr class="hover:bg-slate-50 text-[11px]">' +
+          '<td class="p-2.5 font-mono font-bold">' + t.tracking + '</td>' +
+          '<td class="p-2.5 font-bold text-blue-700">' + t.staff + '</td>' +
+          '<td class="p-2.5"><span class="text-rose-700 font-bold">' + t.type + '</span><br><span class="text-rose-600 font-mono font-black">HK$ ' + t.fine + '</span></td>' +
+          '<td class="p-2.5 text-slate-600">' + (t.desc || '-') + '</td>' +
+          '<td class="p-2.5 text-center">' +
+            '<select onchange="ticketsList[' + idx + '].status=this.value;localStorage.setItem(\'MIA_TICKETS_CLEAN\',JSON.stringify(ticketsList));" class="border rounded p-1 font-bold">' +
+              '<option value="待處理" ' + (t.status==='待處理'?'selected':'') + '>待處理</option>' +
+              '<option value="已申訴" ' + (t.status==='已申訴'?'selected':'') + '>已申訴</option>' +
+              '<option value="已結案" ' + (t.status==='已結案'?'selected':'') + '>已結案</option>' +
+            '</select>' +
+          '</td>' +
+          '<td class="p-2.5">' +
+            '<input type="text" placeholder="步兵填寫舉證或說明..." value="' + (t.appealText||'') + '" onchange="ticketsList[' + idx + '].appealText=this.value;localStorage.setItem(\'MIA_TICKETS_CLEAN\',JSON.stringify(ticketsList));" class="w-full border rounded p-1">' +
+          '</td>' +
+          '<td class="p-2.5 text-center">' +
+            '<div class="flex items-center justify-center gap-1">' +
+              '<label class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-white rounded cursor-pointer text-[10px] font-bold">📷 上傳<input type="file" accept="image/*" onchange="uploadTicketPhoto(event, ' + idx + ')" class="hidden"></label>' +
+              (t.photo ? '<img src="' + t.photo + '" onclick="viewLargeImage(\'' + t.photo + '\')" class="w-6 h-6 object-cover rounded border cursor-pointer">' : '') +
+            '</div>' +
+          '</td>' +
+          '<td class="p-2.5 text-center">' +
+            (isAdmin ? '<button type="button" onclick="ticketsList.splice(' + idx + ',1);localStorage.setItem(\'MIA_TICKETS_CLEAN\',JSON.stringify(ticketsList));renderTicketsList();" class="text-rose-600 font-bold hover:underline">刪除</button>' : '-') +
+          '</td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="8" class="p-6 text-center text-slate-400">目前無相關工單記錄。</td></tr>';
+    }
+
+    function uploadTicketPhoto(e, idx) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(evt) {
+        ticketsList[idx].photo = evt.target.result;
+        localStorage.setItem('MIA_TICKETS_CLEAN', JSON.stringify(ticketsList));
+        renderTicketsList();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ================= 龍虎榜 =================
+    function renderLeaderboard() {
+      var vioFineTotal = violationsList.reduce(function(sum, v) { return sum + (Number(v.amount) || 0); }, 0);
+      var ticketFineTotal = ticketsList.reduce(function(sum, t) { return sum + (Number(t.fine) || 0); }, 0);
+      var totalPool = vioFineTotal + ticketFineTotal;
+      var pool60 = totalPool * 0.6;
+
+      var totalPoolEl = document.getElementById('leaderboard-total-pool');
+      var pool60El = document.getElementById('leaderboard-60-pool');
+      if (totalPoolEl) totalPoolEl.textContent = 'HK$ ' + totalPool.toFixed(2);
+      if (pool60El) pool60El.textContent = 'HK$ ' + pool60.toFixed(2);
+
+      var tbody = document.getElementById('leaderboardDetailsTableBody');
+      if (!tbody) return;
+
+      var staffStats = accounts.map(function(a) {
+        var staffReports = dailyReports.filter(function(r) { return r.staff === a.name; });
+        var pieces = staffReports.reduce(function(sum, r) { return sum + (Number(r.totalPieces) || 0); }, 0);
+        var vFine = violationsList.filter(function(v) { return v.staff === a.name; }).reduce(function(sum, v) { return sum + (Number(v.amount) || 0); }, 0);
+        var tFine = ticketsList.filter(function(t) { return t.staff === a.name; }).reduce(function(sum, t) { return sum + (Number(t.fine) || 0); }, 0);
+        var totalFine = vFine + tFine;
+        var isEligible = totalFine === 0 && pieces > 0;
+        return { name: a.name, team: a.team, pieces: pieces, totalFine: totalFine, isEligible: isEligible, bonus: 0 };
+      }).sort(function(x, y) { return y.pieces - x.pieces; });
+
+      var eligibleTotalPieces = staffStats.filter(function(s) { return s.isEligible; }).reduce(function(sum, s) { return sum + s.pieces; }, 0) || 1;
+      staffStats.forEach(function(s) { if (s.isEligible) s.bonus = (s.pieces / eligibleTotalPieces) * pool60; });
+
+      tbody.innerHTML = staffStats.map(function(s, idx) {
+        return '<tr class="hover:bg-slate-50 text-[11px]">' +
+          '<td class="p-2.5 text-center font-bold">' + (idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : '#' + (idx + 1)))) + '</td>' +
+          '<td class="p-2.5 font-bold text-slate-900">' + s.name + '</td>' +
+          '<td class="p-2.5 text-slate-500">' + s.team + ' 隊</td>' +
+          '<td class="p-2.5 text-right font-black text-blue-700 font-mono">' + s.pieces + ' 票</td>' +
+          '<td class="p-2.5 text-right font-bold ' + (s.totalFine > 0 ? 'text-rose-600' : 'text-slate-400') + '">$' + s.totalFine.toFixed(2) + '</td>' +
+          '<td class="p-2.5 text-center">' + (s.isEligible ? '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold">🌟 零違規</span>' : '-') + '</td>' +
+          '<td class="p-2.5 text-right font-black text-emerald-700 font-mono">HK$ ' + s.bonus.toFixed(2) + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    // ================= 每日報數 =================
+    function onStaffSelectChange(name) {
+      var u = accounts.find(function(a) { return a.name === name; }) || { prices: { east: 4, ktlg: 4, ktind: 4.5, st: 7 } };
+      var pE = document.getElementById('repEastPrice'); if (pE) pE.value = u.prices.east;
+      var pL = document.getElementById('repKtLgPrice'); if (pL) pL.value = u.prices.ktlg;
+      var pI = document.getElementById('repKtIndPrice'); if (pI) pI.value = u.prices.ktind;
+      var pS = document.getElementById('repStPrice'); if (pS) pS.value = u.prices.st;
+      calcSalaryLive();
+    }
+
+    function calcSalaryLive() {
+      var eastC = Number(document.getElementById('repEastCount') ? document.getElementById('repEastCount').value : 0) || 0;
+      var eastP = Number(document.getElementById('repEastPrice') ? document.getElementById('repEastPrice').value : 4.0) || 4.0;
+      var ktLgC = Number(document.getElementById('repKtLgCount') ? document.getElementById('repKtLgCount').value : 0) || 0;
+      var ktLgP = Number(document.getElementById('repKtLgPrice') ? document.getElementById('repKtLgPrice').value : 4.0) || 4.0;
+      var ktIndC = Number(document.getElementById('repKtIndCount') ? document.getElementById('repKtIndCount').value : 0) || 0;
+      var ktIndP = Number(document.getElementById('repKtIndPrice') ? document.getElementById('repKtIndPrice').value : 4.5) || 4.5;
+      var stC = Number(document.getElementById('repStCount') ? document.getElementById('repStCount').value : 0) || 0;
+      var stP = Number(document.getElementById('repStPrice') ? document.getElementById('repStPrice').value : 7.0) || 7.0;
+
+      var totalP = eastC + ktLgC + ktIndC + stC;
+      var signedInput = document.getElementById('repSignedCount');
+      if (signedInput && (!signedInput.value || Number(signedInput.value) === 0)) signedInput.value = totalP;
+
+      var car = Number(document.getElementById('repCarAllowance') ? document.getElementById('repCarAllowance').value : 0) || 0;
+      var penalty = Number(document.getElementById('repPenalty') ? document.getElementById('repPenalty').value : 0) || 0;
+
+      var wageGross = (eastC * eastP) + (ktLgC * ktLgP) + (ktIndC * ktIndP) + (stC * stP);
+      var total = wageGross + car - penalty;
+      var totalEl = document.getElementById('repLiveTotalSalary');
+      if (totalEl) totalEl.textContent = 'HK$ ' + Math.max(0, total).toFixed(2);
+    }
+
+    function saveDailyReport(e) {
+      e.preventDefault();
+      var staffName = document.getElementById('repStaffSelect').value;
+      var eastC = Number(document.getElementById('repEastCount').value) || 0;
+      var ktLgC = Number(document.getElementById('repKtLgCount').value) || 0;
+      var ktIndC = Number(document.getElementById('repKtIndCount').value) || 0;
+      var stC = Number(document.getElementById('repStCount').value) || 0;
+      var totalP = eastC + ktLgC + ktIndC + stC;
+
+      var totalSalaryText = document.getElementById('repLiveTotalSalary') ? document.getElementById('repLiveTotalSalary').textContent.replace('HK$ ', '') : '0';
+
+      var payload = {
+        id: 'REP_' + Date.now(),
+        date: document.getElementById('repDate').value,
+        staff: staffName,
+        eastCount: eastC, ktLgCount: ktLgC, ktIndCount: ktIndC, stCount: stC,
+        totalPieces: totalP,
+        signedCount: Number(document.getElementById('repSignedCount').value) || totalP,
+        holdCount: Number(document.getElementById('repHoldCount').value) || 0,
+        photoProof: document.getElementById('repPhotoData').value || '',
+        finalSalary: Number(totalSalaryText) || 0
+      };
+
+      dailyReports.unshift(payload);
+      localStorage.setItem('MIA_DAILY_REPORTS_CLEAN', JSON.stringify(dailyReports));
+      
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.saveReportToSheet(payload);
+      }
+      renderReportsTable();
+      alert('✅ 已儲存 ' + staffName + ' 的派件報數並同步至試算表！');
+    }
+
+    function renderReportsTable() {
+      var tbody = document.getElementById('reportTableBody');
+      if (!tbody) return;
+      var isAdmin = (currentRole === 'Admin');
+      var filtered = isAdmin ? dailyReports : dailyReports.filter(function(r) { return r.staff === currentUser; });
+
+      tbody.innerHTML = filtered.map(function(r, idx) {
+        return '<tr class="hover:bg-slate-50 text-[11px]">' +
+          '<td class="p-3 font-mono">' + r.date + '</td>' +
+          '<td class="p-3 font-bold">' + r.staff + '</td>' +
+          '<td class="p-3 text-center text-blue-700 font-bold">' + r.eastCount + '/' + r.ktLgCount + '/' + r.ktIndCount + '/' + r.stCount + '</td>' +
+          '<td class="p-3 text-right font-bold">' + r.totalPieces + ' 票</td>' +
+          '<td class="p-3 text-right font-mono font-bold text-emerald-700">' + r.signedCount + ' / <span class="text-amber-600">' + r.holdCount + '</span></td>' +
+          '<td class="p-3 text-center">' + (r.photoProof ? '<img src="' + r.photoProof + '" onclick="viewLargeImage(\'' + r.photoProof + '\')" class="w-7 h-7 object-cover rounded border mx-auto cursor-pointer shadow-xs">' : '<span class="text-slate-400">無</span>') + '</td>' +
+          '<td class="p-3 text-right font-black text-emerald-600 font-mono ' + (isAdmin ? '' : 'hidden') + '">HK$ ' + Number(r.finalSalary || 0).toFixed(2) + '</td>' +
+          '<td class="p-3 text-center">' + (isAdmin ? '<button type="button" onclick="dailyReports.splice(' + idx + ',1);localStorage.setItem(\'MIA_DAILY_REPORTS_CLEAN\',JSON.stringify(dailyReports));renderReportsTable();" class="text-rose-600 font-bold hover:underline">刪除</button>' : '-') + '</td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="8" class="p-6 text-center text-slate-400">目前暫無報數記錄。</td></tr>';
+    }
+
+    // ================= 出糧核對 (Mia 專屬) =================
+    function filterReconHistory() {
+      var selStaff = (document.getElementById('recon-staff-select') && document.getElementById('recon-staff-select').value) || '全部';
+      var filtered = dailyReports.filter(function(r) { return selStaff === '全部' || r.staff === selStaff; });
+      
+      var ticketsEl = document.getElementById('recon-stat-tickets');
+      var netEl = document.getElementById('recon-stat-net');
+      if (ticketsEl) ticketsEl.textContent = filtered.reduce(function(sum, r) { return sum + (Number(r.totalPieces) || 0); }, 0) + ' 票';
+      if (netEl) netEl.textContent = 'HK$ ' + filtered.reduce(function(sum, r) { return sum + (Number(r.finalSalary) || 0); }, 0).toFixed(2);
+
+      var tbody = document.getElementById('reconTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = filtered.map(function(r) {
+        return '<tr class="hover:bg-slate-50 text-[11px]">' +
+          '<td class="p-2 font-mono">' + r.date + '</td>' +
+          '<td class="p-2 font-bold">' + r.staff + '</td>' +
+          '<td class="p-2 text-right font-bold text-blue-700">' + r.totalPieces + ' 票</td>' +
+          '<td class="p-2 text-right font-black text-emerald-600 font-mono">HK$ ' + Number(r.finalSalary || 0).toFixed(2) + '</td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="4" class="p-4 text-center text-slate-400">暫無結算數據。</td></tr>';
+    }
+
+    // ================= 人員名冊/帳戶管理 =================
+    function autoGenerateStaffId() {
+      var editIdEl = document.getElementById('form-staff-edit-id');
+      if (editIdEl && editIdEl.value) return;
+      var teamEl = document.getElementById('form-staff-team');
+      if (!teamEl) return;
+      var team = teamEl.value;
+      var existingTeam = accounts.filter(function(a) { return a.team === team; });
+      var maxNum = existingTeam.reduce(function(max, a) {
+        var num = parseInt(a.id.replace(team, '')) || 0;
+        return num > max ? num : max;
+      }, 0);
+      var idEl = document.getElementById('form-staff-id');
+      if (idEl) idEl.value = team + String(maxNum + 1).padStart(2, '0');
+    }
+
+    function resetStaffForm() {
+      var editIdEl = document.getElementById('form-staff-edit-id'); if (editIdEl) editIdEl.value = '';
+      var nameEl = document.getElementById('form-staff-name'); if (nameEl) nameEl.value = '';
+      var pwdEl = document.getElementById('form-staff-pwd'); if (pwdEl) pwdEl.value = '123';
+      var btnEl = document.getElementById('form-staff-submit-btn'); if (btnEl) btnEl.textContent = '💾 儲存人員/帳號資料 (同步至試算表)';
+      autoGenerateStaffId();
+    }
+
+    function editStaffAccount(id) {
+      var u = accounts.find(function(a) { return a.id === id; });
+      if (!u) return;
+      document.getElementById('form-staff-edit-id').value = u.id;
+      document.getElementById('form-staff-id').value = u.id;
+      document.getElementById('form-staff-name').value = u.name;
+      document.getElementById('form-staff-team').value = u.team;
+      document.getElementById('form-staff-role').value = u.category;
+      document.getElementById('form-staff-cycle').value = u.payCycle || '半月糧';
+      document.getElementById('form-staff-pwd').value = u.password || '123';
+      document.getElementById('form-price-east').value = (u.prices && u.prices.east) || 4.0;
+      document.getElementById('form-price-ktlg').value = (u.prices && u.prices.ktlg) || 4.0;
+      document.getElementById('form-price-ktind').value = (u.prices && u.prices.ktind) || 4.5;
+      document.getElementById('form-price-st').value = (u.prices && u.prices.st) || 7.0;
+      document.getElementById('form-staff-submit-btn').textContent = '🔄 更新人員/帳號資料';
+    }
+
+    function saveStaffAccountForm(e) {
+      e.preventDefault();
+      var editId = document.getElementById('form-staff-edit-id').value;
+      var sId = document.getElementById('form-staff-id').value;
+      var sName = document.getElementById('form-staff-name').value.trim();
+      var sTeam = document.getElementById('form-staff-team').value;
+      var sRole = document.getElementById('form-staff-role').value;
+      var sCycle = document.getElementById('form-staff-cycle').value;
+      var sPwd = document.getElementById('form-staff-pwd').value.trim();
+      var pEast = Number(document.getElementById('form-price-east').value) || 4.0;
+      var pKtLg = Number(document.getElementById('form-price-ktlg').value) || 4.0;
+      var pKtInd = Number(document.getElementById('form-price-ktind').value) || 4.5;
+      var pSt = Number(document.getElementById('form-price-st').value) || 7.0;
+
+      if (editId) {
+        var idx = accounts.findIndex(function(a) { return a.id === editId; });
+        if (idx >= 0) accounts[idx] = { id: editId, name: sName, team: sTeam, category: sRole, payCycle: sCycle, password: sPwd, prices: { east: pEast, ktlg: pKtLg, ktind: pKtInd, st: pSt } };
+      } else {
+        accounts.push({ id: sId, name: sName, team: sTeam, category: sRole, payCycle: sCycle, password: sPwd, prices: { east: pEast, ktlg: pKtLg, ktind: pKtInd, st: pSt } });
+      }
+
+      localStorage.setItem('MIA_ACCOUNTS_CLEAN', JSON.stringify(accounts));
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.syncAccountsToSheet(JSON.stringify(accounts));
+      }
+      resetStaffForm();
+      renderStaffTable();
+      refreshAllStaffDropdowns();
+      alert('✅ 人員與帳戶資料已儲存並同步至試算表！');
+    }
+
+    function renderStaffTable() {
+      var tbody = document.getElementById('staffListTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = accounts.map(function(a, idx) {
+        return '<tr class="hover:bg-slate-50 text-[11px]">' +
+          '<td class="p-2.5 font-mono font-bold text-blue-700">' + a.id + '</td>' +
+          '<td class="p-2.5 font-bold">' + a.name + '</td>' +
+          '<td class="p-2.5">' + a.category + ' (' + a.team + '隊)</td>' +
+          '<td class="p-2.5">' + (a.payCycle || '半月糧') + '</td>' +
+          '<td class="p-2.5 font-mono">' + (a.password || '123') + '</td>' +
+          '<td class="p-2.5 text-slate-500 font-mono">東:$' + a.prices.east + ' 麗:$' + a.prices.ktlg + ' 工:$' + a.prices.ktind + ' 沙:$' + a.prices.st + '</td>' +
+          '<td class="p-2.5 text-center">' +
+            '<button type="button" onclick="editStaffAccount(\'' + a.id + '\')" class="px-2 py-0.5 bg-slate-900 text-white rounded text-[10px] font-bold mr-1">修改</button>' +
+            (a.name !== 'Mia' ? '<button type="button" onclick="accounts.splice(' + idx + ',1);localStorage.setItem(\'MIA_ACCOUNTS_CLEAN\',JSON.stringify(accounts));renderStaffTable();refreshAllStaffDropdowns();" class="text-rose-600 font-bold hover:underline">刪除</button>' : '') +
+          '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    // ================= 現場違規 =================
+    function saveNewViolationRecord(e) {
+      e.preventDefault();
+      var payload = {
+        date: document.getElementById('vio-date').value,
+        staff: document.getElementById('vio-staff-select').value,
+        zone: document.getElementById('vio-zone').value,
+        type: document.getElementById('vio-type').value,
+        amount: Number(document.getElementById('vio-amount').value) || 0,
+        desc: document.getElementById('vio-desc').value.trim()
+      };
+      violationsList.unshift(payload);
+      localStorage.setItem('MIA_VIOLATIONS_CLEAN', JSON.stringify(violationsList));
+      alert('✅ 現場違規已登記！');
+      renderViolationsTable();
+    }
+
+    function renderViolationsTable() {
+      var tbody = document.getElementById('violationsTableBody');
+      if (!tbody) return;
+      var isAdmin = (currentRole === 'Admin');
+      var filtered = isAdmin ? violationsList : violationsList.filter(function(v) { return v.staff === currentUser; });
+
+      tbody.innerHTML = filtered.map(function(v, idx) {
+        return '<tr class="hover:bg-slate-50 text-[11px]">' +
+          '<td class="p-2.5 font-mono">' + v.date + '</td>' +
+          '<td class="p-2.5 font-bold">' + v.staff + '</td>' +
+          '<td class="p-2.5">' + v.zone + '</td>' +
+          '<td class="p-2.5 font-bold text-rose-700">' + v.type + '</td>' +
+          '<td class="p-2.5 text-right font-black font-mono text-rose-600">HK$ ' + v.amount + '</td>' +
+          '<td class="p-2.5">' + (v.desc || '-') + '</td>' +
+          '<td class="p-2.5 text-center">' +
+            (isAdmin ? '<button type="button" onclick="violationsList.splice(' + idx + ',1);localStorage.setItem(\'MIA_VIOLATIONS_CLEAN\',JSON.stringify(violationsList));renderViolationsTable();" class="text-rose-600 font-bold hover:underline">刪除</button>' : '-') +
+          '</td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="7" class="p-6 text-center text-slate-400">暫無違規紀錄。</td></tr>';
+    }
+
+    // ================= 貨量/車線/物資/新人/利潤 =================
     function saveCountsEntry(e) {
       e.preventDefault();
       countsList.unshift({
@@ -830,20 +1363,13 @@
       alert('✅ 貨量已登記！');
     }
     function renderCountsTable() {
-      const tbody = document.getElementById('countsTableBody');
+      var tbody = document.getElementById('countsTableBody');
       if (!tbody) return;
-      tbody.innerHTML = countsList.map((c, idx) => `
-        <tr class="hover:bg-slate-50 text-[11px]">
-          <td class="p-2.5 font-mono">${c.date}</td>
-          <td class="p-2.5 font-bold">${c.zone}</td>
-          <td class="p-2.5">${c.batch}</td>
-          <td class="p-2.5 text-right font-black text-blue-700 font-mono">${c.pcs} 票</td>
-          <td class="p-2.5 text-center"><button type="button" onclick="countsList.splice(${idx},1);localStorage.setItem('MIA_COUNTS_DATA',JSON.stringify(countsList));renderCountsTable();" class="text-rose-600 font-bold hover:underline">刪除</button></td>
-        </tr>
-      `).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無貨量登記記錄</td></tr>';
+      tbody.innerHTML = countsList.map(function(c, idx) {
+        return '<tr class="hover:bg-slate-50 text-[11px]"><td class="p-2.5 font-mono">' + c.date + '</td><td class="p-2.5 font-bold">' + c.zone + '</td><td class="p-2.5">' + c.batch + '</td><td class="p-2.5 text-right font-black text-blue-700 font-mono">' + c.pcs + ' 票</td><td class="p-2.5 text-center"><button type="button" onclick="countsList.splice(' + idx + ',1);localStorage.setItem(\'MIA_COUNTS_DATA\',JSON.stringify(countsList));renderCountsTable();" class="text-rose-600 font-bold hover:underline">刪除</button></td></tr>';
+      }).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無貨量登記記錄</td></tr>';
     }
 
-    // 司機車線
     function saveTruckEntry(e) {
       e.preventDefault();
       truckList.unshift({
@@ -858,21 +1384,13 @@
       alert('✅ 司機車線已登記！');
     }
     function renderTruckTable() {
-      const tbody = document.getElementById('truckTableBody');
+      var tbody = document.getElementById('truckTableBody');
       if (!tbody) return;
-      tbody.innerHTML = truckList.map((t, idx) => `
-        <tr class="hover:bg-slate-50 text-[11px]">
-          <td class="p-2.5 font-mono">${t.date}</td>
-          <td class="p-2.5 font-bold">${t.driver}</td>
-          <td class="p-2.5 font-mono">${t.plate}</td>
-          <td class="p-2.5">${t.route}</td>
-          <td class="p-2.5 text-right font-mono font-bold">$${t.allowance}</td>
-          <td class="p-2.5 text-center"><button type="button" onclick="truckList.splice(${idx},1);localStorage.setItem('MIA_TRUCK_DATA',JSON.stringify(truckList));renderTruckTable();" class="text-rose-600 font-bold hover:underline">刪除</button></td>
-        </tr>
-      `).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">暫無司機車線記錄</td></tr>';
+      tbody.innerHTML = truckList.map(function(t, idx) {
+        return '<tr class="hover:bg-slate-50 text-[11px]"><td class="p-2.5 font-mono">' + t.date + '</td><td class="p-2.5 font-bold">' + t.driver + '</td><td class="p-2.5 font-mono">' + t.plate + '</td><td class="p-2.5">' + t.route + '</td><td class="p-2.5 text-right font-mono font-bold">$' + t.allowance + '</td><td class="p-2.5 text-center"><button type="button" onclick="truckList.splice(' + idx + ',1);localStorage.setItem(\'MIA_TRUCK_DATA\',JSON.stringify(truckList));renderTruckTable();" class="text-rose-600 font-bold hover:underline">刪除</button></td></tr>';
+      }).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">暫無司機車線記錄</td></tr>';
     }
 
-    // 物資採購
     function saveSupplyEntry(e) {
       e.preventDefault();
       suppliesList.unshift({
@@ -887,21 +1405,13 @@
       alert('✅ 物資採購已登記！');
     }
     function renderSuppliesTable() {
-      const tbody = document.getElementById('suppliesTableBody');
+      var tbody = document.getElementById('suppliesTableBody');
       if (!tbody) return;
-      tbody.innerHTML = suppliesList.map((s, idx) => `
-        <tr class="hover:bg-slate-50 text-[11px]">
-          <td class="p-2.5 font-mono">${s.date}</td>
-          <td class="p-2.5 font-bold">${s.item}</td>
-          <td class="p-2.5 text-center">${s.qty}</td>
-          <td class="p-2.5 text-right font-black text-rose-600 font-mono">HK$ ${s.amount}</td>
-          <td class="p-2.5">${s.buyer}</td>
-          <td class="p-2.5 text-center"><button type="button" onclick="suppliesList.splice(${idx},1);localStorage.setItem('MIA_SUPPLIES_DATA',JSON.stringify(suppliesList));renderSuppliesTable();" class="text-rose-600 font-bold hover:underline">刪除</button></td>
-        </tr>
-      `).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">暫無物資採購記錄</td></tr>';
+      tbody.innerHTML = suppliesList.map(function(s, idx) {
+        return '<tr class="hover:bg-slate-50 text-[11px]"><td class="p-2.5 font-mono">' + s.date + '</td><td class="p-2.5 font-bold">' + s.item + '</td><td class="p-2.5 text-center">' + s.qty + '</td><td class="p-2.5 text-right font-black text-rose-600 font-mono">HK$ ' + s.amount + '</td><td class="p-2.5">' + s.buyer + '</td><td class="p-2.5 text-center"><button type="button" onclick="suppliesList.splice(' + idx + ',1);localStorage.setItem(\'MIA_SUPPLIES_DATA\',JSON.stringify(suppliesList));renderSuppliesTable();" class="text-rose-600 font-bold hover:underline">刪除</button></td></tr>';
+      }).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">暫無物資採購記錄</td></tr>';
     }
 
-    // 預約新人
     function saveRecruitEntry(e) {
       e.preventDefault();
       recruitsList.unshift({
@@ -916,30 +1426,79 @@
       alert('✅ 預約新人已登記！');
     }
     function renderRecruitsTable() {
-      const tbody = document.getElementById('recruitsTableBody');
+      var tbody = document.getElementById('recruitsTableBody');
       if (!tbody) return;
-      tbody.innerHTML = recruitsList.map((r, idx) => `
-        <tr class="hover:bg-slate-50 text-[11px]">
-          <td class="p-2.5 font-mono">${r.date}</td>
-          <td class="p-2.5 font-bold">${r.name}</td>
-          <td class="p-2.5 font-mono">${r.phone}</td>
-          <td class="p-2.5">${r.zone}</td>
-          <td class="p-2.5 text-center"><span class="px-1.5 py-0.5 rounded font-bold ${r.status==='已錄取'?'bg-emerald-100 text-emerald-800':'bg-blue-100 text-blue-800'}">${r.status}</span></td>
-          <td class="p-2.5 text-center"><button type="button" onclick="recruitsList.splice(${idx},1);localStorage.setItem('MIA_RECRUITS_DATA',JSON.stringify(recruitsList));renderRecruitsTable();" class="text-rose-600 font-bold hover:underline">刪除</button></td>
-        </tr>
-      `).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">暫無預約新人記錄</td></tr>';
+      tbody.innerHTML = recruitsList.map(function(r, idx) {
+        return '<tr class="hover:bg-slate-50 text-[11px]"><td class="p-2.5 font-mono">' + r.date + '</td><td class="p-2.5 font-bold">' + r.name + '</td><td class="p-2.5 font-mono">' + r.phone + '</td><td class="p-2.5">' + r.zone + '</td><td class="p-2.5 text-center"><span class="px-1.5 py-0.5 rounded font-bold ' + (r.status==='已錄取'?'bg-emerald-100 text-emerald-800':'bg-blue-100 text-blue-800') + '">' + r.status + '</span></td><td class="p-2.5 text-center"><button type="button" onclick="recruitsList.splice(' + idx + ',1);localStorage.setItem(\'MIA_RECRUITS_DATA\',JSON.stringify(recruitsList));renderRecruitsTable();" class="text-rose-600 font-bold hover:underline">刪除</button></td></tr>';
+      }).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">暫無預約新人記錄</td></tr>';
     }
 
-    // 相片上傳與預覽
+    function renderProfitSummary() {
+      var totalP = dailyReports.reduce(function(s, r) { return s + (Number(r.totalPieces) || 0); }, 0);
+      var totalW = dailyReports.reduce(function(s, r) { return s + (Number(r.finalSalary) || 0); }, 0);
+      var pcsEl = document.getElementById('profit-total-pcs');
+      var wagesEl = document.getElementById('profit-total-wages');
+      if (pcsEl) pcsEl.textContent = totalP + ' 票';
+      if (wagesEl) wagesEl.textContent = 'HK$ ' + totalW.toFixed(2);
+    }
+
+    // ================= 匯出中心 =================
+    function generateExportText(type) {
+      var area = document.getElementById('universal-export-textarea');
+      if (!area) return;
+
+      if (type === 'schedule') {
+        var txt = '========================================\n📅 Mia組 14天公仔報更總表 (WhatsApp 備份)\n========================================\n\n';
+        accounts.forEach(function(a) {
+          txt += '【' + a.name + '】(' + a.team + '隊)\n';
+          for (var i = 0; i < 7; i++) {
+            var d = new Date(); d.setDate(d.getDate() + i);
+            var dKey = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+            var s = shiftsRecord[a.name + '_' + dKey] || { icon: '未排', note: '' };
+            txt += '  ・' + (d.getMonth()+1) + '/' + d.getDate() + ': ' + s.icon + (s.note ? ' (' + s.note + ')' : '') + '\n';
+          }
+          txt += '\n';
+        });
+        area.value = txt;
+      }
+
+      if (type === 'daily') {
+        var txt2 = '========================================\n📝 Mia組 每日派件結算匯總\n========================================\n\n';
+        dailyReports.forEach(function(r) {
+          txt2 += '・[' + r.date + '] ' + r.staff + ' ➜ 總票數: ' + r.totalPieces + '票 (東:' + r.eastCount + '/麗:' + r.ktLgCount + '/工:' + r.ktIndCount + '/沙:' + r.stCount + ') | 實派: ' + r.signedCount + ' | 滯留: ' + r.holdCount + ' | 實發: HK$' + Number(r.finalSalary).toFixed(2) + '\n';
+        });
+        area.value = txt2 || '目前暫無報數記錄';
+      }
+
+      if (type === 'tickets') {
+        var txt3 = '========================================\n🚨 Mia組 異常工單追蹤清單\n========================================\n\n';
+        ticketsList.forEach(function(t) {
+          txt3 += '・單號: ' + t.tracking + ' | 責任人: ' + t.staff + ' | 類型: ' + t.type + ' ($' + t.fine + ') | 狀態: ' + t.status + ' | 說明: ' + (t.desc || '-') + ' | 申訴: ' + (t.appealText || '-') + '\n';
+        });
+        area.value = txt3 || '目前暫無異常工單';
+      }
+    }
+
+    function copyExportText() {
+      var area = document.getElementById('universal-export-textarea');
+      if (!area || !area.value) { alert('請先生成報表內容！'); return; }
+      area.select();
+      navigator.clipboard.writeText(area.value).then(function() {
+        alert('✅ 已成功複製到剪貼簿！可直接去 WhatsApp 貼上發送。');
+      });
+    }
+
+    // ================= 相片預覽 =================
     function handleImageFileSelect(event, previewImgId, dataInputId) {
-      const file = event.target.files[0];
+      var file = event.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
+      var reader = new FileReader();
       reader.onload = function(e) {
-        const preview = document.getElementById(previewImgId);
+        var preview = document.getElementById(previewImgId);
         if (preview) { preview.src = e.target.result; preview.classList.remove('hidden'); }
-        document.getElementById(dataInputId).value = e.target.result;
-        const text = document.getElementById('repPhotoText');
+        var dataEl = document.getElementById(dataInputId);
+        if (dataEl) dataEl.value = e.target.result;
+        var text = document.getElementById('repPhotoText');
         if (text) text.textContent = '✅ 相片已載入 (點擊可放大)';
       };
       reader.readAsDataURL(file);
@@ -951,74 +1510,46 @@
     }
     function closeLargeImage() { document.getElementById('image-viewer-modal').classList.remove('active'); }
 
-    // 利潤分析
-    function renderProfitSummary() {
-      const totalP = dailyReports.reduce((s, r) => s + (Number(r.totalPieces) || 0), 0);
-      const totalW = dailyReports.reduce((s, r) => s + (Number(r.finalSalary) || 0), 0);
-      document.getElementById('profit-total-pcs').textContent = `${totalP} 票`;
-      document.getElementById('profit-total-wages').textContent = `HK$ ${totalW.toFixed(2)}`;
-    }
-
-    // 📤 匯出中心 (14天報更 / 報數 / 工單)
-    function generateExportText(type) {
-      const area = document.getElementById('universal-export-textarea');
-      if (!area) return;
-
-      if (type === 'schedule') {
-        let txt = `========================================\n📅 Mia組 14天公仔報更總表 (WhatsApp 備份)\n========================================\n\n`;
-        accounts.forEach(a => {
-          txt += `【${a.name}】(${a.team}隊)\n`;
-          for (let i = 0; i < 7; i++) {
-            const d = new Date(); d.setDate(d.getDate() + i);
-            const dKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-            const s = shiftsRecord[`${a.name}_${dKey}`] || { icon: '未排', note: '' };
-            txt += `  ・${d.getMonth()+1}/${d.getDate()}: ${s.icon} ${s.note ? '('+s.note+')' : ''}\n`;
-          }
-          txt += `\n`;
-        });
-        area.value = txt;
-      }
-
-      if (type === 'daily') {
-        let txt = `========================================\n📝 Mia組 每日派件結算匯總\n========================================\n\n`;
-        dailyReports.forEach(r => {
-          txt += `・[${r.date}] ${r.staff} ➜ 總票數: ${r.totalPieces}票 (東:${r.eastCount}/麗:${r.ktLgCount}/工:${r.ktIndCount}/沙:${r.stCount}) | 實派: ${r.signedCount} | 滯留: ${r.holdCount} | 實發: HK$${Number(r.finalSalary).toFixed(2)}\n`;
-        });
-        area.value = txt || '目前暫無報數記錄';
-      }
-
-      if (type === 'tickets') {
-        let txt = `========================================\n🚨 Mia組 異常工單追蹤清單\n========================================\n\n`;
-        ticketsList.forEach(t => {
-          txt += `・單號: ${t.tracking} | 責任人: ${t.staff} | 類型: ${t.type} ($${t.fine}) | 狀態: ${t.status} | 說明: ${t.desc || '-'} | 申訴: ${t.appealText || '-'}\n`;
-        });
-        area.value = txt || '目前暫無異常工單';
-      }
-    }
-
-    function copyExportText() {
-      const area = document.getElementById('universal-export-textarea');
-      if (!area || !area.value) { alert('請先生成報表內容！'); return; }
-      area.select();
-      navigator.clipboard.writeText(area.value).then(() => {
-        alert('✅ 已成功複製到剪貼簿！可直接去 WhatsApp 貼上發送。');
-      });
-    }
-
     function refreshAllStaffDropdowns() {
-      const opts = accounts.map(a => `<option value="${a.name}">${a.name} (${a.category})</option>`).join('');
+      var opts = accounts.map(function(a) { return '<option value="' + a.name + '">' + a.name + ' (' + a.category + ')</option>'; }).join('');
       if (document.getElementById('user-role-select')) document.getElementById('user-role-select').innerHTML = opts;
       if (document.getElementById('repStaffSelect')) document.getElementById('repStaffSelect').innerHTML = opts;
       if (document.getElementById('form-shift-staff')) document.getElementById('form-shift-staff').innerHTML = opts;
       if (document.getElementById('tk-input-staff')) document.getElementById('tk-input-staff').innerHTML = opts;
       if (document.getElementById('vio-staff-select')) document.getElementById('vio-staff-select').innerHTML = opts;
-      const reconSel = document.getElementById('recon-staff-select');
-      if (reconSel) reconSel.innerHTML = '<option value="全部">全部人員</option>' + accounts.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
+      var reconSel = document.getElementById('recon-staff-select');
+      if (reconSel) reconSel.innerHTML = '<option value="全部">全部人員</option>' + accounts.map(function(a) { return '<option value="' + a.name + '">' + a.name + '</option>'; }).join('');
     }
 
-    // 初始化載入
-    window.addEventListener('DOMContentLoaded', () => {
-      const today = new Date().toISOString().split('T')[0];
+    // ================= 初始化載入 =================
+    function initLoadFromGoogleSheets() {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        var statusEl = document.getElementById('sync-status');
+        if (statusEl) statusEl.textContent = '⏳ 正在同步試算表數據...';
+        google.script.run.withSuccessHandler(function(res) {
+          if (res) {
+            if (res.accounts && res.accounts.length > 0) accounts = res.accounts;
+            if (res.dailyReports && res.dailyReports.length > 0) dailyReports = res.dailyReports;
+            if (res.shiftsRecord && Object.keys(res.shiftsRecord).length > 0) shiftsRecord = res.shiftsRecord;
+            if (res.progressRecord && Object.keys(res.progressRecord).length > 0) progressRecord = res.progressRecord;
+            if (res.ticketsList && res.ticketsList.length > 0) ticketsList = res.ticketsList;
+            if (res.violationsList && res.violationsList.length > 0) violationsList = res.violationsList;
+            if (res.countsList && res.countsList.length > 0) countsList = res.countsList;
+            if (res.truckList && res.truckList.length > 0) truckList = res.truckList;
+            if (res.suppliesList && res.suppliesList.length > 0) suppliesList = res.suppliesList;
+            if (res.recruitsList && res.recruitsList.length > 0) recruitsList = res.recruitsList;
+
+            refreshAllStaffDropdowns();
+            renderReportsTable();
+            renderIconVisualSchedule();
+            if (statusEl) statusEl.textContent = '🟢 已完成雙向同步';
+          }
+        }).loadAllSheetsData();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', function() {
+      var today = new Date().toISOString().split('T')[0];
       if (document.getElementById('repDate')) document.getElementById('repDate').value = today;
       if (document.getElementById('form-shift-date')) document.getElementById('form-shift-date').value = today;
       if (document.getElementById('vio-date')) document.getElementById('vio-date').value = today;
