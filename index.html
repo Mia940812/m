@@ -13,6 +13,8 @@
     .custom-scrollbar::-webkit-scrollbar { height: 5px; width: 5px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 999px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f8fafc; }
+    .image-modal { display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 16px; }
+    .image-modal.active { display: flex !important; }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
@@ -32,12 +34,12 @@
     </div>
   </header>
 
-  <!-- 完整 14 大功能切換導航欄（保證 100% 撳到掣，點擊即跳到該功能畫面） -->
+  <!-- 完整 14 大功能切換導航欄（單頁切換，100% 撳到掣） -->
   <nav class="bg-white border-b border-slate-200 sticky top-[49px] z-40 shadow-xs">
     <div class="max-w-7xl mx-auto px-2 py-2 flex flex-wrap items-center gap-1.5 text-xs font-bold">
       <button type="button" onclick="showTab('tab-report')" id="btn-tab-report" class="nav-btn active px-3 py-1.5 rounded-xl border bg-slate-100 text-slate-800">📝 每日報數</button>
       <button type="button" onclick="showTab('tab-schedule')" id="btn-tab-schedule" class="nav-btn px-3 py-1.5 rounded-xl border bg-indigo-50 text-indigo-900 border-indigo-200">⏰ 14天公仔排更</button>
-      <button type="button" onclick="showTab('tab-progress')" id="btn-tab-progress" class="nav-btn px-3 py-1.5 rounded-xl border bg-emerald-50 text-emerald-900 border-emerald-200">⏱️ 各區工作進度 (5大核心+單號)</button>
+      <button type="button" onclick="showTab('tab-progress')" id="btn-tab-progress" class="nav-btn px-3 py-1.5 rounded-xl border bg-emerald-50 text-emerald-900 border-emerald-200">⏱️ 各區工作進度 (5大核心+單號+相片)</button>
       <button type="button" onclick="showTab('tab-tickets')" id="btn-tab-tickets" class="nav-btn px-3 py-1.5 rounded-xl border bg-rose-50 text-rose-800 border-rose-200">🚨 異常工單中心</button>
       <button type="button" onclick="showTab('tab-leaderboard')" id="btn-tab-leaderboard" class="nav-btn px-3 py-1.5 rounded-xl border bg-rose-600 text-white">🏆 罰款獎池與龍虎榜</button>
       <button type="button" onclick="showTab('tab-recon')" id="btn-tab-recon" class="nav-btn px-3 py-1.5 rounded-xl border bg-indigo-700 text-white">🔍 出糧與報數核對</button>
@@ -56,7 +58,7 @@
   <!-- 主內容工作區 -->
   <main class="max-w-7xl mx-auto p-3 sm:p-5 flex-1 w-full space-y-4">
 
-    <!-- 1. 每日報數 -->
+    <!-- ================= 1. 每日報數（連相片上傳） ================= -->
     <div id="tab-report" class="tab-pane active space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
@@ -98,6 +100,19 @@
             <div><label class="block font-bold text-rose-700 mb-1">罰款扣除 ($)</label><input type="number" id="repPenalty" min="0" value="0" oninput="calcSalaryLive()" class="w-full p-1.5 bg-white border rounded font-bold text-rose-600"></div>
           </div>
 
+          <!-- 📷 每日報數相片上傳區 -->
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+            <label class="block font-bold text-slate-700">📷 選擇相片 / 即時影相（上傳報數截圖 / 簽收單憑證）</label>
+            <div class="flex flex-wrap items-center gap-3">
+              <input type="file" accept="image/*" onchange="handleImageFileSelect(event, 'repPhotoPreview', 'repPhotoData')" class="text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer">
+              <input type="hidden" id="repPhotoData" value="">
+              <div class="flex items-center gap-2">
+                <img id="repPhotoPreview" src="" alt="預覽" class="w-12 h-12 object-cover rounded-lg border border-slate-300 hidden cursor-pointer shadow-xs" onclick="viewLargeImage(this.src)">
+                <span id="repPhotoText" class="text-[11px] text-slate-400">未選擇相片</span>
+              </div>
+            </div>
+          </div>
+
           <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border">
             <span class="font-bold text-slate-700">當日應發總工資結算：</span>
             <span id="repLiveTotalSalary" class="font-black text-emerald-600 text-sm font-mono">HK$ 0.00</span>
@@ -118,6 +133,7 @@
                 <th class="p-3 text-center">分區拆解 (東/麗/工/沙)</th>
                 <th class="p-3 text-right">總票數</th>
                 <th class="p-3 text-right">已簽收/滯留</th>
+                <th class="p-3 text-center">📷 相片憑證</th>
                 <th class="p-3 text-right">實發工資</th>
                 <th class="p-3 text-center">操作</th>
               </tr>
@@ -128,7 +144,7 @@
       </div>
     </div>
 
-    <!-- 2. 14天公仔排更 -->
+    <!-- ================= 2. 14天公仔排更 ================= -->
     <div id="tab-schedule" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div>
@@ -174,10 +190,10 @@
       </div>
     </div>
 
-    <!-- 3. 各區進度登記 (5大核心+單號) -->
+    <!-- ================= 3. 各區進度登記 (5大核心+單號+相片) ================= -->
     <div id="tab-progress" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-        <h3 class="font-bold text-sm text-slate-900">⏱️ 各區工作進度登記 (已簽收/已退款/清場/待攬/回倉/滯留)</h3>
+        <h3 class="font-bold text-sm text-slate-900">⏱️ 各區工作進度登記 (已簽收/已退款/清場/待攬/回倉/滯留/現場影相)</h3>
 
         <div class="flex flex-wrap gap-2 text-xs font-bold">
           <button type="button" onclick="switchProgressZone('SKW')" id="prog-tab-SKW" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white">東區 (SKW)</button>
@@ -190,7 +206,7 @@
       </div>
     </div>
 
-    <!-- 4. 異常工單中心 -->
+    <!-- ================= 4. 異常工單中心（連相片舉證） ================= -->
     <div id="tab-tickets" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <h3 class="font-bold text-sm text-slate-900">🚨 異常工單指派與步兵舉證中心</h3>
@@ -214,6 +230,7 @@
                 <th class="p-2.5">描述</th>
                 <th class="p-2.5 text-center">狀態</th>
                 <th class="p-2.5">步兵舉證/申訴說明</th>
+                <th class="p-2.5 text-center">📷 舉證相片</th>
                 <th class="p-2.5 text-center">操作</th>
               </tr>
             </thead>
@@ -223,7 +240,7 @@
       </div>
     </div>
 
-    <!-- 5. 龍虎榜與60%獎金池 -->
+    <!-- ================= 5. 龍虎榜與60%獎金池 ================= -->
     <div id="tab-leaderboard" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <h3 class="font-bold text-sm text-slate-900">🏆 龍虎榜與 60% 獎金池動態結算</h3>
@@ -258,7 +275,7 @@
       </div>
     </div>
 
-    <!-- 6. 出糧核對 -->
+    <!-- ================= 6. 出糧核對 ================= -->
     <div id="tab-recon" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <h3 class="font-bold text-sm">🔍 步兵出糧與報數結算核對系統</h3>
@@ -283,7 +300,7 @@
       </div>
     </div>
 
-    <!-- 7. 人員名冊/票價管理 -->
+    <!-- ================= 7. 人員名冊/票價管理 ================= -->
     <div id="tab-staff" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <h3 class="font-bold text-sm text-slate-900">👥 人員名冊管理與專屬票價設定</h3>
@@ -304,7 +321,7 @@
       </div>
     </div>
 
-    <!-- 8. 現場違規登記 -->
+    <!-- ================= 8. 現場違規登記 ================= -->
     <div id="tab-violations" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <h3 class="font-bold text-sm text-slate-900">⚠️ 現場違規登記 (罰款全額撥入 60% 獎池)</h3>
@@ -350,17 +367,17 @@
       </div>
     </div>
 
-    <!-- 9. 區域分工 -->
+    <!-- ================= 9. 區域分工 ================= -->
     <div id="tab-assignments" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <h3 class="font-bold text-sm text-slate-900">👥 區域分工看板</h3>
         <div class="p-4 bg-slate-50 rounded-xl text-xs space-y-2">
-          <div class="font-bold text-slate-700">各區圍欄負責人指派：可在「各區工作進度」中直接指派並同步到此看板。</div>
+          <div class="font-bold text-slate-700">各區圍欄負責人指派：可在「各區工作進度」中直接指派負責人。</div>
         </div>
       </div>
     </div>
 
-    <!-- 10. 營運利潤分析 -->
+    <!-- ================= 10. 營運利潤分析 ================= -->
     <div id="tab-profit" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <h3 class="font-bold text-sm text-slate-900">📈 營運利潤分析</h3>
@@ -371,7 +388,7 @@
       </div>
     </div>
 
-    <!-- 11. 各區貨量核算 -->
+    <!-- ================= 11. 各區貨量核算 ================= -->
     <div id="tab-counts" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <h3 class="font-bold text-sm text-slate-900">📦 各區貨量核算中心</h3>
@@ -379,7 +396,7 @@
       </div>
     </div>
 
-    <!-- 12. 司機車線 -->
+    <!-- ================= 12. 司機車線 ================= -->
     <div id="tab-truck" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <h3 class="font-bold text-sm text-slate-900">🚗 司機車線調度</h3>
@@ -390,7 +407,7 @@
       </div>
     </div>
 
-    <!-- 13. 物資採購 & 預約新人 -->
+    <!-- ================= 13. 物資採購 & 預約新人 ================= -->
     <div id="tab-supplies" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <h3 class="font-bold text-sm text-slate-900">📦 物資採購中心</h3>
@@ -404,7 +421,7 @@
       </div>
     </div>
 
-    <!-- 14. 📤 匯出中心 (支援 WhatsApp / 表格一鍵複製匯出) -->
+    <!-- ================= 14. 匯出中心 ================= -->
     <div id="tab-export" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
@@ -426,8 +443,16 @@
 
   </main>
 
+  <!-- ================= 放大圖片檢視 Modal ================= -->
+  <div id="image-viewer-modal" class="image-modal" onclick="closeLargeImage()">
+    <div class="bg-slate-900 p-3 rounded-2xl max-w-3xl max-h-[90vh] flex flex-col items-center shadow-2xl" onclick="event.stopPropagation()">
+      <img id="image-viewer-src" src="" alt="大圖預覽" class="max-h-[75vh] object-contain rounded-xl">
+      <button type="button" onclick="closeLargeImage()" class="mt-3 px-6 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg">關閉預覽</button>
+    </div>
+  </div>
+
   <script>
-    // 頂部 Tab 切換核心（100% 正常切換，絕不卡死）
+    // 頂部 Tab 切換核心（單頁顯示，保證 100% 正常）
     function showTab(tabId) {
       document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -488,6 +513,34 @@
         renderReportsTable();
         alert('數據已重置！');
       }
+    }
+
+    // 📷 相片上傳與預覽處理核心
+    function handleImageFileSelect(event, previewImgId, dataInputId) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = document.getElementById(previewImgId);
+        if (preview) {
+          preview.src = e.target.result;
+          preview.classList.remove('hidden');
+        }
+        document.getElementById(dataInputId).value = e.target.result;
+        const text = document.getElementById('repPhotoText');
+        if (text) text.textContent = '✅ 相片已載入 (點擊可放大)';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function viewLargeImage(src) {
+      if (!src) return;
+      document.getElementById('image-viewer-src').src = src;
+      document.getElementById('image-viewer-modal').classList.add('active');
+    }
+
+    function closeLargeImage() {
+      document.getElementById('image-viewer-modal').classList.remove('active');
     }
 
     // 14 天排更表
@@ -557,7 +610,7 @@
       alert(`✅ 已儲存 ${staff} 的更期！`);
     }
 
-    // 各區進度 (5大核心+單號)
+    // 各區進度 (5大核心+單號+現場影相)
     function switchProgressZone(zoneKey) {
       currentZone = zoneKey;
       ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(z => {
@@ -569,7 +622,7 @@
       if (!container) return;
 
       container.innerHTML = (fencesData[zoneKey] || []).map(f => {
-        const p = progressRecord[f.id] || { signed: 0, signedTracks: '', refund: 0, refundTracks: '', isCleaned: '未清場', pendingPickup: 0, pendingTracks: '', returned: 0, returnedTracks: '', hold: 0, holdTracks: '', staff: '' };
+        const p = progressRecord[f.id] || { signed: 0, signedTracks: '', refund: 0, refundTracks: '', isCleaned: '未清場', pendingPickup: 0, pendingTracks: '', returned: 0, returnedTracks: '', hold: 0, holdTracks: '', staff: '', photo: '' };
         return `
           <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5 text-xs">
             <div class="flex justify-between items-center border-b pb-1.5">
@@ -613,9 +666,28 @@
                 <input type="text" placeholder="貼上單號..." value="${p.holdTracks||''}" onchange="updateProgressField('${f.id}', 'holdTracks', this.value)" class="w-full p-1 border rounded text-[10px] font-mono">
               </div>
             </div>
+            <!-- 📷 現場影相上傳 -->
+            <div class="flex items-center gap-2 pt-1 border-t">
+              <label class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded cursor-pointer font-bold text-[10px]">
+                📷 現場影相舉證
+                <input type="file" accept="image/*" onchange="uploadFencePhoto(event, '${f.id}')" class="hidden">
+              </label>
+              ${p.photo ? `<img src="${p.photo}" onclick="viewLargeImage('${p.photo}')" class="w-7 h-7 object-cover rounded border cursor-pointer shadow-xs"> <span class="text-[10px] text-emerald-600 font-bold">已拍照</span>` : '<span class="text-[10px] text-slate-400">未影相</span>'}
+            </div>
           </div>
         `;
       }).join('');
+    }
+
+    function uploadFencePhoto(e, fenceId) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        updateProgressField(fenceId, 'photo', evt.target.result);
+        switchProgressZone(currentZone);
+      };
+      reader.readAsDataURL(file);
     }
 
     function updateProgressField(fenceId, field, val) {
@@ -635,7 +707,8 @@
         fine: Number(document.getElementById('tk-input-fine').value) || 0,
         desc: document.getElementById('tk-input-desc').value.trim(),
         status: '待處理',
-        appealText: ''
+        appealText: '',
+        photo: ''
       });
       localStorage.setItem('MIA_TICKETS_CLEAN', JSON.stringify(ticketsList));
       renderTicketsList();
@@ -661,9 +734,30 @@
           <td class="p-2.5">
             <input type="text" placeholder="步兵填寫舉證或說明..." value="${t.appealText||''}" onchange="ticketsList[${idx}].appealText=this.value;localStorage.setItem('MIA_TICKETS_CLEAN',JSON.stringify(ticketsList));" class="w-full border rounded p-1">
           </td>
+          <td class="p-2.5 text-center">
+            <div class="flex items-center justify-center gap-1">
+              <label class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-white rounded cursor-pointer text-[10px] font-bold">
+                📷 上傳
+                <input type="file" accept="image/*" onchange="uploadTicketPhoto(event, ${idx})" class="hidden">
+              </label>
+              ${t.photo ? `<img src="${t.photo}" onclick="viewLargeImage('${t.photo}')" class="w-6 h-6 object-cover rounded border cursor-pointer">` : ''}
+            </div>
+          </td>
           <td class="p-2.5 text-center"><button type="button" onclick="ticketsList.splice(${idx},1);localStorage.setItem('MIA_TICKETS_CLEAN',JSON.stringify(ticketsList));renderTicketsList();" class="text-rose-600 font-bold hover:underline">刪除</button></td>
         </tr>
-      `).join('') || '<tr><td colspan="7" class="p-6 text-center text-slate-400">目前無異常工單。</td></tr>';
+      `).join('') || '<tr><td colspan="8" class="p-6 text-center text-slate-400">目前無異常工單。</td></tr>';
+    }
+
+    function uploadTicketPhoto(e, idx) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        ticketsList[idx].photo = evt.target.result;
+        localStorage.setItem('MIA_TICKETS_CLEAN', JSON.stringify(ticketsList));
+        renderTicketsList();
+      };
+      reader.readAsDataURL(file);
     }
 
     // 龍虎榜動態計算
@@ -754,6 +848,7 @@
         totalPieces: totalP,
         signedCount: Number(document.getElementById('repSignedCount').value) || totalP,
         holdCount: Number(document.getElementById('repHoldCount').value) || 0,
+        photoProof: document.getElementById('repPhotoData').value || '',
         finalSalary: Number(document.getElementById('repLiveTotalSalary').textContent.replace('HK$ ', '')) || 0
       });
 
@@ -772,10 +867,13 @@
           <td class="p-3 text-center text-blue-700 font-bold">${r.eastCount}/${r.ktLgCount}/${r.ktIndCount}/${r.stCount}</td>
           <td class="p-3 text-right font-bold">${r.totalPieces} 票</td>
           <td class="p-3 text-right font-mono font-bold text-emerald-700">${r.signedCount} / <span class="text-amber-600">${r.holdCount}</span></td>
+          <td class="p-3 text-center">
+            ${r.photoProof ? `<img src="${r.photoProof}" onclick="viewLargeImage('${r.photoProof}')" class="w-7 h-7 object-cover rounded border mx-auto cursor-pointer shadow-xs">` : '<span class="text-slate-400">無</span>'}
+          </td>
           <td class="p-3 text-right font-black text-emerald-600 font-mono">HK$ ${Number(r.finalSalary || 0).toFixed(2)}</td>
           <td class="p-3 text-center"><button type="button" onclick="dailyReports.splice(${idx},1);localStorage.setItem('MIA_DAILY_REPORTS_CLEAN',JSON.stringify(dailyReports));renderReportsTable();" class="text-rose-600 font-bold hover:underline">刪除</button></td>
         </tr>
-      `).join('') || '<tr><td colspan="7" class="p-6 text-center text-slate-400">目前暫無報數記錄，請於上方表單錄入。</td></tr>';
+      `).join('') || '<tr><td colspan="8" class="p-6 text-center text-slate-400">目前暫無報數記錄，請於上方表單錄入。</td></tr>';
     }
 
     // 現場違規
@@ -850,7 +948,7 @@
       document.getElementById('profit-total-wages').textContent = `HK$ ${totalW.toFixed(2)}`;
     }
 
-    // 📤 匯出中心文字生成 (WhatsApp / 文本格式)
+    // 📤 匯出中心
     function generateExportText(type) {
       const area = document.getElementById('universal-export-textarea');
       if (!area) return;
@@ -903,8 +1001,6 @@
         alert('✅ 已成功複製到剪貼簿！可直接去 WhatsApp 貼上發送。');
       });
     }
-
-    function onRoleChange(val) {}
 
     window.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
