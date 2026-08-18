@@ -674,595 +674,149 @@
   </div>
 
   <script>
-    let currentUser = 'Mia';
-    let currentRole = 'Admin';
-
-    // 7 大完成度標準選項
-    const statusOptions7 = [
-      "🟢 100% 已清場 (全數派完+執垃圾)",
-      "🟡 80% 派送中 (尾聲階段/剩少量)",
-      "🔵 50% 派送中 (進度正常/過半)",
-      "🟠 20% 派送中 (剛起步派送)",
-      "⚠️ 滯留/有待處理件 (需跟進)",
-      "📦 待攬/等待接駁中",
-      "⏳ 未開始/貨未到齊"
-    ];
-
-    const initialAccounts = [
-      { id: 'KM01', name: 'Mia', category: 'Admin', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
-      { id: 'A01', name: '詠豪', category: '組長', team: 'A', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
-      { id: 'B03', name: '景鴻', category: '組長', team: 'B', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
-      { id: 'C02', name: '俊華', category: '組長', team: 'C', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
-      { id: 'KM04', name: '盧智聰', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
-      { id: 'KM05', name: '姜嘉敏KK', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
-      { id: 'KM06', name: '周健', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
-      { id: 'KM07', name: '黃奕峰', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
-      { id: 'C01', name: '張兆偉', category: '全職步兵', team: 'C', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
-      { id: 'B01', name: '小肥', category: '全職步兵', team: 'B', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
-      { id: 'B02', name: '吳嘉榮', category: '全職步兵', team: 'B', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
-      { id: 'KM08', name: '吳瑋儒', category: '全職步兵', team: 'KM', payCycle: '半月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
-      { id: 'A02', name: '小魚', category: '兼職步兵', team: 'A', payCycle: '隔日糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
-      { id: 'DR01', name: '煒爺', category: '司機', team: 'KM', payCycle: '月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' },
-      { id: 'DR02', name: '龍', category: '司機', team: 'KM', payCycle: '月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' }
-    ];
-
-    const fencesData = {
-      SKW: [
-        { id: 'SKW_01', name: 'SKW-01 愛蝶灣/愛東邨', defaultStaff: '詠豪' },
-        { id: 'SKW_02', name: 'SKW-02 東旭苑/東濤苑', defaultStaff: '小魚' }
-      ],
-      KTLG: [
-        { id: 'LG_01', name: 'LG-01 麗港城 1-12座', defaultStaff: '小肥' },
-        { id: 'LG_02', name: 'LG-02 麗港城 13-24座', defaultStaff: '吳嘉榮' }
-      ],
-      KTIND: [
-        { id: 'IND_01', name: 'IND-01 開源道/巧明街', defaultStaff: '張兆偉' },
-        { id: 'IND_02', name: 'IND-02 鴻圖道/侵業街', defaultStaff: '俊華' }
-      ],
-      ST: [
-        { id: 'ST_01', name: 'ST-01 康林苑/廣林苑', defaultStaff: '盧智聰' },
-        { id: 'ST_02', name: 'ST-02 帝堡城 1-8座', defaultStaff: '姜嘉敏KK' }
-      ]
-    };
-
-    let accounts = JSON.parse(localStorage.getItem('MIA_ACCOUNTS_CLEAN')) || initialAccounts;
-    let dailyReports = JSON.parse(localStorage.getItem('MIA_DAILY_REPORTS_CLEAN')) || [];
-    let violationsList = JSON.parse(localStorage.getItem('MIA_VIOLATIONS_CLEAN')) || [];
-    let ticketsList = JSON.parse(localStorage.getItem('MIA_TICKETS_CLEAN')) || [];
-    let shiftsRecord = JSON.parse(localStorage.getItem('MIA_SHIFTS_CLEAN')) || {};
-    let progressRecord = JSON.parse(localStorage.getItem('MIA_PROGRESS_DATA')) || {};
-    let countsList = JSON.parse(localStorage.getItem('MIA_COUNTS_DATA')) || [];
-    let truckList = JSON.parse(localStorage.getItem('MIA_TRUCK_DATA')) || [];
-    let suppliesList = JSON.parse(localStorage.getItem('MIA_SUPPLIES_DATA')) || [];
-    let recruitsList = JSON.parse(localStorage.getItem('MIA_RECRUITS_DATA')) || [];
-    let currentZone = 'SKW';
-
-    function showTab(tabId) {
-      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-      
-      const target = document.getElementById(tabId);
-      if (target) target.classList.add('active');
-      
-      const btn = document.getElementById(`btn-${tabId}`);
-      if (btn) btn.classList.add('active');
-
-      if (tabId === 'tab-schedule') renderIconVisualSchedule();
-      if (tabId === 'tab-progress') switchProgressZone(currentZone);
-      if (tabId === 'tab-tickets') renderTicketsList();
-      if (tabId === 'tab-leaderboard') renderLeaderboard();
-      if (tabId === 'tab-violations') renderViolationsTable();
-      if (tabId === 'tab-recon') filterReconHistory();
-      if (tabId === 'tab-staff') renderStaffTable();
-      if (tabId === 'tab-profit') renderProfitSummary();
-      if (tabId === 'tab-assignments') renderAssignmentsGrid();
-      if (tabId === 'tab-counts') renderCountsTable();
-      if (tabId === 'tab-truck') renderTruckTable();
-      if (tabId === 'tab-supplies') renderSuppliesTable();
-      if (tabId === 'tab-recruits') renderRecruitsTable();
-      if (tabId === 'tab-export') generateExportText('schedule');
-    }
-
-    function initLoadFromGoogleSheets() {
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        document.getElementById('sync-status').textContent = '⏳ 正在同步試算表數據...';
-        google.script.run.withSuccessHandler(function(res) {
-          if (res) {
-            if (res.accounts && res.accounts.length > 0) accounts = res.accounts;
-            if (res.dailyReports && res.dailyReports.length > 0) dailyReports = res.dailyReports;
-            if (res.shiftsRecord && Object.keys(res.shiftsRecord).length > 0) shiftsRecord = res.shiftsRecord;
-            if (res.progressRecord && Object.keys(res.progressRecord).length > 0) progressRecord = res.progressRecord;
-            if (res.ticketsList && res.ticketsList.length > 0) ticketsList = res.ticketsList;
-            if (res.violationsList && res.violationsList.length > 0) violationsList = res.violationsList;
-            if (res.countsList && res.countsList.length > 0) countsList = res.countsList;
-            if (res.truckList && res.truckList.length > 0) truckList = res.truckList;
-            if (res.suppliesList && res.suppliesList.length > 0) suppliesList = res.suppliesList;
-            if (res.recruitsList && res.recruitsList.length > 0) recruitsList = res.recruitsList;
-
-            refreshAllStaffDropdowns();
-            renderReportsTable();
-            renderIconVisualSchedule();
-            document.getElementById('sync-status').textContent = '🟢 已完成雙向同步';
-          }
-        }).loadAllSheetsData();
-      }
-    }
-
-    function switchUserRole(name) {
-      currentUser = name;
-      const u = accounts.find(a => a.name === name);
-      currentRole = (u && u.category) || '全職步兵';
-      
-      const badge = document.getElementById('current-user-badge');
-      if (badge) badge.textContent = (currentRole === 'Admin') ? '👑 總管理員 (Mia)' : `👤 ${u.name} (${u.category})`;
-
+    function renderProgressCards(zoneKey) {
+      const container = document.getElementById('progressCardsContainer');
+      if (!container) return;
       const isAdmin = (currentRole === 'Admin');
-      document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
 
-      const resetBtn = document.getElementById('btn-reset-data');
-      if (resetBtn) resetBtn.style.display = isAdmin ? 'inline-block' : 'none';
+      container.innerHTML = (fencesData[zoneKey] || []).map(f => {
+        const p = progressRecord[f.id] || { 
+          completionStatus: "⏳ 未開始/貨未到齊",
+          signed: 0, signedTracks: '', 
+          refund: 0, refundTracks: '', 
+          isCleaned: '未清場', 
+          pendingPickup: 0, pendingTracks: '', 
+          returned: 0, returnedTracks: '', 
+          hold: 0, holdTracks: '', 
+          staff: f.defaultStaff || '', 
+          photo: '' 
+        };
 
-      const repStaff = document.getElementById('repStaffSelect');
-      if (repStaff) {
-        if (!isAdmin) {
-          repStaff.innerHTML = `<option value="${currentUser}">${currentUser} (${currentRole})</option>`;
-          repStaff.value = currentUser;
-          repStaff.disabled = true;
-        } else {
-          repStaff.disabled = false;
-          repStaff.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.category})</option>`).join('');
-        }
-        onStaffSelectChange(repStaff.value);
-      }
+        return `
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5 text-xs shadow-2xs">
+            <div class="flex justify-between items-center border-b pb-2">
+              <span class="font-black text-slate-900 text-sm">${f.name}</span>
+              ${isAdmin ? `
+                <select onchange="updateProgressField('${f.id}', 'staff', this.value); renderAssignmentsGrid();" class="bg-white border rounded px-2 py-1 font-bold text-blue-700">
+                  <option value="">選擇負責步兵</option>
+                  ${accounts.map(a => `<option value="${a.name}" ${p.staff === a.name ? 'selected' : ''}>${a.name}</option>`).join('')}
+                </select>
+              ` : `
+                <span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-black">負責: ${p.staff || '未指派'}</span>
+              `}
+            </div>
 
-      const tkForm = document.getElementById('form-new-ticket');
-      if (tkForm) tkForm.style.display = isAdmin ? 'grid' : 'none';
+            <!-- 🌟 7 大實時完成度下拉選項 -->
+            <div class="p-2 bg-white border border-blue-200 rounded-xl">
+              <label class="block font-black text-slate-800 mb-1">📊 當日圍欄實時完成度 (7大狀態)：</label>
+              <select onchange="updateProgressField('${f.id}', 'completionStatus', this.value)" class="w-full p-1.5 bg-blue-50/60 border border-blue-300 rounded font-black text-xs text-slate-900">
+                ${statusOptions7.map(opt => `<option value="${opt}" ${p.completionStatus === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+              </select>
+            </div>
 
-      renderReportsTable();
-      renderTicketsList();
-      renderViolationsTable();
-    }
+            <!-- 5 大核心件數與單號 -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div class="bg-white p-2 border rounded-lg">
+                <span class="font-bold text-emerald-800 block mb-1">✅ 已簽收件</span>
+                <input type="number" min="0" value="${p.signed}" onchange="updateProgressField('${f.id}', 'signed', this.value)" class="w-full p-1 bg-emerald-50/50 border rounded font-black text-emerald-700 mb-1">
+                <input type="text" placeholder="貼上單號..." value="${p.signedTracks||''}" onchange="updateProgressField('${f.id}', 'signedTracks', this.value)" class="w-full p-1 border rounded text-[10px] font-mono">
+              </div>
+              <div class="bg-white p-2 border rounded-lg">
+                <span class="font-bold text-rose-800 block mb-1">💸 已退款件</span>
+                <input type="number" min="0" value="${p.refund}" onchange="updateProgressField('${f.id}', 'refund', this.value)" class="w-full p-1 bg-rose-50/50 border rounded font-black text-rose-700 mb-1">
+                <input type="text" placeholder="貼上單號..." value="${p.refundTracks||''}" onchange="updateProgressField('${f.id}', 'refundTracks', this.value)" class="w-full p-1 border rounded text-[10px] font-mono">
+              </div>
+              <div class="bg-white p-2 border rounded-lg">
+                <span class="font-bold text-slate-700 block mb-1">🧹 清場狀態</span>
+                <select onchange="updateProgressField('${f.id}', 'isCleaned', this.value)" class="w-full p-1 bg-slate-50 border rounded font-bold mt-1">
+                  <option value="未清場" ${p.isCleaned==='未清場'?'selected':''}>⏳ 未清場</option>
+                  <option value="已清場" ${p.isCleaned==='已清場'?'selected':''}>✨ 已清場</option>
+                </select>
+              </div>
+              <div class="bg-white p-2 border rounded-lg">
+                <span class="font-bold text-indigo-800 block mb-1">📦 待攬紀錄</span>
+                <input type="number" min="0" value="${p.pendingPickup}" onchange="updateProgressField('${f.id}', 'pendingPickup', this.value)" class="w-full p-1 bg-indigo-50/50 border rounded font-black text-indigo-700 mb-1">
+                <input type="text" placeholder="貼上單號..." value="${p.pendingTracks||''}" onchange="updateProgressField('${f.id}', 'pendingTracks', this.value)" class="w-full p-1 border rounded text-[10px] font-mono">
+              </div>
+              <div class="bg-white p-2 border rounded-lg">
+                <span class="font-bold text-slate-800 block mb-1">🚫 回倉件數</span>
+                <input type="number" min="0" value="${p.returned}" onchange="updateProgressField('${f.id}', 'returned', this.value)" class="w-full p-1 bg-slate-100 border rounded font-black text-slate-700 mb-1">
+                <input type="text" placeholder="貼上單號..." value="${p.returnedTracks||''}" onchange="updateProgressField('${f.id}', 'returnedTracks', this.value)" class="w-full p-1 border rounded text-[10px] font-mono">
+              </div>
+              <div class="bg-white p-2 border rounded-lg">
+                <span class="font-bold text-amber-800 block mb-1">⚠️ 滯留/未簽收</span>
+                <input type="number" min="0" value="${p.hold}" onchange="updateProgressField('${f.id}', 'hold', this.value)" class="w-full p-1 bg-amber-50/50 border rounded font-black text-amber-700 mb-1">
+                <input type="text" placeholder="貼上單號..." value="${p.holdTracks||''}" onchange="updateProgressField('${f.id}', 'holdTracks', this.value)" class="w-full p-1 border rounded text-[10px] font-mono">
+              </div>
+            </div>
 
-    function resetSystemData() {
-      if (currentRole !== 'Admin') { alert('⚠️ 只有 Mia 擁有清空權限！'); return; }
-      if (confirm('確定清空所有數據嗎？')) {
-        dailyReports = []; violationsList = []; ticketsList = []; shiftsRecord = {}; progressRecord = {}; countsList = []; truckList = []; suppliesList = []; recruitsList = [];
-        localStorage.clear();
-        renderReportsTable();
-        alert('數據已重置！');
-      }
-    }
-
-    function autoGenerateStaffId() {
-      if (document.getElementById('form-staff-edit-id').value) return;
-      const team = document.getElementById('form-staff-team').value;
-      const existingTeam = accounts.filter(a => a.team === team);
-      const maxNum = existingTeam.reduce((max, a) => {
-        const num = parseInt(a.id.replace(team, '')) || 0;
-        return num > max ? num : max;
-      }, 0);
-      document.getElementById('form-staff-id').value = `${team}${String(maxNum + 1).padStart(2, '0')}`;
-    }
-
-    function resetStaffForm() {
-      document.getElementById('form-staff-edit-id').value = '';
-      document.getElementById('form-staff-name').value = '';
-      document.getElementById('form-staff-pwd').value = '123';
-      document.getElementById('form-price-east').value = '4.0';
-      document.getElementById('form-price-ktlg').value = '4.0';
-      document.getElementById('form-price-ktind').value = '4.5';
-      document.getElementById('form-price-st').value = '7.0';
-      document.getElementById('form-staff-submit-btn').textContent = '💾 儲存人員/帳號資料 (同步至試算表)';
-      autoGenerateStaffId();
-    }
-
-    function editStaffAccount(id) {
-      const u = accounts.find(a => a.id === id);
-      if (!u) return;
-      document.getElementById('form-staff-edit-id').value = u.id;
-      document.getElementById('form-staff-id').value = u.id;
-      document.getElementById('form-staff-name').value = u.name;
-      document.getElementById('form-staff-team').value = u.team;
-      document.getElementById('form-staff-role').value = u.category;
-      document.getElementById('form-staff-cycle').value = u.payCycle || '半月糧';
-      document.getElementById('form-staff-pwd').value = u.password || '123';
-      document.getElementById('form-price-east').value = (u.prices && u.prices.east) || 4.0;
-      document.getElementById('form-price-ktlg').value = (u.prices && u.prices.ktlg) || 4.0;
-      document.getElementById('form-price-ktind').value = (u.prices && u.prices.ktind) || 4.5;
-      document.getElementById('form-price-st').value = (u.prices && u.prices.st) || 7.0;
-      document.getElementById('form-staff-submit-btn').textContent = '🔄 更新人員/帳號資料';
-    }
-
-    function saveStaffAccountForm(e) {
-      e.preventDefault();
-      const editId = document.getElementById('form-staff-edit-id').value;
-      const sId = document.getElementById('form-staff-id').value;
-      const sName = document.getElementById('form-staff-name').value.trim();
-      const sTeam = document.getElementById('form-staff-team').value;
-      const sRole = document.getElementById('form-staff-role').value;
-      const sCycle = document.getElementById('form-staff-cycle').value;
-      const sPwd = document.getElementById('form-staff-pwd').value.trim();
-      const pEast = Number(document.getElementById('form-price-east').value) || 4.0;
-      const pKtLg = Number(document.getElementById('form-price-ktlg').value) || 4.0;
-      const pKtInd = Number(document.getElementById('form-price-ktind').value) || 4.5;
-      const pSt = Number(document.getElementById('form-price-st').value) || 7.0;
-
-      if (editId) {
-        const idx = accounts.findIndex(a => a.id === editId);
-        if (idx >= 0) accounts[idx] = { id: editId, name: sName, team: sTeam, category: sRole, payCycle: sCycle, password: sPwd, prices: { east: pEast, ktlg: pKtLg, ktind: pKtInd, st: pSt } };
-      } else {
-        accounts.push({ id: sId, name: sName, team: sTeam, category: sRole, payCycle: sCycle, password: sPwd, prices: { east: pEast, ktlg: pKtLg, ktind: pKtInd, st: pSt } });
-      }
-
-      localStorage.setItem('MIA_ACCOUNTS_CLEAN', JSON.stringify(accounts));
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run.syncAccountsToSheet(JSON.stringify(accounts));
-      }
-      resetStaffForm();
-      renderStaffTable();
-      refreshAllStaffDropdowns();
-      alert('✅ 人員與帳戶資料已儲存並同步至試算表！');
-    }
-
-    function renderStaffTable() {
-      const tbody = document.getElementById('staffListTableBody');
-      if (!tbody) return;
-      tbody.innerHTML = accounts.map((a, idx) => `
-        <tr class="hover:bg-slate-50 text-[11px]">
-          <td class="p-2.5 font-mono font-bold text-blue-700">${a.id}</td>
-          <td class="p-2.5 font-bold">${a.name}</td>
-          <td class="p-2.5">${a.category} (${a.team}隊)</td>
-          <td class="p-2.5">${a.payCycle || '半月糧'}</td>
-          <td class="p-2.5 font-mono">${a.password || '123'}</td>
-          <td class="p-2.5 text-slate-500 font-mono">東:$${a.prices.east} 麗:$${a.prices.ktlg} 工:$${a.prices.ktind} 沙:$${a.prices.st}</td>
-          <td class="p-2.5 text-center">
-            <button type="button" onclick="editStaffAccount('${a.id}')" class="px-2 py-0.5 bg-slate-900 text-white rounded text-[10px] font-bold mr-1">修改</button>
-            ${a.name !== 'Mia' ? `<button type="button" onclick="accounts.splice(${idx},1);localStorage.setItem('MIA_ACCOUNTS_CLEAN',JSON.stringify(accounts));renderStaffTable();refreshAllStaffDropdowns();" class="text-rose-600 font-bold hover:underline">刪除</button>` : ''}
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    function renderIconVisualSchedule() {
-      const headerRow = document.getElementById('scheduleTableHeaderRow');
-      const tbody = document.getElementById('scheduleTableBody');
-      if (!headerRow || !tbody) return;
-      const dateList = [];
-      let thHtml = '<th class="p-2.5 border-r border-slate-700 bg-slate-900 sticky left-0 z-10 min-w-[80px]">人員</th><th class="p-2.5 border-r border-slate-700 min-w-[50px]">隊伍</th>';
-      const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-      for (let i = 0; i < 14; i++) {
-        const d = new Date(); d.setDate(d.getDate() + i);
-        const dStr = `${d.getMonth() + 1}/${d.getDate()}`;
-        const wStr = weekdays[d.getDay()];
-        const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-        const dKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-        dateList.push(dKey);
-        thHtml += `<th class="p-2 text-center border-r border-slate-700 font-mono text-[11px] ${isWeekend ? 'bg-slate-800 text-amber-300' : ''}">${dStr}<br><span class="text-[9px] font-normal">${wStr}</span></th>`;
-      }
-      headerRow.innerHTML = thHtml;
-
-      tbody.innerHTML = accounts.map(acc => {
-        let cells = '';
-        dateList.forEach(dKey => {
-          const shiftKey = `${acc.name}_${dKey}`;
-          const shiftData = shiftsRecord[shiftKey] || { icon: '未排', note: '' };
-          cells += `
-            <td class="p-1 text-center border-r border-slate-200">
-              <button type="button" onclick="cycleShiftIcon('${acc.name}', '${dKey}')" class="w-full py-1 px-1 rounded text-[11px] font-bold border transition bg-white hover:bg-slate-100">
-                <div>${shiftData.icon}</div>
-                ${shiftData.note ? `<div class="text-[8px] text-slate-500 font-normal truncate">${shiftData.note}</div>` : ''}
-              </button>
-            </td>
-          `;
-        });
-        return `<tr class="hover:bg-slate-50 transition"><td class="p-2 font-bold text-slate-900 border-r bg-white sticky left-0 z-10">${acc.name}</td><td class="p-1.5 text-slate-500 font-bold border-r text-center">${acc.team}</td>${cells}</tr>`;
+            <!-- 📷 現場影相舉證 -->
+            <div class="flex items-center gap-2 pt-1 border-t">
+              <label class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded cursor-pointer font-bold text-[10px]">
+                📷 現場影相舉證
+                <input type="file" accept="image/*" onchange="uploadFencePhoto(event, '${f.id}')" class="hidden">
+              </label>
+              ${p.photo ? `<img src="${p.photo}" onclick="viewLargeImage('${p.photo}')" class="w-7 h-7 object-cover rounded border cursor-pointer shadow-xs"> <span class="text-[10px] text-emerald-600 font-bold">已拍照</span>` : '<span class="text-[10px] text-slate-400">未影相</span>'}
+            </div>
+          </div>
+        `;
       }).join('');
     }
 
-    function cycleShiftIcon(staffName, dateKey) {
-      const icons = ['☀️ 全天', '⛅ 半日', '📍 東區', '📍 觀塘', '📍 沙田', '🏖️ 放假', '🔥 救火', '未排'];
-      const key = `${staffName}_${dateKey}`;
-      const current = (shiftsRecord[key] && shiftsRecord[key].icon) || '未排';
-      const nextIcon = icons[(icons.indexOf(current) + 1) % icons.length];
-      shiftsRecord[key] = { icon: nextIcon, note: (shiftsRecord[key] && shiftsRecord[key].note) || '' };
-      localStorage.setItem('MIA_SHIFTS_CLEAN', JSON.stringify(shiftsRecord));
-      
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run.saveShiftToSheet(staffName, dateKey, nextIcon, shiftsRecord[key].note);
-      }
-      renderIconVisualSchedule();
-    }
-
-    function saveCustomShiftForm(e) {
-      e.preventDefault();
-      const staff = document.getElementById('form-shift-staff').value;
-      const date = document.getElementById('form-shift-date').value;
-      const icon = document.getElementById('form-shift-icon').value;
-      const note = document.getElementById('form-shift-note').value.trim();
-      shiftsRecord[`${staff}_${date}`] = { icon, note };
-      localStorage.setItem('MIA_SHIFTS_CLEAN', JSON.stringify(shiftsRecord));
-      
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run.saveShiftToSheet(staff, date, icon, note);
-      }
-      renderIconVisualSchedule();
-      alert(`✅ 已為 ${staff} 儲存 ${date} 的報更並同步至試算表！`);
-    }
-
-    function updateProgressField(fenceId, field, val) {
-      if (!progressRecord[fenceId]) progressRecord[fenceId] = {};
-      progressRecord[fenceId][field] = val;
-      localStorage.setItem('MIA_PROGRESS_DATA', JSON.stringify(progressRecord));
-    }
-
-    function syncProgressToSheet() {
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run.saveProgressToSheet(JSON.stringify(progressRecord));
-        alert('✅ 進度與單號已同步至 Google Sheets！');
-      }
-    }
-
-    function uploadFencePhoto(e, fenceId) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        updateProgressField(fenceId, 'photo', evt.target.result);
-        switchProgressZone(currentZone);
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function saveNewTicketRecord(e) {
-      e.preventDefault();
-      const payload = {
-        id: `TK_${Date.now()}`,
-        tracking: document.getElementById('tk-input-tracking').value.trim(),
-        staff: document.getElementById('tk-input-staff').value,
-        type: document.getElementById('tk-input-type').value,
-        fine: Number(document.getElementById('tk-input-fine').value) || 0,
-        desc: document.getElementById('tk-input-desc').value.trim(),
-        status: '待處理',
-        appealText: '',
-        photo: ''
-      };
-      ticketsList.unshift(payload);
-      localStorage.setItem('MIA_TICKETS_CLEAN', JSON.stringify(ticketsList));
-      
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run.saveTicketToSheet(payload);
-      }
-      renderTicketsList();
-      alert('✅ 工單已指派並同步至試算表！');
-    }
-
-    function renderTicketsList() {
-      const tbody = document.getElementById('ticketsTableBody');
-      if (!tbody) return;
-      const isAdmin = (currentRole === 'Admin');
-      const filtered = isAdmin ? ticketsList : ticketsList.filter(t => t.staff === currentUser);
-
-      tbody.innerHTML = filtered.map((t, idx) => `
-        <tr class="hover:bg-slate-50 text-[11px]">
-          <td class="p-2.5 font-mono font-bold">${t.tracking}</td>
-          <td class="p-2.5 font-bold text-blue-700">${t.staff}</td>
-          <td class="p-2.5"><span class="text-rose-700 font-bold">${t.type}</span><br><span class="text-rose-600 font-mono font-black">HK$ ${t.fine}</span></td>
-          <td class="p-2.5 text-slate-600">${t.desc || '-'}</td>
-          <td class="p-2.5 text-center">
-            <select onchange="ticketsList[${idx}].status=this.value;localStorage.setItem('MIA_TICKETS_CLEAN',JSON.stringify(ticketsList));" class="border rounded p-1 font-bold">
-              <option value="待處理" ${t.status==='待處理'?'selected':''}>待處理</option>
-              <option value="已申訴" ${t.status==='已申訴'?'selected':''}>已申訴</option>
-              <option value="已結案" ${t.status==='已結案'?'selected':''}>已結案</option>
-            </select>
-          </td>
-          <td class="p-2.5">
-            <input type="text" placeholder="步兵填寫舉證或說明..." value="${t.appealText||''}" onchange="ticketsList[${idx}].appealText=this.value;localStorage.setItem('MIA_TICKETS_CLEAN',JSON.stringify(ticketsList));" class="w-full border rounded p-1">
-          </td>
-          <td class="p-2.5 text-center">
-            <div class="flex items-center justify-center gap-1">
-              <label class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-white rounded cursor-pointer text-[10px] font-bold">
-                📷 上傳
-                <input type="file" accept="image/*" onchange="uploadTicketPhoto(event, ${idx})" class="hidden">
-              </label>
-              ${t.photo ? `<img src="${t.photo}" onclick="viewLargeImage('${t.photo}')" class="w-6 h-6 object-cover rounded border cursor-pointer">` : ''}
-            </div>
-          </td>
-          <td class="p-2.5 text-center">
-            ${isAdmin ? `<button type="button" onclick="ticketsList.splice(${idx},1);localStorage.setItem('MIA_TICKETS_CLEAN',JSON.stringify(ticketsList));renderTicketsList();" class="text-rose-600 font-bold hover:underline">刪除</button>` : '-'}
-          </td>
-        </tr>
-      `).join('') || '<tr><td colspan="8" class="p-6 text-center text-slate-400">目前無相關工單記錄。</td></tr>';
-    }
-
-    function uploadTicketPhoto(e, idx) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        ticketsList[idx].photo = evt.target.result;
-        localStorage.setItem('MIA_TICKETS_CLEAN', JSON.stringify(ticketsList));
-        renderTicketsList();
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function renderLeaderboard() {
-      const vioFineTotal = violationsList.reduce((sum, v) => sum + (Number(v.amount) || 0), 0);
-      const ticketFineTotal = ticketsList.reduce((sum, t) => sum + (Number(t.fine) || 0), 0);
-      const totalPool = vioFineTotal + ticketFineTotal;
-      const pool60 = totalPool * 0.6;
-
-      document.getElementById('leaderboard-total-pool').textContent = `HK$ ${totalPool.toFixed(2)}`;
-      document.getElementById('leaderboard-60-pool').textContent = `HK$ ${pool60.toFixed(2)}`;
-
-      const tbody = document.getElementById('leaderboardDetailsTableBody');
-      if (!tbody) return;
-
-      const staffStats = accounts.map(a => {
-        const staffReports = dailyReports.filter(r => r.staff === a.name);
-        const pieces = staffReports.reduce((sum, r) => sum + (Number(r.totalPieces) || 0), 0);
-        const vFine = violationsList.filter(v => v.staff === a.name).reduce((sum, v) => sum + (Number(v.amount) || 0), 0);
-        const tFine = ticketsList.filter(t => t.staff === a.name).reduce((sum, t) => sum + (Number(t.fine) || 0), 0);
-        const totalFine = vFine + tFine;
-        const isEligible = totalFine === 0 && pieces > 0;
-        return { name: a.name, team: a.team, pieces, totalFine, isEligible, bonus: 0 };
-      }).sort((x, y) => y.pieces - x.pieces);
-
-      const eligibleTotalPieces = staffStats.filter(s => s.isEligible).reduce((sum, s) => sum + s.pieces, 0) || 1;
-      staffStats.forEach(s => { if (s.isEligible) s.bonus = (s.pieces / eligibleTotalPieces) * pool60; });
-
-      tbody.innerHTML = staffStats.map((s, idx) => `
-        <tr class="hover:bg-slate-50 text-[11px]">
-          <td class="p-2.5 text-center font-bold">${idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `#${idx+1}`))}</td>
-          <td class="p-2.5 font-bold text-slate-900">${s.name}</td>
-          <td class="p-2.5 text-slate-500">${s.team} 隊</td>
-          <td class="p-2.5 text-right font-black text-blue-700 font-mono">${s.pieces} 票</td>
-          <td class="p-2.5 text-right font-bold ${s.totalFine > 0 ? 'text-rose-600' : 'text-slate-400'}">$${s.totalFine.toFixed(2)}</td>
-          <td class="p-2.5 text-center">${s.isEligible ? '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold">🌟 零違規</span>' : '-'}</td>
-          <td class="p-2.5 text-right font-black text-emerald-700 font-mono">HK$ ${s.bonus.toFixed(2)}</td>
-        </tr>
-      `).join('');
-    }
-
-    function onStaffSelectChange(name) {
-      const u = accounts.find(a => a.name === name) || { prices: { east: 4, ktlg: 4, ktind: 4.5, st: 7 } };
-      document.getElementById('repEastPrice').value = u.prices.east;
-      document.getElementById('repKtLgPrice').value = u.prices.ktlg;
-      document.getElementById('repKtIndPrice').value = u.prices.ktind;
-      document.getElementById('repStPrice').value = u.prices.st;
-      calcSalaryLive();
-    }
-
-    function calcSalaryLive() {
-      const eastC = Number(document.getElementById('repEastCount')?.value) || 0;
-      const eastP = Number(document.getElementById('repEastPrice')?.value) || 4.0;
-      const ktLgC = Number(document.getElementById('repKtLgCount')?.value) || 0;
-      const ktLgP = Number(document.getElementById('repKtLgPrice')?.value) || 4.0;
-      const ktIndC = Number(document.getElementById('repKtIndCount')?.value) || 0;
-      const ktIndP = Number(document.getElementById('repKtIndPrice')?.value) || 4.5;
-      const stC = Number(document.getElementById('repStCount')?.value) || 0;
-      const stP = Number(document.getElementById('repStPrice')?.value) || 7.0;
-
-      const totalP = eastC + ktLgC + ktIndC + stC;
-      const signedInput = document.getElementById('repSignedCount');
-      if (signedInput && (!signedInput.value || Number(signedInput.value) === 0)) signedInput.value = totalP;
-
-      const car = Number(document.getElementById('repCarAllowance')?.value) || 0;
-      const penalty = Number(document.getElementById('repPenalty')?.value) || 0;
-
-      const wageGross = (eastC * eastP) + (ktLgC * ktLgP) + (ktIndC * ktIndP) + (stC * stP);
-      const total = wageGross + car - penalty;
-      document.getElementById('repLiveTotalSalary').textContent = `HK$ ${Math.max(0, total).toFixed(2)}`;
-    }
-
-    function saveDailyReport(e) {
-      e.preventDefault();
-      const staffName = document.getElementById('repStaffSelect').value;
-      const eastC = Number(document.getElementById('repEastCount').value) || 0;
-      const ktLgC = Number(document.getElementById('repKtLgCount').value) || 0;
-      const ktIndC = Number(document.getElementById('repKtIndCount').value) || 0;
-      const stC = Number(document.getElementById('repStCount').value) || 0;
-      const totalP = eastC + ktLgC + ktIndC + stC;
-
-      const payload = {
-        id: `REP_${Date.now()}`,
-        date: document.getElementById('repDate').value,
-        staff: staffName,
-        eastCount: eastC, ktLgCount: ktLgC, ktIndCount: ktIndC, stCount: stC,
-        totalPieces: totalP,
-        signedCount: Number(document.getElementById('repSignedCount').value) || totalP,
-        holdCount: Number(document.getElementById('repHoldCount').value) || 0,
-        photoProof: document.getElementById('repPhotoData').value || '',
-        finalSalary: Number(document.getElementById('repLiveTotalSalary').textContent.replace('HK$ ', '')) || 0
-      };
-
-      dailyReports.unshift(payload);
-      localStorage.setItem('MIA_DAILY_REPORTS_CLEAN', JSON.stringify(dailyReports));
-      
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run.saveReportToSheet(payload);
-      }
-      renderReportsTable();
-      alert(`✅ 已儲存 ${staffName} 的派件報數並同步至試算表！`);
-    }
-
-    function renderReportsTable() {
-      const tbody = document.getElementById('reportTableBody');
-      if (!tbody) return;
-      const isAdmin = (currentRole === 'Admin');
-      const filtered = isAdmin ? dailyReports : dailyReports.filter(r => r.staff === currentUser);
-
-      tbody.innerHTML = filtered.map((r, idx) => `
-        <tr class="hover:bg-slate-50 text-[11px]">
-          <td class="p-3 font-mono">${r.date}</td>
-          <td class="p-3 font-bold">${r.staff}</td>
-          <td class="p-3 text-center text-blue-700 font-bold">${r.eastCount}/${r.ktLgCount}/${r.ktIndCount}/${r.stCount}</td>
-          <td class="p-3 text-right font-bold">${r.totalPieces} 票</td>
-          <td class="p-3 text-right font-mono font-bold text-emerald-700">${r.signedCount} / <span class="text-amber-600">${r.holdCount}</span></td>
-          <td class="p-3 text-center">
-            ${r.photoProof ? `<img src="${r.photoProof}" onclick="viewLargeImage('${r.photoProof}')" class="w-7 h-7 object-cover rounded border mx-auto cursor-pointer shadow-xs">` : '<span class="text-slate-400">無</span>'}
-          </td>
-          <td class="p-3 text-right font-black text-emerald-600 font-mono ${isAdmin ? '' : 'hidden'}">HK$ ${Number(r.finalSalary || 0).toFixed(2)}</td>
-          <td class="p-3 text-center">
-            ${isAdmin ? `<button type="button" onclick="dailyReports.splice(${idx},1);localStorage.setItem('MIA_DAILY_REPORTS_CLEAN',JSON.stringify(dailyReports));renderReportsTable();" class="text-rose-600 font-bold hover:underline">刪除</button>` : '-'}
-          </td>
-        </tr>
-      `).join('') || '<tr><td colspan="8" class="p-6 text-center text-slate-400">目前暫無報數記錄。</td></tr>';
-    }
-
-    function renderViolationsTable() {
-      const tbody = document.getElementById('violationsTableBody');
-      if (!tbody) return;
-      const isAdmin = (currentRole === 'Admin');
-      const filtered = isAdmin ? violationsList : violationsList.filter(v => v.staff === currentUser);
-
-      tbody.innerHTML = filtered.map((v, idx) => `
-        <tr class="hover:bg-slate-50 text-[11px]">
-          <td class="p-2.5 font-mono">${v.date}</td>
-          <td class="p-2.5 font-bold">${v.staff}</td>
-          <td class="p-2.5">${v.zone}</td>
-          <td class="p-2.5 font-bold text-rose-700">${v.type}</td>
-          <td class="p-2.5 text-right font-black font-mono text-rose-600">HK$ ${v.amount}</td>
-          <td class="p-2.5">${v.desc || '-'}</td>
-          <td class="p-2.5 text-center">
-            ${isAdmin ? `<button type="button" onclick="violationsList.splice(${idx},1);localStorage.setItem('MIA_VIOLATIONS_CLEAN',JSON.stringify(violationsList));renderViolationsTable();" class="text-rose-600 font-bold hover:underline">刪除</button>` : '-'}
-          </td>
-        </tr>
-      `).join('') || '<tr><td colspan="7" class="p-6 text-center text-slate-400">暫無違規紀錄。</td></tr>';
-    }
-
-    function saveNewViolationRecord(e) {
-      e.preventDefault();
-      violationsList.unshift({
-        date: document.getElementById('vio-date').value,
-        staff: document.getElementById('vio-staff-select').value,
-        zone: document.getElementById('vio-zone').value,
-        type: document.getElementById('vio-type').value,
-        amount: Number(document.getElementById('vio-amount').value) || 0,
-        desc: document.getElementById('vio-desc').value.trim()
+    function switchProgressZone(zoneKey) {
+      currentZone = zoneKey;
+      ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(z => {
+        const btn = document.getElementById(`prog-tab-${z}`);
+        if (btn) btn.className = (z === zoneKey) ? 'px-3 py-1.5 rounded-lg bg-slate-900 text-white' : 'px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700';
       });
-      localStorage.setItem('MIA_VIOLATIONS_CLEAN', JSON.stringify(violationsList));
-      alert('✅ 現場違規已登記！');
-      renderViolationsTable();
+      renderProgressCards(zoneKey);
     }
 
-    function filterReconHistory() {
-      const selStaff = document.getElementById('recon-staff-select')?.value || '全部';
-      const filtered = dailyReports.filter(r => selStaff === '全部' || r.staff === selStaff);
-      document.getElementById('recon-stat-tickets').textContent = `${filtered.reduce((sum, r) => sum + (Number(r.totalPieces) || 0), 0)} 票`;
-      document.getElementById('recon-stat-net').textContent = `HK$ ${filtered.reduce((sum, r) => sum + (Number(r.finalSalary) || 0), 0).toFixed(2)}`;
-      const tbody = document.getElementById('reconTableBody');
-      if (!tbody) return;
-      tbody.innerHTML = filtered.map(r => `
-        <tr class="hover:bg-slate-50 text-[11px]">
-          <td class="p-2 font-mono">${r.date}</td>
-          <td class="p-2 font-bold">${r.staff}</td>
-          <td class="p-2 text-right font-bold text-blue-700">${r.totalPieces} 票</td>
-          <td class="p-2 text-right font-black text-emerald-600 font-mono">HK$ ${Number(r.finalSalary || 0).toFixed(2)}</td>
-        </tr>
-      `).join('') || '<tr><td colspan="4" class="p-4 text-center text-slate-400">暫無結算數據。</td></tr>';
+    // 區域分工看板（Mia 可指派，全體可看）
+    function renderAssignmentsGrid() {
+      const container = document.getElementById('assignments-grid');
+      if (!container) return;
+      const isAdmin = (currentRole === 'Admin');
+      let html = '';
+      
+      ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(z => {
+        const zoneNames = { SKW: '東區 (SKW)', KTLG: '麗港城 (KT-LG)', KTIND: '觀塘工商 (KT-IND)', ST: '沙田 (ST-F58)' };
+        const fences = fencesData[z] || [];
+        html += `
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">
+            <div class="font-bold text-xs text-slate-900 border-b pb-1 flex justify-between">
+              <span>${zoneNames[z]}</span>
+              <span class="text-[10px] text-slate-400">${fences.length} 圍欄</span>
+            </div>
+            <div class="space-y-2">
+              ${fences.map(f => {
+                const assigned = (progressRecord[f.id] && progressRecord[f.id].staff) || f.defaultStaff || '未指派';
+                const status = (progressRecord[f.id] && progressRecord[f.id].completionStatus) || '⏳ 未開始';
+                return `
+                  <div class="p-2 bg-white border rounded-lg space-y-1 text-xs">
+                    <div class="font-bold text-slate-800">${f.name}</div>
+                    <div class="flex justify-between items-center text-[11px]">
+                      <span class="text-slate-500">負責人:</span>
+                      ${isAdmin ? `
+                        <select onchange="updateProgressField('${f.id}', 'staff', this.value); renderProgressCards(currentZone);" class="bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5 font-black text-blue-800">
+                          ${accounts.map(a => `<option value="${a.name}" ${assigned === a.name ? 'selected' : ''}>${a.name}</option>`).join('')}
+                        </select>
+                      ` : `
+                        <span class="px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded font-black">${assigned}</span>
+                      `}
+                    </div>
+                    <div class="text-[10px] text-slate-500 truncate">狀態: ${status}</div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
     }
 
+    // 貨量核算中心
     function saveCountsEntry(e) {
       e.preventDefault();
       countsList.unshift({
@@ -1289,6 +843,7 @@
       `).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無貨量登記記錄</td></tr>';
     }
 
+    // 司機車線
     function saveTruckEntry(e) {
       e.preventDefault();
       truckList.unshift({
@@ -1317,6 +872,7 @@
       `).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">暫無司機車線記錄</td></tr>';
     }
 
+    // 物資採購
     function saveSupplyEntry(e) {
       e.preventDefault();
       suppliesList.unshift({
@@ -1345,6 +901,7 @@
       `).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">暫無物資採購記錄</td></tr>';
     }
 
+    // 預約新人
     function saveRecruitEntry(e) {
       e.preventDefault();
       recruitsList.unshift({
@@ -1373,6 +930,7 @@
       `).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">暫無預約新人記錄</td></tr>';
     }
 
+    // 相片上傳與預覽
     function handleImageFileSelect(event, previewImgId, dataInputId) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1393,6 +951,7 @@
     }
     function closeLargeImage() { document.getElementById('image-viewer-modal').classList.remove('active'); }
 
+    // 利潤分析
     function renderProfitSummary() {
       const totalP = dailyReports.reduce((s, r) => s + (Number(r.totalPieces) || 0), 0);
       const totalW = dailyReports.reduce((s, r) => s + (Number(r.finalSalary) || 0), 0);
@@ -1400,6 +959,7 @@
       document.getElementById('profit-total-wages').textContent = `HK$ ${totalW.toFixed(2)}`;
     }
 
+    // 📤 匯出中心 (14天報更 / 報數 / 工單)
     function generateExportText(type) {
       const area = document.getElementById('universal-export-textarea');
       if (!area) return;
@@ -1456,6 +1016,7 @@
       if (reconSel) reconSel.innerHTML = '<option value="全部">全部人員</option>' + accounts.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
     }
 
+    // 初始化載入
     window.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
       if (document.getElementById('repDate')) document.getElementById('repDate').value = today;
