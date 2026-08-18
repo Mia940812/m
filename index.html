@@ -924,6 +924,42 @@
   <script>
     function openModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'flex'; }
     function closeModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+// 補上人員名冊儲存函數
+function saveStaffAccountForm(e) {
+  e.preventDefault();
+  const team = document.getElementById('form-staff-team').value;
+  const name = document.getElementById('form-staff-name').value.trim();
+  const category = document.getElementById('form-staff-role').value;
+  const payCycle = document.getElementById('form-staff-cycle').value;
+  
+  const prices = {
+    east: Number(document.getElementById('form-price-east').value) || 4.0,
+    ktlg: Number(document.getElementById('form-price-ktlg').value) || 4.0,
+    ktind: Number(document.getElementById('form-price-ktind').value) || 4.5,
+    st: Number(document.getElementById('form-price-st').value) || 7.0
+  };
+
+  // 檢查是否已存在
+  const existingIdx = accounts.findIndex(a => a.name === name);
+  if (existingIdx >= 0) {
+    accounts[existingIdx] = { ...accounts[existingIdx], team, category, payCycle, prices };
+  } else {
+    const newId = `${team}${String(accounts.filter(a => a.team === team).length + 1).padStart(2, '0')}`;
+    accounts.push({ id: newId, name, category, team, payCycle, prices });
+  }
+
+  localStorage.setItem('MIA_ACCOUNTS_CLEAN', JSON.stringify(accounts));
+  openStaffManageModal(); // 重新整理列表
+  
+  // 同步更新其他下拉選單
+  const roleSel = document.getElementById('current-user-role-select');
+  if (roleSel) roleSel.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.category})</option>`).join('');
+  
+  const repStaff = document.getElementById('repStaffSelect');
+  if (repStaff) repStaff.innerHTML = accounts.map(a => `<option value="${a.name}">${a.name} (${a.category})</option>`).join('');
+
+  alert(`✅ 成功儲存人員：${name}`);
+}
 
     // 保留人員名冊及分區單價設定
     const initialAccounts = [
