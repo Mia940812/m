@@ -32,7 +32,7 @@
         <div class="text-xs font-bold flex items-center gap-2">
           <span>派件營運工作台</span>
           <span id="current-user-badge" class="px-1.5 py-0.5 rounded text-[10px] bg-blue-900/80 text-blue-300 border border-blue-700 font-semibold">👑 總管理員 (Mia)</span>
-          <span id="sync-status" class="text-[10px] text-emerald-400 font-semibold">🟢 系統運作正常</span>
+          <span id="sync-status" class="text-[10px] text-emerald-400 font-semibold">🟢 數據已儲存並同步</span>
         </div>
       </div>
       <div class="flex items-center gap-2 text-xs">
@@ -155,13 +155,13 @@
       </div>
     </div>
 
-    <!-- 3. 區域分工排班 (修復後：四大分區完整展開) -->
+    <!-- 3. 區域分工排班 (支援自訂圍欄 + 多步兵排班持久保存) -->
     <div id="tab-assignments" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
           <div>
             <h3 class="font-bold text-sm text-slate-900">👥 區域分工排班看板 (各區圍欄安排多位步兵)</h3>
-            <span class="text-[11px] text-slate-500">主負責步兵及支援步兵 1/2 指派 (已載入東區 38 圍欄、觀塘 15 圍欄、沙田 5 圍欄)</span>
+            <span class="text-[11px] text-slate-500">主負責步兵及支援步兵 1/2 指派 (排班數據與圍欄刪減自動保存)</span>
           </div>
           <button type="button" onclick="quickExportText('assignments')" class="px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold">📤 匯出排班</button>
         </div>
@@ -506,7 +506,7 @@
           <div>
             <h3 class="font-bold text-sm text-slate-900">📦 各區詳細貨量核算中心與圍欄管理</h3>
             <span class="text-[11px] text-slate-500">
-              公式一：原有 - 壓車 = 現有 | 公式二：派貨 vs 現有/原有差異比對 | 支援自由新增/修改圍欄
+              公式一：原有 - 壓車 = 現有 | 公式二：派貨 vs 現有/原有差異比對 | 支援自由新增/修改/刪除圍欄
             </span>
           </div>
           <div class="flex gap-2">
@@ -886,7 +886,7 @@
     </div>
   </div>
 
-  <!-- ================= 核心 JavaScript ================= -->
+  <!-- ================= 核心 JavaScript (防禦崩潰 + 圍欄刪減排班永久保存) ================= -->
   <script>
     var currentUser = 'Mia';
     var currentRole = 'Admin';
@@ -923,7 +923,6 @@
       { id: 'DR02', name: '龍', category: '司機', team: 'KM', payCycle: '月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' }
     ];
 
-    // 🗺️ 東區 38 圍欄 + 觀塘區 15 圍欄 + 沙田 5 圍欄
     var defaultFencesData = {
       SKW: [
         { id: '03F', name: '03F-東旭苑', defaultStaff: '小魚' },
@@ -1041,7 +1040,6 @@
       { date: '2026-08-19', zone: '東區 (SKW)', fence: '74F-東區醫院暫存點', orig: 4, held: 0, after: 4, delivered: 4, t3: 0, note: '-' },
       { date: '2026-08-19', zone: '東區 (SKW)', fence: '75F-阿公岩村暫存點', orig: 4, held: 0, after: 4, delivered: 4, t3: 1, note: '19號T3' },
 
-      // 第二張圖：觀塘區數據
       { date: '2026-08-19', zone: '觀塘工商區', fence: '01E-Koko Hills', orig: 47, held: 11, after: 36, delivered: 36, t3: 0, note: '-' },
       { date: '2026-08-19', zone: '觀塘工商區', fence: '02E-觀塘工商區1號', orig: 255, held: 89, after: 166, delivered: 166, t3: 0, note: '-' },
       { date: '2026-08-19', zone: '觀塘工商區', fence: '03E-觀塘工商區2號', orig: 88, held: 6, after: 82, delivered: 82, t3: 0, note: '-' },
@@ -1064,27 +1062,21 @@
         var val = localStorage.getItem(key);
         if (!val) return defaultVal;
         var parsed = JSON.parse(val);
-        return (parsed && (Array.isArray(parsed) ? parsed.length > 0 : Object.keys(parsed).length > 0)) ? parsed : defaultVal;
+        return parsed || defaultVal;
       } catch (e) { return defaultVal; }
     }
 
     var accounts = safeGetJSON('MIA_ACCOUNTS_CLEAN', initialAccounts);
     
-    // 強制合併/校正圍欄數據，確保 38 + 15 + 5 圍欄 100% 存在
-    var storedFences = safeGetJSON('MIA_FENCES_DATA_CLEAN', null);
-    var fencesData = defaultFencesData;
-    if (storedFences && storedFences.SKW && storedFences.SKW.length >= 38) {
-      fencesData = storedFences;
-    }
+    // 關鍵修復：優先讀取已修改的圍欄數據，若無才使用預設，確保刪除/新增永久保存
+    var fencesData = safeGetJSON('MIA_FENCES_DATA_CLEAN', defaultFencesData);
 
     var dailyReports = safeGetJSON('MIA_DAILY_REPORTS_CLEAN', []);
     var violationsList = safeGetJSON('MIA_VIOLATIONS_CLEAN', []);
     var ticketsList = safeGetJSON('MIA_TICKETS_CLEAN', []);
     var shiftsRecord = safeGetJSON('MIA_SHIFTS_CLEAN', {});
     var progressRecord = safeGetJSON('MIA_PROGRESS_DATA', {});
-    
-    var storedCounts = safeGetJSON('MIA_COUNTS_DETAIL_DATA', null);
-    var countsDetailList = (storedCounts && storedCounts.length >= 50) ? storedCounts : defaultCountsDetailList;
+    var countsDetailList = safeGetJSON('MIA_COUNTS_DETAIL_DATA', defaultCountsDetailList);
 
     var truckList = safeGetJSON('MIA_TRUCK_DATA', []);
     var suppliesList = safeGetJSON('MIA_SUPPLIES_DATA', []);
@@ -1297,8 +1289,9 @@
       var container = document.getElementById('progressCardsContainer');
       if (!container) return;
       var isAdmin = (currentRole === 'Admin');
+      var fences = (fencesData && fencesData[zoneKey]) ? fencesData[zoneKey] : [];
 
-      container.innerHTML = (fencesData[zoneKey] || []).map(function(f) {
+      container.innerHTML = fences.map(function(f) {
         var p = progressRecord[f.id] || { 
           completionStatus: "⏳ 未開始/貨未到齊",
           signed: 0, signedTracks: '', 
@@ -1365,6 +1358,7 @@
       renderProgressCards(zoneKey);
     }
 
+    // 智能更新進度與排班（即時持久化）
     function updateProgressField(fenceId, field, val) {
       if (!progressRecord[fenceId]) progressRecord[fenceId] = {};
       progressRecord[fenceId][field] = val;
@@ -1391,7 +1385,7 @@
       }
     }
 
-    // ================= 區域分工排班 (全面加強防護) =================
+    // ================= 區域分工排班 (修復渲染 + 支援自訂圍欄刪除與排班保存) =================
     function renderAssignmentsGrid() {
       var container = document.getElementById('assignments-grid');
       if (!container) return;
@@ -1403,7 +1397,7 @@
 
       for (var k = 0; k < zoneKeys.length; k++) {
         var z = zoneKeys[k];
-        var fences = (fencesData && fencesData[z]) ? fencesData[z] : (defaultFencesData[z] || []);
+        var fences = (fencesData && fencesData[z]) ? fencesData[z] : [];
 
         html += '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">' +
           '<div class="font-bold text-xs text-slate-900 border-b pb-1 flex justify-between items-center">' +
@@ -1461,7 +1455,7 @@
       if (zone.indexOf('工商') > -1) zKey = 'KTIND';
       if (zone.indexOf('沙田') > -1) zKey = 'ST';
 
-      var fences = (fencesData && fencesData[zKey]) ? fencesData[zKey] : (defaultFencesData[zKey] || []);
+      var fences = (fencesData && fencesData[zKey]) ? fencesData[zKey] : [];
       fenceSel.innerHTML = fences.map(function(f) { return '<option value="' + f.name + '">' + f.name + '</option>'; }).join('');
     }
 
@@ -1553,6 +1547,7 @@
       }
     }
 
+    // 🗺️ 圍欄新增/修改 (永久持久化 LocalStorage)
     function saveCustomFenceForm(e) {
       e.preventDefault();
       var editId = document.getElementById('fence-edit-id').value;
@@ -1582,7 +1577,7 @@
       renderAssignmentsGrid();
       renderProgressCards(currentZone);
       onCountsZoneChange(document.getElementById('cnt-zone').value);
-      alert('✅ 圍欄已成功儲存並同步至所有模組！');
+      alert('✅ 圍欄已成功儲存並同步！');
     }
 
     function editCustomFence(zKey, fId) {
@@ -1595,6 +1590,7 @@
       document.getElementById('fence-submit-btn').textContent = '🔄 更新圍欄';
     }
 
+    // 🗺️ 刪除圍欄 (永久持久化 LocalStorage)
     function deleteCustomFence(zKey, fId) {
       if (confirm('確定刪除此圍欄嗎？')) {
         fencesData[zKey] = fencesData[zKey].filter(function(f) { return f.id !== fId; });
