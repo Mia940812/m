@@ -32,7 +32,7 @@
         <div class="text-xs font-bold flex items-center gap-2">
           <span>派件營運工作台</span>
           <span id="current-user-badge" class="px-1.5 py-0.5 rounded text-[10px] bg-blue-900/80 text-blue-300 border border-blue-700 font-semibold">👑 總管理員 (Mia)</span>
-          <span id="sync-status" class="text-[10px] text-emerald-400 font-semibold">🟢 數據庫已更新</span>
+          <span id="sync-status" class="text-[10px] text-emerald-400 font-semibold">🟢 數據正常運作</span>
         </div>
       </div>
       <div class="flex items-center gap-2 text-xs">
@@ -62,7 +62,7 @@
       <button type="button" onclick="showTab('tab-truck')" id="btn-tab-truck" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-slate-100 text-slate-800 border-slate-300">🚗 司機車線 (車次/圍欄)</button>
       <button type="button" onclick="showTab('tab-supplies')" id="btn-tab-supplies" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-slate-100 text-slate-800 border-slate-300">📦 物資採購</button>
       <button type="button" onclick="showTab('tab-recruits')" id="btn-tab-recruits" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-slate-100 text-slate-800 border-slate-300">📋 預約新人</button>
-      <button type="button" onclick="showTab('tab-export')" id="btn-tab-export" class="admin-only nav-btn px-3.5 py-1.5 rounded-xl border bg-slate-800 text-white shadow-xs">📤 匯出中心</button>
+      <button type="button" onclick="showTab('tab-export')" id="btn-tab-export" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-slate-800 text-white shadow-xs">📤 匯出中心</button>
     </div>
   </nav>
 
@@ -886,7 +886,7 @@
     </div>
   </div>
 
-  <!-- ================= 核心 JavaScript (預載兩圖所有真實圍欄數據) ================= -->
+  <!-- ================= 核心 JavaScript (防禦崩潰 + 立即自我啟動) ================= -->
   <script>
     var currentUser = 'Mia';
     var currentRole = 'Admin';
@@ -923,7 +923,7 @@
       { id: 'DR02', name: '龍', category: '司機', team: 'KM', payCycle: '月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' }
     ];
 
-    // 🗺️ 錄入圖一及圖二所有精確圍欄名稱
+    // 🗺️ 東區 38 圍欄 + 觀塘區 15 圍欄 + 沙田 5 圍欄
     var defaultFencesData = {
       SKW: [
         { id: '03F', name: '03F-東旭苑', defaultStaff: '小魚' },
@@ -999,7 +999,6 @@
 
     // 📦 預載圖片中東區及觀塘全部真實貨量數據與 19號 T3
     var defaultCountsDetailList = [
-      // 第一張圖：東區數據 (SKW)
       { date: '2026-08-19', zone: '東區 (SKW)', fence: '03F-東旭苑', orig: 133, held: 74, after: 59, delivered: 59, t3: 1, note: '19號T3' },
       { date: '2026-08-19', zone: '東區 (SKW)', fence: '06F-東濤苑', orig: 88, held: 0, after: 88, delivered: 88, t3: 7, note: '19號T3' },
       { date: '2026-08-19', zone: '東區 (SKW)', fence: '09F-富怡花園', orig: 129, held: 0, after: 129, delivered: 129, t3: 0, note: '-' },
@@ -1071,13 +1070,13 @@
     }
 
     var accounts = safeGetJSON('MIA_ACCOUNTS_CLEAN', initialAccounts);
-    var fencesData = defaultFencesData; // 直接使用完整錄入的所有圍欄
+    var fencesData = defaultFencesData; // 直接使用完整 38 + 15 + 5 圍欄
     var dailyReports = safeGetJSON('MIA_DAILY_REPORTS_CLEAN', []);
     var violationsList = safeGetJSON('MIA_VIOLATIONS_CLEAN', []);
     var ticketsList = safeGetJSON('MIA_TICKETS_CLEAN', []);
     var shiftsRecord = safeGetJSON('MIA_SHIFTS_CLEAN', {});
     var progressRecord = safeGetJSON('MIA_PROGRESS_DATA', {});
-    var countsDetailList = defaultCountsDetailList; // 預載錄入的全部貨量與T3數據
+    var countsDetailList = defaultCountsDetailList; // 預載完整貨量及T3
     var truckList = safeGetJSON('MIA_TRUCK_DATA', []);
     var suppliesList = safeGetJSON('MIA_SUPPLIES_DATA', []);
     var recruitsList = safeGetJSON('MIA_RECRUITS_DATA', []);
@@ -1199,6 +1198,7 @@
       if (tabId === 'tab-export') generateExportText('schedule');
     }
 
+    // 14 天公仔報更
     function renderIconVisualSchedule() {
       var headerRow = document.getElementById('scheduleTableHeaderRow');
       var tbody = document.getElementById('scheduleTableBody');
@@ -1383,7 +1383,7 @@
       }
     }
 
-    // ================= 區域分工排班 =================
+    // ================= 區域分工排班 (修復渲染問題) =================
     function renderAssignmentsGrid() {
       var container = document.getElementById('assignments-grid');
       if (!container) return;
@@ -1395,7 +1395,7 @@
         var fences = fencesData[z] || [];
         html += '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">' +
           '<div class="font-bold text-xs text-slate-900 border-b pb-1 flex justify-between"><span>' + zoneNames[z] + '</span><span class="text-[10px] text-slate-400">' + fences.length + ' 圍欄</span></div>' +
-          '<div class="space-y-2">';
+          '<div class="space-y-2 max-h-[70vh] overflow-y-auto custom-scrollbar pr-1">';
         
         fences.forEach(function(f) {
           var p = progressRecord[f.id] || { staff: f.defaultStaff || '未指派', supportStaff1: '', supportStaff2: '', completionStatus: '⏳ 未開始' };
@@ -1404,12 +1404,12 @@
           var staffOptions2 = '<option value="">無支援步兵1</option>' + accounts.map(function(a) { return '<option value="' + a.name + '" ' + (p.supportStaff1 === a.name ? 'selected' : '') + '>' + a.name + '</option>'; }).join('');
           var staffOptions3 = '<option value="">無支援步兵2</option>' + accounts.map(function(a) { return '<option value="' + a.name + '" ' + (p.supportStaff2 === a.name ? 'selected' : '') + '>' + a.name + '</option>'; }).join('');
 
-          html += '<div class="p-2.5 bg-white border rounded-xl space-y-1.5 text-xs shadow-2xs">' +
-            '<div class="font-black text-slate-900 flex justify-between"><span>' + f.name + '</span><span class="text-[10px] text-blue-700 font-normal">' + p.completionStatus.split(' ')[0] + '</span></div>' +
+          html += '<div class="p-2 bg-white border rounded-lg space-y-1 text-xs shadow-2xs">' +
+            '<div class="font-black text-slate-900 flex justify-between"><span>' + f.name + '</span><span class="text-[10px] text-blue-700 font-normal">' + (p.completionStatus.split(' ')[0] || '') + '</span></div>' +
             '<div class="space-y-1 text-[11px]">' +
-              '<div class="flex justify-between items-center"><span class="text-slate-500">主負責人:</span>' + (isAdmin ? '<select onchange="updateProgressField(\'' + f.id + '\', \'staff\', this.value); renderProgressCards(currentZone);" class="bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5 font-bold text-blue-900 cursor-pointer">' + staffOptions1 + '</select>' : '<span class="font-bold text-blue-900">' + (p.staff || '未指派') + '</span>') + '</div>' +
-              '<div class="flex justify-between items-center"><span class="text-slate-400">支援步兵1:</span>' + (isAdmin ? '<select onchange="updateProgressField(\'' + f.id + '\', \'supportStaff1\', this.value);" class="bg-slate-50 border rounded px-1.5 py-0.5 font-bold text-slate-700 cursor-pointer">' + staffOptions2 + '</select>' : '<span class="text-slate-600">' + (p.supportStaff1 || '-') + '</span>') + '</div>' +
-              '<div class="flex justify-between items-center"><span class="text-slate-400">支援步兵2:</span>' + (isAdmin ? '<select onchange="updateProgressField(\'' + f.id + '\', \'supportStaff2\', this.value);" class="bg-slate-50 border rounded px-1.5 py-0.5 font-bold text-slate-700 cursor-pointer">' + staffOptions3 + '</select>' : '<span class="text-slate-600">' + (p.supportStaff2 || '-') + '</span>') + '</div>' +
+              '<div class="flex justify-between items-center"><span class="text-slate-500">主負責人:</span>' + (isAdmin ? '<select onchange="updateProgressField(\'' + f.id + '\', \'staff\', this.value); renderProgressCards(currentZone);" class="bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5 font-bold text-blue-900 cursor-pointer text-[10px]">' + staffOptions1 + '</select>' : '<span class="font-bold text-blue-900">' + (p.staff || '未指派') + '</span>') + '</div>' +
+              '<div class="flex justify-between items-center"><span class="text-slate-400">支援1:</span>' + (isAdmin ? '<select onchange="updateProgressField(\'' + f.id + '\', \'supportStaff1\', this.value);" class="bg-slate-50 border rounded px-1.5 py-0.5 font-bold text-slate-700 cursor-pointer text-[10px]">' + staffOptions2 + '</select>' : '<span class="text-slate-600">' + (p.supportStaff1 || '-') + '</span>') + '</div>' +
+              '<div class="flex justify-between items-center"><span class="text-slate-400">支援2:</span>' + (isAdmin ? '<select onchange="updateProgressField(\'' + f.id + '\', \'supportStaff2\', this.value);" class="bg-slate-50 border rounded px-1.5 py-0.5 font-bold text-slate-700 cursor-pointer text-[10px]">' + staffOptions3 + '</select>' : '<span class="text-slate-600">' + (p.supportStaff2 || '-') + '</span>') + '</div>' +
             '</div>' +
           '</div>';
         });
