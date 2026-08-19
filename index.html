@@ -24,7 +24,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
 
-  <!-- 頂部 Header (右上角內嵌式快速切換身分與密碼登入驗證) -->
+  <!-- 頂部 Header (強制預設訪客模式，Mia 專屬後台完全隱藏) -->
   <header class="bg-slate-900 text-white px-4 py-2.5 sticky top-0 z-50 shadow-md">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2.5">
       <div class="flex items-center space-x-2.5">
@@ -38,7 +38,7 @@
       
       <!-- 🔒 右上角切換帳號登入面板 -->
       <div class="flex items-center gap-1.5 text-xs bg-slate-800 p-1 rounded-xl border border-slate-700">
-        <select id="user-role-select" class="bg-slate-900 border border-slate-700 text-slate-200 rounded px-2 py-1 font-bold focus:outline-none cursor-pointer text-xs">
+        <select id="user-role-select" onchange="handleHeaderRoleSwitch(this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 rounded px-2 py-1 font-bold focus:outline-none cursor-pointer text-xs">
           <option value="">-- 選擇帳號登入 --</option>
         </select>
         <input type="password" id="header-user-pwd" placeholder="輸入密碼 (預設123)" onkeydown="if(event.key==='Enter') handleHeaderLogin();" class="bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 w-28 text-xs font-mono text-center focus:outline-none focus:border-blue-500">
@@ -49,7 +49,7 @@
     </div>
   </header>
 
-  <!-- 頂部切換導航欄 -->
+  <!-- 頂部切換導航欄 (未登入／步兵模式自動隱藏 Mia 專屬隱私入口) -->
   <nav class="bg-white border-b border-slate-200 sticky top-[49px] z-40 shadow-xs">
     <div class="max-w-7xl mx-auto px-2 py-2 flex flex-wrap items-center gap-1.5 text-xs font-bold" id="main-nav-container">
       <button type="button" onclick="showTab('tab-schedule')" id="btn-tab-schedule" data-perm="schedule" class="nav-btn active px-3.5 py-1.5 rounded-xl border bg-indigo-50 text-indigo-900 border-indigo-200">⏰ 14天公仔報更</button>
@@ -335,6 +335,7 @@
             </div>
           </div>
 
+          <!-- 簽收與滯留件數 + 單號快捷輸入 -->
           <div class="space-y-2 bg-blue-50/60 p-3 rounded-xl border border-blue-100">
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <div><label class="block font-bold mb-1">已簽收件數</label><input type="number" id="repSignedCount" min="0" placeholder="0" class="w-full p-1.5 bg-white border rounded font-black text-blue-700"></div>
@@ -945,10 +946,10 @@
     </div>
   </div>
 
-  <!-- ================= 核心 JavaScript (全功能對齊與完整修復) ================= -->
+  <!-- ================= 核心 JavaScript (徹底修復與全域重置引擎) ================= -->
   <script>
     var GAS_API_URL = "https://script.google.com/macros/s/AKfycbwFWWjYk8_Al8QAKZvvtMPdcMlU9zrNJF3c7QD8FT1XXn3GFI4xKGPgZBb6o8fg7-nKCQ/exec";
-    var DATA_VERSION_KEY = 'MIA_REPAIR_AUTH_FINAL_V2026_1';
+    var DATA_VERSION_KEY = 'MIA_REPAIR_FORCE_LOGOUT_V2026_9';
 
     async function callBackend(action, payload) {
       try {
@@ -985,7 +986,6 @@
       "⏳ 未開始/貨未到齊"
     ];
 
-    // 1. 純中文標準化人員名冊 (還原 小肥、張兆偉、瑩瑩 等全員)
     var initialAccounts = [
       { id: "KM-01", name: "Mia", team: "KM", role: "總管理員", cycle: "月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['總管理員'] },
       { id: "A-01", name: "詠豪", team: "A", role: "組長", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['組長'] },
@@ -1010,7 +1010,6 @@
       { id: "DR-02", name: "龍", team: "KM", role: "全職司機", cycle: "月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['全職司機'] }
     ];
 
-    // 2. 最新兩張圖表精準貨量數據 (觀塘區 15 個圍欄 1808 件 + 東區 36 筆圍欄 4488 件)
     var defaultCountsDetailList = [
       { date: "2026-08-19", zone: "觀塘工商區", fence: "01E-Koko Hills", orig: 66, held: 4, after: 62, delivered: 62, t3: 0, note: "最新核對" },
       { date: "2026-08-19", zone: "觀塘工商區", fence: "02E-觀塘工商區1號", orig: 350, held: 174, after: 176, delivered: 176, t3: 0, note: "最新核對" },
@@ -1581,6 +1580,7 @@
             '<td class="p-2 font-bold text-rose-900">' + s.name + '</td>' +
             '<td class="p-2 text-center font-mono font-bold text-rose-700">' + s.vios + '</td>' +
             '<td class="p-2 text-right font-mono font-bold text-amber-700">HK$ ' + vAmount.toFixed(2) + '</td>' +
+            '<td class="p-2 text-right font-mono font-bold text-rose-600">HK$ ' + tFine.toFixed(2) + '</td>' +
             '<td class="p-2.5 text-right font-black font-mono text-rose-700">HK$ ' + (vAmount + tFine).toFixed(2) + '</td>' +
           '</tr>';
         }).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">目前無違規人員，全員達標！</td></tr>';
