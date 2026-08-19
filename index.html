@@ -15,6 +15,7 @@
     .custom-scrollbar::-webkit-scrollbar-track { background: #f8fafc; }
     .image-modal { display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 16px; }
     .image-modal.active { display: flex !important; }
+    #login-gateway-modal { display: none; position: fixed; inset: 0; z-index: 999999; background: rgba(15, 23, 42, 0.96); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 16px; }
     @media print {
       body * { visibility: hidden; }
       #printable-area, #printable-area *, #printable-profit-area, #printable-profit-area * { visibility: visible; }
@@ -24,42 +25,22 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
 
-  <!-- 頂部 Header (右上角內嵌式快速切換身分與密碼登入驗證) -->
+  <!-- 頂部 Header (右上角預設切換帳號登入，預設隱私保護) -->
   <header class="bg-slate-900 text-white px-4 py-2.5 sticky top-0 z-50 shadow-md">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2.5">
       <div class="flex items-center space-x-2.5">
         <div class="px-2.5 py-1 bg-blue-600 text-white rounded-lg font-black text-xs">Mia組</div>
         <div class="text-xs font-bold flex items-center gap-2">
           <span>派件營運工作台</span>
-          <span id="current-user-badge" class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700 font-semibold">🔒 未登入 (請先選擇帳戶登入)</span>
+          <span id="current-user-badge" class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700 font-semibold">🔒 訪客模式 (未登入)</span>
           <span id="sync-status" class="text-[10px] text-emerald-400 font-semibold hidden sm:inline">🟢 數據庫就緒</span>
         </div>
       </div>
       
-      <!-- 🔒 右上角無彈窗式帳戶登入／切換 -->
+      <!-- 🔒 右上角切換帳號登入面板 -->
       <div class="flex items-center gap-1.5 text-xs bg-slate-800 p-1 rounded-xl border border-slate-700">
         <select id="user-role-select" class="bg-slate-900 border border-slate-700 text-slate-200 rounded px-2 py-1 font-bold focus:outline-none cursor-pointer text-xs">
-          <option value="Mia">Mia (總管理員)</option>
-          <option value="詠豪">詠豪 (組長)</option>
-          <option value="景鴻">景鴻 (組長)</option>
-          <option value="俊華">俊華 (組長)</option>
-          <option value="盧智聰">盧智聰</option>
-          <option value="姜嘉敏KK">姜嘉敏KK</option>
-          <option value="周健">周健</option>
-          <option value="黃奕峰">黃奕峰</option>
-          <option value="張兆偉">張兆偉</option>
-          <option value="小肥">小肥</option>
-          <option value="黃傅釧">黃傅釧</option>
-          <option value="吳嘉榮">吳嘉榮</option>
-          <option value="吳瑋儒">吳瑋儒</option>
-          <option value="倪志康">倪志康</option>
-          <option value="王利民">王利民</option>
-          <option value="李健龍">李健龍</option>
-          <option value="瑩瑩">瑩瑩</option>
-          <option value="李偉文">李偉文</option>
-          <option value="小魚">小魚</option>
-          <option value="煒爺">煒爺</option>
-          <option value="龍">龍</option>
+          <option value="">-- 選擇帳號登入 --</option>
         </select>
         <input type="password" id="header-user-pwd" placeholder="輸入密碼 (預設123)" class="bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 w-28 text-xs font-mono text-center focus:outline-none focus:border-blue-500">
         <button type="button" onclick="handleHeaderLogin()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-xs shadow-xs cursor-pointer">🔓 登入</button>
@@ -69,7 +50,7 @@
     </div>
   </header>
 
-  <!-- 頂部切換導航欄 (未登入前自動保護 Mia 專屬隱私入口) -->
+  <!-- 頂部切換導航欄 (未登入／步兵模式自動隱藏 Mia 專屬隱私入口) -->
   <nav class="bg-white border-b border-slate-200 sticky top-[49px] z-40 shadow-xs">
     <div class="max-w-7xl mx-auto px-2 py-2 flex flex-wrap items-center gap-1.5 text-xs font-bold" id="main-nav-container">
       <button type="button" onclick="showTab('tab-schedule')" id="btn-tab-schedule" data-perm="schedule" class="nav-btn active px-3.5 py-1.5 rounded-xl border bg-indigo-50 text-indigo-900 border-indigo-200">⏰ 14天公仔報更</button>
@@ -85,11 +66,11 @@
       <button type="button" onclick="showTab('tab-counts-detail')" id="btn-tab-counts-detail" data-perm="counts" class="admin-only nav-btn px-3 py-1.5 border bg-blue-700 text-white rounded-xl" style="display: none;">📦 詳細貨量與圍欄管理 (Mia專屬)</button>
       <button type="button" onclick="showTab('tab-profit')" id="btn-tab-profit" data-perm="profit" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-emerald-700 text-white" style="display: none;">📈 利潤分析 (Mia專屬)</button>
       
-      <button type="button" onclick="showTab('tab-violations')" id="btn-tab-violations" class="nav-btn px-3 py-1.5 rounded-xl border bg-amber-600 text-white">⚠️ 現場違規登記</button>
-      <button type="button" onclick="showTab('tab-truck')" id="btn-tab-truck" class="nav-btn px-3 py-1.5 rounded-xl border bg-slate-100 text-slate-800 border-slate-300">🚗 司機車線</button>
-      <button type="button" onclick="showTab('tab-supplies')" id="btn-tab-supplies" class="nav-btn px-3 py-1.5 rounded-xl border bg-slate-100 text-slate-800 border-slate-300">📦 物資採購</button>
-      <button type="button" onclick="showTab('tab-recruits')" id="btn-tab-recruits" class="nav-btn px-3 py-1.5 rounded-xl border bg-slate-100 text-slate-800 border-slate-300">📋 預約新人</button>
-      <button type="button" onclick="showTab('tab-export')" id="btn-tab-export" class="admin-only nav-btn px-3.5 py-1.5 rounded-xl border bg-slate-800 text-white shadow-xs" style="display: none;">📤 匯出中心</button>
+      <button type="button" onclick="showTab('tab-violations')" id="btn-tab-violations" data-perm="violations" class="nav-btn px-3 py-1.5 rounded-xl border bg-amber-600 text-white">⚠️ 現場違規登記</button>
+      <button type="button" onclick="showTab('tab-truck')" id="btn-tab-truck" data-perm="truck" class="nav-btn px-3 py-1.5 rounded-xl border bg-slate-100 text-slate-800 border-slate-300">🚗 司機車線</button>
+      <button type="button" onclick="showTab('tab-supplies')" id="btn-tab-supplies" data-perm="supplies" class="nav-btn px-3 py-1.5 rounded-xl border bg-slate-100 text-slate-800 border-slate-300">📦 物資採購</button>
+      <button type="button" onclick="showTab('tab-recruits')" id="btn-tab-recruits" data-perm="recruits" class="nav-btn px-3 py-1.5 rounded-xl border bg-slate-100 text-slate-800 border-slate-300">📋 預約新人</button>
+      <button type="button" onclick="showTab('tab-export')" id="btn-tab-export" data-perm="export" class="admin-only nav-btn px-3.5 py-1.5 rounded-xl border bg-slate-800 text-white shadow-xs" style="display: none;">📤 匯出中心</button>
     </div>
   </nav>
 
@@ -194,7 +175,7 @@
       </div>
     </div>
 
-    <!-- 4. 異常工單中心 (支援 Mia 自由編輯罰款與賠付) -->
+    <!-- 4. 異常工單中心 -->
     <div id="tab-tickets" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
@@ -582,7 +563,7 @@
       </div>
     </div>
 
-    <!-- 9. 📦 詳細貨量核算中心 -->
+    <!-- 9. 📦 詳細貨量核算中心 (快捷鍵直接展開查看全部) -->
     <div id="tab-counts-detail" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4" id="printable-area">
         <div class="flex flex-wrap justify-between items-center gap-2 border-b pb-2">
@@ -855,7 +836,7 @@
       </div>
     </div>
 
-    <!-- 13. 物資採購 -->
+    <!-- 13. 物資採購 (自由輸入文字項目) -->
     <div id="tab-supplies" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="flex justify-between items-center border-b pb-2">
@@ -965,10 +946,10 @@
     </div>
   </div>
 
-  <!-- ================= 核心 JavaScript (全功能對齊與完整修復) ================= -->
+  <!-- ================= 核心 JavaScript (徹底修復與全域重置引擎) ================= -->
   <script>
     var GAS_API_URL = "https://script.google.com/macros/s/AKfycbwFWWjYk8_Al8QAKZvvtMPdcMlU9zrNJF3c7QD8FT1XXn3GFI4xKGPgZBb6o8fg7-nKCQ/exec";
-    var DATA_VERSION_KEY = 'MIA_REPAIR_PERM_FINAL_V2026';
+    var DATA_VERSION_KEY = 'MIA_REPAIR_AUTH_FINAL_V2026_1';
 
     async function callBackend(action, payload) {
       try {
@@ -1005,7 +986,7 @@
       "⏳ 未開始/貨未到齊"
     ];
 
-    // 1. 純中文標準化人員名冊 (全員包含權限屬性)
+    // 1. 純中文標準化人員名冊 (還原 小肥、張兆偉、瑩瑩 等全員)
     var initialAccounts = [
       { id: "KM-01", name: "Mia", team: "KM", role: "總管理員", cycle: "月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['總管理員'] },
       { id: "A-01", name: "詠豪", team: "A", role: "組長", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['組長'] },
@@ -1225,6 +1206,7 @@
       { id: "REP_5", date: "2026-08-17", staff: "吳瑋儒", eastCount: 0, ktLgCount: 0, ktIndCount: 0, stCount: 59, totalPieces: 59, signedCount: 59, holdCount: 0, carAllowance: 0, penalty: 0, finalSalary: (59*7.0), photoProof: "" }
     ];
 
+    // 🚀 資料庫版本自動清理與防卡死遷移
     function loadDataWithVersionMigration() {
       var currentVer = localStorage.getItem('MIA_SYS_VERSION');
       if (currentVer !== DATA_VERSION_KEY) {
@@ -1277,22 +1259,30 @@
       var vioStaff = document.getElementById('vio-staff-select');
       var fenceStaff = document.getElementById('fence-default-staff');
 
-      var opts = accounts.map(function(a) {
+      var defaultOpts = accounts.map(function(a) {
         return '<option value="' + a.name + '">' + a.name + '</option>';
       }).join('');
 
-      if (loginSel) loginSel.innerHTML = opts;
-      if (roleSel) roleSel.innerHTML = opts;
-      if (shiftStaff) shiftStaff.innerHTML = opts;
-      if (repStaff) repStaff.innerHTML = opts;
-      if (tkStaff) tkStaff.innerHTML = '<option value="待指派">待指派</option>' + opts;
-      if (reconStaff) reconStaff.innerHTML = '<option value="全部">全部步兵</option>' + opts;
-      if (vioStaff) vioStaff.innerHTML = opts;
-      if (fenceStaff) fenceStaff.innerHTML = '<option value="無預設">無預設</option>' + opts;
+      var roleOpts = '<option value="">-- 選擇帳號登入 --</option>' + accounts.map(function(a) {
+        return '<option value="' + a.name + '">' + a.name + ' (' + a.role + ')' + '</option>';
+      }).join('');
+
+      if (loginSel) loginSel.innerHTML = defaultOpts;
+      if (roleSel) roleSel.innerHTML = roleOpts;
+      if (shiftStaff) shiftStaff.innerHTML = defaultOpts;
+      if (repStaff) repStaff.innerHTML = defaultOpts;
+      if (tkStaff) tkStaff.innerHTML = '<option value="待指派">待指派</option>' + defaultOpts;
+      if (reconStaff) reconStaff.innerHTML = '<option value="全部">全部步兵</option>' + defaultOpts;
+      if (vioStaff) vioStaff.innerHTML = defaultOpts;
+      if (fenceStaff) fenceStaff.innerHTML = '<option value="無預設">無預設</option>' + defaultOpts;
     }
 
     function handleHeaderLogin() {
       var selName = document.getElementById('user-role-select').value;
+      if (!selName) {
+        alert('請先在下拉選單選擇您的姓名！');
+        return;
+      }
       var pwd = document.getElementById('header-user-pwd').value.trim();
       var u = getAccountByName(selName);
 
@@ -1352,7 +1342,7 @@
       var isAdmin = (currentUser === 'Mia' || currentRole === '總管理員' || currentRole === 'Admin');
 
       if (badge) {
-        badge.textContent = currentUser ? currentUser + ' (' + (currentRole||'步兵') + ')' : '🔒 未登入 (請先選擇帳戶登入)';
+        badge.textContent = currentUser ? currentUser + ' (' + (currentRole||'步兵') + ')' : '🔒 訪客模式 (未登入)';
       }
       
       var roleSel = document.getElementById('user-role-select');
@@ -1363,7 +1353,7 @@
 
       document.querySelectorAll('#main-nav-container button[data-perm]').forEach(function(btn) {
         var permKey = btn.getAttribute('data-perm');
-        if (isAdmin || userPerms.includes(permKey)) {
+        if (isAdmin || (currentUser && userPerms.includes(permKey))) {
           btn.style.display = 'inline-block';
         } else {
           btn.style.display = 'none';
@@ -1400,7 +1390,7 @@
       var u = currentUser ? getAccountByName(currentUser) : null;
       var userPerms = isAdmin ? defaultPermissions['總管理員'] : ((u && u.permissions) || defaultPermissions[currentRole] || defaultPermissions['全職步兵']);
 
-      if (!isAdmin && !userPerms.includes(permKey)) {
+      if (!isAdmin && (!currentUser || !userPerms.includes(permKey))) {
         alert('⚠️ 此功能為 Mia 專屬隱私財務專區，請先登入 Mia 帳戶！');
         return;
       }
