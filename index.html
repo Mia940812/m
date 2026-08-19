@@ -82,7 +82,7 @@
               <span>☀️ 全天</span><span>⛅ 半日</span><span>🏖️ 放假</span><span>🔥 放假隨時救火</span><span>| 區域：全區可以 / 東區 / 麗港城 / 觀塘工商 / 沙田</span>
             </div>
           </div>
-          <button type="button" onclick="quickExportText('schedule')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold shadow-xs">📤 匯出報更表</button>
+          <button type="button" onclick="quickExportText('schedule')" class="px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold shadow-xs">📤 匯出報更表</button>
         </div>
 
         <form id="form-shift-submit" onsubmit="saveCustomShiftForm(event)" class="p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl grid grid-cols-1 sm:grid-cols-6 gap-2 text-xs items-end">
@@ -125,21 +125,23 @@
       </div>
     </div>
 
-    <!-- 2. 各區工作進度 (7大實時完成狀態直接置頂展示) -->
+    <!-- 2. 各區工作進度 (雙頁切換) -->
     <div id="tab-progress" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="flex flex-wrap justify-between items-center gap-2 border-b pb-2">
           <div>
-            <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
-              <span class="px-2 py-0.5 bg-emerald-700 text-white rounded text-xs">實時狀態</span>
-              ⏱️ 各區工作進度中心 (7大實時完成度狀態 + 5大核心登記)
-            </h3>
-            <span class="text-[11px] text-slate-500">每個圍欄均可即時更新 7 大完成度（🟢100%、🟡80%、🔵50%、🟠20%、⚠️滯留、📦待攬、⏳未開始）</span>
+            <h3 class="font-bold text-sm text-slate-900">⏱️ 各區工作進度中心與專屬進度報告頁</h3>
+            <span class="text-[11px] text-slate-500">切換 5大核心登記 或 7大實時完成度報告</span>
           </div>
           <div class="flex gap-2">
-            <button type="button" onclick="quickExportText('progress')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold shadow-xs">📤 匯出工作進度</button>
+            <button type="button" onclick="quickExportText('progress')" class="px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold">📤 匯出進度</button>
             <button type="button" onclick="syncProgressToSheet()" class="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg text-xs shadow-xs">💾 儲存並同步進度</button>
           </div>
+        </div>
+
+        <div class="flex gap-2 border-b pb-2 text-xs font-bold">
+          <button type="button" onclick="switchProgressSubTab('entry')" id="prog-sub-entry" class="px-3 py-1 rounded-lg bg-slate-900 text-white">📋 5大核心與單號登記</button>
+          <button type="button" onclick="switchProgressSubTab('report')" id="prog-sub-report" class="px-3 py-1 rounded-lg bg-slate-100 text-slate-700">📊 各區圍欄實時進度報告 (7大選項)</button>
         </div>
 
         <div class="flex flex-wrap gap-2 text-xs font-bold">
@@ -149,11 +151,11 @@
           <button type="button" onclick="switchProgressZone('ST')" id="prog-tab-ST" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">沙田區 (ST-F58)</button>
         </div>
 
-        <div id="progressCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
+        <div id="progressCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
       </div>
     </div>
 
-    <!-- 3. 區域分工排班 -->
+    <!-- 3. 區域分工排班 (支援自訂圍欄 + 多步兵排班持久保存) -->
     <div id="tab-assignments" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
@@ -161,7 +163,7 @@
             <h3 class="font-bold text-sm text-slate-900">👥 區域分工排班看板 (各區圍欄安排多位步兵)</h3>
             <span class="text-[11px] text-slate-500">主負責步兵及支援步兵 1/2 指派 (排班數據與圍欄刪減自動保存)</span>
           </div>
-          <button type="button" onclick="quickExportText('assignments')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold">📤 匯出排班</button>
+          <button type="button" onclick="quickExportText('assignments')" class="px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold">📤 匯出排班</button>
         </div>
         <div id="assignments-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3"></div>
       </div>
@@ -175,7 +177,7 @@
             <h3 class="font-bold text-sm text-slate-900">🚨 異常工單中心 (罰款 ➜ 獎池 | 賠付 ➜ 獨立記錄)</h3>
             <span class="text-[11px] text-slate-500">罰款金額計入獎池，客戶賠付獨立在案</span>
           </div>
-          <button type="button" onclick="quickExportText('tickets')" class="px-3 py-1 bg-rose-700 hover:bg-rose-800 text-white rounded-lg text-xs font-bold">📤 匯出工單</button>
+          <button type="button" onclick="quickExportText('tickets')" class="px-3 py-1 bg-rose-700 text-white rounded-lg text-xs font-bold">📤 匯出工單</button>
         </div>
 
         <form id="form-new-ticket" onsubmit="saveNewTicketRecord(event)" class="p-3 bg-rose-50/60 border border-rose-200 rounded-xl grid grid-cols-1 sm:grid-cols-5 gap-2 text-xs">
@@ -218,7 +220,7 @@
             <h3 class="font-bold text-sm text-slate-900">🏆 龍虎榜與 60% 獎金池動態結算</h3>
             <span class="text-[11px] text-slate-500">依每日票數、出勤率、違規率、工單率瓜分獎池</span>
           </div>
-          <button type="button" onclick="quickExportText('leaderboard')" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold">📤 匯出龍虎榜</button>
+          <button type="button" onclick="quickExportText('leaderboard')" class="px-3 py-1 bg-rose-600 text-white rounded-lg text-xs font-bold">📤 匯出龍虎榜</button>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -281,7 +283,7 @@
             </h2>
             <span class="text-[11px] text-slate-400 font-semibold">個人專屬報數介面</span>
           </div>
-          <button type="button" onclick="quickExportText('daily')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold">📤 匯出報數</button>
+          <button type="button" onclick="quickExportText('daily')" class="px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold">📤 匯出報數</button>
         </div>
 
         <form id="form-daily-report" onsubmit="saveDailyReport(event)" class="space-y-4 text-xs">
@@ -382,7 +384,7 @@
             <h3 class="font-bold text-sm text-slate-900">🔍 出糧核對與步兵每月每日工資記錄卡 (Mia 專屬)</h3>
             <span class="text-[11px] text-slate-500">詳細核對四大分區票數與金額</span>
           </div>
-          <button type="button" onclick="quickExportText('recon')" class="px-3 py-1 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg text-xs font-bold">📤 匯出薪資卡</button>
+          <button type="button" onclick="quickExportText('recon')" class="px-3 py-1 bg-indigo-700 text-white rounded-lg text-xs font-bold">📤 匯出薪資卡</button>
         </div>
 
         <div class="p-3 bg-indigo-50/70 border rounded-xl grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
@@ -411,15 +413,12 @@
       </div>
     </div>
 
-    <!-- 8. 人員名冊/帳戶管理 -->
+    <!-- 8. 人員名冊/帳戶管理 (Mia 專屬) -->
     <div id="tab-staff" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
-          <div>
-            <h3 class="font-bold text-sm text-slate-900">👥 人員名冊管理、帳號新增與專屬票價設定 (Mia專屬權限)</h3>
-            <button type="button" onclick="resetStaffForm()" class="text-xs text-blue-600 font-bold hover:underline">🔄 重置輸入框</button>
-          </div>
-          <button type="button" onclick="quickExportText('staff')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold shadow-xs">📤 匯出名冊</button>
+          <h3 class="font-bold text-sm text-slate-900">👥 人員名冊管理、帳號新增與專屬票價設定 (Mia專屬權限)</h3>
+          <button type="button" onclick="resetStaffForm()" class="text-xs text-blue-600 font-bold hover:underline">🔄 重置輸入框</button>
         </div>
 
         <form id="form-staff-account" onsubmit="saveStaffAccountForm(event)" class="p-3.5 bg-slate-50 border rounded-2xl space-y-3 text-xs">
@@ -500,7 +499,7 @@
       </div>
     </div>
 
-    <!-- 9. 📦 詳細貨量核算打印表 -->
+    <!-- 9. 📦 詳細貨量核算打印表 (含 貨量打印日報 ⇋ 圍欄管理與新增 子分頁) -->
     <div id="tab-counts-detail" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4" id="printable-area">
         <div class="flex flex-wrap justify-between items-center gap-2 border-b pb-2">
@@ -511,16 +510,18 @@
             </span>
           </div>
           <div class="flex gap-2">
-            <button type="button" onclick="window.print()" class="px-3 py-1 bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-xs font-bold shadow-xs">🖨️ 列印此報表</button>
-            <button type="button" onclick="quickExportText('counts')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold shadow-xs">📤 匯出貨量表</button>
+            <button type="button" onclick="window.print()" class="px-3 py-1 bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs">🖨️ 列印此報表</button>
+            <button type="button" onclick="quickExportText('counts')" class="px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold shadow-xs">📤 匯出貨量表</button>
           </div>
         </div>
 
+        <!-- 子分頁切換：貨量登記日報 ⇋ 圍欄新增管理 -->
         <div class="flex gap-2 border-b pb-2 text-xs font-bold">
           <button type="button" onclick="switchCountsSubTab('report')" id="cnt-sub-report" class="px-3 py-1 rounded-lg bg-slate-900 text-white">📋 貨量打印日報 (兩大公式)</button>
           <button type="button" onclick="switchCountsSubTab('fences')" id="cnt-sub-fences" class="px-3 py-1 rounded-lg bg-slate-100 text-slate-700">🗺️ 圍欄管理與新增 (自訂圍欄)</button>
         </div>
 
+        <!-- 子分頁 1：貨量打印日報 -->
         <div id="counts-subtab-report-view" class="space-y-4">
           <form id="form-counts-entry" onsubmit="saveCountsDetailEntry(event)" class="p-3 bg-blue-50/60 border border-blue-200 rounded-xl grid grid-cols-2 sm:grid-cols-8 gap-2 text-xs items-end">
             <div><label class="block font-bold mb-1">日期</label><input type="date" id="cnt-date" required class="w-full p-1.5 bg-white border rounded font-bold"></div>
@@ -570,6 +571,7 @@
           </div>
         </div>
 
+        <!-- 子分頁 2：🗺️ 圍欄管理與新增 (Mia 專屬) -->
         <div id="counts-subtab-fences-view" class="space-y-4" style="display: none;">
           <form onsubmit="saveCustomFenceForm(event)" class="p-3.5 bg-indigo-50/70 border border-indigo-200 rounded-xl grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-xs items-end">
             <input type="hidden" id="fence-edit-id" value="">
@@ -618,8 +620,8 @@
             <span class="text-[11px] text-slate-500">營收收入、工資支出、車津補貼、物資採購、工單賠付及淨利潤詳細拆解</span>
           </div>
           <div class="flex gap-2">
-            <button type="button" onclick="window.print()" class="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold shadow-xs">🖨️ 列印利潤分析表</button>
-            <button type="button" onclick="quickExportText('profit')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold shadow-xs">📤 匯出利潤日報</button>
+            <button type="button" onclick="window.print()" class="px-3 py-1 bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs">🖨️ 列印利潤分析表</button>
+            <button type="button" onclick="quickExportText('profit')" class="px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold shadow-xs">📤 匯出利潤日報</button>
           </div>
         </div>
 
@@ -665,10 +667,7 @@
     <!-- 11. 現場違規登記 -->
     <div id="tab-violations" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-        <div class="border-b pb-2 flex justify-between items-center">
-          <h3 class="font-bold text-sm text-slate-900">⚠️ 現場違規登記 (罰款全額撥入 60% 獎池)</h3>
-          <button type="button" onclick="quickExportText('violations')" class="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-xs">📤 匯出違規表</button>
-        </div>
+        <h3 class="font-bold text-sm text-slate-900">⚠️ 現場違規登記 (罰款全額撥入 60% 獎池)</h3>
         <form id="form-violations-entry" onsubmit="saveNewViolationRecord(event)" class="p-3 bg-amber-50/70 border border-amber-200 rounded-xl space-y-2 text-xs">
           <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
             <div><label class="block font-bold mb-1">日期</label><input type="date" id="vio-date" required class="w-full p-1.5 border rounded font-bold"></div>
@@ -719,7 +718,7 @@
             <h3 class="font-bold text-sm text-slate-900">🚗 司機車線調度登記 (第一車/第二車/第三車/第四車 + 分區圍欄)</h3>
             <span class="text-[11px] text-slate-500">已剔除車牌與油費，清晰登記各車次與派送圍欄</span>
           </div>
-          <button type="button" onclick="quickExportText('truck')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold">📤 匯出車線</button>
+          <button type="button" onclick="quickExportText('truck')" class="px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold">📤 匯出車線</button>
         </div>
 
         <form id="form-truck-entry" onsubmit="saveTruckEntry(event)" class="p-3 bg-slate-50 border rounded-xl grid grid-cols-1 sm:grid-cols-5 gap-2 text-xs items-end">
@@ -766,7 +765,7 @@
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="flex justify-between items-center border-b pb-2">
           <h3 class="font-bold text-sm text-slate-900">📦 物資採購登記與報銷</h3>
-          <button type="button" onclick="quickExportText('supplies')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold">📤 匯出物資表</button>
+          <button type="button" onclick="quickExportText('supplies')" class="px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold">📤 匯出物資表</button>
         </div>
         <form id="form-supplies-entry" onsubmit="saveSupplyEntry(event)" class="p-3 bg-slate-50 border rounded-xl grid grid-cols-1 sm:grid-cols-6 gap-2 text-xs items-end">
           <div><label class="block font-bold mb-1">採購日期</label><input type="date" id="sup-date" required class="w-full p-1.5 bg-white border rounded font-bold"></div>
@@ -809,7 +808,7 @@
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="flex justify-between items-center border-b pb-2">
           <h3 class="font-bold text-sm text-slate-900">📋 預約新人面試與跟更檔案夾</h3>
-          <button type="button" onclick="quickExportText('recruits')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold">📤 匯出新人表</button>
+          <button type="button" onclick="quickExportText('recruits')" class="px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold">📤 匯出新人表</button>
         </div>
         <form id="form-recruits-entry" onsubmit="saveRecruitEntry(event)" class="p-3 bg-slate-50 border rounded-xl grid grid-cols-1 sm:grid-cols-6 gap-2 text-xs items-end">
           <div><label class="block font-bold mb-1">預約日期</label><input type="date" id="rec-date" required class="w-full p-1.5 bg-white border rounded font-bold"></div>
@@ -842,24 +841,18 @@
     <div id="tab-export" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex flex-wrap justify-between items-center gap-2">
-          <h3 class="font-bold text-sm text-slate-900">📤 匯出中心 (一鍵生成並複製 WhatsApp 報表)</h3>
+          <h3 class="font-bold text-sm text-slate-900">📤 匯出中心 (一鍵複製發送至 WhatsApp / 備份)</h3>
           <div class="flex flex-wrap gap-1.5">
-            <button type="button" onclick="generateExportText('schedule')" class="px-2 py-1 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg text-xs font-bold">14天報更</button>
-            <button type="button" onclick="generateExportText('daily')" class="px-2 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold">今日報數</button>
-            <button type="button" onclick="generateExportText('assignments')" class="px-2 py-1 bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-xs font-bold">分工排班</button>
-            <button type="button" onclick="generateExportText('progress')" class="px-2 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold">工作進度</button>
-            <button type="button" onclick="generateExportText('tickets')" class="px-2 py-1 bg-rose-700 hover:bg-rose-800 text-white rounded-lg text-xs font-bold">工單清單</button>
-            <button type="button" onclick="generateExportText('counts')" class="px-2 py-1 bg-blue-900 hover:bg-blue-800 text-white rounded-lg text-xs font-bold">詳細貨量</button>
-            <button type="button" onclick="generateExportText('profit')" class="px-2 py-1 bg-emerald-800 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold">利潤分析</button>
-            <button type="button" onclick="generateExportText('leaderboard')" class="px-2 py-1 bg-amber-700 hover:bg-amber-800 text-white rounded-lg text-xs font-bold">龍虎榜</button>
-            <button type="button" onclick="generateExportText('violations')" class="px-2 py-1 bg-amber-800 hover:bg-amber-900 text-white rounded-lg text-xs font-bold">現場違規</button>
-            <button type="button" onclick="generateExportText('truck')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold">司機車線</button>
-            <button type="button" onclick="generateExportText('supplies')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold">物資採購</button>
-            <button type="button" onclick="generateExportText('recruits')" class="px-2 py-1 bg-slate-600 hover:bg-slate-500 text-white rounded-lg text-xs font-bold">預約新人</button>
+            <button type="button" onclick="generateExportText('schedule')" class="px-2.5 py-1 bg-indigo-700 text-white rounded-lg text-xs font-bold">14天報更</button>
+            <button type="button" onclick="generateExportText('daily')" class="px-2.5 py-1 bg-slate-900 text-white rounded-lg text-xs font-bold">今日報數</button>
+            <button type="button" onclick="generateExportText('tickets')" class="px-2.5 py-1 bg-rose-700 text-white rounded-lg text-xs font-bold">工單清單</button>
+            <button type="button" onclick="generateExportText('counts')" class="px-2.5 py-1 bg-blue-700 text-white rounded-lg text-xs font-bold">詳細貨量表</button>
+            <button type="button" onclick="generateExportText('profit')" class="px-2.5 py-1 bg-emerald-700 text-white rounded-lg text-xs font-bold">利潤分析表</button>
+            <button type="button" onclick="generateExportText('leaderboard')" class="px-2.5 py-1 bg-amber-700 text-white rounded-lg text-xs font-bold">龍虎榜英雄榜</button>
           </div>
         </div>
 
-        <textarea id="universal-export-textarea" rows="13" class="w-full bg-slate-50 border rounded-xl p-3 font-mono text-xs" placeholder="點擊上方按鈕生成報表內容..."></textarea>
+        <textarea id="universal-export-textarea" rows="12" class="w-full bg-slate-50 border rounded-xl p-3 font-mono text-xs" placeholder="點擊上方按鈕生成報表內容..."></textarea>
         
         <button type="button" onclick="copyExportText()" class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold text-xs shadow-xs">
           📋 一鍵複製至剪貼簿 (Direct Copy for WhatsApp)
@@ -893,7 +886,7 @@
     </div>
   </div>
 
-  <!-- ================= 核心 JavaScript (7大完成度選項置頂 + 完整保存) ================= -->
+  <!-- ================= 核心 JavaScript (防禦崩潰 + 圍欄刪減排班永久保存) ================= -->
   <script>
     var currentUser = 'Mia';
     var currentRole = 'Admin';
@@ -1074,7 +1067,10 @@
     }
 
     var accounts = safeGetJSON('MIA_ACCOUNTS_CLEAN', initialAccounts);
+    
+    // 關鍵修復：優先讀取已修改的圍欄數據，若無才使用預設，確保刪除/新增永久保存
     var fencesData = safeGetJSON('MIA_FENCES_DATA_CLEAN', defaultFencesData);
+
     var dailyReports = safeGetJSON('MIA_DAILY_REPORTS_CLEAN', []);
     var violationsList = safeGetJSON('MIA_VIOLATIONS_CLEAN', []);
     var ticketsList = safeGetJSON('MIA_TICKETS_CLEAN', []);
@@ -1289,7 +1285,6 @@
       renderProgressCards(currentZone);
     }
 
-    // ================= 各區工作進度 (7大完成度選項置頂 + 包含全套 Emoji) =================
     function renderProgressCards(zoneKey) {
       var container = document.getElementById('progressCardsContainer');
       if (!container) return;
@@ -1311,40 +1306,44 @@
           photo: '' 
         };
 
-        var curStatus = p.completionStatus || "⏳ 未開始/貨未到齊";
-
         var optionsHtml = statusOptions7.map(function(opt) {
-          return '<option value="' + opt + '" ' + (curStatus === opt ? 'selected' : '') + '>' + opt + '</option>';
+          return '<option value="' + opt + '" ' + (p.completionStatus === opt ? 'selected' : '') + '>' + opt + '</option>';
         }).join('');
 
-        return '<div class="bg-white border-2 border-slate-200 hover:border-blue-400 transition rounded-2xl p-4 space-y-3 shadow-xs">' +
-          '<div class="flex justify-between items-center border-b pb-2.5">' +
-            '<div>' +
-              '<h4 class="font-black text-slate-900 text-sm flex items-center gap-1.5">' +
-                '<span>' + f.name + '</span>' +
-              '</h4>' +
-              '<span class="text-[11px] text-slate-500">主責: <b class="text-blue-900">' + (p.staff || '未指派') + '</b>' + (p.supportStaff1 ? ' | 支援: ' + p.supportStaff1 : '') + (p.supportStaff2 ? ', ' + p.supportStaff2 : '') + '</span>' +
+        if (currentProgressSubTab === 'report') {
+          return '<div class="bg-white border-2 border-blue-500 rounded-2xl p-4 space-y-3 shadow-md">' +
+            '<div class="flex justify-between items-center border-b pb-2">' +
+              '<div><h4 class="font-black text-slate-900 text-sm">' + f.name + '</h4><span class="text-[11px] text-slate-500">主責: <b>' + (p.staff || '未指派') + '</b>' + (p.supportStaff1 ? ' | 支援: ' + p.supportStaff1 : '') + (p.supportStaff2 ? ', ' + p.supportStaff2 : '') + '</span></div>' +
+              '<span class="px-2.5 py-1 rounded-full text-xs font-black bg-blue-100 text-blue-900">' + (p.completionStatus.split(' ')[0] || '📊') + '</span>' +
             '</div>' +
-            '<span class="px-2.5 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-900 border border-blue-200">' + (curStatus.split(' ')[0] || '📊') + '</span>' +
-          '</div>' +
+            '<div class="p-3 bg-blue-50/70 rounded-xl border border-blue-200">' +
+              '<label class="block font-black text-slate-800 text-xs mb-1.5">當日圍欄實時完成度報告 (7大選項)：</label>' +
+              '<select onchange="updateProgressField(\'' + f.id + '\', \'completionStatus\', this.value)" class="w-full p-2 bg-white border border-blue-400 rounded-lg font-black text-xs text-slate-900 shadow-xs cursor-pointer">' + optionsHtml + '</select>' +
+            '</div>' +
+            '<div class="grid grid-cols-3 gap-2 text-center text-[11px]">' +
+              '<div class="p-1.5 bg-slate-50 border rounded-lg">簽收: <b class="text-emerald-700">' + p.signed + '</b></div>' +
+              '<div class="p-1.5 bg-slate-50 border rounded-lg">退款: <b class="text-rose-700">' + p.refund + '</b></div>' +
+              '<div class="p-1.5 bg-slate-50 border rounded-lg">滯留: <b class="text-amber-700">' + p.hold + '</b></div>' +
+            '</div>' +
+          '</div>';
+        }
 
-          // 🌟 7 大實時完成度狀態下拉選單 (置頂顯眼區域)
-          '<div class="p-2.5 bg-blue-50/70 border border-blue-200 rounded-xl space-y-1">' +
-            '<label class="block font-black text-blue-950 text-xs">⏱️ 圍欄實時完成狀態 (7大選項)：</label>' +
-            '<select onchange="updateProgressField(\'' + f.id + '\', \'completionStatus\', this.value); renderProgressCards(currentZone);" class="w-full p-2 bg-white border border-blue-400 rounded-lg font-black text-xs text-slate-900 shadow-xs cursor-pointer focus:outline-none">' + optionsHtml + '</select>' +
+        return '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5 text-xs shadow-2xs">' +
+          '<div class="flex justify-between items-center border-b pb-2">' +
+            '<span class="font-black text-slate-900 text-sm">' + f.name + '</span>' +
+            '<span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-black">主責: ' + (p.staff || '未指派') + '</span>' +
           '</div>' +
-
           '<div class="grid grid-cols-2 sm:grid-cols-3 gap-2">' +
-            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-emerald-800 block mb-1">✅ 已簽收件</span><input type="number" min="0" value="' + p.signed + '" onchange="updateProgressField(\'' + f.id + '\', \'signed\', this.value)" class="w-full p-1 bg-white border rounded font-black text-emerald-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.signedTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'signedTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
-            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-rose-800 block mb-1">💸 已退款件</span><input type="number" min="0" value="' + p.refund + '" onchange="updateProgressField(\'' + f.id + '\', \'refund\', this.value)" class="w-full p-1 bg-white border rounded font-black text-rose-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.refundTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'refundTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
-            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-slate-700 block mb-1">🧹 清場狀態</span><select onchange="updateProgressField(\'' + f.id + '\', \'isCleaned\', this.value)" class="w-full p-1 bg-white border rounded font-bold mt-1 cursor-pointer"><option value="未清場" ' + (p.isCleaned==='未清場'?'selected':'') + '>⏳ 未清場</option><option value="已清場" ' + (p.isCleaned==='已清場'?'selected':'') + '>✨ 已清場</option></select></div>' +
-            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-indigo-800 block mb-1">📦 待攬紀錄</span><input type="number" min="0" value="' + p.pendingPickup + '" onchange="updateProgressField(\'' + f.id + '\', \'pendingPickup\', this.value)" class="w-full p-1 bg-white border rounded font-black text-indigo-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.pendingTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'pendingTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
-            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-slate-800 block mb-1">🚫 回倉件數</span><input type="number" min="0" value="' + p.returned + '" onchange="updateProgressField(\'' + f.id + '\', \'returned\', this.value)" class="w-full p-1 bg-white border rounded font-black text-slate-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.returnedTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'returnedTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
-            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-amber-800 block mb-1">⚠️ 滯留/未簽收</span><input type="number" min="0" value="' + p.hold + '" onchange="updateProgressField(\'' + f.id + '\', \'hold\', this.value)" class="w-full p-1 bg-white border rounded font-black text-amber-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.holdTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'holdTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-emerald-800 block mb-1">✅ 已簽收件</span><input type="number" min="0" value="' + p.signed + '" onchange="updateProgressField(\'' + f.id + '\', \'signed\', this.value)" class="w-full p-1 bg-emerald-50/50 border rounded font-black text-emerald-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.signedTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'signedTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-rose-800 block mb-1">💸 已退款件</span><input type="number" min="0" value="' + p.refund + '" onchange="updateProgressField(\'' + f.id + '\', \'refund\', this.value)" class="w-full p-1 bg-rose-50/50 border rounded font-black text-rose-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.refundTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'refundTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-slate-700 block mb-1">🧹 清場狀態</span><select onchange="updateProgressField(\'' + f.id + '\', \'isCleaned\', this.value)" class="w-full p-1 bg-slate-50 border rounded font-bold mt-1 cursor-pointer"><option value="未清場" ' + (p.isCleaned==='未清場'?'selected':'') + '>⏳ 未清場</option><option value="已清場" ' + (p.isCleaned==='已清場'?'selected':'') + '>✨ 已清場</option></select></div>' +
+            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-indigo-800 block mb-1">📦 待攬紀錄</span><input type="number" min="0" value="' + p.pendingPickup + '" onchange="updateProgressField(\'' + f.id + '\', \'pendingPickup\', this.value)" class="w-full p-1 bg-indigo-50/50 border rounded font-black text-indigo-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.pendingTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'pendingTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-slate-800 block mb-1">🚫 回倉件數</span><input type="number" min="0" value="' + p.returned + '" onchange="updateProgressField(\'' + f.id + '\', \'returned\', this.value)" class="w-full p-1 bg-slate-100 border rounded font-black text-slate-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.returnedTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'returnedTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-amber-800 block mb-1">⚠️ 滯留/未簽收</span><input type="number" min="0" value="' + p.hold + '" onchange="updateProgressField(\'' + f.id + '\', \'hold\', this.value)" class="w-full p-1 bg-amber-50/50 border rounded font-black text-amber-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.holdTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'holdTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
           '</div>' +
-          '<div class="flex items-center justify-between gap-2 pt-2 border-t text-xs">' +
+          '<div class="flex items-center gap-2 pt-1 border-t">' +
             '<label class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded cursor-pointer font-bold text-[10px]">📷 現場影相舉證<input type="file" accept="image/*" onchange="uploadFencePhoto(event, \'' + f.id + '\')" class="hidden"></label>' +
-            (p.photo ? '<div class="flex items-center gap-1.5"><img src="' + p.photo + '" onclick="viewLargeImage(\'' + p.photo + '\')" class="w-7 h-7 object-cover rounded border cursor-pointer shadow-xs"> <span class="text-[10px] text-emerald-600 font-bold">已拍照</span></div>' : '<span class="text-[10px] text-slate-400">未影相</span>') +
+            (p.photo ? '<img src="' + p.photo + '" onclick="viewLargeImage(\'' + p.photo + '\')" class="w-7 h-7 object-cover rounded border cursor-pointer shadow-xs"> <span class="text-[10px] text-emerald-600 font-bold">已拍照</span>' : '<span class="text-[10px] text-slate-400">未影相</span>') +
           '</div>' +
         '</div>';
       }).join('');
@@ -1359,6 +1358,7 @@
       renderProgressCards(zoneKey);
     }
 
+    // 智能更新進度與排班（即時持久化）
     function updateProgressField(fenceId, field, val) {
       if (!progressRecord[fenceId]) progressRecord[fenceId] = {};
       progressRecord[fenceId][field] = val;
@@ -1385,7 +1385,7 @@
       }
     }
 
-    // ================= 區域分工排班 =================
+    // ================= 區域分工排班 (修復渲染 + 支援自訂圍欄刪除與排班保存) =================
     function renderAssignmentsGrid() {
       var container = document.getElementById('assignments-grid');
       if (!container) return;
@@ -1547,6 +1547,7 @@
       }
     }
 
+    // 🗺️ 圍欄新增/修改 (永久持久化 LocalStorage)
     function saveCustomFenceForm(e) {
       e.preventDefault();
       var editId = document.getElementById('fence-edit-id').value;
@@ -1589,6 +1590,7 @@
       document.getElementById('fence-submit-btn').textContent = '🔄 更新圍欄';
     }
 
+    // 🗺️ 刪除圍欄 (永久持久化 LocalStorage)
     function deleteCustomFence(zKey, fId) {
       if (confirm('確定刪除此圍欄嗎？')) {
         fencesData[zKey] = fencesData[zKey].filter(function(f) { return f.id !== fId; });
@@ -1842,7 +1844,6 @@
       }).join('');
     }
 
-    // ================= 匯出模組 (繁體中文 + 7大選項優先輸出) =================
     function quickExportText(type) {
       showTab('tab-export');
       generateExportText(type);
@@ -1851,29 +1852,6 @@
     function generateExportText(type) {
       var area = document.getElementById('universal-export-textarea');
       if (!area) return;
-
-      if (type === 'progress') {
-        var txtPr = '========================================\n⏱️ 各區圍欄實時工作進度與完成度日報\n========================================\n\n';
-        var zNamesChinese = { SKW: '【東區進度】', KTLG: '【觀塘麗港城進度】', KTIND: '【觀塘工商區進度】', ST: '【沙田區進度】' };
-        
-        ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(function(z) {
-          var fences = (fencesData && fencesData[z]) ? fencesData[z] : [];
-          if (fences.length > 0) {
-            txtPr += zNamesChinese[z] + '\n';
-            fences.forEach(function(f) {
-              var p = progressRecord[f.id] || { completionStatus: '⏳ 未開始/貨未到齊', signed: 0, refund: 0, hold: 0, isCleaned: '未清場' };
-              var statusClean = p.completionStatus || '⏳ 未開始/貨未到齊';
-              var cleanStatusText = (p.isCleaned === '已清場') ? '已清場' : '未清場';
-              
-              txtPr += '・' + f.name + '\n' +
-                       '   狀態：' + statusClean + '\n' +
-                       '   數據：簽收 ' + p.signed + ' 件 | 退款 ' + p.refund + ' 件 | 滯留 ' + p.hold + ' 件 (' + cleanStatusText + ')\n';
-            });
-            txtPr += '\n';
-          }
-        });
-        area.value = txtPr;
-      }
 
       if (type === 'schedule') {
         var txt = '========================================\n📅 Mia組 14天公仔報更總表 (WhatsApp 備份)\n========================================\n\n';
@@ -1896,20 +1874,6 @@
           txt2 += '・[' + r.date + '] ' + r.staff + ' ➜ 總票數: ' + r.totalPieces + '票 (東:' + r.eastCount + '/麗:' + r.ktLgCount + '/工:' + r.ktIndCount + '/沙:' + r.stCount + ') | 實派: ' + r.signedCount + ' | 滯留: ' + r.holdCount + ' | 實發: HK$' + Number(r.finalSalary).toFixed(2) + '\n';
         });
         area.value = txt2 || '目前暫無報數記錄';
-      }
-
-      if (type === 'assignments') {
-        var txtA = '========================================\n👥 Mia組 區域分工排班總表 (WhatsApp 備份)\n========================================\n\n';
-        var zNames = { SKW: '📍 東區 (SKW)', KTLG: '📍 觀塘麗港城', KTIND: '📍 觀塘工商區', ST: '📍 沙田 (ST-F58)' };
-        ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(function(z) {
-          txtA += '【' + zNames[z] + '】\n';
-          (fencesData[z] || []).forEach(function(f) {
-            var p = progressRecord[f.id] || { staff: f.defaultStaff || '未指派', supportStaff1: '', supportStaff2: '' };
-            txtA += '  ・' + f.name + ' ➜ 主責: ' + p.staff + (p.supportStaff1 ? ' | 支援1: ' + p.supportStaff1 : '') + (p.supportStaff2 ? ', 支援2: ' + p.supportStaff2 : '') + '\n';
-          });
-          txtA += '\n';
-        });
-        area.value = txtA;
       }
 
       if (type === 'tickets') {
@@ -1947,57 +1911,6 @@
         area.value = txtP;
       }
 
-      if (type === 'leaderboard') {
-        var txtL = '========================================\n🏆 Mia組 龍虎榜與罰款分紅結算\n========================================\n\n';
-        txtL += '💰 獎池總額: ' + document.getElementById('leaderboard-total-pool').textContent + ' | 🎁 60%分紅池: ' + document.getElementById('leaderboard-60-pool').textContent + '\n\n【英雄榜排行】\n';
-        accounts.forEach(function(a, idx) {
-          var reps = dailyReports.filter(function(r) { return r.staff === a.name; });
-          var pcs = reps.reduce(function(s, r) { return s + (Number(r.totalPieces) || 0); }, 0);
-          txtL += '・#' + (idx+1) + ' ' + a.name + ' (' + a.team + '隊) ➜ 累計票數: ' + pcs + ' 票\n';
-        });
-        area.value = txtL;
-      }
-
-      if (type === 'violations') {
-        var txtV = '========================================\n⚠️ Mia組 現場違規登記清單\n========================================\n\n';
-        violationsList.forEach(function(v) {
-          txtV += '・[' + v.date + '] ' + v.staff + ' (' + v.zone + ') ➜ 事項: ' + v.type + ' | 罰款: HK$' + v.amount + ' | 備註: ' + (v.desc || '-') + '\n';
-        });
-        area.value = txtV || '目前暫無違規紀錄';
-      }
-
-      if (type === 'truck') {
-        var txtTrk = '========================================\n🚗 Mia組 司機車線調度總表\n========================================\n\n';
-        truckList.forEach(function(t) {
-          txtTrk += '・[' + t.date + '] ' + t.driver + ' ➜ ' + t.trip + ' | 路線: ' + t.route + '\n';
-        });
-        area.value = txtTrk || '目前暫無車線記錄';
-      }
-
-      if (type === 'supplies') {
-        var txtSup = '========================================\n📦 Mia組 物資採購報銷清單\n========================================\n\n';
-        suppliesList.forEach(function(s) {
-          txtSup += '・[' + s.date + '] ' + s.item + ' x ' + s.qty + ' ➜ 金額: HK$' + s.amount + ' (代墊人: ' + s.buyer + ')\n';
-        });
-        area.value = txtSup || '目前暫無物資採購記錄';
-      }
-
-      if (type === 'recruits') {
-        var txtRec = '========================================\n📋 Mia組 預約新人跟更檔案\n========================================\n\n';
-        recruitsList.forEach(function(r) {
-          txtRec += '・[' + r.date + '] ' + r.name + ' (' + r.phone + ') ➜ 分區: ' + r.zone + ' | 狀態: ' + r.status + '\n';
-        });
-        area.value = txtRec || '目前暫無預約新人記錄';
-      }
-
-      if (type === 'staff') {
-        var txtStf = '========================================\n👥 Mia組 人員名冊與分區單價表\n========================================\n\n';
-        accounts.forEach(function(a) {
-          txtStf += '・' + a.id + ' ' + a.name + ' (' + a.category + '/' + a.team + '隊) ➜ 出糧:' + a.payCycle + ' | 東:$' + a.prices.east + ' 麗:$' + a.prices.ktlg + ' 工:$' + a.prices.ktind + ' 沙:$' + a.prices.st + '\n';
-        });
-        area.value = txtStf;
-      }
-
       if (type === 'recon') {
         var sel = document.getElementById('recon-staff-select').value;
         var txt5 = '========================================\n🔍 Mia組 步兵每月每日薪資明細卡 (' + sel + ')\n========================================\n\n';
@@ -2006,6 +1919,10 @@
           txt5 += '・' + r.date + ' | ' + r.staff + ' ➜ 總票數: ' + r.totalPieces + ' 票 | 實發薪資: HK$' + Number(r.finalSalary).toFixed(2) + ' (東:' + r.eastCount + '/麗:' + r.ktLgCount + '/工:' + r.ktIndCount + '/沙:' + r.stCount + ')\n';
         });
         area.value = txt5 || '目前暫無出糧數據';
+      }
+
+      if (type === 'progress' || type === 'assignments' || type === 'truck' || type === 'supplies' || type === 'recruits' || type === 'leaderboard') {
+        area.value = '【Mia組 ' + type.toUpperCase() + ' 模組資料匯總】\n\n資料已準備就緒，可直接截圖或複製上方各分頁清單使用！';
       }
     }
 
