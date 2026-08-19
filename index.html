@@ -125,23 +125,21 @@
       </div>
     </div>
 
-    <!-- 2. 各區工作進度 -->
+    <!-- 2. 各區工作進度 (7大實時完成狀態直接置頂展示) -->
     <div id="tab-progress" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="flex flex-wrap justify-between items-center gap-2 border-b pb-2">
           <div>
-            <h3 class="font-bold text-sm text-slate-900">⏱️ 各區工作進度中心與專屬進度報告頁</h3>
-            <span class="text-[11px] text-slate-500">切換 5大核心登記 或 7大實時完成度報告</span>
+            <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-emerald-700 text-white rounded text-xs">實時狀態</span>
+              ⏱️ 各區工作進度中心 (7大實時完成度狀態 + 5大核心登記)
+            </h3>
+            <span class="text-[11px] text-slate-500">每個圍欄均可即時更新 7 大完成度（🟢100%、🟡80%、🔵50%、🟠20%、⚠️滯留、📦待攬、⏳未開始）</span>
           </div>
           <div class="flex gap-2">
-            <button type="button" onclick="quickExportText('progress')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold">📤 匯出進度</button>
+            <button type="button" onclick="quickExportText('progress')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold shadow-xs">📤 匯出工作進度</button>
             <button type="button" onclick="syncProgressToSheet()" class="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg text-xs shadow-xs">💾 儲存並同步進度</button>
           </div>
-        </div>
-
-        <div class="flex gap-2 border-b pb-2 text-xs font-bold">
-          <button type="button" onclick="switchProgressSubTab('entry')" id="prog-sub-entry" class="px-3 py-1 rounded-lg bg-slate-900 text-white">📋 5大核心與單號登記</button>
-          <button type="button" onclick="switchProgressSubTab('report')" id="prog-sub-report" class="px-3 py-1 rounded-lg bg-slate-100 text-slate-700">📊 各區圍欄實時進度報告 (7大選項)</button>
         </div>
 
         <div class="flex flex-wrap gap-2 text-xs font-bold">
@@ -151,7 +149,7 @@
           <button type="button" onclick="switchProgressZone('ST')" id="prog-tab-ST" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">沙田區 (ST-F58)</button>
         </div>
 
-        <div id="progressCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        <div id="progressCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
       </div>
     </div>
 
@@ -895,7 +893,7 @@
     </div>
   </div>
 
-  <!-- ================= 核心 JavaScript ================= -->
+  <!-- ================= 核心 JavaScript (7大完成度選項置頂 + 完整保存) ================= -->
   <script>
     var currentUser = 'Mia';
     var currentRole = 'Admin';
@@ -1291,6 +1289,7 @@
       renderProgressCards(currentZone);
     }
 
+    // ================= 各區工作進度 (7大完成度選項置頂 + 包含全套 Emoji) =================
     function renderProgressCards(zoneKey) {
       var container = document.getElementById('progressCardsContainer');
       if (!container) return;
@@ -1312,44 +1311,40 @@
           photo: '' 
         };
 
+        var curStatus = p.completionStatus || "⏳ 未開始/貨未到齊";
+
         var optionsHtml = statusOptions7.map(function(opt) {
-          return '<option value="' + opt + '" ' + (p.completionStatus === opt ? 'selected' : '') + '>' + opt + '</option>';
+          return '<option value="' + opt + '" ' + (curStatus === opt ? 'selected' : '') + '>' + opt + '</option>';
         }).join('');
 
-        if (currentProgressSubTab === 'report') {
-          return '<div class="bg-white border-2 border-blue-500 rounded-2xl p-4 space-y-3 shadow-md">' +
-            '<div class="flex justify-between items-center border-b pb-2">' +
-              '<div><h4 class="font-black text-slate-900 text-sm">' + f.name + '</h4><span class="text-[11px] text-slate-500">主責: <b>' + (p.staff || '未指派') + '</b>' + (p.supportStaff1 ? ' | 支援: ' + p.supportStaff1 : '') + (p.supportStaff2 ? ', ' + p.supportStaff2 : '') + '</span></div>' +
-              '<span class="px-2.5 py-1 rounded-full text-xs font-black bg-blue-100 text-blue-900">' + (p.completionStatus.split(' ')[0] || '📊') + '</span>' +
+        return '<div class="bg-white border-2 border-slate-200 hover:border-blue-400 transition rounded-2xl p-4 space-y-3 shadow-xs">' +
+          '<div class="flex justify-between items-center border-b pb-2.5">' +
+            '<div>' +
+              '<h4 class="font-black text-slate-900 text-sm flex items-center gap-1.5">' +
+                '<span>' + f.name + '</span>' +
+              '</h4>' +
+              '<span class="text-[11px] text-slate-500">主責: <b class="text-blue-900">' + (p.staff || '未指派') + '</b>' + (p.supportStaff1 ? ' | 支援: ' + p.supportStaff1 : '') + (p.supportStaff2 ? ', ' + p.supportStaff2 : '') + '</span>' +
             '</div>' +
-            '<div class="p-3 bg-blue-50/70 rounded-xl border border-blue-200">' +
-              '<label class="block font-black text-slate-800 text-xs mb-1.5">當日圍欄實時完成度報告 (7大選項)：</label>' +
-              '<select onchange="updateProgressField(\'' + f.id + '\', \'completionStatus\', this.value)" class="w-full p-2 bg-white border border-blue-400 rounded-lg font-black text-xs text-slate-900 shadow-xs cursor-pointer">' + optionsHtml + '</select>' +
-            '</div>' +
-            '<div class="grid grid-cols-3 gap-2 text-center text-[11px]">' +
-              '<div class="p-1.5 bg-slate-50 border rounded-lg">簽收: <b class="text-emerald-700">' + p.signed + '</b></div>' +
-              '<div class="p-1.5 bg-slate-50 border rounded-lg">退款: <b class="text-rose-700">' + p.refund + '</b></div>' +
-              '<div class="p-1.5 bg-slate-50 border rounded-lg">滯留: <b class="text-amber-700">' + p.hold + '</b></div>' +
-            '</div>' +
-          '</div>';
-        }
+            '<span class="px-2.5 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-900 border border-blue-200">' + (curStatus.split(' ')[0] || '📊') + '</span>' +
+          '</div>' +
 
-        return '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5 text-xs shadow-2xs">' +
-          '<div class="flex justify-between items-center border-b pb-2">' +
-            '<span class="font-black text-slate-900 text-sm">' + f.name + '</span>' +
-            '<span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-black">主責: ' + (p.staff || '未指派') + '</span>' +
+          // 🌟 7 大實時完成度狀態下拉選單 (置頂顯眼區域)
+          '<div class="p-2.5 bg-blue-50/70 border border-blue-200 rounded-xl space-y-1">' +
+            '<label class="block font-black text-blue-950 text-xs">⏱️ 圍欄實時完成狀態 (7大選項)：</label>' +
+            '<select onchange="updateProgressField(\'' + f.id + '\', \'completionStatus\', this.value); renderProgressCards(currentZone);" class="w-full p-2 bg-white border border-blue-400 rounded-lg font-black text-xs text-slate-900 shadow-xs cursor-pointer focus:outline-none">' + optionsHtml + '</select>' +
           '</div>' +
+
           '<div class="grid grid-cols-2 sm:grid-cols-3 gap-2">' +
-            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-emerald-800 block mb-1">✅ 已簽收件</span><input type="number" min="0" value="' + p.signed + '" onchange="updateProgressField(\'' + f.id + '\', \'signed\', this.value)" class="w-full p-1 bg-emerald-50/50 border rounded font-black text-emerald-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.signedTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'signedTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
-            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-rose-800 block mb-1">💸 已退款件</span><input type="number" min="0" value="' + p.refund + '" onchange="updateProgressField(\'' + f.id + '\', \'refund\', this.value)" class="w-full p-1 bg-rose-50/50 border rounded font-black text-rose-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.refundTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'refundTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
-            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-slate-700 block mb-1">🧹 清場狀態</span><select onchange="updateProgressField(\'' + f.id + '\', \'isCleaned\', this.value)" class="w-full p-1 bg-slate-50 border rounded font-bold mt-1 cursor-pointer"><option value="未清場" ' + (p.isCleaned==='未清場'?'selected':'') + '>⏳ 未清場</option><option value="已清場" ' + (p.isCleaned==='已清場'?'selected':'') + '>✨ 已清場</option></select></div>' +
-            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-indigo-800 block mb-1">📦 待攬紀錄</span><input type="number" min="0" value="' + p.pendingPickup + '" onchange="updateProgressField(\'' + f.id + '\', \'pendingPickup\', this.value)" class="w-full p-1 bg-indigo-50/50 border rounded font-black text-indigo-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.pendingTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'pendingTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
-            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-slate-800 block mb-1">🚫 回倉件數</span><input type="number" min="0" value="' + p.returned + '" onchange="updateProgressField(\'' + f.id + '\', \'returned\', this.value)" class="w-full p-1 bg-slate-100 border rounded font-black text-slate-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.returnedTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'returnedTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
-            '<div class="bg-white p-2 border rounded-lg"><span class="font-bold text-amber-800 block mb-1">⚠️ 滯留/未簽收</span><input type="number" min="0" value="' + p.hold + '" onchange="updateProgressField(\'' + f.id + '\', \'hold\', this.value)" class="w-full p-1 bg-amber-50/50 border rounded font-black text-amber-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.holdTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'holdTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-emerald-800 block mb-1">✅ 已簽收件</span><input type="number" min="0" value="' + p.signed + '" onchange="updateProgressField(\'' + f.id + '\', \'signed\', this.value)" class="w-full p-1 bg-white border rounded font-black text-emerald-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.signedTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'signedTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-rose-800 block mb-1">💸 已退款件</span><input type="number" min="0" value="' + p.refund + '" onchange="updateProgressField(\'' + f.id + '\', \'refund\', this.value)" class="w-full p-1 bg-white border rounded font-black text-rose-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.refundTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'refundTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-slate-700 block mb-1">🧹 清場狀態</span><select onchange="updateProgressField(\'' + f.id + '\', \'isCleaned\', this.value)" class="w-full p-1 bg-white border rounded font-bold mt-1 cursor-pointer"><option value="未清場" ' + (p.isCleaned==='未清場'?'selected':'') + '>⏳ 未清場</option><option value="已清場" ' + (p.isCleaned==='已清場'?'selected':'') + '>✨ 已清場</option></select></div>' +
+            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-indigo-800 block mb-1">📦 待攬紀錄</span><input type="number" min="0" value="' + p.pendingPickup + '" onchange="updateProgressField(\'' + f.id + '\', \'pendingPickup\', this.value)" class="w-full p-1 bg-white border rounded font-black text-indigo-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.pendingTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'pendingTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-slate-800 block mb-1">🚫 回倉件數</span><input type="number" min="0" value="' + p.returned + '" onchange="updateProgressField(\'' + f.id + '\', \'returned\', this.value)" class="w-full p-1 bg-white border rounded font-black text-slate-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.returnedTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'returnedTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-amber-800 block mb-1">⚠️ 滯留/未簽收</span><input type="number" min="0" value="' + p.hold + '" onchange="updateProgressField(\'' + f.id + '\', \'hold\', this.value)" class="w-full p-1 bg-white border rounded font-black text-amber-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.holdTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'holdTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
           '</div>' +
-          '<div class="flex items-center gap-2 pt-1 border-t">' +
+          '<div class="flex items-center justify-between gap-2 pt-2 border-t text-xs">' +
             '<label class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded cursor-pointer font-bold text-[10px]">📷 現場影相舉證<input type="file" accept="image/*" onchange="uploadFencePhoto(event, \'' + f.id + '\')" class="hidden"></label>' +
-            (p.photo ? '<img src="' + p.photo + '" onclick="viewLargeImage(\'' + p.photo + '\')" class="w-7 h-7 object-cover rounded border cursor-pointer shadow-xs"> <span class="text-[10px] text-emerald-600 font-bold">已拍照</span>' : '<span class="text-[10px] text-slate-400">未影相</span>') +
+            (p.photo ? '<div class="flex items-center gap-1.5"><img src="' + p.photo + '" onclick="viewLargeImage(\'' + p.photo + '\')" class="w-7 h-7 object-cover rounded border cursor-pointer shadow-xs"> <span class="text-[10px] text-emerald-600 font-bold">已拍照</span></div>' : '<span class="text-[10px] text-slate-400">未影相</span>') +
           '</div>' +
         '</div>';
       }).join('');
@@ -1460,7 +1455,7 @@
       if (zone.indexOf('工商') > -1) zKey = 'KTIND';
       if (zone.indexOf('沙田') > -1) zKey = 'ST';
 
-      var fences = (fencesData && fencesData[zKey]) ? fencesData[zKey] : (defaultFencesData[zKey] || []);
+      var fences = (fencesData && fencesData[zKey]) ? fencesData[zKey] : [];
       fenceSel.innerHTML = fences.map(function(f) { return '<option value="' + f.name + '">' + f.name + '</option>'; }).join('');
     }
 
@@ -1847,7 +1842,7 @@
       }).join('');
     }
 
-    // ================= 匯出模組 (工作進度剔除英文 + 7大選項優先完整輸出) =================
+    // ================= 匯出模組 (繁體中文 + 7大選項優先輸出) =================
     function quickExportText(type) {
       showTab('tab-export');
       generateExportText(type);
@@ -1862,7 +1857,7 @@
         var zNamesChinese = { SKW: '【東區進度】', KTLG: '【觀塘麗港城進度】', KTIND: '【觀塘工商區進度】', ST: '【沙田區進度】' };
         
         ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(function(z) {
-          var fences = fencesData[z] || [];
+          var fences = (fencesData && fencesData[z]) ? fencesData[z] : [];
           if (fences.length > 0) {
             txtPr += zNamesChinese[z] + '\n';
             fences.forEach(function(f) {
