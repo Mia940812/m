@@ -26,7 +26,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
 
-  <!-- 🔒 強制初始登入閘門 Modal -->
+  <!-- 🔒 強制初始登入閘門 Modal (已內建靜態名單，絕不反白卡死) -->
   <div id="login-gateway-modal">
     <div class="bg-white p-6 sm:p-8 rounded-3xl max-w-sm w-full space-y-5 shadow-2xl border border-slate-200 text-center">
       <div class="space-y-2">
@@ -38,7 +38,23 @@
       <form onsubmit="handleGatewayLogin(event)" class="space-y-3.5 text-left text-xs">
         <div>
           <label class="block font-bold text-slate-700 mb-1">選擇您的姓名 / 帳戶</label>
-          <select id="login-user-select" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 cursor-pointer focus:outline-none focus:border-blue-600"></select>
+          <select id="login-user-select" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 cursor-pointer focus:outline-none focus:border-blue-600">
+            <option value="Mia">Mia - KM隊</option>
+            <option value="俊華">俊華 - A隊</option>
+            <option value="盧智聰">盧智聰 - A隊</option>
+            <option value="姜嘉敏KK">姜嘉敏KK - A隊</option>
+            <option value="吳瑋儒">吳瑋儒 - A隊</option>
+            <option value="景鴻">景鴻 - B隊</option>
+            <option value="余禮健">余禮健 - B隊</option>
+            <option value="周健">周健 - B隊</option>
+            <option value="鄺家昊">鄺家昊 - C隊</option>
+            <option value="黃傅釧">黃傅釧 - C隊</option>
+            <option value="吳嘉榮">吳嘉榮 - C隊</option>
+            <option value="李偉文">李偉文 - C隊</option>
+            <option value="倪志康">倪志康 - KM隊</option>
+            <option value="王利民">王利民 - KM隊</option>
+            <option value="李健龍">李健龍 - KM隊</option>
+          </select>
         </div>
         <div>
           <label class="block font-bold text-slate-700 mb-1">輸入登入密碼</label>
@@ -84,7 +100,7 @@
       <button type="button" onclick="showTab('tab-leaderboard')" id="btn-tab-leaderboard" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-rose-600 text-white">🏆 罰款獎池與龍虎榜</button>
       <button type="button" onclick="showTab('tab-report')" id="btn-tab-report" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-slate-100 text-slate-800">📝 每日報數</button>
 
-      <!-- Mia 專屬隱私功能 (步兵/司機全面隱藏) -->
+      <!-- Mia 專屬隱私功能 -->
       <button type="button" onclick="showTab('tab-recon')" id="btn-tab-recon" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-indigo-700 text-white" style="display: none;">🔍 出糧核對與工資卡 (Mia專屬)</button>
       <button type="button" onclick="showTab('tab-staff')" id="btn-tab-staff" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-slate-900 text-white" style="display: none;">👥 人員名冊/票價 (Mia專屬)</button>
       <button type="button" onclick="showTab('tab-counts-detail')" id="btn-tab-counts-detail" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-blue-700 text-white" style="display: none;">📦 詳細貨量與圍欄管理 (Mia專屬)</button>
@@ -117,7 +133,7 @@
         </div>
 
         <form id="form-shift-submit" onsubmit="saveCustomShiftForm(event)" class="p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl grid grid-cols-1 sm:grid-cols-6 gap-2 text-xs items-end">
-          <div><label class="block font-bold mb-1">報更人員</label><select id="form-shift-staff" class="w-full p-1.5 bg-white border rounded font-bold cursor-pointer"></select></div>
+          <div><label class="block font-bold mb-1">報更人員</label><select id="form-shift-staff" class="w-full p-1.5 bg-white border rounded font-bold cursor-pointer text-slate-900"></select></div>
           <div><label class="block font-bold mb-1">報更日期</label><input type="date" id="form-shift-date" required class="w-full p-1.5 bg-white border rounded font-bold"></div>
           <div>
             <label class="block font-bold mb-1">更期圖標</label>
@@ -1049,17 +1065,147 @@
       { date: "2026-08-19", zone: "東區 (SKW)", fence: "74F-東區醫院暫存點", orig: 5, held: 0, after: 5, delivered: 5, t3: 0, note: "最新核對" }
     ];
 
-    var accounts = safeGetJSON('MIA_ACCOUNTS_CLEAN', initialAccounts);
-    var fencesData = safeGetJSON('MIA_FENCES_DATA_CLEAN', defaultFencesData);
-    var countsDetailList = safeGetJSON('MIA_COUNTS_DETAIL_DATA', defaultCountsDetailList);
-    var ticketsList = safeGetJSON('MIA_TICKETS_CLEAN', initialTicketsList);
-    var dailyReports = safeGetJSON('MIA_DAILY_REPORTS_CLEAN', []);
-    var violationsList = safeGetJSON('MIA_VIOLATIONS_CLEAN', []);
-    var shiftsRecord = safeGetJSON('MIA_SHIFTS_CLEAN', {});
-    var progressRecord = safeGetJSON('MIA_PROGRESS_DATA', {});
-    var trucksList = safeGetJSON('MIA_TRUCKS_CLEAN', []);
-    var suppliesList = safeGetJSON('MIA_SUPPLIES_CLEAN', []);
-    var recruitsList = safeGetJSON('MIA_RECRUITS_CLEAN', []);
+    // 3. 58 個全區圍欄
+    var defaultFencesData = {
+      SKW: [
+        { id: "03F", name: "03F-東旭苑", defaultStaff: "小魚" },
+        { id: "06F", name: "06F-東濤苑", defaultStaff: "小魚" },
+        { id: "09F", name: "09F-富怡花園", defaultStaff: "俊華" },
+        { id: "12F", name: "12F-杏花邨1號", defaultStaff: "俊華" },
+        { id: "13F", name: "13F-杏花邨3號", defaultStaff: "俊華" },
+        { id: "14F", name: "14F-杏花邨4號", defaultStaff: "俊華" },
+        { id: "17F", name: "17F-香島", defaultStaff: "俊華" },
+        { id: "18F", name: "18F-曉翠苑", defaultStaff: "俊華" },
+        { id: "19F", name: "19F-漁灣邨", defaultStaff: "俊華" },
+        { id: "21F", name: "21F-杏翠苑+翠灣邨", defaultStaff: "俊華" },
+        { id: "22F", name: "22F-峰華邨+景翠苑", defaultStaff: "俊華" },
+        { id: "26F", name: "26F-興華(1)邨", defaultStaff: "俊華" },
+        { id: "27F", name: "27F-興華(2)邨", defaultStaff: "俊華" },
+        { id: "28F", name: "28F-興民邨", defaultStaff: "俊華" },
+        { id: "29F", name: "29F-山翠苑", defaultStaff: "俊華" },
+        { id: "30F", name: "30F-新翠花園", defaultStaff: "俊華" },
+        { id: "31F", name: "31F-環翠邨", defaultStaff: "俊華" },
+        { id: "39F", name: "39F-柴灣地鐵站工業區", defaultStaff: "俊華" },
+        { id: "40F", name: "40F-小西灣工業區", defaultStaff: "俊華" },
+        { id: "41F", name: "41F-小西灣邨-1號托", defaultStaff: "俊華" },
+        { id: "42F", name: "42F-小西灣邨-2號托", defaultStaff: "俊華" },
+        { id: "43F", name: "43F-小西灣邨-3號托", defaultStaff: "俊華" },
+        { id: "44F", name: "44F-樂軒+宏德+怡翠", defaultStaff: "俊華" },
+        { id: "45F", name: "45F-柴灣+蝶翠+康平街", defaultStaff: "俊華" },
+        { id: "46F", name: "46F-高威+康翠+灣景園", defaultStaff: "俊華" },
+        { id: "47F", name: "47F-澤岦閣暫存點", defaultStaff: "俊華" },
+        { id: "60F", name: "60F-藍灣半島", defaultStaff: "俊華" },
+        { id: "61F", name: "61F-富欣花園", defaultStaff: "俊華" },
+        { id: "62F", name: "62F-愛蝶灣", defaultStaff: "俊華" },
+        { id: "64F", name: "64F-愛東邨", defaultStaff: "俊華" },
+        { id: "65F", name: "65F-富景花園", defaultStaff: "俊華" },
+        { id: "67F", name: "67F-杏花園", defaultStaff: "俊華" },
+        { id: "68F", name: "68F-東大街板A", defaultStaff: "俊華" },
+        { id: "69F", name: "69F-峻峰花園", defaultStaff: "俊華" },
+        { id: "70F", name: "70F-筲箕灣道板-1號托", defaultStaff: "俊華" },
+        { id: "72F", name: "72F-形薈", defaultStaff: "俊華" },
+        { id: "73F", name: "73F-東區樂翠台暫存點", defaultStaff: "俊華" },
+        { id: "15F", name: "15F-明華A-E座", defaultStaff: "俊華" },
+        { id: "16F", name: "16F-明華1&2座", defaultStaff: "俊華" },
+        { id: "76F", name: "76F-常安街簡約公屋暫存點", defaultStaff: "俊華" },
+        { id: "74F", name: "74F-東區醫院暫存點", defaultStaff: "俊華" },
+        { id: "75F", name: "75F-阿公岩村暫存點", defaultStaff: "俊華" }
+      ],
+      KTLG: [
+        { id: "11E", name: "11E-麗港城-1號托", defaultStaff: "余禮健" },
+        { id: "12E", name: "12E-麗港城-2號托", defaultStaff: "吳嘉榮" },
+        { id: "13E", name: "13E-麗港城-3號托", defaultStaff: "景鴻" },
+        { id: "14E", name: "14E-麗港城-4號托", defaultStaff: "余禮健" },
+        { id: "15E", name: "15E-麗港城-5號托", defaultStaff: "吳嘉榮" }
+      ],
+      KTIND: [
+        { id: "01E", name: "01E-Koko Hills", defaultStaff: "鄺家昊" },
+        { id: "02E", name: "02E-觀塘工商區1號", defaultStaff: "鄺家昊" },
+        { id: "03E", name: "03E-觀塘工商區2號", defaultStaff: "俊華" },
+        { id: "04E", name: "04E-觀塘工商區3號", defaultStaff: "鄺家昊" },
+        { id: "05E", name: "05E-觀塘工商區4號", defaultStaff: "俊華" },
+        { id: "06E", name: "06E-觀塘工商區5號", defaultStaff: "鄺家昊" },
+        { id: "07E", name: "07E-觀塘工商區6號", defaultStaff: "俊華" },
+        { id: "08E", name: "08E-觀塘工商區7號", defaultStaff: "鄺家昊" },
+        { id: "09E", name: "09E-觀塘工商區8號", defaultStaff: "俊華" },
+        { id: "10E", name: "10E-鴻圖道+勵業街", defaultStaff: "鄺家昊" }
+      ],
+      ST: [
+        { id: "ST_01", name: "ST-01 康林苑/廣林苑", defaultStaff: "盧智聰" },
+        { id: "ST_02", name: "ST-02 帝堡城 1-8座", defaultStaff: "姜嘉敏KK" },
+        { id: "ST_03", name: "ST-03 水泉澳邨", defaultStaff: "周健" },
+        { id: "ST_04", name: "ST-04 欣安邨/錦泰苑", defaultStaff: "黃傅釧" },
+        { id: "ST_05", name: "ST-05 石門工商/火炭周邊", defaultStaff: "吳瑋儒" }
+      ]
+    };
+
+    // 4. 53 筆去重異常工單
+    var initialTicketsList = [
+      { id: "TK_1", tracking: "JT0025113529382", staff: "Q-嘉-小魚", type: "無物流更新", fine: 0, compensation: 0, customer: "何** 57783358", address: "九龍 觀塘區 麗港城9座12/F E室 (樓FF2209棟)", desc: "2026-08-11 11:52 司機取件後無物流更新，需核實是否在現場", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_2", tracking: "JT0025170839324", staff: "待指派", type: "未收到包裹", fine: 0, compensation: 0, customer: "a** 93462721", address: "九龍 觀塘區 藍田麗港城第四期21座9樓F室 (樓FF2221棟)", desc: "2026-08-15 18:54 快件簽收，客戶反饋未收到，需核實是否派錯", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_3", tracking: "JT0025144771644", staff: "王利民", type: "未收到包裹", fine: 0, compensation: 0, customer: "S** 53282835", address: "九龍 觀塘區 觀塘工業中心 2期 地庫層 E&C室 (樓F000638棟)", desc: "2026-08-13 16:06 快件簽收，客戶反映未收到，需電聯核實", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_4", tracking: "JT0025202283216", staff: "待指派", type: "更改地址", fine: 0, compensation: 0, customer: "J** 91212974", address: "九龍 觀塘區 觀塘道320號The Icon 9樓913室", desc: "原送貨地址912室，客戶更新為913室（隔壁單位）收", status: "已解決", appealText: "已按客戶新地址送達", photo: "" },
+      { id: "TK_5", tracking: "JT0025108138561", staff: "待指派", type: "超時未派", fine: 0, compensation: 0, customer: "黃** 68074922", address: "九龍 觀塘區 觀塘道388號創紀之城1期1座2308室", desc: "2026-08-13 17:40 更改派送時間，客戶催件需盡快派送", status: "催件中", appealText: "", photo: "" },
+      { id: "TK_6", tracking: "JT0025126536353", staff: "周健", type: "照片不規範", fine: 0, compensation: 0, customer: "單** 67525600", address: "九龍 觀塘區 麗港城27座24樓F室 (樓FF2227棟)", desc: "2026-08-13 19:34 送達照片不規範，客戶未收到 (冇WhatsApp)", status: "已解決", appealText: "補回照片已確認", photo: "" },
+      { id: "TK_7", tracking: "JT0025068158356", staff: "Q-嘉-小魚", type: "少件/破損", fine: 0, compensation: 0, customer: "i** 62669887", address: "九龍 觀塘區 宏基資本大廈 19層全層 全室", desc: "2026-08-08 07:58 同包其他件已派完，核實是否漏派", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_8", tracking: "JT0025068138448", staff: "Q-嘉-小魚", type: "少件/破損", fine: 0, compensation: 0, customer: "N** 90169989", address: "九龍 觀塘區 海濱道151號廣生行中心11樓02-04室", desc: "2026-08-08 07:58 同包其他件已派完，核實是否漏派", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_9", tracking: "JT0025130604190", staff: "倪志康", type: "送錯地址", fine: 0, compensation: 0, customer: "金** 95567898", address: "九龍 觀塘區 巧明街99號巧明工廠大廈9樓C20室", desc: "反饋派錯門口；後續經 WhatsApp 聯絡確認客戶已收貨", status: "已解決", appealText: "客人已確認收貨", photo: "" },
+      { id: "TK_10", tracking: "JT0025140819200", staff: "周健", type: "超時未派", fine: 0, compensation: 0, customer: "k** 97710897", address: "九龍 觀塘區 宏基資本大廈 20層 全層室", desc: "2026-08-13 13:14 出倉派件中，派送前需先電聯消費者", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_11", tracking: "JT0025187283810", staff: "鄺家昊", type: "送錯地址", fine: 0, compensation: 0, customer: "何** 61121750", address: "香港島 東區 香港仔鴨脷洲大街145號金發大廈2樓D室", desc: "2026-08-17 12:29 客戶反饋簽收未收到，送錯位置", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_12", tracking: "JT0025230532842", staff: "盧智聰", type: "送錯地址", fine: 0, compensation: 0, customer: "M** 93795679", address: "香港島 東區 筲箕灣德雲樓4B (樓G000957棟)", desc: "2026-08-19 18:50 顧客反饋送錯地址未收到，需取回重派", status: "已處理", appealText: "已取回重派", photo: "" },
+      { id: "TK_13", tracking: "JT0025008741284", staff: "李偉文", type: "送錯地址", fine: 0, compensation: 0, customer: "劉** 68416887", address: "九龍 觀塘區 藍田麗港城 10座 25樓 C室", desc: "2026-08-04 20:53 顧客反饋送錯地址未收到包裹", status: "已處理", appealText: "已更正派送", photo: "" },
+      { id: "TK_14", tracking: "JT0024881775924", staff: "待指派", type: "照片不規範", fine: 0, compensation: 0, customer: "G** 63883887", address: "九龍 觀塘區 香港企業大廈 11層 1106室", desc: "2026-07-29 14:34 客戶反饋簽收未收到，簽收圖片不規範", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_15", tracking: "JT0025007121305", staff: "待指派", type: "送錯地址", fine: 0, compensation: 0, customer: "T** 90895379", address: "香港島 東區 筲箕灣東大街2號麗東海景豪園2座20樓F室", desc: "2026-08-04 11:29 同客戶兩件反饋送錯單元 (件1)", status: "已處理", appealText: "", photo: "" },
+      { id: "TK_16", tracking: "JT0025006606703", staff: "待指派", type: "送錯地址", fine: 0, compensation: 0, customer: "T** 90895379", address: "香港島 東區 筲箕灣東大街2號麗東海景豪園2座20樓F室", desc: "2026-08-04 11:29 同客戶兩件反饋送錯單元 (件2)", status: "已處理", appealText: "", photo: "" },
+      { id: "TK_17", tracking: "JT0024973137081", staff: "王利民", type: "送錯地址", fine: 0, compensation: 0, customer: "叶** 67671990", address: "香港島 東區 東旭苑 東麗閣 7層 703室", desc: "2026-08-02 13:52 反饋收到非本人包裹、門口不對", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_18", tracking: "JT0024959334154", staff: "待指派", type: "照片不規範", fine: 0, compensation: 0, customer: "梁** 97706733", address: "九龍 觀塘區 偉業街142號 達通大廈6樓1室", desc: "2026-08-01 13:35 客戶反饋簽收未收到、圖片不符", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_19", tracking: "JT0024989081566", staff: "王利民", type: "未收到包裹", fine: 0, compensation: 0, customer: "F** 62238444", address: "九龍 觀塘區 鴻圖道 41號華鴻工貿中心7樓702A室", desc: "2026-08-03 21:30 客戶反饋簽收未收到，已回傳照片解決", status: "已解決", appealText: "已補照片", photo: "" },
+      { id: "TK_20", tracking: "JT0024956449821", staff: "姜嘉敏KK", type: "特殊情況", fine: 0, compensation: 0, customer: "杜** 98208665", address: "九龍 觀塘區 麗港城 30座 5層 H室", desc: "當晚壞𨋢放座頭，清潔包好放樓梯底，客人已自取", status: "已解決", appealText: "客人已自取確認", photo: "" },
+      { id: "TK_21", tracking: "JT0025004238936", staff: "吳嘉榮", type: "送錯地址", fine: 0, compensation: 0, customer: "客** 92361296", address: "香港島 東區 筲箕灣寶文街1號峻峰花園 D座 2603室", desc: "2026-08-04 11:06 疑似送錯門口，已加急取回重派", status: "已解決", appealText: "已取回重派", photo: "" },
+      { id: "TK_22", tracking: "JT0024953202959", staff: "黃傅釧", type: "送錯地址", fine: 0, compensation: 0, customer: "陳** 98643772", address: "香港島 東區 筲箕灣東旭苑東曉閣 20樓零一室", desc: "2026-08-01 15:33 反饋送錯家門，需取回重派", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_23", tracking: "JT0024958384876", staff: "李健龍", type: "送錯地址", fine: 0, compensation: 0, customer: "吳** 96595396", address: "香港島 東區 康翠台 1座 10層 K室", desc: "2026-08-02 15:52 反饋送錯地址未收到包裹", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_24", tracking: "JT0025057380466", staff: "吳瑋儒", type: "送錯地址", fine: 0, compensation: 0, customer: "林** 93002536", address: "九龍 觀塘區 巧明街 116-118號萬年工業大廈 6樓A座 B3室", desc: "2026-08-08 15:39 反映送錯地址，需安排重派", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_25", tracking: "JT0025062262591", staff: "Q-嘉-小魚", type: "少件/破損", fine: 0, compensation: 0, customer: "V** 95417858", address: "九龍 觀塘區 觀塘工業中心二期1樓J5", desc: "2026-08-08 11:19 司機取件，核實是否漏派", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_26", tracking: "JT0025061039326", staff: "周健", type: "送錯地址", fine: 0, compensation: 0, customer: "江** 97285373", address: "九龍 觀塘區 海濱道181號 One Harbour Square 8樓3室", desc: "2026-08-08 11:54 反饋送錯地址，需核實", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_27", tracking: "JT0025001607329", staff: "待指派", type: "少件/破損", fine: 0, compensation: 0, customer: "光** 53212627", address: "香港島 東區 筲箕灣東大街98-112號 7-11便利店", desc: "2026-08-04 11:51 出倉派件中，核實是否漏派", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_28", tracking: "JT0025072811679", staff: "E-WE-小台", type: "客戶要求", fine: 0, compensation: 0, customer: "C** 62246352", address: "香港島 東區 筲箕灣愛東邨愛逸樓 35樓 3518室", desc: "2026-08-09 07:07 司機取件，客戶要求派送務必致電", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_29", tracking: "JT0025099061327", staff: "鄺家昊", type: "送錯地址", fine: 0, compensation: 0, customer: "衛** 57821942", address: "香港島 東區 筲箕灣阿公岩道 17號明華大廈 E座 512室", desc: "2026-08-10 15:39 住512派錯到513或515門口", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_30", tracking: "JT0024993430424", staff: "鄺家昊", type: "送錯地址", fine: 0, compensation: 0, customer: "林** 95358768", address: "香港島 東區 柴灣小西灣瑞發樓 802室", desc: "2026-08-04 15:03 住802派到902門口", status: "已解決", appealText: "已更正送達", photo: "" },
+      { id: "TK_31", tracking: "JT0025048231383", staff: "黃傅釧", type: "送錯地址", fine: 0, compensation: 0, customer: "H** 63070575", address: "香港島 東區 柴灣漁灣邨漁順樓 366室", desc: "2026-08-07 22:10 送錯地址 (366 唔係 566)", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_32", tracking: "JT0025090292722", staff: "待指派", type: "送錯地址", fine: 0, compensation: 0, customer: "P** 98794706", address: "香港島 東區 筲箕灣東旭苑東麗閣 28樓 2室", desc: "2026-08-11 13:18 反饋送錯家門口，需取回重派", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_33", tracking: "JT0025072453969", staff: "待指派", type: "送錯地址", fine: 0, compensation: 0, customer: "H** 97795191", address: "香港島 東區 筲箕灣東旭苑東麗閣 40樓 01室", desc: "2026-08-11 13:11 住D座40樓01室送錯門口", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_34", tracking: "JT0025072826397", staff: "待指派", type: "已尋回", fine: 0, compensation: 0, customer: "張** 94304990", address: "香港島 東區 筲箕灣愛賢街 8號東旭苑東麗閣 35樓 01室", desc: "照片不對，成幢樓掃返已尋回", status: "已解決", appealText: "整棟巡查已尋獲", photo: "" },
+      { id: "TK_35", tracking: "JT0025090758344", staff: "待指派", type: "未收到包裹", fine: 0, compensation: 0, customer: "李** 67433930", address: "香港島 東區 東旭苑 東麗閣 26層 01室", desc: "2026-08-11 13:23 顧客反饋送錯地址未收到", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_36", tracking: "JT0025103719239", staff: "黃傅釧", type: "送錯地址", fine: 0, compensation: 0, customer: "c** 60120534", address: "香港島 東區 筲箕灣道 334~338號華寶大廈 15樓B室", desc: "反饋丟失；後指示前往筲箕灣道318號寶福15樓B室門口取回", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_37", tracking: "JT0025018305318", staff: "待指派", type: "送錯地址", fine: 0, compensation: 0, customer: "S** 60709790", address: "香港島 東區 小西灣瑞益樓 10樓 04室", desc: "2026-08-05 17:24 派錯地址 (1004 派錯去 1006)", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_38", tracking: "JT0024894042809", staff: "Q-嘉-小香", type: "貴重貨品無路由", fine: 0, compensation: 0, customer: "B** 95886920", address: "九龍 觀塘區 茶果嶺麗港城1期 21座 6F室", desc: "2026-07-31 06:05 司機取件後無路由，貨值一千多 (貴貨)", status: "加急處理", appealText: "", photo: "" },
+      { id: "TK_39", tracking: "JT0025030208899", staff: "王利民", type: "送錯地址", fine: 0, compensation: 0, customer: "陳** 91608979", address: "九龍 觀塘區 觀塘道 472-474號 觀塘工業中心第一期 9樓 F室", desc: "2026-08-06 15:35 反饋非本人包裹，需取回重派", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_40", tracking: "JT0024980932155", staff: "Q-嘉-徐耀明", type: "無物流更新", fine: 0, compensation: 0, customer: "周** 60939997", address: "九龍 觀塘區 啟滙 啟滙 6層 全層室", desc: "2026-08-03 12:52 司機取件後無路由", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_41", tracking: "JT0025020955723", staff: "吳瑋儒", type: "送錯地址", fine: 0, compensation: 0, customer: "b** 936****2954", address: "九龍 觀塘區 麗港城 19座 2E", desc: "2026-08-05 20:05 反饋送錯家門口，需取回重派", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_42", tracking: "JT0025016268623", staff: "黃傅釧", type: "送錯地址", fine: 0, compensation: 0, customer: "A** 92898525", address: "香港島 東區 柴灣柴灣道 111號高威閣 4座 19樓 H室", desc: "2026-08-05 16:22 送錯地址需核實", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_43", tracking: "JT0024476454322", staff: "系統記錄", type: "損壞賠償", fine: 0, compensation: 100, customer: "- -", address: "系統記錄已理賠包裹", desc: "未登記破損，已理賠", status: "已理賠", appealText: "系統已確認賠付", photo: "" },
+      { id: "TK_44", tracking: "JT0025014538716", staff: "盧智聰", type: "照片不規範", fine: 0, compensation: 0, customer: "C** 94066636", address: "九龍 觀塘區 創紀之城 5期 UC層 3號室", desc: "2026-08-05 12:47 簽收未收到，照片不規範", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_45", tracking: "JT0025050829672", staff: "盧智聰", type: "少件/破損", fine: 0, compensation: 0, customer: "B** 91848844", address: "九龍 觀塘區 觀塘駿業里 10號業運工業大廈 2樓 A室", desc: "2026-08-07 15:34 反饋少了一箱芒果", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_46", tracking: "JT0024984596851", staff: "Q-嘉-徐耀明", type: "少件/破損", fine: 0, compensation: 0, customer: "凌** 97818255", address: "九龍 觀塘區 麗港城 1期 2座 21樓 E室", desc: "2026-08-03 12:31 司機取件，核實是否漏派", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_47", tracking: "JT0024813782284", staff: "周健", type: "客戶棄件", fine: 0, compensation: 0, customer: "s** 61042515", address: "九龍 觀塘區 觀塘工業中心三期 12樓 V室 v7房", desc: "2026-08-08 14:25 客戶不認識送達位置，有意向棄件", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_48", tracking: "JT0025075941793", staff: "周健", type: "多件同時未收到", fine: 0, compensation: 0, customer: "伍** 56213447", address: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", desc: "2026-08-09 12:13 6件同時簽收但均未收到 (件1)", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_49", tracking: "JT0025074025118", staff: "周健", type: "多件同時未收到", fine: 0, compensation: 0, customer: "伍** 56213447", address: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", desc: "2026-08-09 12:13 6件同時簽收但均未收到 (件2)", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_50", tracking: "JT0025079153784", staff: "周健", type: "多件同時未收到", fine: 0, compensation: 0, customer: "伍** 56213447", address: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", desc: "2026-08-09 12:13 6件同時簽收但均未收到 (件3)", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_51", tracking: "JT0025079994845", staff: "周健", type: "多件同時未收到", fine: 0, compensation: 0, customer: "伍** 56213447", address: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", desc: "2026-08-09 12:13 6件同時簽收但均未收到 (件4)", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_52", tracking: "JT0025078391033", staff: "周健", type: "多件同時未收到", fine: 0, compensation: 0, customer: "伍** 56213447", address: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", desc: "2026-08-09 12:13 6件同時簽收但均未收到 (件5)", status: "待處理", appealText: "", photo: "" },
+      { id: "TK_53", tracking: "JT0025076006737", staff: "周健", type: "多件同時未收到", fine: 0, compensation: 0, customer: "伍** 56213447", address: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", desc: "2026-08-09 12:13 6件同時簽收但均未收到 (件6)", status: "待處理", appealText: "", photo: "" }
+    ];
+
+    // 5. 智聰、KK、景鴻、志康等 8.17 報數數據
+    var defaultDailyReports = [
+      { id: "REP_1", date: "2026-08-17", staff: "倪志康", eastCount: 131, ktLgCount: 99, ktIndCount: 0, stCount: 0, totalPieces: 230, signedCount: 230, holdCount: 0, carAllowance: 50, penalty: 0, finalSalary: (131*4.0 + 99*4.0 + 50), photoProof: "" },
+      { id: "REP_2", date: "2026-08-17", staff: "俊華", eastCount: 222, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 222, signedCount: 222, holdCount: 0, carAllowance: 0, penalty: 0, finalSalary: (222*4.0), photoProof: "" },
+      { id: "REP_3", date: "2026-08-17", staff: "姜嘉敏KK", eastCount: 0, ktLgCount: 107, ktIndCount: 97, stCount: 0, totalPieces: 204, signedCount: 204, holdCount: 0, carAllowance: 0, penalty: 0, finalSalary: (107*4.0 + 97*4.5), photoProof: "" },
+      { id: "REP_4", date: "2026-08-17", staff: "盧智聰", eastCount: 0, ktLgCount: 112, ktIndCount: 86, stCount: 0, totalPieces: 198, signedCount: 198, holdCount: 0, carAllowance: 0, penalty: 0, finalSalary: (112*4.0 + 86*4.5), photoProof: "" },
+      { id: "REP_5", date: "2026-08-17", staff: "吳瑋儒", eastCount: 0, ktLgCount: 0, ktIndCount: 0, stCount: 59, totalPieces: 59, signedCount: 59, holdCount: 0, carAllowance: 0, penalty: 0, finalSalary: (59*7.0), photoProof: "" }
+    ];
+
+    var dailyReports = safeGetJSON('MIA_DAILY_REPORTS_CLEAN', defaultDailyReports);
 
     var currentUser = null;
     var currentRole = null;
@@ -1184,7 +1330,6 @@
       renderFencesManagementTable();
     }
 
-    // 14天視覺報更：只在報更後才渲染公仔，不要千篇一律預設為全天
     function renderIconVisualSchedule() {
       var headerRow = document.getElementById('scheduleTableHeaderRow');
       var tbody = document.getElementById('scheduleTableBody');
@@ -1257,13 +1402,12 @@
       alert('✅ 報更紀錄已成功提交至雲端！');
     }
 
-    // 工單舉證成功「⚖️ 舉證核准 (剔除工單)」
     function approveTicketExemption(ticketId) {
       var t = ticketsList.find(function(item) { return item.id === ticketId; });
       if (!t) return;
       if (confirm('確定核准此工單舉證成功並予以剔除豁免？\n核准後罰款將歸零，且不計入龍虎榜工單率！')) {
         t.status = '舉證成功(已剔除)';
-        t.fine = 0; // 罰款免除
+        t.fine = 0;
         localStorage.setItem('MIA_TICKETS_CLEAN', JSON.stringify(ticketsList));
         renderTicketsList();
         renderLeaderboard();
@@ -1324,7 +1468,6 @@
         var reps = dailyReports.filter(function(r) { return r.staff === a.name || r.staff.includes(a.name); });
         var pcs = reps.reduce(function(s, r) { return s + (Number(r.totalPieces) || 0); }, 0);
         
-        // 核心：已剔除/舉證成功的工單不計入違規與工單率
         var activeTks = ticketsList.filter(function(t) { 
           return (t.staff === a.name || t.staff.includes(a.name)) && t.status !== '舉證成功(已剔除)'; 
         }).length;
@@ -1373,7 +1516,6 @@
       }
     }
 
-    // 快捷追加單號小工具
     function quickAppendTracks(type) {
       var inputEl = document.getElementById(type === 'signed' ? 'rep-quick-signed-input' : 'rep-quick-hold-input');
       if (!inputEl || !inputEl.value.trim()) return;
@@ -1389,7 +1531,6 @@
       alert('✅ 已快捷加入 ' + tracks.length + ' 張單號至' + (type === 'signed' ? '簽收' : '滯留') + '計數！');
     }
 
-    // 出糧核對：支援自選日期區間
     function filterReconHistory() {
       var selEl = document.getElementById('recon-staff-select');
       var sel = selEl ? selEl.value : '全部';
@@ -1432,7 +1573,6 @@
       }).join('') || '<tr><td colspan="8" class="p-4 text-center text-slate-400">所選條件下無薪資對數記錄。</td></tr>';
     }
 
-    // 📄 生成個人自選期工資單
     function generateCustomPeriodSalarySlip() {
       var sel = document.getElementById('recon-staff-select').value;
       if (sel === '全部') {
@@ -1488,7 +1628,6 @@
       document.getElementById('universal-export-textarea').value = slip;
     }
 
-    // 匯出中心全按鈕打通
     function quickExportText(type) {
       showTab('tab-export');
       generateExportText(type);
@@ -1653,10 +1792,585 @@
       }
     }
 
-    // 智能雲端數據同步與格式轉換 (Data Mapping)
+    function copyExportText() {
+      var area = document.getElementById('universal-export-textarea');
+      if (!area || !area.value) { alert('請先生成報表內容！'); return; }
+      area.select();
+      navigator.clipboard.writeText(area.value).then(function() {
+        alert('✅ 已成功複製到剪貼簿！可直接貼去 WhatsApp。');
+      });
+    }
+
+    function renderProgressCards(zoneKey) {
+      var container = document.getElementById('progressCardsContainer');
+      if (!container) return;
+      var fences = (fencesData && fencesData[zoneKey]) ? fencesData[zoneKey] : [];
+
+      container.innerHTML = fences.map(function(f) {
+        var p = progressRecord[f.id] || { 
+          completionStatus: "⏳ 未開始/貨未到齊",
+          signed: 0, signedTracks: '', refund: 0, refundTracks: '', isCleaned: '未清場', 
+          pendingPickup: 0, pendingTracks: '', returned: 0, returnedTracks: '', hold: 0, holdTracks: '', 
+          staff: f.defaultStaff || '', supportStaff1: '', supportStaff2: '', photo: '' 
+        };
+
+        var curStatus = p.completionStatus || "⏳ 未開始/貨未到齊";
+        var optionsHtml = statusOptions7.map(function(opt) {
+          return '<option value="' + opt + '" ' + (curStatus === opt ? 'selected' : '') + '>' + opt + '</option>';
+        }).join('');
+
+        return '<div class="bg-white border-2 border-slate-200 hover:border-blue-400 transition rounded-2xl p-4 space-y-3 shadow-xs">' +
+          '<div class="flex justify-between items-center border-b pb-2.5">' +
+            '<div>' +
+              '<h4 class="font-black text-slate-900 text-sm flex items-center gap-1.5">' +
+                '<span>' + f.name + '</span>' +
+              '</h4>' +
+              '<span class="text-[11px] text-slate-500">主責: <b class="text-blue-900">' + (p.staff || '未指派') + '</b>' + (p.supportStaff1 ? ' | 支援: ' + p.supportStaff1 : '') + (p.supportStaff2 ? ', ' + p.supportStaff2 : '') + '</span>' +
+            '</div>' +
+            '<span class="px-2.5 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-900 border border-blue-200">' + (curStatus.split(' ')[0] || '📊') + '</span>' +
+          '</div>' +
+
+          '<div class="p-2.5 bg-blue-50/70 border border-blue-200 rounded-xl space-y-1">' +
+            '<label class="block font-black text-blue-950 text-xs">⏱️ 圍欄實時完成狀態 (7大選項)：</label>' +
+            '<select onchange="updateProgressField(\'' + f.id + '\', \'completionStatus\', this.value); renderProgressCards(currentZone);" class="w-full p-2 bg-white border border-blue-400 rounded-lg font-black text-xs text-slate-900 shadow-xs cursor-pointer focus:outline-none">' + optionsHtml + '</select>' +
+          '</div>' +
+
+          '<div class="grid grid-cols-2 sm:grid-cols-3 gap-2">' +
+            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-emerald-800 block mb-1">✅ 已簽收件</span><input type="number" min="0" value="' + p.signed + '" onchange="updateProgressField(\'' + f.id + '\', \'signed\', this.value)" class="w-full p-1 bg-white border rounded font-black text-emerald-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.signedTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'signedTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-rose-800 block mb-1">💸 已退款件</span><input type="number" min="0" value="' + p.refund + '" onchange="updateProgressField(\'' + f.id + '\', \'refund\', this.value)" class="w-full p-1 bg-white border rounded font-black text-rose-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.refundTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'refundTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-slate-700 block mb-1">🧹 清場狀態</span><select onchange="updateProgressField(\'' + f.id + '\', \'isCleaned\', this.value)" class="w-full p-1 bg-white border rounded font-bold mt-1 cursor-pointer"><option value="未清場" ' + (p.isCleaned==='未清場'?'selected':'') + '>⏳ 未清場</option><option value="已清場" ' + (p.isCleaned==='已清場'?'selected':'') + '>✨ 已清場</option></select></div>' +
+            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-indigo-800 block mb-1">📦 待攬紀錄</span><input type="number" min="0" value="' + p.pendingPickup + '" onchange="updateProgressField(\'' + f.id + '\', \'pendingPickup\', this.value)" class="w-full p-1 bg-white border rounded font-black text-indigo-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.pendingTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'pendingTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-slate-800 block mb-1">🚫 回倉件數</span><input type="number" min="0" value="' + p.returned + '" onchange="updateProgressField(\'' + f.id + '\', \'returned\', this.value)" class="w-full p-1 bg-slate-100 border rounded font-black text-slate-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.returnedTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'returnedTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+            '<div class="bg-slate-50 p-2 border rounded-lg"><span class="font-bold text-amber-800 block mb-1">⚠️ 滯留/未簽收</span><input type="number" min="0" value="' + p.hold + '" onchange="updateProgressField(\'' + f.id + '\', \'hold\', this.value)" class="w-full p-1 bg-amber-50/50 border rounded font-black text-amber-700 mb-1"><input type="text" placeholder="貼上單號..." value="' + (p.holdTracks||'') + '" onchange="updateProgressField(\'' + f.id + '\', \'holdTracks\', this.value)" class="w-full p-1 border rounded text-[10px] font-mono"></div>' +
+          '</div>' +
+          '<div class="flex items-center justify-between gap-2 pt-2 border-t text-xs">' +
+            '<label class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded cursor-pointer font-bold text-[10px]">📷 現場影相舉證<input type="file" accept="image/*" onchange="uploadFencePhoto(event, \'' + f.id + '\')" class="hidden"></label>' +
+            (p.photo ? '<div class="flex items-center gap-1.5"><img src="' + p.photo + '" onclick="viewLargeImage(\'' + p.photo + '\')" class="w-7 h-7 object-cover rounded border cursor-pointer shadow-xs"> <span class="text-[10px] text-emerald-600 font-bold">已拍照</span></div>' : '<span class="text-[10px] text-slate-400">未影相</span>') +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function switchProgressZone(zoneKey) {
+      currentZone = zoneKey;
+      ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(function(z) {
+        var btn = document.getElementById('prog-tab-' + z);
+        if (btn) btn.className = (z === zoneKey) ? 'px-3 py-1.5 rounded-lg bg-slate-900 text-white cursor-pointer' : 'px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 cursor-pointer';
+      });
+      renderProgressCards(zoneKey);
+    }
+
+    function updateProgressField(fenceId, field, val) {
+      if (!progressRecord[fenceId]) progressRecord[fenceId] = {};
+      progressRecord[fenceId][field] = val;
+      localStorage.setItem('MIA_PROGRESS_DATA', JSON.stringify(progressRecord));
+    }
+
+    function uploadFencePhoto(e, fenceId) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(evt) {
+        updateProgressField(fenceId, 'photo', evt.target.result);
+        switchProgressZone(currentZone);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function syncProgressToSheet() {
+      callBackend('saveProgress', { progressMapJSON: JSON.stringify(progressRecord) });
+      alert('✅ 進度已成功儲存並同步至 Google Sheets！');
+    }
+
+    function renderAssignmentsGrid() {
+      var container = document.getElementById('assignments-grid');
+      if (!container) return;
+      var isAdmin = (currentRole === '總管理員' || currentRole === 'Admin' || currentUser === 'Mia');
+      var html = '';
+      
+      var zoneKeys = ['SKW', 'KTLG', 'KTIND', 'ST'];
+      var zoneNames = { SKW: '東區 (SKW)', KTLG: '麗港城 (KT-LG)', KTIND: '觀塘工商 (KT-IND)', ST: '沙田 (ST-F58)' };
+
+      for (var k = 0; k < zoneKeys.length; k++) {
+        var z = zoneKeys[k];
+        var fences = (fencesData && fencesData[z]) ? fencesData[z] : [];
+
+        html += '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">' +
+          '<div class="font-bold text-xs text-slate-900 border-b pb-1 flex justify-between items-center">' +
+            '<span>' + zoneNames[z] + '</span><span class="text-[10px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded font-mono font-bold">' + fences.length + ' 圍欄</span>' +
+          '</div>' +
+          '<div class="space-y-2 max-h-[70vh] overflow-y-auto custom-scrollbar pr-1">';
+        
+        for (var i = 0; i < fences.length; i++) {
+          var f = fences[i];
+          var p = progressRecord[f.id] || { staff: f.defaultStaff || '未指派', supportStaff1: '', supportStaff2: '', completionStatus: '⏳ 未開始' };
+          
+          var staffOptions1 = '<option value="">未指派主責</option>';
+          var staffOptions2 = '<option value="">無支援1</option>';
+          var staffOptions3 = '<option value="">無支援2</option>';
+
+          for (var a = 0; a < accounts.length; a++) {
+            var acc = accounts[a];
+            staffOptions1 += '<option value="' + acc.name + '" ' + (p.staff === acc.name ? 'selected' : '') + '>' + acc.name + '</option>';
+            staffOptions2 += '<option value="' + acc.name + '" ' + (p.supportStaff1 === acc.name ? 'selected' : '') + '>' + acc.name + '</option>';
+            staffOptions3 += '<option value="' + acc.name + '" ' + (p.supportStaff2 === acc.name ? 'selected' : '') + '>' + acc.name + '</option>';
+          }
+
+          var statusBadge = (p.completionStatus && p.completionStatus.indexOf(' ') > -1) ? p.completionStatus.split(' ')[0] : '⏳';
+
+          html += '<div class="p-2 bg-white border border-slate-200 rounded-lg space-y-1 text-xs shadow-2xs">' +
+            '<div class="font-black text-slate-900 flex justify-between items-center"><span class="truncate">' + f.name + '</span><span class="text-[10px] text-blue-700 font-bold">' + statusBadge + '</span></div>' +
+            '<div class="space-y-1 text-[11px]">' +
+              '<div class="flex justify-between items-center"><span class="text-slate-500">主責:</span>' + (isAdmin ? '<select onchange="updateProgressField(\'' + f.id + '\', \'staff\', this.value); renderProgressCards(currentZone); callBackend(\'saveProgress\', {progressMapJSON: JSON.stringify(progressRecord)});" class="bg-blue-50 border border-blue-200 rounded px-1 py-0.5 font-bold text-blue-900 cursor-pointer text-[10px]">' + staffOptions1 + '</select>' : '<span class="font-bold text-blue-900">' + (p.staff || '未指派') + '</span>') + '</div>' +
+              '<div class="flex justify-between items-center"><span class="text-slate-400">支援1:</span>' + (isAdmin ? '<select onchange="updateProgressField(\'' + f.id + '\', \'supportStaff1\', this.value); callBackend(\'saveProgress\', {progressMapJSON: JSON.stringify(progressRecord)});" class="bg-slate-50 border rounded px-1 py-0.5 font-bold text-slate-700 cursor-pointer text-[10px]">' + staffOptions2 + '</select>' : '<span class="text-slate-600">' + (p.supportStaff1 || '-') + '</span>') + '</div>' +
+              '<div class="flex justify-between items-center"><span class="text-slate-400">支援2:</span>' + (isAdmin ? '<select onchange="updateProgressField(\'' + f.id + '\', \'supportStaff2\', this.value); callBackend(\'saveProgress\', {progressMapJSON: JSON.stringify(progressRecord)});" class="bg-slate-50 border rounded px-1 py-0.5 font-bold text-slate-700 cursor-pointer text-[10px]">' + staffOptions3 + '</select>' : '<span class="text-slate-600">' + (p.supportStaff2 || '-') + '</span>') + '</div>' +
+            '</div>' +
+          '</div>';
+        }
+
+        html += '</div></div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function switchCountsSubTab(tabKey) {
+      currentCountsSubTab = tabKey;
+      document.getElementById('cnt-sub-report').className = (tabKey === 'report') ? 'px-3 py-1 rounded-lg bg-slate-900 text-white cursor-pointer' : 'px-3 py-1 rounded-lg bg-slate-100 text-slate-700 cursor-pointer';
+      document.getElementById('cnt-sub-fences').className = (tabKey === 'fences') ? 'px-3 py-1 rounded-lg bg-slate-900 text-white cursor-pointer' : 'px-3 py-1 rounded-lg bg-slate-100 text-slate-700 cursor-pointer';
+      
+      document.getElementById('counts-subtab-report-view').style.display = (tabKey === 'report') ? 'block' : 'none';
+      document.getElementById('counts-subtab-fences-view').style.display = (tabKey === 'fences') ? 'block' : 'none';
+    }
+
+    function onCountsZoneChange(zone) {
+      var fenceSel = document.getElementById('cnt-fence');
+      if (!fenceSel) return;
+      var zKey = 'SKW';
+      if (zone.indexOf('麗港城') > -1) zKey = 'KTLG';
+      if (zone.indexOf('工商') > -1) zKey = 'KTIND';
+      if (zone.indexOf('沙田') > -1) zKey = 'ST';
+
+      var fences = (fencesData && fencesData[zKey]) ? fencesData[zKey] : [];
+      fenceSel.innerHTML = fences.map(function(f) { return '<option value="' + f.name + '">' + f.name + '</option>'; }).join('');
+    }
+
+    function calcCountAfterLive() {
+      var orig = Number(document.getElementById('cnt-orig').value) || 0;
+      var held = Number(document.getElementById('cnt-held').value) || 0;
+      document.getElementById('cnt-after').value = Math.max(0, orig - held);
+    }
+
+    function saveCountsDetailEntry(e) {
+      e.preventDefault();
+      var orig = Number(document.getElementById('cnt-orig').value) || 0;
+      var held = Number(document.getElementById('cnt-held').value) || 0;
+      var after = Math.max(0, orig - held);
+      var delivered = Number(document.getElementById('cnt-delivered').value) || 0;
+      var t3 = Number(document.getElementById('cnt-t3').value) || 0;
+      var fence = document.getElementById('cnt-fence').value;
+
+      countsDetailList.unshift({
+        date: document.getElementById('cnt-date').value,
+        zone: document.getElementById('cnt-zone').value,
+        fence: fence,
+        orig: orig,
+        held: held,
+        after: after,
+        delivered: delivered,
+        t3: t3,
+        note: document.getElementById('cnt-note').value.trim()
+      });
+
+      localStorage.setItem('MIA_COUNTS_DETAIL_DATA', JSON.stringify(countsDetailList));
+      callBackend('syncCounts', { countsJSON: JSON.stringify(countsDetailList) });
+      renderCountsDetailTable();
+      alert('✅ 貨量已登記並同步至雲端！');
+    }
+
+    function renderCountsDetailTable() {
+      var tbody = document.getElementById('countsDetailTableBody');
+      var tfoot = document.getElementById('countsDetailTableFooter');
+      if (!tbody) return;
+
+      var totOrig = 0, totHeld = 0, totAfter = 0, totDelivered = 0, totDiffAfter = 0, totDiffOrig = 0, totT3 = 0;
+
+      tbody.innerHTML = countsDetailList.map(function(c, idx) {
+        var diffAfter = c.delivered - c.after;
+        var diffOrig = c.delivered - c.orig;
+
+        totOrig += c.orig;
+        totHeld += c.held;
+        totAfter += c.after;
+        totDelivered += c.delivered;
+        totDiffAfter += diffAfter;
+        totDiffOrig += diffOrig;
+        totT3 += c.t3;
+
+        var diffAfterColor = diffAfter >= 0 ? 'text-emerald-700' : 'text-rose-600';
+        var diffOrigColor = diffOrig >= 0 ? 'text-emerald-700' : 'text-rose-600';
+
+        return '<tr class="hover:bg-slate-50 text-[11px]">' +
+          '<td class="p-2.5 font-mono">' + c.date + '</td>' +
+          '<td class="p-2.5 font-bold">' + c.zone + '</td>' +
+          '<td class="p-2.5 font-bold text-blue-900">' + (c.fence || '-') + '</td>' +
+          '<td class="p-2.5 text-right font-black text-blue-700 font-mono">' + c.orig + '</td>' +
+          '<td class="p-2.5 text-right font-bold text-amber-700 font-mono">' + c.held + '</td>' +
+          '<td class="p-2.5 text-right font-black text-emerald-700 font-mono">' + c.after + '</td>' +
+          '<td class="p-2.5 text-right font-black font-mono">' + c.delivered + '</td>' +
+          '<td class="p-2.5 text-right font-black font-mono ' + diffAfterColor + '">' + (diffAfter >= 0 ? '+' : '') + diffAfter + '</td>' +
+          '<td class="p-2.5 text-right font-bold font-mono ' + diffOrigColor + '">' + (diffOrig >= 0 ? '+' : '') + diffOrig + '</td>' +
+          '<td class="p-2.5 text-right font-bold font-mono text-purple-700">' + c.t3 + '</td>' +
+          '<td class="p-2.5 text-slate-500">' + (c.note || '-') + '</td>' +
+          '<td class="p-2.5 text-center"><button type="button" onclick="countsDetailList.splice(' + idx + ',1);localStorage.setItem(\'MIA_COUNTS_DETAIL_DATA\',JSON.stringify(countsDetailList));renderCountsDetailTable();callBackend(\'syncCounts\', {countsJSON: JSON.stringify(countsDetailList)});" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button></td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="12" class="p-6 text-center text-slate-400">目前暫無詳細貨量記錄。</td></tr>';
+
+      if (tfoot) {
+        tfoot.innerHTML = '<tr>' +
+          '<td class="p-2.5 text-center" colspan="3">📊 全區總數合計 (TOTAL)</td>' +
+          '<td class="p-2.5 text-right text-blue-300 font-mono">' + totOrig + '</td>' +
+          '<td class="p-2.5 text-right text-amber-300 font-mono">' + totHeld + '</td>' +
+          '<td class="p-2.5 text-right text-emerald-300 font-mono">' + totAfter + '</td>' +
+          '<td class="p-2.5 text-right font-mono">' + totDelivered + '</td>' +
+          '<td class="p-2.5 text-right text-indigo-300 font-mono">' + (totDiffAfter >= 0 ? '+' : '') + totDiffAfter + '</td>' +
+          '<td class="p-2.5 text-right text-slate-300 font-mono">' + (totDiffOrig >= 0 ? '+' : '') + totDiffOrig + '</td>' +
+          '<td class="p-2.5 text-right text-purple-300 font-mono">' + totT3 + '</td>' +
+          '<td class="p-2.5" colspan="2">-</td>' +
+        '</tr>';
+      }
+    }
+
+    function saveCustomFenceForm(e) {
+      e.preventDefault();
+      var editId = document.getElementById('fence-edit-id').value;
+      var zKey = document.getElementById('fence-zone-select').value;
+      var fName = document.getElementById('fence-name-input').value.trim();
+      var dStaff = document.getElementById('fence-default-staff').value;
+
+      if (!fencesData[zKey]) fencesData[zKey] = [];
+
+      if (editId) {
+        var idx = fencesData[zKey].findIndex(function(f) { return f.id === editId; });
+        if (idx >= 0) {
+          fencesData[zKey][idx].name = fName;
+          fencesData[zKey][idx].defaultStaff = dStaff;
+        }
+      } else {
+        var newId = zKey + '_' + String(fencesData[zKey].length + 1).padStart(2, '0');
+        fencesData[zKey].push({ id: newId, name: fName, defaultStaff: dStaff });
+      }
+
+      localStorage.setItem('MIA_FENCES_DATA_CLEAN', JSON.stringify(fencesData));
+      callBackend('syncFences', { fencesJSON: JSON.stringify(fencesData) });
+      document.getElementById('fence-edit-id').value = '';
+      document.getElementById('fence-name-input').value = '';
+      document.getElementById('fence-submit-btn').textContent = '➕ 新增圍欄';
+
+      renderFencesManagementTable();
+      renderAssignmentsGrid();
+      renderProgressCards(currentZone);
+      onCountsZoneChange(document.getElementById('cnt-zone').value);
+      alert('✅ 圍欄已成功儲存並同步至雲端！');
+    }
+
+    function editCustomFence(zKey, fId) {
+      var f = (fencesData[zKey] || []).find(function(item) { return item.id === fId; });
+      if (!f) return;
+      document.getElementById('fence-edit-id').value = f.id;
+      document.getElementById('fence-zone-select').value = zKey;
+      document.getElementById('fence-name-input').value = f.name;
+      document.getElementById('fence-default-staff').value = f.defaultStaff || '';
+      document.getElementById('fence-submit-btn').textContent = '🔄 更新圍欄';
+    }
+
+    function deleteCustomFence(zKey, fId) {
+      if (confirm('確定刪除此圍欄嗎？')) {
+        fencesData[zKey] = fencesData[zKey].filter(function(f) { return f.id !== fId; });
+        localStorage.setItem('MIA_FENCES_DATA_CLEAN', JSON.stringify(fencesData));
+        callBackend('syncFences', { fencesJSON: JSON.stringify(fencesData) });
+        renderFencesManagementTable();
+        renderAssignmentsGrid();
+        renderProgressCards(currentZone);
+        onCountsZoneChange(document.getElementById('cnt-zone').value);
+      }
+    }
+
+    function renderFencesManagementTable() {
+      var tbody = document.getElementById('fencesManagementTableBody');
+      if (!tbody) return;
+      var zoneNames = { SKW: '東區 (SKW)', KTLG: '觀塘麗港城', KTIND: '觀塘工商區', ST: '沙田 (ST-F58)' };
+      var html = '';
+
+      ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(function(zKey) {
+        (fencesData[zKey] || []).forEach(function(f) {
+          html += '<tr class="hover:bg-slate-50 text-[11px]">' +
+            '<td class="p-2.5 font-bold text-slate-900">' + zoneNames[zKey] + '</td>' +
+            '<td class="p-2.5 font-mono text-slate-500">' + f.id + '</td>' +
+            '<td class="p-2.5 font-black text-blue-900">' + f.name + '</td>' +
+            '<td class="p-2.5 font-bold text-emerald-800">' + (f.defaultStaff || '未設定') + '</td>' +
+            '<td class="p-2.5 text-center">' +
+              '<button type="button" onclick="editCustomFence(\'' + zKey + '\', \'' + f.id + '\')" class="px-2 py-0.5 bg-slate-800 text-white rounded text-[10px] font-bold mr-1 cursor-pointer">編輯</button>' +
+              '<button type="button" onclick="deleteCustomFence(\'' + zKey + '\', \'' + f.id + '\')" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' +
+            '</td>' +
+          '</tr>';
+        });
+      });
+
+      tbody.innerHTML = html || '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無圍欄數據。</td></tr>';
+    }
+
+    function renderStaffList() {
+      var tbody = document.getElementById('staffListTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = accounts.map(function(a, idx) {
+        var pr = a.prices || { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 };
+        return '<tr class="hover:bg-slate-50 text-[11px]">' +
+          '<td class="p-2.5 font-mono font-bold text-blue-700">' + a.id + '</td>' +
+          '<td class="p-2.5 font-bold text-slate-900">' + a.name + '</td>' +
+          '<td class="p-2.5 font-bold">' + a.role + ' (' + a.team + ')</td>' +
+          '<td class="p-2.5">' + a.cycle + '</td>' +
+          '<td class="p-2.5 font-mono text-slate-500">' + a.pwd + '</td>' +
+          '<td class="p-2.5 font-mono font-bold text-emerald-700">東:' + pr.east + ' / 麗:' + pr.ktlg + ' / 工:' + pr.ktind + ' / 沙:' + pr.st + '</td>' +
+          '<td class="p-2.5 text-center">' +
+            '<button type="button" onclick="editStaffAccount(\'' + a.id + '\')" class="text-blue-600 font-bold hover:underline cursor-pointer mr-2">編輯</button>' +
+            (a.name !== 'Mia' ? '<button type="button" onclick="accounts.splice(' + idx + ',1);localStorage.setItem(\'MIA_ACCOUNTS_CLEAN\',JSON.stringify(accounts));renderStaffList();populateUserSelects();callBackend(\'syncAccounts\', {accountsJSON: JSON.stringify(accounts)});" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' : '') +
+          '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function autoGenerateStaffId() {
+      var editIdEl = document.getElementById('form-staff-edit-id');
+      if (editIdEl && editIdEl.value) return;
+      var teamEl = document.getElementById('form-staff-team');
+      if (!teamEl) return;
+      var team = teamEl.value.replace('隊', '');
+      var existingTeam = accounts.filter(function(a) { return a.team.includes(team); });
+      var maxNum = existingTeam.reduce(function(max, a) {
+        var num = parseInt(a.id.replace(/[^0-9]/g, '')) || 0;
+        return num > max ? num : max;
+      }, 0);
+      var idEl = document.getElementById('form-staff-id');
+      if (idEl) idEl.value = team + '-' + String(maxNum + 1).padStart(2, '0');
+    }
+
+    function resetStaffForm() {
+      document.getElementById('form-staff-edit-id').value = '';
+      document.getElementById('form-staff-name').value = '';
+      document.getElementById('form-staff-pwd').value = '123';
+      document.getElementById('form-staff-submit-btn').textContent = '💾 儲存人員/帳號資料';
+      autoGenerateStaffId();
+    }
+
+    function editStaffAccount(id) {
+      var u = accounts.find(function(a) { return a.id === id; });
+      if (!u) return;
+      document.getElementById('form-staff-edit-id').value = u.id;
+      document.getElementById('form-staff-id').value = u.id;
+      document.getElementById('form-staff-name').value = u.name;
+      document.getElementById('form-staff-team').value = u.team.includes('隊') ? u.team : u.team + '隊';
+      document.getElementById('form-staff-role').value = u.role || '全職步兵';
+      document.getElementById('form-staff-cycle').value = u.cycle || '半月糧';
+      document.getElementById('form-staff-pwd').value = u.pwd || '123';
+      document.getElementById('form-price-east').value = (u.prices && u.prices.east) || 4.0;
+      document.getElementById('form-price-ktlg').value = (u.prices && u.prices.ktlg) || 4.0;
+      document.getElementById('form-price-ktind').value = (u.prices && u.prices.ktind) || 4.5;
+      document.getElementById('form-price-st').value = (u.prices && u.prices.st) || 7.0;
+      document.getElementById('form-staff-submit-btn').textContent = '🔄 更新人員/帳號資料';
+    }
+
+    function saveStaffAccountForm(e) {
+      e.preventDefault();
+      var editId = document.getElementById('form-staff-edit-id').value;
+      var sId = document.getElementById('form-staff-id').value;
+      var sName = document.getElementById('form-staff-name').value.trim();
+      var sTeam = document.getElementById('form-staff-team').value;
+      var sRole = document.getElementById('form-staff-role').value;
+      var sCycle = document.getElementById('form-staff-cycle').value;
+      var sPwd = document.getElementById('form-staff-pwd').value.trim();
+      var pEast = Number(document.getElementById('form-price-east').value) || 4.0;
+      var pKtLg = Number(document.getElementById('form-price-ktlg').value) || 4.0;
+      var pKtInd = Number(document.getElementById('form-price-ktind').value) || 4.5;
+      var pSt = Number(document.getElementById('form-price-st').value) || 7.0;
+
+      if (editId) {
+        var idx = accounts.findIndex(function(a) { return a.id === editId; });
+        if (idx >= 0) accounts[idx] = { id: editId, name: sName, team: sTeam, role: sRole, cycle: sCycle, pwd: sPwd, prices: { east: pEast, ktlg: pKtLg, ktind: pKtInd, st: pSt } };
+      } else {
+        accounts.push({ id: sId, name: sName, team: sTeam, role: sRole, cycle: sCycle, pwd: sPwd, prices: { east: pEast, ktlg: pKtLg, ktind: pKtInd, st: pSt } });
+      }
+
+      localStorage.setItem('MIA_ACCOUNTS_CLEAN', JSON.stringify(accounts));
+      callBackend('syncAccounts', { accountsJSON: JSON.stringify(accounts) });
+      resetStaffForm();
+      renderStaffList();
+      populateUserSelects();
+      alert('✅ 人員資料已成功儲存並同步至雲端！');
+    }
+
+    function renderProfitSummary() {
+      var totPcs = dailyReports.reduce(function(s, r) { return s + (Number(r.totalPieces) || 0); }, 0);
+      var totWages = dailyReports.reduce(function(s, r) { return s + (Number(r.finalSalary) || 0); }, 0);
+      var totAllow = dailyReports.reduce(function(s, r) { return s + (Number(r.carAllowance) || 0); }, 0);
+      var totSupplies = suppliesList.reduce(function(s, sup) { return s + (Number(sup.amount) || 0); }, 0);
+      var totComp = ticketsList.reduce(function(s, t) { return s + (Number(t.compensation) || 0); }, 0);
+      var totFines = violationsList.reduce(function(s, v) { return s + (Number(v.amount) || 0); }, 0) + ticketsList.reduce(function(s, t) { return s + (Number(t.fine) || 0); }, 0);
+
+      var revEast = dailyReports.reduce(function(s, r) { return s + ((r.eastCount||0)*5.5); }, 0);
+      var revKtLg = dailyReports.reduce(function(s, r) { return s + ((r.ktLgCount||0)*5.5); }, 0);
+      var revKtInd = dailyReports.reduce(function(s, r) { return s + ((r.ktIndCount||0)*6.0); }, 0);
+      var revSt = dailyReports.reduce(function(s, r) { return s + ((r.stCount||0)*9.0); }, 0);
+      var totalRevenue = revEast + revKtLg + revKtInd + revSt;
+
+      var totalExpenses = totWages + totSupplies + totComp;
+      var netProfit = totalRevenue - totalExpenses + totFines;
+
+      if (document.getElementById('profit-stat-revenue')) document.getElementById('profit-stat-revenue').textContent = 'HK$ ' + totalRevenue.toFixed(2);
+      if (document.getElementById('profit-stat-pcs')) document.getElementById('profit-stat-pcs').textContent = totPcs;
+      if (document.getElementById('profit-stat-wages')) document.getElementById('profit-stat-wages').textContent = 'HK$ ' + totWages.toFixed(2);
+      if (document.getElementById('profit-stat-expenses')) document.getElementById('profit-stat-expenses').textContent = 'HK$ ' + (totSupplies + totAllow + totComp).toFixed(2);
+      if (document.getElementById('profit-stat-net')) document.getElementById('profit-stat-net').textContent = 'HK$ ' + netProfit.toFixed(2);
+
+      if (document.getElementById('profit-detail-east')) document.getElementById('profit-detail-east').textContent = 'HK$ ' + revEast.toFixed(2);
+      if (document.getElementById('profit-detail-ktlg')) document.getElementById('profit-detail-ktlg').textContent = 'HK$ ' + revKtLg.toFixed(2);
+      if (document.getElementById('profit-detail-ktind')) document.getElementById('profit-detail-ktind').textContent = 'HK$ ' + revKtInd.toFixed(2);
+      if (document.getElementById('profit-detail-st')) document.getElementById('profit-detail-st').textContent = 'HK$ ' + revSt.toFixed(2);
+      if (document.getElementById('profit-detail-allowance')) document.getElementById('profit-detail-allowance').textContent = 'HK$ ' + totAllow.toFixed(2);
+      if (document.getElementById('profit-detail-supplies')) document.getElementById('profit-detail-supplies').textContent = 'HK$ ' + totSupplies.toFixed(2);
+      if (document.getElementById('profit-detail-compensation')) document.getElementById('profit-detail-compensation').textContent = 'HK$ ' + totComp.toFixed(2);
+      if (document.getElementById('profit-detail-fines')) document.getElementById('profit-detail-fines').textContent = 'HK$ ' + totFines.toFixed(2);
+    }
+
+    function saveNewViolationRecord(e) {
+      e.preventDefault();
+      var payload = {
+        date: document.getElementById('vio-date').value,
+        staff: document.getElementById('vio-staff-select').value,
+        zone: document.getElementById('vio-zone').value,
+        type: document.getElementById('vio-type').value,
+        amount: Number(document.getElementById('vio-amount').value) || 0,
+        desc: document.getElementById('vio-desc').value.trim()
+      };
+      violationsList.unshift(payload);
+      localStorage.setItem('MIA_VIOLATIONS_CLEAN', JSON.stringify(violationsList));
+      alert('✅ 現場違規已登記！');
+      renderViolationsTable();
+      renderLeaderboard();
+      renderProfitSummary();
+    }
+
+    function renderViolationsTable() {
+      var tbody = document.getElementById('violationsTableBody');
+      if (!tbody) return;
+      var isAdmin = (currentRole === '總管理員' || currentRole === 'Admin' || currentUser === 'Mia');
+      var filtered = isAdmin ? violationsList : violationsList.filter(function(v) { return v.staff === currentUser; });
+
+      tbody.innerHTML = filtered.map(function(v, idx) {
+        return '<tr class="hover:bg-slate-50 text-[11px]">' +
+          '<td class="p-2.5 font-mono">' + v.date + '</td>' +
+          '<td class="p-2.5 font-bold text-slate-900">' + v.staff + '</td>' +
+          '<td class="p-2.5">' + v.zone + '</td>' +
+          '<td class="p-2.5 font-bold text-rose-700">' + v.type + '</td>' +
+          '<td class="p-2.5 text-right font-black font-mono text-rose-600">HK$ ' + v.amount + '</td>' +
+          '<td class="p-2.5 text-slate-600">' + (v.desc || '-') + '</td>' +
+          '<td class="p-2.5 text-center"><button type="button" onclick="violationsList.splice(' + idx + ',1);localStorage.setItem(\'MIA_VIOLATIONS_CLEAN\',JSON.stringify(violationsList));renderViolationsTable();renderLeaderboard();renderProfitSummary();" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button></td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="7" class="p-4 text-center text-slate-400">目前無現場違規登記。</td></tr>';
+    }
+
+    function saveTruckEntry(e) {
+      e.preventDefault();
+      trucksList.unshift({
+        date: document.getElementById('truck-date').value,
+        driver: document.getElementById('truck-driver').value,
+        trip: document.getElementById('truck-trip').value,
+        route: document.getElementById('truck-route').value.trim()
+      });
+      localStorage.setItem('MIA_TRUCKS_CLEAN', JSON.stringify(trucksList));
+      renderTruckTable();
+      alert('✅ 司機車線已登記！');
+    }
+    function renderTruckTable() {
+      var tbody = document.getElementById('truckTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = trucksList.map(function(t, idx) {
+        return '<tr class="hover:bg-slate-50 text-[11px]"><td class="p-2.5 font-mono">' + t.date + '</td><td class="p-2.5 font-bold text-blue-900">' + t.driver + '</td><td class="p-2.5 font-bold text-emerald-700">' + t.trip + '</td><td class="p-2.5">' + t.route + '</td><td class="p-2.5 text-center"><button type="button" onclick="trucksList.splice(' + idx + ',1);localStorage.setItem(\'MIA_TRUCKS_CLEAN\',JSON.stringify(trucksList));renderTruckTable();" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button></td></tr>';
+      }).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無司機車線調度記錄。</td></tr>';
+    }
+
+    function saveSupplyEntry(e) {
+      e.preventDefault();
+      suppliesList.unshift({
+        date: document.getElementById('sup-date').value,
+        item: document.getElementById('sup-item').value,
+        qty: Number(document.getElementById('sup-qty').value) || 1,
+        amount: Number(document.getElementById('sup-amount').value) || 0,
+        buyer: document.getElementById('sup-buyer').value.trim() || 'Mia'
+      });
+      localStorage.setItem('MIA_SUPPLIES_CLEAN', JSON.stringify(suppliesList));
+      renderSuppliesTable();
+      renderProfitSummary();
+      alert('✅ 物資採購已登記！');
+    }
+    function renderSuppliesTable() {
+      var tbody = document.getElementById('suppliesTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = suppliesList.map(function(s, idx) {
+        return '<tr class="hover:bg-slate-50 text-[11px]"><td class="p-2.5 font-mono">' + s.date + '</td><td class="p-2.5 font-bold">' + s.item + '</td><td class="p-2.5 text-center font-bold">' + s.qty + '</td><td class="p-2.5 text-right font-black text-rose-600 font-mono">HK$ ' + s.amount + '</td><td class="p-2.5">' + (s.buyer || '-') + '</td><td class="p-2.5 text-center"><button type="button" onclick="suppliesList.splice(' + idx + ',1);localStorage.setItem(\'MIA_SUPPLIES_CLEAN\',JSON.stringify(suppliesList));renderSuppliesTable();renderProfitSummary();" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button></td></tr>';
+      }).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">目前無物資採購記錄。</td></tr>';
+    }
+
+    function saveRecruitEntry(e) {
+      e.preventDefault();
+      recruitsList.unshift({
+        date: document.getElementById('rec-date').value,
+        name: document.getElementById('rec-name').value.trim(),
+        phone: document.getElementById('rec-phone').value.trim() || '-',
+        zone: document.getElementById('rec-zone').value,
+        status: document.getElementById('rec-status').value
+      });
+      localStorage.setItem('MIA_RECRUITS_CLEAN', JSON.stringify(recruitsList));
+      renderRecruitsTable();
+      alert('✅ 預約新人已登記！');
+    }
+    function renderRecruitsTable() {
+      var tbody = document.getElementById('recruitsTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = recruitsList.map(function(r, idx) {
+        return '<tr class="hover:bg-slate-50 text-[11px]"><td class="p-2.5 font-mono">' + r.date + '</td><td class="p-2.5 font-bold text-slate-900">' + r.name + '</td><td class="p-2.5 font-mono">' + (r.phone || '-') + '</td><td class="p-2.5">' + r.zone + '</td><td class="p-2.5 text-center"><span class="px-1.5 py-0.5 rounded font-bold bg-blue-100 text-blue-800">' + r.status + '</span></td><td class="p-2.5 text-center"><button type="button" onclick="recruitsList.splice(' + idx + ',1);localStorage.setItem(\'MIA_RECRUITS_CLEAN\',JSON.stringify(recruitsList));renderRecruitsTable();" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button></td></tr>';
+      }).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">目前無預約新人記錄。</td></tr>';
+    }
+
+    function viewLargeImage(src) {
+      if (!src) return;
+      document.getElementById('image-viewer-src').src = src;
+      document.getElementById('image-viewer-modal').classList.add('active');
+    }
+
+    function closeLargeImage() {
+      document.getElementById('image-viewer-modal').classList.remove('active');
+    }
+
+    function handleImageFileSelect(e, previewId, dataId) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(evt) {
+        var base64 = evt.target.result;
+        document.getElementById(dataId).value = base64;
+        var p = document.getElementById(previewId);
+        p.src = base64;
+        p.classList.remove('hidden');
+        var t = document.getElementById(previewId.replace('Preview', 'Text'));
+        if (t) t.textContent = '相片已選取';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // 🌐 雲端雙向刷新與資料對應引擎 (Data Mapping)
     async function syncAllFromCloud() {
       var syncBadge = document.getElementById('sync-status');
-      if (syncBadge) syncBadge.textContent = '🔄 正在同步雲端...';
+      if (syncBadge) syncBadge.textContent = '🔄 正在同步雲端最新數據...';
 
       var res = await callBackend('loadAll');
       if (res && res.status === 'success' && res.data) {
