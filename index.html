@@ -840,7 +840,7 @@
       </div>
     </div>
 
-    <!-- 15. 匯出中心 (全功能快捷匯出按鈕) -->
+    <!-- 15. 匯出中心 -->
     <div id="tab-export" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex flex-wrap justify-between items-center gap-2">
@@ -895,7 +895,7 @@
     </div>
   </div>
 
-  <!-- ================= 核心 JavaScript (所有入口匯出全開 + 永久保護) ================= -->
+  <!-- ================= 核心 JavaScript ================= -->
   <script>
     var currentUser = 'Mia';
     var currentRole = 'Admin';
@@ -1460,7 +1460,7 @@
       if (zone.indexOf('工商') > -1) zKey = 'KTIND';
       if (zone.indexOf('沙田') > -1) zKey = 'ST';
 
-      var fences = (fencesData && fencesData[zKey]) ? fencesData[zKey] : [];
+      var fences = (fencesData && fencesData[zKey]) ? fencesData[zKey] : (defaultFencesData[zKey] || []);
       fenceSel.innerHTML = fences.map(function(f) { return '<option value="' + f.name + '">' + f.name + '</option>'; }).join('');
     }
 
@@ -1847,7 +1847,7 @@
       }).join('');
     }
 
-    // ================= 匯出模組 (所有入口全面開通) =================
+    // ================= 匯出模組 (工作進度剔除英文 + 7大選項優先完整輸出) =================
     function quickExportText(type) {
       showTab('tab-export');
       generateExportText(type);
@@ -1856,6 +1856,29 @@
     function generateExportText(type) {
       var area = document.getElementById('universal-export-textarea');
       if (!area) return;
+
+      if (type === 'progress') {
+        var txtPr = '========================================\n⏱️ 各區圍欄實時工作進度與完成度日報\n========================================\n\n';
+        var zNamesChinese = { SKW: '【東區進度】', KTLG: '【觀塘麗港城進度】', KTIND: '【觀塘工商區進度】', ST: '【沙田區進度】' };
+        
+        ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(function(z) {
+          var fences = fencesData[z] || [];
+          if (fences.length > 0) {
+            txtPr += zNamesChinese[z] + '\n';
+            fences.forEach(function(f) {
+              var p = progressRecord[f.id] || { completionStatus: '⏳ 未開始/貨未到齊', signed: 0, refund: 0, hold: 0, isCleaned: '未清場' };
+              var statusClean = p.completionStatus || '⏳ 未開始/貨未到齊';
+              var cleanStatusText = (p.isCleaned === '已清場') ? '已清場' : '未清場';
+              
+              txtPr += '・' + f.name + '\n' +
+                       '   狀態：' + statusClean + '\n' +
+                       '   數據：簽收 ' + p.signed + ' 件 | 退款 ' + p.refund + ' 件 | 滯留 ' + p.hold + ' 件 (' + cleanStatusText + ')\n';
+            });
+            txtPr += '\n';
+          }
+        });
+        area.value = txtPr;
+      }
 
       if (type === 'schedule') {
         var txt = '========================================\n📅 Mia組 14天公仔報更總表 (WhatsApp 備份)\n========================================\n\n';
@@ -1892,20 +1915,6 @@
           txtA += '\n';
         });
         area.value = txtA;
-      }
-
-      if (type === 'progress') {
-        var txtPr = '========================================\n⏱️ 各區工作進度與完成度日報表\n========================================\n\n';
-        var zNames2 = { SKW: '東區', KTLG: '觀塘麗港城', KTIND: '觀塘工商', ST: '沙田' };
-        ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(function(z) {
-          txtPr += '【' + zNames2[z] + '進度】\n';
-          (fencesData[z] || []).forEach(function(f) {
-            var p = progressRecord[f.id] || { completionStatus: '⏳ 未開始', signed: 0, refund: 0, hold: 0, isCleaned: '未清場' };
-            txtPr += '  ・' + f.name + ': ' + p.completionStatus + ' | 簽收:' + p.signed + ' | 退款:' + p.refund + ' | 滯留:' + p.hold + ' (' + p.isCleaned + ')\n';
-          });
-          txtPr += '\n';
-        });
-        area.value = txtPr;
       }
 
       if (type === 'tickets') {
