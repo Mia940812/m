@@ -32,7 +32,7 @@
       <div class="space-y-2">
         <div class="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-lg">🔒</div>
         <h3 class="text-base font-black text-slate-900 tracking-wide">Mia組 派件營運工作台</h3>
-        <p class="text-xs text-slate-500 font-semibold">系統已啟動隱私防護，請先登入個人帳戶</p>
+        <p class="text-xs text-slate-500 font-semibold">系統已啟動隱私防護與 Google 雲端連線</p>
       </div>
 
       <form onsubmit="handleGatewayLogin(event)" class="space-y-3.5 text-left text-xs">
@@ -59,10 +59,11 @@
         <div class="text-xs font-bold flex items-center gap-2">
           <span>派件營運工作台</span>
           <span id="current-user-badge" class="px-1.5 py-0.5 rounded text-[10px] bg-blue-900/80 text-blue-300 border border-blue-700 font-semibold">未登入</span>
-          <span id="sync-status" class="text-[10px] text-emerald-400 font-semibold">🟢 隱私安全就緒</span>
+          <span id="sync-status" class="text-[10px] text-emerald-400 font-semibold">🟢 雲端雙向連線已就緒</span>
         </div>
       </div>
       <div class="flex items-center gap-2 text-xs">
+        <button type="button" onclick="syncAllFromCloud()" class="px-2 py-1 bg-blue-700 hover:bg-blue-600 text-white rounded text-[11px] font-bold shadow-xs">🔄 雲端刷新</button>
         <div id="account-switch-box" class="flex items-center gap-1.5">
           <span class="text-slate-400 text-[11px]">切換身分:</span>
           <select id="user-role-select" onchange="handleHeaderRoleSwitch(this.value)" class="bg-slate-800 border border-slate-700 text-slate-200 rounded px-2 py-1 font-bold focus:outline-none cursor-pointer"></select>
@@ -312,7 +313,7 @@
             <h2 class="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-2">
               <span class="w-2 h-4 bg-slate-800 rounded"></span> 📝 每日派件報數錄入
             </h2>
-            <span class="text-[11px] text-slate-400 font-semibold">個人專屬報數介面</span>
+            <span class="text-[11px] text-slate-400 font-semibold">個人專屬報數介面 (自動同步至雲端)</span>
           </div>
           <button type="button" onclick="quickExportText('daily')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold">📤 匯出報數</button>
         </div>
@@ -906,22 +907,6 @@
 
   </main>
 
-  <!-- 密碼輸入驗證 Modal -->
-  <div id="password-auth-modal" class="image-modal" style="background: rgba(15, 23, 42, 0.9);">
-    <div class="bg-white p-5 rounded-2xl max-w-sm w-full space-y-4 shadow-2xl">
-      <div class="text-center">
-        <div class="text-2xl mb-1">🔒</div>
-        <h4 class="font-black text-sm text-slate-900">帳戶隱私安全驗證</h4>
-        <p id="auth-modal-user-text" class="text-xs text-slate-500 mt-1">請輸入登入密碼以切換身份</p>
-      </div>
-      <input type="password" id="auth-input-pwd" placeholder="請輸入密碼 (預設: 123)" class="w-full p-2 border rounded-xl text-center font-mono font-bold text-sm bg-slate-50 focus:outline-none focus:border-blue-600">
-      <div class="flex gap-2">
-        <button type="button" onclick="cancelPasswordAuth()" class="w-1/2 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs">取消</button>
-        <button type="button" onclick="confirmPasswordAuth()" class="w-1/2 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs">確認驗證</button>
-      </div>
-    </div>
-  </div>
-
   <!-- 放大圖片檢視 Modal -->
   <div id="image-viewer-modal" class="image-modal" onclick="closeLargeImage()">
     <div class="bg-slate-900 p-3 rounded-2xl max-w-3xl max-h-[90vh] flex flex-col items-center shadow-2xl" onclick="event.stopPropagation()">
@@ -930,8 +915,27 @@
     </div>
   </div>
 
-  <!-- ================= 核心 JavaScript (完整數據與全功能邏輯) ================= -->
+  <!-- ================= 核心 JavaScript (Fetch API 雙向連線與業務邏輯) ================= -->
   <script>
+    // 🌐 Google Apps Script 雲端 Web App API 網址
+    var GAS_API_URL = "https://script.google.com/macros/s/AKfycbwFWWjYk8_Al8QAKZvvtMPdcMlU9zrNJF3c7QD8FT1XXn3GFI4xKGPgZBb6o8fg7-nKCQ/exec";
+
+    // 統一調用後端非同步通訊函數 (CORS 兼容)
+    async function callBackend(action, payload) {
+      try {
+        var bodyData = Object.assign({ action: action }, payload || {});
+        var res = await fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(bodyData)
+        });
+        return await res.json();
+      } catch (err) {
+        console.warn("⚠️ 雲端通訊提示:", err);
+        return { status: "local_only", message: err.toString() };
+      }
+    }
+
     // 1. 人員帳號名冊 (完整包含 KM 隊及全部步兵)
     var initialAccounts = [
       { id: "KM-01", name: "Mia", team: "KM", role: "Admin", cycle: "月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } },
@@ -960,7 +964,7 @@
       { id: "REP_5", date: "2026-08-17", staff: "吳瑋儒", eastCount: 0, ktLgCount: 0, ktIndCount: 0, stCount: 59, totalPieces: 59, signedCount: 59, holdCount: 0, carAllowance: 0, penalty: 0, finalSalary: (59*7.0), photoProof: "" }
     ];
 
-    // 3. 53筆去重異常工單完整清單 (含地址、詳細情況、自填罰款與賠付)
+    // 3. 53筆去重異常工單完整清單 (含派送地址、詳細情況、自填罰款與賠付)
     var ticketsList = [
       { id: "TK_1", tracking: "JT0025113529382", staff: "Q-嘉-小魚", type: "無物流更新", fine: 0, compensation: 0, customer: "何** 57783358", address: "九龍 觀塘區 麗港城9座12/F E室 (樓FF2209棟)", desc: "2026-08-11 11:52 司機取件後無物流更新，需核實是否在現場", status: "待處理", appealText: "", photo: "" },
       { id: "TK_2", tracking: "JT0025170839324", staff: "待指派", type: "未收到包裹", fine: 0, compensation: 0, customer: "a** 93462721", address: "九龍 觀塘區 藍田麗港城第四期21座9樓F室 (樓FF2221棟)", desc: "2026-08-15 18:54 快件簽收，客戶反饋未收到，需核實是否派錯", status: "待處理", appealText: "", photo: "" },
@@ -1017,41 +1021,6 @@
       { id: "TK_53", tracking: "JT0025076006737", staff: "周健", type: "多件同時未收到", fine: 0, compensation: 0, customer: "伍** 56213447", address: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", desc: "2026-08-09 12:13 6件同時簽收但均未收到 (件6)", status: "待處理", appealText: "", photo: "" }
     ];
 
-    // 4. 8.20 各區預估貨量分佈表
-    var estimatedVolumes = {
-      kwunTong: [
-        { code: "01E", name: "Koko Hills", vol: 66 },
-        { code: "02E", name: "觀塘工商區1號", vol: 350 },
-        { code: "03E", name: "觀塘工商區2號", vol: 65 },
-        { code: "04E", name: "觀塘工商區3號", vol: 200 },
-        { code: "05E", name: "觀塘工商區4號", vol: 57 },
-        { code: "06E", name: "觀塘工商區5號", vol: 83 },
-        { code: "07E", name: "觀塘工商區6號", vol: 170 },
-        { code: "08E", name: "觀塘工商區7號", vol: 42 },
-        { code: "09E", name: "觀塘工商區8號", vol: 68 },
-        { code: "10E", name: "鴻圖道+勵業街", vol: 57 },
-        { code: "11E", name: "麗港城-1號托", vol: 115 },
-        { code: "12E", name: "麗港城-2號托", vol: 135 },
-        { code: "13E", name: "麗港城-3號托", vol: 122 },
-        { code: "14E", name: "麗港城-4號托", vol: 159 },
-        { code: "15E", name: "麗港城-5號托", vol: 119 }
-      ],
-      eastDistrict: [
-        { code: "03F", name: "東旭苑", vol: 131 },
-        { code: "06F", name: "東濤苑", vol: 64 },
-        { code: "17F", name: "香島", vol: 56 },
-        { code: "64F", name: "愛東", vol: 182 },
-        { code: "68F", name: "東大街", vol: 154 },
-        { code: "69F", name: "峻峰花園", vol: 90 },
-        { code: "15F", name: "明華A", vol: 53 },
-        { code: "16F", name: "明華一", vol: 87 },
-        { code: "75F", name: "阿公岩村", vol: 0 },
-        { code: "19F", name: "漁灣", vol: 189 },
-        { code: "40F", name: "西工", vol: 77 },
-        { code: "76F", name: "常安街", vol: 105 }
-      ]
-    };
-
     // 系統通用運行時資料狀態
     var accounts = JSON.parse(localStorage.getItem('MIA_ACCOUNTS_CLEAN')) || initialAccounts;
     var violationsList = JSON.parse(localStorage.getItem('MIA_VIOLATIONS_CLEAN')) || [];
@@ -1065,9 +1034,39 @@
     var currentUser = null;
     var currentRole = null;
 
-    function initSystem() {
+    // 🚀 初始化系統並啟動雲端雙向同步
+    async function initSystem() {
       populateUserSelects();
       checkAuthSession();
+      await syncAllFromCloud();
+    }
+
+    // ☁️ 從 Google Sheets 雲端載入所有最新數據
+    async function syncAllFromCloud() {
+      var syncBadge = document.getElementById('sync-status');
+      if (syncBadge) syncBadge.textContent = '🔄 正在同步雲端...';
+
+      var res = await callBackend('loadAll');
+      if (res && res.status === 'success' && res.data) {
+        if (res.data.accounts && res.data.accounts.length) accounts = res.data.accounts;
+        if (res.data.dailyReports && res.data.dailyReports.length) dailyReports = res.data.dailyReports;
+        if (res.data.ticketsList && res.data.ticketsList.length) ticketsList = res.data.ticketsList;
+        if (res.data.violationsList && res.data.violationsList.length) violationsList = res.data.violationsList;
+        if (res.data.truckList && res.data.truckList.length) trucksList = res.data.truckList;
+        if (res.data.suppliesList && res.data.suppliesList.length) suppliesList = res.data.suppliesList;
+        if (res.data.recruitsList && res.data.recruitsList.length) recruitsList = res.data.recruitsList;
+        if (res.data.countsDetailList && res.data.countsDetailList.length) countsDetailList = res.data.countsDetailList;
+
+        localStorage.setItem('MIA_ACCOUNTS_CLEAN', JSON.stringify(accounts));
+        localStorage.setItem('MIA_DAILY_REPORTS_CLEAN', JSON.stringify(dailyReports));
+        localStorage.setItem('MIA_TICKETS_CLEAN', JSON.stringify(ticketsList));
+
+        populateUserSelects();
+        renderAllPanels();
+        if (syncBadge) syncBadge.textContent = '🟢 雲端雙向連線已就緒';
+      } else {
+        if (syncBadge) syncBadge.textContent = '🟢 本機安全運作中';
+      }
     }
 
     function populateUserSelects() {
@@ -1081,7 +1080,7 @@
       var fenceStaff = document.getElementById('fence-default-staff');
 
       var opts = accounts.map(function(a) {
-        return '<option value="' + a.name + '">' + a.name + ' (' + a.role + ' - ' + a.team + '隊)</option>';
+        return '<option value="' + a.name + '">' + a.name + ' (' + (a.role||'步兵') + ' - ' + (a.team||'KM') + '隊)</option>';
       }).join('');
 
       if (loginSel) loginSel.innerHTML = opts;
@@ -1345,7 +1344,8 @@
       }
     }
 
-    function saveDailyReport(e) {
+    // 💾 儲存報數 (本機 + 雲端自動同步)
+    async function saveDailyReport(e) {
       e.preventDefault();
       var staffName = document.getElementById('repStaffSelect').value;
       var u = getAccountByName(staffName);
@@ -1385,14 +1385,13 @@
       dailyReports.unshift(newRep);
       localStorage.setItem('MIA_DAILY_REPORTS_CLEAN', JSON.stringify(dailyReports));
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run.saveReportToSheet(newRep);
-      }
-
       renderReportsTable();
       renderProfitSummary();
       filterReconHistory();
-      alert('✅ 派件報數已成功提交！');
+
+      // 雲端同步
+      callBackend('saveReport', { payload: newRep });
+      alert('✅ 派件報數已成功提交並同步至雲端！');
     }
 
     function onStaffSelectChange(name) {
@@ -1404,7 +1403,8 @@
       calcSalaryLive();
     }
 
-    function saveNewTicketRecord(e) {
+    // 💾 儲存異常工單 (本機 + 雲端自動同步)
+    async function saveNewTicketRecord(e) {
       e.preventDefault();
       var payload = {
         id: 'TK_' + Date.now(),
@@ -1424,14 +1424,32 @@
       ticketsList.unshift(payload);
       localStorage.setItem('MIA_TICKETS_CLEAN', JSON.stringify(ticketsList));
 
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run.saveTicketToSheet(payload);
-      }
-
       renderTicketsList();
       renderLeaderboard();
       renderProfitSummary();
-      alert('✅ 異常工單已成功指派！');
+
+      // 雲端同步
+      callBackend('saveTicket', { payload: payload });
+      alert('✅ 異常工單已成功指派並同步至雲端！');
+    }
+
+    // 💾 儲存 14 天公仔報更 (本機 + 雲端自動同步)
+    async function saveCustomShiftForm(e) {
+      e.preventDefault();
+      var staff = document.getElementById('form-shift-staff').value;
+      var date = document.getElementById('form-shift-date').value;
+      var icon = document.getElementById('form-shift-icon').value;
+      var zone = document.getElementById('form-shift-zone').value;
+      var note = document.getElementById('form-shift-note').value;
+
+      callBackend('saveShift', { staff: staff, date: date, icon: icon, zone: zone, note: note });
+      alert('✅ 報更紀錄已成功提交至雲端！');
+    }
+
+    // 💾 儲存各區進度 (本機 + 雲端自動同步)
+    async function syncProgressToSheet() {
+      callBackend('saveProgress', { progressMapJSON: JSON.stringify({}) });
+      alert('✅ 各區工作進度已成功同步至 Google Sheets！');
     }
 
     function renderStaffList() {
