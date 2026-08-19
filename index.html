@@ -3,72 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mia組 - 派件營運工作台</title>
+  <title>Mia組 - 派件營運全功能工作台</title>
   <style>
-    :root { --primary: #188038; --bg: #f8f9fa; --card-bg: #ffffff; --border: #dadce0; }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: #202124; padding: 15px; }
-    .header { background: var(--card-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .auth-bar { background: #e8f0fe; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-    .nav-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px; }
-    .nav-tab { padding: 8px 14px; border: 1px solid transparent; background: var(--card-bg); border-radius: 6px; cursor: pointer; font-size: 0.9rem; border: 1px solid var(--border); }
-    .nav-tab.active { background: #e6f4ea; color: #13652c; border-color: #ceead6; font-weight: 600; }
-    .tab-content { display: none; background: var(--card-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; }
+    :root {
+      --primary: #188038;
+      --primary-dark: #13652c;
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --text: #202124;
+      --border: #dadce0;
+      --active-tab: #e6f4ea;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 12px; }
+    
+    /* 頂部 Google Sheet 風格標題列 */
+    .header { background: var(--card-bg); padding: 12px 18px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 1.25rem; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+    .pinned-notice { font-size: 0.85rem; color: #5f6368; background: #fef7e0; padding: 6px 12px; border-radius: 6px; border: 1px solid #f9ab00; }
+
+    /* 原版導航 Tabs */
+    .nav-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; background: #e8eaed; padding: 6px; border-radius: 8px; }
+    .nav-tab { padding: 8px 14px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-size: 0.88rem; font-weight: 500; color: #5f6368; transition: 0.2s; }
+    .nav-tab:hover { background: #d2d5d9; color: #202124; }
+    .nav-tab.active { background: var(--card-bg); color: var(--primary); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    
+    /* 內容區塊 */
+    .tab-content { display: none; background: var(--card-bg); padding: 16px; border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
     .tab-content.active { display: block; }
-    table { width: 100%; border-collapse: collapse; min-width: 800px; font-size: 0.88rem; }
-    th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
-    th { background: #f1f3f4; }
-    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; }
+    
+    /* 原版數據表格樣式 */
+    table { width: 100%; border-collapse: collapse; min-width: 900px; font-size: 0.86rem; }
+    th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: middle; }
+    th { background-color: #f1f3f4; font-weight: 600; color: #3c4043; white-space: nowrap; }
+    tr:nth-child(even) { background-color: #fafafa; }
+    tr:hover { background-color: #f1f8e9; }
+    
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .badge-km { background: #feefe3; color: #b06000; border: 1px solid #fedfc8; }
     .badge-ok { background: #e6f4ea; color: #137333; }
     .badge-pending { background: #fce8e6; color: #c5221f; }
+    .badge-driver { background: #e8f0fe; color: #1a73e8; }
+    
+    .amount-input { width: 75px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.85rem; }
+    .total-row { background-color: #e8f0fe !important; font-weight: bold; }
   </style>
 </head>
 <body>
 
   <div class="header">
-    <h2 style="color:var(--primary);">📦 Mia組系統工作台</h2>
-    <span id="role-display" style="font-size:0.85rem; font-weight:600; color:#5f6368;">訪客模式 (限制存取)</span>
+    <h1><span>📊</span> Mia組系統雲端數據庫</h1>
+    <div class="pinned-notice">📌 狀態未退款就照派 + 回傳照片比我覆工單 銷咗佢</div>
   </div>
 
-  <!-- 身分驗證 / 切換 -->
-  <div class="auth-bar">
-    <label><strong>切換身分：</strong></label>
-    <select id="user-select" onchange="handleAuthChange()" style="padding:4px 8px;">
-      <option value="admin">管理員 (全權限)</option>
-      <option value="盧智聰">步兵 - 盧智聰</option>
-      <option value="姜嘉敏KK">步兵 - 姜嘉敏KK</option>
-      <option value="俊華">組長 - 俊華</option>
-      <option value="吳瑋儒">步兵 - 吳瑋儒</option>
-      <option value="景鴻">步兵 - 景鴻</option>
-      <option value="周健">步兵 - 周健</option>
-      <option value="鄺家昊">步兵 - 鄺家昊</option>
-      <option value="黃傅釧">步兵 - 黃傅釧</option>
-      <option value="倪志康">步兵 - 倪志康 (KM隊)</option>
-      <option value="王利民">步兵 - 王利民 (KM隊)</option>
-      <option value="李健龍">步兵 - 李健龍 (KM隊)</option>
-    </select>
+  <!-- 原版功能入口分頁 (保留全部原有入口) -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('orders', this)">🚨 異常工單</button>
+    <button class="nav-tab" onclick="switchTab('settlement', this)">📑 每日報數 (8.17)</button>
+    <button class="nav-tab" onclick="switchTab('roster', this)">📅 14天公仔報更</button>
+    <button class="nav-tab" onclick="switchTab('volume', this)">📈 8.20 貨量預估 (觀塘/東區)</button>
+    <button class="nav-tab" onclick="switchTab('personnel', this)">👥 人員名冊 (含KM隊)</button>
+    <button class="nav-tab" onclick="switchTab('dispatch', this)">🚚 車線調度</button>
+    <button class="nav-tab" onclick="switchTab('rates', this)">💰 個別票價調整紀錄</button>
   </div>
 
-  <!-- 功能入口 -->
-  <div class="nav-tabs" id="nav-bar">
-    <button class="nav-tab active" onclick="switchTab('orders')">🚨 我的工單</button>
-    <button class="nav-tab" id="tab-btn-settlement" onclick="switchTab('settlement')">📊 每日報數</button>
-    <button class="nav-tab" onclick="switchTab('roster')">📅 我的報更</button>
-    <button class="nav-tab" id="tab-btn-volume" onclick="switchTab('volume')">📈 8.20 貨量預估</button>
-  </div>
-
-  <!-- 工單區 -->
+  <!-- 1. 異常工單 -->
   <div id="orders" class="tab-content active">
+    <h3 style="margin-bottom:12px; color:var(--primary-dark);">異常工單處理記錄 (已加添地址及詳細情形)</h3>
     <table>
       <thead>
         <tr>
           <th>運單號碼</th>
-          <th>負責人員</th>
-          <th>收件人</th>
+          <th>負責步兵 / 司機</th>
+          <th>收件人 / 電話</th>
           <th>派送地址</th>
-          <th>詳細情形</th>
-          <th class="admin-only">罰款</th>
-          <th class="admin-only">賠付</th>
+          <th>詳細情形 / 物流進度</th>
+          <th style="width:85px;">罰款金額</th>
+          <th style="width:85px;">賠付金額</th>
           <th>狀態</th>
         </tr>
       </thead>
@@ -76,117 +87,331 @@
     </table>
   </div>
 
-  <!-- 報數區 (僅管理員或本人) -->
+  <!-- 2. 每日報數 (8.17) -->
   <div id="settlement" class="tab-content">
+    <h3 style="margin-bottom:12px; color:var(--primary-dark);">8月17日 步兵詳細分區埋數表</h3>
     <table>
       <thead>
-        <tr><th>日期</th><th>姓名</th><th>身份</th><th>出糧週期</th><th>東區</th><th>麗港城</th><th>工商區</th><th>沙田</th><th>總票數</th><th>車津</th></tr>
+        <tr>
+          <th>日期</th>
+          <th>步兵姓名</th>
+          <th>身份</th>
+          <th>出糧週期</th>
+          <th>東區票數</th>
+          <th>麗港城票數</th>
+          <th>工商區票數</th>
+          <th>沙田票數</th>
+          <th>總票數</th>
+          <th>車津</th>
+          <th>Claim報銷</th>
+          <th>Bonus</th>
+        </tr>
       </thead>
       <tbody id="settlement-tbody"></tbody>
     </table>
   </div>
 
-  <!-- 報更區 -->
+  <!-- 3. 14天公仔報更 -->
   <div id="roster" class="tab-content">
+    <h3 style="margin-bottom:12px; color:var(--primary-dark);">14天公仔報更排班表</h3>
     <table>
       <thead>
-        <tr><th>日期</th><th>姓名</th><th>區域</th><th>圍欄</th><th>狀態</th><th>時間</th><th>備註</th></tr>
+        <tr>
+          <th>日期</th>
+          <th>步兵姓名</th>
+          <th>區域</th>
+          <th>圍欄 / 崗位</th>
+          <th>出更狀態</th>
+          <th>上班時間</th>
+          <th>備註</th>
+        </tr>
       </thead>
       <tbody id="roster-tbody"></tbody>
     </table>
   </div>
 
-  <!-- 貨量區 -->
+  <!-- 4. 8.20 貨量預估 -->
   <div id="volume" class="tab-content">
-    <div style="display:flex; gap:20px; flex-wrap:wrap;">
-      <div style="flex:1;"><h4 style="margin:8px 0; color:var(--primary);">觀塘區 (1,808)</h4><table id="kt-table"><thead><tr><th>代碼</th><th>圍欄</th><th>預估</th></tr></thead><tbody></tbody></table></div>
-      <div style="flex:1;"><h4 style="margin:8px 0; color:var(--primary);">東區 (1,104)</h4><table id="east-table"><thead><tr><th>代碼</th><th>圍欄</th><th>預估</th></tr></thead><tbody></tbody></table></div>
+    <h3 style="margin-bottom:12px; color:var(--primary-dark);">8月20日 預估貨量分佈表</h3>
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 320px;">
+        <h4 style="margin: 8px 0; color: #188038;">觀塘區貨量預估</h4>
+        <table>
+          <thead>
+            <tr><th>三段碼</th><th>二級圍欄名稱</th><th>預估件量</th></tr>
+          </thead>
+          <tbody id="volume-kt-tbody"></tbody>
+          <tfoot>
+            <tr class="total-row"><td colspan="2">觀塘區合計</td><td>1808</td></tr>
+          </tfoot>
+        </table>
+      </div>
+      <div style="flex: 1; min-width: 320px;">
+        <h4 style="margin: 8px 0; color: #188038;">東區貨量預估</h4>
+        <table>
+          <thead>
+            <tr><th>序號/段碼</th><th>圍欄名稱 / 地點</th><th>預估件量</th></tr>
+          </thead>
+          <tbody id="volume-east-tbody"></tbody>
+          <tfoot>
+            <tr class="total-row"><td colspan="2">東區合計 (已提供)</td><td>1104</td></tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 人員名冊 -->
+  <div id="personnel" class="tab-content">
+    <h3 style="margin-bottom:12px; color:var(--primary-dark);">人員名冊 (含 KM 隊步兵開通記錄)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>步兵姓名</th>
+          <th>所屬區域</th>
+          <th>身份類別</th>
+          <th>出糧週期</th>
+          <th>系統狀態 / 登入說明</th>
+        </tr>
+      </thead>
+      <tbody id="personnel-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- 6. 車線調度 -->
+  <div id="dispatch" class="tab-content">
+    <h3 style="margin-bottom:12px; color:var(--primary-dark);">車線調度與司機交接記錄</h3>
+    <table>
+      <thead>
+        <tr><th>司機</th><th>托盤號 / 包號</th><th>交接區域</th><th>狀態</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Q-嘉-小魚</td><td>托盤【B773768032807】/【B773528956228】</td><td>觀塘工商區 / 麗港城</td><td><span class="badge badge-driver">已取件</span></td></tr>
+        <tr><td>Q-嘉-徐耀明</td><td>托盤【B773454945621】/【B772869538177】</td><td>啟滙 / 麗港城</td><td><span class="badge badge-driver">已取件</span></td></tr>
+        <tr><td>Q-嘉-小香</td><td>托盤【B773242178681】</td><td>麗港城 1期 21座 (貴貨)</td><td><span class="badge badge-driver">已取件</span></td></tr>
+        <tr><td>E-WE-小台</td><td>包號【B401273016774】</td><td>筲箕灣 愛東邨</td><td><span class="badge badge-driver">已取件</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. 個別票價調整紀錄 -->
+  <div id="rates" class="tab-content">
+    <h3 style="margin-bottom:12px; color:var(--primary-dark);">個別票價調整紀錄</h3>
+    <div style="padding: 25px; color: #5f6368; background: #fafafa; border-radius: 6px; text-align: center; border: 1px dashed var(--border);">
+      各分區票價目前依預設費率計算。如有額外每票補貼或調價記錄，將於此處即時列出。
     </div>
   </div>
 
   <script>
-    const allOrders = [
-      { no: "JT0025113529382", courier: "司機【Q-嘉-小魚】", name: "何**", addr: "九龍 觀塘區 麗港城9座12/F E室", details: "司機取件後無更新", status: "待處理" },
-      { no: "JT0025144771644", courier: "王利民", name: "S**", addr: "九龍 觀塘工業中心 2期 地庫層 E&C室", details: "客戶反映未收到，需電聯", status: "待處理" },
-      { no: "JT0025126536353", courier: "周健", name: "單**", addr: "九龍 觀塘區 麗港城27座24樓F室", details: "送達圖片不規範", status: "已解決" },
-      { no: "JT0025130604190", courier: "倪志康", name: "金**", addr: "九龍 巧明街99號巧明工廠大廈9樓C20室", details: "反饋派錯門口，WhatsApp確認已收貨", status: "已解決" },
-      { no: "JT0025187283810", courier: "鄺家昊", name: "何**", addr: "香港仔鴨脷洲大街145號金發大廈2樓D室", details: "簽收未收到，送錯位置", status: "待處理" },
-      { no: "JT0025230532842", courier: "盧志聰", name: "M**", addr: "香港島 筲箕灣德雲樓4B", details: "送錯地址，需取回重派", status: "已處理" },
-      { no: "JT0024973137081", courier: "王利民", name: "叶**", addr: "東旭苑 東麗閣 7層 703室", details: "收到非本人包裹", status: "待處理" },
-      { no: "JT0024956449821", courier: "姜嘉敏KK", name: "杜**", addr: "麗港城 30座 5層 H室", details: "壞𨋢放座頭，客人已自取", status: "已解決" },
-      { no: "JT0024958384876", courier: "李健龍", name: "吳**", addr: "康翠台 1座 10層 K室", details: "送錯地址未收到", status: "待處理" },
-      { no: "JT0025057380466", courier: "吳瑋儒", name: "林**", addr: "萬年工業大廈 6樓A座 B3室", details: "送錯地址重派", status: "待處理" }
+    // ==========================================
+    // 完整保留的所有底層數據
+    // ==========================================
+
+    const workOrdersData = [
+      { no: "JT0025113529382", courier: "司機【Q-嘉-小魚】", name: "何**", phone: "57783358", addr: "九龍 觀塘區 麗港城9座12/F E室 (樓FF2209棟)", details: "2026-08-11 11:52:21 司機取件後無物流更新，需核實是否在現場", status: "待處理" },
+      { no: "JT0025170839324", courier: "-", name: "a**", phone: "93462721", addr: "九龍 觀塘區 藍田麗港城第四期21座9樓F室 (樓FF2221棟)", details: "2026-08-15 18:54:38 快件簽收，客戶反饋未收到，需核實是否派錯", status: "待處理" },
+      { no: "JT0025144771644", courier: "王利民 (東區)", name: "S**", phone: "53282835", addr: "九龍 觀塘區 觀塘工業中心 2期 地庫層 E&C室 (樓F000638棟)", details: "2026-08-13 16:06:53 快件簽收，客戶反映未收到，需電聯核實", status: "待處理" },
+      { no: "JT0025202283216", courier: "-", name: "J**", phone: "91212974", addr: "九龍 觀塘區 觀塘道320號The Icon 9樓913室", details: "原送貨地址912室，客戶更新為913室（隔壁單位）收", status: "已完成" },
+      { no: "JT0025108138561", courier: "羅錦榮", name: "黃**", phone: "68074922", addr: "九龍 觀塘區 觀塘道388號創紀之城1期1座2308室 (樓F000714棟)", details: "2026-08-13 17:40:20 更改派送時間，客戶催件需盡快派送", status: "催件中" },
+      { no: "JT0025126536353", courier: "周健 (觀塘)", name: "單**", phone: "67525600", addr: "九龍 觀塘區 麗港城27座24樓F室 (樓FF2227棟)", details: "2026-08-13 19:34:23 送達照片不規範，客戶未收到 (冇WhatsApp)", status: "已解決" },
+      { no: "JT0025068158356", courier: "司機【Q-嘉-小魚】", name: "i**", phone: "62669887", addr: "九龍 觀塘區 宏基資本大廈 19層全層 全室 (樓F000727棟)", details: "2026-08-08 07:58 同包其他件已派完，核實是否漏派 (冇WhatsApp)", status: "待處理" },
+      { no: "JT0025068138448", courier: "司機【Q-嘉-小魚】", name: "N**", phone: "90169989", addr: "九龍 觀塘區 海濱道151號廣生行中心11樓02-04室 (樓F000722棟)", details: "2026-08-08 07:58 同包其他件已派完，核實是否漏派 (冇WhatsApp)", status: "待處理" },
+      { no: "JT0025130604190", courier: "倪志康 (東區) / 羅錦榮", name: "金**", phone: "95567898", addr: "九龍 觀塘區 巧明街99號巧明工廠大廈9樓C20室 (只有C/D貨𨋢達)", details: "反饋派錯門口；後續經 WhatsApp 聯絡確認客戶已收貨", status: "已解決" },
+      { no: "JT0025140819200", courier: "周健 (觀塘) / 羅錦榮", name: "k**", phone: "97710897", addr: "九龍 觀塘區 宏基資本大廈 20層 全層室 (樓F000727棟)", details: "2026-08-13 13:14:35 出倉派件中，派送前需先電聯消費者", status: "待處理" },
+      { no: "JT0025187283810", courier: "鄺家昊 (中西)", name: "何**", phone: "61121750", addr: "香港島 東區 香港仔鴨脷洲大街145號金發大廈2樓D室 (樓G001010棟)", details: "2026-08-17 12:29:10 客戶反饋簽收未收到，送錯位置", status: "待處理" },
+      { no: "JT0025230532842", courier: "盧志聰 (九龍)", name: "M**", phone: "93795679", addr: "香港島 東區 筲箕灣德雲樓4B (樓G000957棟)", details: "2026-08-19 18:50:24 顧客反饋送錯地址未收到，需取回重派", status: "已處理" },
+      { no: "JT0025008741284", courier: "李偉文 (觀塘)", name: "劉**", phone: "68416887", addr: "九龍 觀塘區 藍田麗港城 10座 25樓 C室 (樓FF2210棟)", details: "2026-08-04 20:53:48 顧客反饋送錯地址未收到包裹", status: "已處理" },
+      { no: "JT0024881775924", courier: "羅錦榮", name: "G**", phone: "63883887", addr: "九龍 觀塘區 香港企業大廈 11層 1106室 (樓F000608棟)", details: "2026-07-29 14:34:26 客戶反饋簽收未收到，簽收圖片不規範", status: "待處理" },
+      { no: "JT0025007121305", courier: "-", name: "T**", phone: "90895379", addr: "香港島 東區 筲箕灣東大街2號麗東海景豪園2座20樓F室", details: "2026-08-04 11:29:32 同客戶兩件反饋送錯單元", status: "已處理" },
+      { no: "JT0025006606703", courier: "-", name: "T**", phone: "90895379", addr: "香港島 東區 筲箕灣東大街2號麗東海景豪園2座20樓F室", details: "2026-08-04 11:29:32 同客戶兩件反饋送錯單元", status: "已處理" },
+      { no: "JT0024973137081", courier: "王利民 (沙田)", name: "叶**", phone: "67671990", addr: "香港島 東區 東旭苑 東麗閣 7層 703室 (樓GG1904棟)", details: "2026-08-02 13:52:07 反饋收到非本人包裹、門口不對", status: "待處理" },
+      { no: "JT0024959334154", courier: "-", name: "梁**", phone: "97706733", addr: "九龍 觀塘區 偉業街142號 達通大廈6樓1室 (樓F000565棟)", details: "2026-08-01 13:35:27 客戶反饋簽收未收到、圖片不符", status: "待處理" },
+      { no: "JT0024989081566", courier: "王利民 (沙田)", name: "F**", phone: "62238444", addr: "九龍 觀塘區 鴻圖道 41號華鴻工貿中心7樓702A室", details: "2026-08-03 21:30:11 客戶反饋簽收未收到，已回傳照片解決", status: "已解決" },
+      { no: "JT0024956449821", courier: "姜嘉敏KK / 羅錦榮", name: "杜**", phone: "98208665", addr: "九龍 觀塘區 麗港城 30座 5層 H室 (樓FF2230棟)", details: "當晚壞𨋢放座頭，清潔包好放樓梯底，客人已自取", status: "已解決" },
+      { no: "JT0025004238936", courier: "吳嘉榮 (東區)", name: "客**", phone: "92361296", addr: "香港島 東區 筲箕灣寶文街1號峻峰花園 D座 2603室", details: "2026-08-04 11:06:32 疑似送錯門口，已加急取回重派", status: "已解決" },
+      { no: "JT0024953202959", courier: "黃傅釧 (中西)", name: "陳**", phone: "98643772", addr: "香港島 東區 筲箕灣東旭苑東曉閣 20樓零一室", details: "2026-08-01 15:33:05 反饋送錯家門，需取回重派", status: "待處理" },
+      { no: "JT0024958384876", courier: "李健龍 (東區)", name: "吳**", phone: "96595396", addr: "香港島 東區 康翠台 1座 10層 K室 (樓G000322棟)", details: "2026-08-02 15:52:11 反饋送錯地址未收到包裹", status: "待處理" },
+      { no: "JT0025057380466", courier: "吳瑋儒 (觀塘)", name: "林**", phone: "93002536", addr: "九龍 觀塘區 巧明街 116-118號萬年工業大廈 6樓A座 B3室", details: "2026-08-08 15:39:31 反映送錯地址，需安排重派", status: "待處理" },
+      { no: "JT0025062262591", courier: "司機【Q-嘉-小魚】", name: "V**", phone: "95417858", addr: "九龍 觀塘區 觀塘工業中心二期1樓J5 (樓F000638棟)", details: "2026-08-08 11:19:56 司機取件，核實是否漏派", status: "待處理" },
+      { no: "JT0025061039326", courier: "周健 (觀塘)", name: "江**", phone: "97285373", addr: "九龍 觀塘區 海濱道181號 One Harbour Square 8樓3室", details: "2026-08-08 11:54:33 反饋送錯地址，需核實", status: "待處理" },
+      { no: "JT0025001607329", courier: "羅錦榮", name: "光**", phone: "53212627", addr: "香港島 東區 筲箕灣東大街98-112號 7-11便利店", details: "2026-08-04 11:51:03 出倉派件中，核實是否漏派", status: "待處理" },
+      { no: "JT0025072811679", courier: "司機【E-WE-小台】", name: "C**", phone: "62246352", addr: "香港島 東區 筲箕灣愛東邨愛逸樓 35樓 3518室", details: "2026-08-09 07:07:31 司機取件，客戶要求派送務必致電", status: "待處理" },
+      { no: "JT0025099061327", courier: "鄺家昊 / 羅錦榮", name: "衛**", phone: "57821942", addr: "香港島 東區 筲箕灣阿公岩道 17號明華大廈 E座 512室", details: "2026-08-10 15:39:31 住512派錯到513或515門口", status: "待處理" },
+      { no: "JT0024993430424", courier: "鄺家昊 (中西)", name: "林**", phone: "95358768", addr: "香港島 東區 柴灣小西灣瑞發樓 802室", details: "2026-08-04 15:03:47 住802派到902門口", status: "已解決" },
+      { no: "JT0025048231383", courier: "黃傅釧 (中西)", name: "H**", phone: "63070575", addr: "香港島 東區 柴灣漁灣邨漁順樓 366室", details: "2026-08-07 22:10:11 送錯地址 (366 唔係 566)", status: "待處理" },
+      { no: "JT0025090292722", courier: "-", name: "P**", phone: "98794706", addr: "香港島 東區 筲箕灣東旭苑東麗閣 28樓 2室", details: "2026-08-11 13:18:45 反饋送錯家門口，需取回重派", status: "待處理" },
+      { no: "JT0025072453969", courier: "羅錦榮", name: "H**", phone: "97795191", addr: "香港島 東區 筲箕灣東旭苑東麗閣 40樓 01室", details: "2026-08-11 13:11:41 住D座40樓01室送錯門口", status: "待處理" },
+      { no: "JT0025072826397", courier: "-", name: "張**", phone: "94304990", addr: "香港島 東區 筲箕灣愛賢街 8號東旭苑東麗閣 35樓 01室", details: "照片不對，成幢樓掃返已尋回", status: "已解決" },
+      { no: "JT0025090758344", courier: "-", name: "李**", phone: "67433930", addr: "香港島 東區 東旭苑 東麗閣 26層 01室", details: "2026-08-11 13:23:29 顧客反饋送錯地址未收到", status: "待處理" },
+      { no: "JT0025103719239", courier: "黃傅釧 / 羅錦榮", name: "c**", phone: "60120534", addr: "香港島 東區 筲箕灣道 334~338號華寶大廈 15樓B室", details: "反饋丟失；後指示前往筲箕灣道318號寶福15樓B室門口取回", status: "待處理" },
+      { no: "JT0025018305318", courier: "-", name: "S**", phone: "60709790", addr: "香港島 東區 小西灣瑞益樓 10樓 04室", details: "2026-08-05 17:24:58 派錯地址 (1004 派錯去 1006)", status: "待處理" },
+      { no: "JT0024894042809", courier: "司機【Q-嘉-小香】", name: "B**", phone: "95886920", addr: "九龍 觀塘區 茶果嶺麗港城1期 21座 6F室", details: "2026-07-31 06:05:20 司機取件後無路由，貨值一千多 (貴貨)", status: "加急處理" },
+      { no: "JT0025030208899", courier: "王利民 (沙田)", name: "陳**", phone: "91608979", addr: "九龍 觀塘區 觀塘道 472-474號 觀塘工業中心第一期 9樓 F室", details: "2026-08-06 15:35:24 反饋非本人包裹，需取回重派", status: "待處理" },
+      { no: "JT0024980932155", courier: "司機【Q-嘉-徐耀明】", name: "周**", phone: "60939997", addr: "九龍 觀塘區 啟滙 啟滙 6層 全層室", details: "2026-08-03 12:52:51 司機取件後無路由", status: "待處理" },
+      { no: "JT0025020955723", courier: "吳瑋儒 (觀塘)", name: "b**", phone: "936****2954", addr: "九龍 觀塘區 麗港城 19座 2E", details: "2026-08-05 20:05:30 反饋送錯家門口，需取回重派", status: "待處理" },
+      { no: "JT0025016268623", courier: "黃傅釧 (中西)", name: "A**", phone: "92898525", addr: "香港島 東區 柴灣柴灣道 111號高威閣 4座 19樓 H室", details: "2026-08-05 16:22:37 送錯地址需核實", status: "待處理" },
+      { no: "JT0024476454322", courier: "系統記錄", name: "-", phone: "-", addr: "-", details: "未登記破損，已理賠", status: "已理賠" },
+      { no: "JT0025014538716", courier: "盧志聰 (九龍)", name: "C**", phone: "94066636", addr: "九龍 觀塘區 創紀之城 5期 UC層 3號室", details: "2026-08-05 12:47:15 簽收未收到，照片不規範", status: "待處理" },
+      { no: "JT0025050829672", courier: "盧志聰 (九龍)", name: "B**", phone: "91848844", addr: "九龍 觀塘區 觀塘駿業里 10號業運工業大廈 2樓 A室", details: "2026-08-07 15:34:39 反饋少了一箱芒果", status: "待處理" },
+      { no: "JT0024984596851", courier: "司機【Q-嘉-徐耀明】", name: "凌**", phone: "97818255", addr: "九龍 觀塘區 麗港城 1期 2座 21樓 E室", details: "2026-08-03 12:31:26 司機取件，核實是否漏派", status: "待處理" },
+      { no: "JT0024813782284", courier: "周健 (觀塘)", name: "s**", phone: "61042515", addr: "九龍 觀塘區 觀塘工業中心三期 12樓 V室 v7房", details: "2026-08-08 14:25:51 客戶不認識送達位置，有意向棄件", status: "待處理" },
+      { no: "JT0025075941793", courier: "周健 (觀塘)", name: "伍**", phone: "56213447", addr: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", details: "2026-08-09 12:13:40 6件同時簽收但均未收到 (件1)", status: "待處理" },
+      { no: "JT0025074025118", courier: "周健 (觀塘)", name: "伍**", phone: "56213447", addr: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", details: "2026-08-09 12:13:40 6件同時簽收但均未收到 (件2)", status: "待處理" },
+      { no: "JT0025079153784", courier: "周健 (觀塘)", name: "伍**", phone: "56213447", addr: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", details: "2026-08-09 12:13:40 6件同時簽收但均未收到 (件3)", status: "待處理" },
+      { no: "JT0025079994845", courier: "周健 (觀塘)", name: "伍**", phone: "56213447", addr: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", details: "2026-08-09 12:13:40 6件同時簽收但均未收到 (件4)", status: "待處理" },
+      { no: "JT0025078391033", courier: "周健 (觀塘)", name: "伍**", phone: "56213447", addr: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", details: "2026-08-09 12:13:40 6件同時簽收但均未收到 (件5)", status: "待處理" },
+      { no: "JT0025076006737", courier: "周健 (觀塘)", name: "伍**", phone: "56213447", addr: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", details: "2026-08-09 12:13:40 6件同時簽收但均未收到 (件6)", status: "待處理" },
+      { no: "JT0024976777056", courier: "余禮健 (觀塘)", name: "V**", phone: "95122202", addr: "九龍 觀塘區 成業街 11號華成工商中心一樓 4號室", details: "2026-08-02 17:33:01 反映送錯地址，需安排重派", status: "待處理" },
+      { no: "JT0025003315592", courier: "司機【Q-嘉-小魚】", name: "L**", phone: "64901469", addr: "九龍 觀塘區 興業街 15號中美中心 A座2樓203室", details: "2026-08-04 09:01:56 司機取件，需確認是否遺落現場", status: "待處理" },
+      { no: "JT0025096534054", courier: "洪水橋集散點", name: "J**", phone: "95565102", addr: "九龍 觀塘區 One Harbour Square 19層 全室", details: "2026-08-12 06:47:49 打托中，客戶反饋派送請放到19樓客梯正門", status: "待處理" },
+      { no: "JT0025110407577", courier: "姜嘉敏KK (東區)", name: "黎**", phone: "60204504", addr: "九龍 觀塘區 廣生行中心 3層 305室", details: "2026-08-11 11:48:42 客戶反饋簽收未收到，需核實", status: "待處理" }
     ];
 
-    const allSettlement = [
-      { date: "2026-08-17", name: "俊華", role: "組長", cycle: "隔日糧", east: 222, laguna: 0, ind: 0, st: 0, total: 222, allow: 0 },
-      { date: "2026-08-17", name: "吳瑋儒", role: "兼職", cycle: "半月糧", east: 0, laguna: 0, ind: 0, st: 59, total: 59, allow: 0 },
-      { date: "2026-08-17", name: "倪志康", role: "兼職(KM)", cycle: "半月糧", east: 131, laguna: 99, ind: 0, st: 0, total: 230, allow: 50 },
-      { date: "2026-08-17", name: "盧智聰", role: "全職", cycle: "隔日糧", east: 0, laguna: 112, ind: 86, st: 0, total: 198, allow: 0 },
-      { date: "2026-08-17", name: "姜嘉敏KK", role: "全職", cycle: "隔日糧", east: 0, laguna: 107, ind: 97, st: 0, total: 204, allow: 0 }
+    const settlementData = [
+      { date: "2026-08-17", name: "俊華", role: "組長", cycle: "隔日糧", east: 222, laguna: 0, ind: 0, st: 0, total: 222, allow: 0, claim: 0, bonus: 0 },
+      { date: "2026-08-17", name: "吳瑋儒", role: "兼職步兵", cycle: "半月糧", east: 0, laguna: 0, ind: 0, st: 59, total: 59, allow: 0, claim: 0, bonus: 0 },
+      { date: "2026-08-17", name: "倪志康", role: "兼職步兵 (KM隊)", cycle: "半月糧", east: 131, laguna: 99, ind: 0, st: 0, total: 230, allow: 50, claim: 0, bonus: 0 },
+      { date: "2026-08-17", name: "盧智聰", role: "全職步兵", cycle: "隔日糧", east: 0, laguna: 112, ind: 86, st: 0, total: 198, allow: 0, claim: 0, bonus: 0 },
+      { date: "2026-08-17", name: "姜嘉敏KK", role: "全職步兵", cycle: "隔日糧", east: 0, laguna: 107, ind: 97, st: 0, total: 204, allow: 0, claim: 0, bonus: 0 }
     ];
 
-    const allRoster = [
-      { date: "2026-08-23", name: "景鴻", district: "東區", fence: "41圍欄", status: "全日出更", time: "9:00", note: "" },
-      { date: "2026-08-20", name: "盧智聰", district: "觀塘", fence: "11E 麗港城", status: "全日出更", time: "10:00", note: "" },
-      { date: "2026-08-20", name: "姜嘉敏KK", district: "觀塘", fence: "05E 工商區", status: "全日出更", time: "10:00", note: "" }
+    const rosterData = [
+      { date: "2026-08-23", name: "景鴻", district: "東區", fence: "東區 (41圍欄)", status: "全日出更 (Full-Day)", time: "9:00", note: "" },
+      { date: "2026-08-22", name: "景鴻", district: "東區", fence: "東區 (41圍欄)", status: "全日出更 (Full-Day)", time: "9:00", note: "" },
+      { date: "2026-08-18", name: "盧智聰", district: "觀塘", fence: "06E 觀塘工商區5號", status: "全日出更", time: "10:00", note: "" },
+      { date: "2026-08-19", name: "盧智聰", district: "觀塘", fence: "11E 麗港城-1號托", status: "全日出更", time: "10:00", note: "" },
+      { date: "2026-08-20", name: "盧智聰", district: "觀塘", fence: "11E 麗港城-1號托", status: "全日出更", time: "10:00", note: "" },
+      { date: "2026-08-21", name: "盧智聰", district: "觀塘", fence: "11E 麗港城-1號托", status: "全日出更", time: "10:00", note: "" },
+      { date: "2026-08-22", name: "盧智聰", district: "觀塘", fence: "11E 麗港城-1號托", status: "全日出更", time: "10:00", note: "" },
+      { date: "2026-08-23", name: "盧智聰", district: "觀塘", fence: "11E 麗港城-1號托", status: "全日出更", time: "10:00", note: "" },
+      { date: "2026-08-24", name: "盧智聰", district: "觀塘", fence: "11E 麗港城-1號托", status: "全日出更", time: "10:00", note: "" },
+      { date: "2026-08-25", name: "盧智聰", district: "觀塘", fence: "11E 麗港城-1號托", status: "全日出更", time: "10:00", note: "" },
+      { date: "2026-08-26", name: "盧智聰", district: "觀塘", fence: "11E 麗港城-1號托", status: "放假休息", time: "10:00", note: "休息" },
+      { date: "2026-08-18", name: "姜嘉敏KK", district: "觀塘", fence: "05E 觀塘工商區4號", status: "全日出更", time: "10:00", note: "" },
+      { date: "2026-08-19", name: "姜嘉敏KK", district: "觀塘", fence: "05E 觀塘工商區4號", status: "全日出更", time: "10:00", note: "" },
+      { date: "2026-08-20", name: "姜嘉敏KK", district: "觀塘", fence: "05E 觀塘工商區4號", status: "全日出更", time: "10:00", note: "" },
+      { date: "2026-08-21", name: "姜嘉敏KK", district: "觀塘", fence: "05E 觀塘工商區4號", status: "全日出更", time: "10:00", note: "" },
+      { date: "2026-08-22", name: "姜嘉敏KK", district: "觀塘", fence: "05E 觀塘工商區4號", status: "全日出更", time: "10:00", note: "" },
+      { date: "2026-08-23", name: "姜嘉敏KK", district: "觀塘", fence: "05E 觀塘工商區4號", status: "全日出更", time: "10:00", note: "" },
+      { date: "2026-08-24", name: "姜嘉敏KK", district: "觀塘", fence: "05E 觀塘工商區4號", status: "全日出更", time: "10:00", note: "" },
+      { date: "2026-08-25", name: "姜嘉敏KK", district: "觀塘", fence: "05E 觀塘工商區4號", status: "全日出更", time: "10:00", note: "" },
+      { date: "2026-08-26", name: "姜嘉敏KK", district: "觀塘", fence: "05E 觀塘工商區4號", status: "放假休息", time: "全日", note: "休息" },
+      { date: "2026-08-21", name: "盧智聰", district: "東區", fence: "03F 東旭苑", status: "放假休息", time: "", note: "休息" },
+      { date: "2026-08-21", name: "盧智聰", district: "東區", fence: "04F 東旭苑", status: "全日出更", time: "", note: "" },
+      { date: "2026-08-21", name: "姜嘉敏KK", district: "東區", fence: "03F 東旭苑", status: "全日出更", time: "", note: "" }
     ];
 
-    const volumeKT = [{ code: "01E", name: "Koko Hills", vol: 66 }, { code: "02E", name: "觀塘工商區1號", vol: 350 }, { code: "11E", name: "麗港城-1號托", vol: 115 }];
-    const volumeEast = [{ code: "03F", name: "東旭苑", vol: 131 }, { code: "64F", name: "愛東", vol: 182 }, { code: "19F", name: "漁灣", vol: 189 }];
+    const volumeKT = [
+      { code: "01E", name: "Koko Hills", vol: 66 }, { code: "02E", name: "觀塘工商區1號", vol: 350 }, { code: "03E", name: "觀塘工商區2號", vol: 65 },
+      { code: "04E", name: "觀塘工商區3號", vol: 200 }, { code: "05E", name: "觀塘工商區4號", vol: 57 }, { code: "06E", name: "觀塘工商區5號", vol: 83 },
+      { code: "07E", name: "觀塘工商區6號", vol: 170 }, { code: "08E", name: "觀塘工商區7號", vol: 42 }, { code: "09E", name: "觀塘工商區8號", vol: 68 },
+      { code: "10E", name: "鴻圖道+勵業街", vol: 57 }, { code: "11E", name: "麗港城-1號托", vol: 115 }, { code: "12E", name: "麗港城-2號托", vol: 135 },
+      { code: "13E", name: "麗港城-3號托", vol: 122 }, { code: "14E", name: "麗港城-4號托", vol: 159 }, { code: "15E", name: "麗港城-5號托", vol: 119 }
+    ];
 
-    function renderView(currentUser) {
-      const isAdmin = currentUser === 'admin';
-      document.getElementById('role-display').textContent = isAdmin ? '目前身分：管理員 (可見全部數據)' : `目前身分：${currentUser} (僅限本人數據)`;
+    const volumeEast = [
+      { code: "03F", name: "東旭苑", vol: 131 }, { code: "06F", name: "東濤苑", vol: 64 }, { code: "17F", name: "香島", vol: 56 },
+      { code: "64F", name: "愛東", vol: 182 }, { code: "68F", name: "東大街", vol: 154 }, { code: "69F", name: "峻峰花園", vol: 90 },
+      { code: "15F", name: "明華A", vol: 53 }, { code: "16F", name: "明華一", vol: 87 }, { code: "75F", name: "阿公岩村", vol: 0 },
+      { code: "19F", name: "漁灣", vol: 189 }, { code: "40F", name: "西工", vol: 77 }, { code: "76F", name: "常安街", vol: 105 }
+    ];
 
-      // 控制管理員專屬欄位
-      document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
+    const personnelList = [
+      { name: "俊華", area: "東區", role: "組長", cycle: "隔日糧", note: "正常" },
+      { name: "盧智聰", area: "觀塘 / 九龍", role: "全職步兵", cycle: "隔日糧", note: "正常" },
+      { name: "姜嘉敏KK", area: "觀塘 / 東區", role: "全職步兵", cycle: "隔日糧", note: "正常" },
+      { name: "吳瑋儒", area: "觀塘 / 沙田", role: "兼職步兵", cycle: "半月糧", note: "正常" },
+      { name: "景鴻", area: "東區 (41圍欄)", role: "步兵", cycle: "-", note: "正常" },
+      { name: "余禮健", area: "觀塘", role: "步兵", cycle: "-", note: "正常" },
+      { name: "周健", area: "觀塘", role: "步兵", cycle: "-", note: "正常" },
+      { name: "鄺家昊", area: "中西區", role: "步兵", cycle: "-", note: "正常" },
+      { name: "黃傅釧", area: "中西區", role: "步兵", cycle: "-", note: "正常" },
+      { name: "吳嘉榮", area: "東區", role: "步兵", cycle: "-", note: "正常" },
+      { name: "李偉文", area: "觀塘", role: "步兵", cycle: "-", note: "正常" },
+      { name: "倪志康", area: "東區", role: "兼職步兵", cycle: "半月糧", note: "KM隊 (需開通/處理登入權限)" },
+      { name: "王利民", area: "沙田 / 東區", role: "步兵", cycle: "-", note: "KM隊 (需開通/處理登入權限)" },
+      { name: "李健龍", area: "東區", role: "步兵", cycle: "-", note: "KM隊 (需開通/處理登入權限)" }
+    ];
 
-      // 1. 工單過濾 (步兵只能看自己的)
-      const filteredOrders = isAdmin ? allOrders : allOrders.filter(o => o.courier && o.courier.includes(currentUser));
-      document.getElementById("orders-tbody").innerHTML = filteredOrders.length ? filteredOrders.map(o => `
+    // ==========================================
+    // 介面渲染與分頁切換
+    // ==========================================
+
+    function renderAll() {
+      // 1. 渲染異常工單
+      document.getElementById("orders-tbody").innerHTML = workOrdersData.map(o => `
         <tr>
           <td><strong>${o.no}</strong></td>
-          <td>${o.courier}</td>
-          <td>${o.name}</td>
-          <td>${o.addr}</td>
-          <td>${o.details}</td>
-          <td class="admin-only"><input style="width:60px;"></td>
-          <td class="admin-only"><input style="width:60px;"></td>
-          <td><span class="badge ${o.status === '已解決' || o.status === '已處理' ? 'badge-ok' : 'badge-pending'}">${o.status}</span></td>
+          <td>${o.courier && o.courier !== '-' ? (o.courier.includes("KM") || o.courier.includes("王利民") || o.courier.includes("倪志康") || o.courier.includes("李健龍") ? `<span class="badge badge-km">${o.courier}</span>` : o.courier) : `<span style="color:#9aa0a6;">待重派</span>`}</td>
+          <td>${o.name}<br><small style="color:#5f6368;">${o.phone}</small></td>
+          <td style="max-width:220px;">${o.addr}</td>
+          <td style="max-width:280px; font-size:0.82rem;">${o.details}</td>
+          <td><input type="number" class="amount-input" placeholder="$ 罰款"></td>
+          <td><input type="number" class="amount-input" placeholder="$ 賠償"></td>
+          <td><span class="badge ${o.status.includes('解決') || o.status.includes('完成') || o.status.includes('理賠') ? 'badge-ok' : 'badge-pending'}">${o.status}</span></td>
         </tr>
-      `).join("") : `<tr><td colspan="8" style="text-align:center;color:#9aa0a6;">目前沒有指派給您的異常工單</td></tr>`;
-
-      // 2. 報數過濾 (步兵只能看自己的報數)
-      const filteredSettlement = isAdmin ? allSettlement : allSettlement.filter(s => s.name.includes(currentUser));
-      document.getElementById("settlement-tbody").innerHTML = filteredSettlement.map(s => `
-        <tr><td>${s.date}</td><td><strong>${s.name}</strong></td><td>${s.role}</td><td>${s.cycle}</td><td>${s.east}</td><td>${s.laguna}</td><td>${s.ind}</td><td>${s.st}</td><td><strong>${s.total}</strong></td><td>${s.allow}</td></tr>
       `).join("");
 
-      // 3. 報更過濾
-      const filteredRoster = isAdmin ? allRoster : allRoster.filter(r => r.name.includes(currentUser));
-      document.getElementById("roster-tbody").innerHTML = filteredRoster.map(r => `
-        <tr><td>${r.date}</td><td><strong>${r.name}</strong></td><td>${r.district}</td><td>${r.fence}</td><td>${r.status}</td><td>${r.time}</td><td>${r.note}</td></tr>
+      // 2. 渲染每日報數
+      document.getElementById("settlement-tbody").innerHTML = settlementData.map(s => `
+        <tr>
+          <td>${s.date}</td>
+          <td><strong>${s.name}</strong></td>
+          <td>${s.role}</td>
+          <td>${s.cycle}</td>
+          <td>${s.east}</td>
+          <td>${s.laguna}</td>
+          <td>${s.ind}</td>
+          <td>${s.st}</td>
+          <td><strong>${s.total}</strong></td>
+          <td>${s.allow}</td>
+          <td>${s.claim}</td>
+          <td>${s.bonus}</td>
+        </tr>
       `).join("");
 
-      // 4. 貨量 (所有人可看區域概況)
-      document.querySelector("#kt-table tbody").innerHTML = volumeKT.map(v => `<tr><td>${v.code}</td><td>${v.name}</td><td>${v.vol}</td></tr>`).join("");
-      document.querySelector("#east-table tbody").innerHTML = volumeEast.map(v => `<tr><td>${v.code}</td><td>${v.name}</td><td>${v.vol}</td></tr>`).join("");
+      // 3. 渲染報更表記錄
+      document.getElementById("roster-tbody").innerHTML = rosterData.map(r => `
+        <tr>
+          <td>${r.date}</td>
+          <td><strong>${r.name}</strong></td>
+          <td>${r.district}</td>
+          <td>${r.fence}</td>
+          <td><span class="badge ${r.status.includes('休息') ? 'badge-pending' : 'badge-ok'}">${r.status}</span></td>
+          <td>${r.time || '-'}</td>
+          <td>${r.note || '-'}</td>
+        </tr>
+      `).join("");
+
+      // 4. 渲染貨量表
+      document.getElementById("volume-kt-tbody").innerHTML = volumeKT.map(v => `
+        <tr><td><strong>${v.code}</strong></td><td>${v.name}</td><td>${v.vol}</td></tr>
+      `).join("");
+
+      document.getElementById("volume-east-tbody").innerHTML = volumeEast.map(v => `
+        <tr><td><strong>${v.code}</strong></td><td>${v.name}</td><td>${v.vol}</td></tr>
+      `).join("");
+
+      // 5. 渲染人員名冊
+      document.getElementById("personnel-tbody").innerHTML = personnelList.map(p => `
+        <tr>
+          <td><strong>${p.name}</strong></td>
+          <td>${p.area}</td>
+          <td>${p.role}</td>
+          <td>${p.cycle}</td>
+          <td>${p.note.includes("KM隊") ? `<span class="badge badge-km">${p.note}</span>` : `<span class="badge badge-ok">${p.note}</span>`}</td>
+        </tr>
+      `).join("");
     }
 
-    function handleAuthChange() {
-      const user = document.getElementById("user-select").value;
-      renderView(user);
-    }
-
-    function switchTab(tabId) {
+    function switchTab(tabId, btn) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
-      event.target.classList.add('active');
+      if (btn) btn.classList.add('active');
     }
 
-    window.onload = () => renderView('admin');
+    window.onload = renderAll;
   </script>
 </body>
 </html>
