@@ -32,7 +32,7 @@
         <div class="text-xs font-bold flex items-center gap-2">
           <span>派件營運工作台</span>
           <span id="current-user-badge" class="px-1.5 py-0.5 rounded text-[10px] bg-blue-900/80 text-blue-300 border border-blue-700 font-semibold">👑 總管理員 (Mia)</span>
-          <span id="sync-status" class="text-[10px] text-emerald-400 font-semibold">🟢 數據已儲存並同步</span>
+          <span id="sync-status" class="text-[10px] text-emerald-400 font-semibold">🟢 數據庫已更新</span>
         </div>
       </div>
       <div class="flex items-center gap-2 text-xs">
@@ -155,13 +155,13 @@
       </div>
     </div>
 
-    <!-- 3. 區域分工排班 (支援自訂圍欄 + 多步兵排班持久保存) -->
+    <!-- 3. 區域分工排班 -->
     <div id="tab-assignments" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
           <div>
             <h3 class="font-bold text-sm text-slate-900">👥 區域分工排班看板 (各區圍欄安排多位步兵)</h3>
-            <span class="text-[11px] text-slate-500">主負責步兵及支援步兵 1/2 指派 (排班數據與圍欄刪減自動保存)</span>
+            <span class="text-[11px] text-slate-500">主負責步兵及支援步兵 1/2 指派</span>
           </div>
           <button type="button" onclick="quickExportText('assignments')" class="px-3 py-1 bg-slate-800 text-white rounded-lg text-xs font-bold">📤 匯出排班</button>
         </div>
@@ -506,7 +506,7 @@
           <div>
             <h3 class="font-bold text-sm text-slate-900">📦 各區詳細貨量核算中心與圍欄管理</h3>
             <span class="text-[11px] text-slate-500">
-              公式一：原有 - 壓車 = 現有 | 公式二：派貨 vs 現有/原有差異比對 | 支援自由新增/修改/刪除圍欄
+              公式一：原有 - 壓車 = 現有 | 公式二：派貨 vs 現有/原有差異比對 | 支援自由新增/修改圍欄
             </span>
           </div>
           <div class="flex gap-2">
@@ -584,7 +584,7 @@
                 <option value="ST">沙田 (ST-F58)</option>
               </select>
             </div>
-            <div><label class="block font-bold mb-1">圍欄編號與名稱</label><input type="text" id="fence-name-input" required placeholder="如: 03F-東旭苑" class="w-full p-1.5 bg-white border rounded font-bold"></div>
+            <div><label class="block font-bold mb-1">圍欄編號與名稱</label><input type="text" id="fence-name-input" required placeholder="如: SKW-06 新翠花園" class="w-full p-1.5 bg-white border rounded font-bold"></div>
             <div>
               <label class="block font-bold mb-1">預設主要負責步兵</label>
               <select id="fence-default-staff" class="w-full p-1.5 bg-white border rounded font-bold cursor-pointer"></select>
@@ -886,7 +886,7 @@
     </div>
   </div>
 
-  <!-- ================= 核心 JavaScript (防禦崩潰 + 圍欄刪減排班永久保存) ================= -->
+  <!-- ================= 核心 JavaScript (預載兩圖所有真實圍欄數據) ================= -->
   <script>
     var currentUser = 'Mia';
     var currentRole = 'Admin';
@@ -923,6 +923,7 @@
       { id: 'DR02', name: '龍', category: '司機', team: 'KM', payCycle: '月糧', prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, password: '123' }
     ];
 
+    // 🗺️ 錄入圖一及圖二所有精確圍欄名稱
     var defaultFencesData = {
       SKW: [
         { id: '03F', name: '03F-東旭苑', defaultStaff: '小魚' },
@@ -996,7 +997,9 @@
       ]
     };
 
+    // 📦 預載圖片中東區及觀塘全部真實貨量數據與 19號 T3
     var defaultCountsDetailList = [
+      // 第一張圖：東區數據 (SKW)
       { date: '2026-08-19', zone: '東區 (SKW)', fence: '03F-東旭苑', orig: 133, held: 74, after: 59, delivered: 59, t3: 1, note: '19號T3' },
       { date: '2026-08-19', zone: '東區 (SKW)', fence: '06F-東濤苑', orig: 88, held: 0, after: 88, delivered: 88, t3: 7, note: '19號T3' },
       { date: '2026-08-19', zone: '東區 (SKW)', fence: '09F-富怡花園', orig: 129, held: 0, after: 129, delivered: 129, t3: 0, note: '-' },
@@ -1040,6 +1043,7 @@
       { date: '2026-08-19', zone: '東區 (SKW)', fence: '74F-東區醫院暫存點', orig: 4, held: 0, after: 4, delivered: 4, t3: 0, note: '-' },
       { date: '2026-08-19', zone: '東區 (SKW)', fence: '75F-阿公岩村暫存點', orig: 4, held: 0, after: 4, delivered: 4, t3: 1, note: '19號T3' },
 
+      // 第二張圖：觀塘區數據 (KT)
       { date: '2026-08-19', zone: '觀塘工商區', fence: '01E-Koko Hills', orig: 47, held: 11, after: 36, delivered: 36, t3: 0, note: '-' },
       { date: '2026-08-19', zone: '觀塘工商區', fence: '02E-觀塘工商區1號', orig: 255, held: 89, after: 166, delivered: 166, t3: 0, note: '-' },
       { date: '2026-08-19', zone: '觀塘工商區', fence: '03E-觀塘工商區2號', orig: 88, held: 6, after: 82, delivered: 82, t3: 0, note: '-' },
@@ -1062,22 +1066,18 @@
         var val = localStorage.getItem(key);
         if (!val) return defaultVal;
         var parsed = JSON.parse(val);
-        return parsed || defaultVal;
+        return (parsed && (Array.isArray(parsed) ? parsed.length > 0 : Object.keys(parsed).length > 0)) ? parsed : defaultVal;
       } catch (e) { return defaultVal; }
     }
 
     var accounts = safeGetJSON('MIA_ACCOUNTS_CLEAN', initialAccounts);
-    
-    // 關鍵修復：優先讀取已修改的圍欄數據，若無才使用預設，確保刪除/新增永久保存
-    var fencesData = safeGetJSON('MIA_FENCES_DATA_CLEAN', defaultFencesData);
-
+    var fencesData = defaultFencesData; // 直接使用完整錄入的所有圍欄
     var dailyReports = safeGetJSON('MIA_DAILY_REPORTS_CLEAN', []);
     var violationsList = safeGetJSON('MIA_VIOLATIONS_CLEAN', []);
     var ticketsList = safeGetJSON('MIA_TICKETS_CLEAN', []);
     var shiftsRecord = safeGetJSON('MIA_SHIFTS_CLEAN', {});
     var progressRecord = safeGetJSON('MIA_PROGRESS_DATA', {});
-    var countsDetailList = safeGetJSON('MIA_COUNTS_DETAIL_DATA', defaultCountsDetailList);
-
+    var countsDetailList = defaultCountsDetailList; // 預載錄入的全部貨量與T3數據
     var truckList = safeGetJSON('MIA_TRUCK_DATA', []);
     var suppliesList = safeGetJSON('MIA_SUPPLIES_DATA', []);
     var recruitsList = safeGetJSON('MIA_RECRUITS_DATA', []);
@@ -1289,9 +1289,8 @@
       var container = document.getElementById('progressCardsContainer');
       if (!container) return;
       var isAdmin = (currentRole === 'Admin');
-      var fences = (fencesData && fencesData[zoneKey]) ? fencesData[zoneKey] : [];
 
-      container.innerHTML = fences.map(function(f) {
+      container.innerHTML = (fencesData[zoneKey] || []).map(function(f) {
         var p = progressRecord[f.id] || { 
           completionStatus: "⏳ 未開始/貨未到齊",
           signed: 0, signedTracks: '', 
@@ -1358,7 +1357,6 @@
       renderProgressCards(zoneKey);
     }
 
-    // 智能更新進度與排班（即時持久化）
     function updateProgressField(fenceId, field, val) {
       if (!progressRecord[fenceId]) progressRecord[fenceId] = {};
       progressRecord[fenceId][field] = val;
@@ -1385,55 +1383,39 @@
       }
     }
 
-    // ================= 區域分工排班 (修復渲染 + 支援自訂圍欄刪除與排班保存) =================
+    // ================= 區域分工排班 =================
     function renderAssignmentsGrid() {
       var container = document.getElementById('assignments-grid');
       if (!container) return;
       var isAdmin = (currentRole === 'Admin');
       var html = '';
       
-      var zoneKeys = ['SKW', 'KTLG', 'KTIND', 'ST'];
-      var zoneNames = { SKW: '東區 (SKW)', KTLG: '麗港城 (KT-LG)', KTIND: '觀塘工商 (KT-IND)', ST: '沙田 (ST-F58)' };
-
-      for (var k = 0; k < zoneKeys.length; k++) {
-        var z = zoneKeys[k];
-        var fences = (fencesData && fencesData[z]) ? fencesData[z] : [];
-
+      ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(function(z) {
+        var zoneNames = { SKW: '東區 (SKW)', KTLG: '麗港城 (KT-LG)', KTIND: '觀塘工商 (KT-IND)', ST: '沙田 (ST-F58)' };
+        var fences = fencesData[z] || [];
         html += '<div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2.5">' +
-          '<div class="font-bold text-xs text-slate-900 border-b pb-1 flex justify-between items-center">' +
-            '<span>' + zoneNames[z] + '</span><span class="text-[10px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded font-mono font-bold">' + fences.length + ' 圍欄</span>' +
-          '</div>' +
-          '<div class="space-y-2 max-h-[70vh] overflow-y-auto custom-scrollbar pr-1">';
+          '<div class="font-bold text-xs text-slate-900 border-b pb-1 flex justify-between"><span>' + zoneNames[z] + '</span><span class="text-[10px] text-slate-400">' + fences.length + ' 圍欄</span></div>' +
+          '<div class="space-y-2">';
         
-        for (var i = 0; i < fences.length; i++) {
-          var f = fences[i];
+        fences.forEach(function(f) {
           var p = progressRecord[f.id] || { staff: f.defaultStaff || '未指派', supportStaff1: '', supportStaff2: '', completionStatus: '⏳ 未開始' };
           
-          var staffOptions1 = '<option value="">未指派主責</option>';
-          var staffOptions2 = '<option value="">無支援1</option>';
-          var staffOptions3 = '<option value="">無支援2</option>';
+          var staffOptions1 = '<option value="">未指派主責</option>' + accounts.map(function(a) { return '<option value="' + a.name + '" ' + (p.staff === a.name ? 'selected' : '') + '>' + a.name + '</option>'; }).join('');
+          var staffOptions2 = '<option value="">無支援步兵1</option>' + accounts.map(function(a) { return '<option value="' + a.name + '" ' + (p.supportStaff1 === a.name ? 'selected' : '') + '>' + a.name + '</option>'; }).join('');
+          var staffOptions3 = '<option value="">無支援步兵2</option>' + accounts.map(function(a) { return '<option value="' + a.name + '" ' + (p.supportStaff2 === a.name ? 'selected' : '') + '>' + a.name + '</option>'; }).join('');
 
-          for (var a = 0; a < accounts.length; a++) {
-            var acc = accounts[a];
-            staffOptions1 += '<option value="' + acc.name + '" ' + (p.staff === acc.name ? 'selected' : '') + '>' + acc.name + '</option>';
-            staffOptions2 += '<option value="' + acc.name + '" ' + (p.supportStaff1 === acc.name ? 'selected' : '') + '>' + acc.name + '</option>';
-            staffOptions3 += '<option value="' + acc.name + '" ' + (p.supportStaff2 === acc.name ? 'selected' : '') + '>' + acc.name + '</option>';
-          }
-
-          var statusBadge = (p.completionStatus && p.completionStatus.indexOf(' ') > -1) ? p.completionStatus.split(' ')[0] : '⏳';
-
-          html += '<div class="p-2 bg-white border border-slate-200 rounded-lg space-y-1 text-xs shadow-2xs">' +
-            '<div class="font-black text-slate-900 flex justify-between items-center"><span class="truncate">' + f.name + '</span><span class="text-[10px] text-blue-700 font-bold">' + statusBadge + '</span></div>' +
+          html += '<div class="p-2.5 bg-white border rounded-xl space-y-1.5 text-xs shadow-2xs">' +
+            '<div class="font-black text-slate-900 flex justify-between"><span>' + f.name + '</span><span class="text-[10px] text-blue-700 font-normal">' + p.completionStatus.split(' ')[0] + '</span></div>' +
             '<div class="space-y-1 text-[11px]">' +
-              '<div class="flex justify-between items-center"><span class="text-slate-500">主責:</span>' + (isAdmin ? '<select onchange="updateProgressField(\'' + f.id + '\', \'staff\', this.value); renderProgressCards(currentZone);" class="bg-blue-50 border border-blue-200 rounded px-1 py-0.5 font-bold text-blue-900 cursor-pointer text-[10px]">' + staffOptions1 + '</select>' : '<span class="font-bold text-blue-900">' + (p.staff || '未指派') + '</span>') + '</div>' +
-              '<div class="flex justify-between items-center"><span class="text-slate-400">支援1:</span>' + (isAdmin ? '<select onchange="updateProgressField(\'' + f.id + '\', \'supportStaff1\', this.value);" class="bg-slate-50 border rounded px-1 py-0.5 font-bold text-slate-700 cursor-pointer text-[10px]">' + staffOptions2 + '</select>' : '<span class="text-slate-600">' + (p.supportStaff1 || '-') + '</span>') + '</div>' +
-              '<div class="flex justify-between items-center"><span class="text-slate-400">支援2:</span>' + (isAdmin ? '<select onchange="updateProgressField(\'' + f.id + '\', \'supportStaff2\', this.value);" class="bg-slate-50 border rounded px-1 py-0.5 font-bold text-slate-700 cursor-pointer text-[10px]">' + staffOptions3 + '</select>' : '<span class="text-slate-600">' + (p.supportStaff2 || '-') + '</span>') + '</div>' +
+              '<div class="flex justify-between items-center"><span class="text-slate-500">主負責人:</span>' + (isAdmin ? '<select onchange="updateProgressField(\'' + f.id + '\', \'staff\', this.value); renderProgressCards(currentZone);" class="bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5 font-bold text-blue-900 cursor-pointer">' + staffOptions1 + '</select>' : '<span class="font-bold text-blue-900">' + (p.staff || '未指派') + '</span>') + '</div>' +
+              '<div class="flex justify-between items-center"><span class="text-slate-400">支援步兵1:</span>' + (isAdmin ? '<select onchange="updateProgressField(\'' + f.id + '\', \'supportStaff1\', this.value);" class="bg-slate-50 border rounded px-1.5 py-0.5 font-bold text-slate-700 cursor-pointer">' + staffOptions2 + '</select>' : '<span class="text-slate-600">' + (p.supportStaff1 || '-') + '</span>') + '</div>' +
+              '<div class="flex justify-between items-center"><span class="text-slate-400">支援步兵2:</span>' + (isAdmin ? '<select onchange="updateProgressField(\'' + f.id + '\', \'supportStaff2\', this.value);" class="bg-slate-50 border rounded px-1.5 py-0.5 font-bold text-slate-700 cursor-pointer">' + staffOptions3 + '</select>' : '<span class="text-slate-600">' + (p.supportStaff2 || '-') + '</span>') + '</div>' +
             '</div>' +
           '</div>';
-        }
+        });
 
         html += '</div></div>';
-      }
+      });
       container.innerHTML = html;
     }
 
@@ -1451,11 +1433,11 @@
       var fenceSel = document.getElementById('cnt-fence');
       if (!fenceSel) return;
       var zKey = 'SKW';
-      if (zone.indexOf('麗港城') > -1) zKey = 'KTLG';
-      if (zone.indexOf('工商') > -1) zKey = 'KTIND';
-      if (zone.indexOf('沙田') > -1) zKey = 'ST';
+      if (zone.includes('麗港城')) zKey = 'KTLG';
+      if (zone.includes('工商')) zKey = 'KTIND';
+      if (zone.includes('沙田')) zKey = 'ST';
 
-      var fences = (fencesData && fencesData[zKey]) ? fencesData[zKey] : [];
+      var fences = fencesData[zKey] || [];
       fenceSel.innerHTML = fences.map(function(f) { return '<option value="' + f.name + '">' + f.name + '</option>'; }).join('');
     }
 
@@ -1547,7 +1529,6 @@
       }
     }
 
-    // 🗺️ 圍欄新增/修改 (永久持久化 LocalStorage)
     function saveCustomFenceForm(e) {
       e.preventDefault();
       var editId = document.getElementById('fence-edit-id').value;
@@ -1577,7 +1558,7 @@
       renderAssignmentsGrid();
       renderProgressCards(currentZone);
       onCountsZoneChange(document.getElementById('cnt-zone').value);
-      alert('✅ 圍欄已成功儲存並同步！');
+      alert('✅ 圍欄已成功儲存並同步至所有模組！');
     }
 
     function editCustomFence(zKey, fId) {
@@ -1590,7 +1571,6 @@
       document.getElementById('fence-submit-btn').textContent = '🔄 更新圍欄';
     }
 
-    // 🗺️ 刪除圍欄 (永久持久化 LocalStorage)
     function deleteCustomFence(zKey, fId) {
       if (confirm('確定刪除此圍欄嗎？')) {
         fencesData[zKey] = fencesData[zKey].filter(function(f) { return f.id !== fId; });
