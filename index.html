@@ -36,13 +36,13 @@
         </div>
       </div>
       
-      <!-- 🔒 右上角切換帳號登入面板 (已全面綁定點擊與 Enter 事件) -->
+      <!-- 🔒 右上角切換帳號登入面板 -->
       <div class="flex items-center gap-1.5 text-xs bg-slate-800 p-1 rounded-xl border border-slate-700">
         <select id="user-role-select" class="bg-slate-900 border border-slate-700 text-slate-200 rounded px-2 py-1 font-bold focus:outline-none cursor-pointer text-xs">
           <option value="">-- 選擇帳號登入 --</option>
         </select>
         <input type="password" id="header-user-pwd" placeholder="輸入密碼 (預設123)" onkeydown="if(event.key==='Enter') handleHeaderLogin();" class="bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 w-28 text-xs font-mono text-center focus:outline-none focus:border-blue-500">
-        <button type="button" id="btn-login-action" onclick="handleHeaderLogin()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-xs shadow-xs cursor-pointer">🔓 登入</button>
+        <button type="button" onclick="handleHeaderLogin()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-xs shadow-xs cursor-pointer">🔓 登入</button>
         <button type="button" onclick="logoutSession()" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded font-bold text-xs cursor-pointer">登出</button>
         <button type="button" id="btn-reset-data" onclick="forceCleanReset()" class="admin-only px-2 py-1 bg-rose-900 hover:bg-rose-800 text-rose-200 rounded font-bold text-xs cursor-pointer" style="display: none;">重置</button>
       </div>
@@ -335,7 +335,6 @@
             </div>
           </div>
 
-          <!-- 簽收與滯留件數 + 單號快捷輸入 -->
           <div class="space-y-2 bg-blue-50/60 p-3 rounded-xl border border-blue-100">
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <div><label class="block font-bold mb-1">已簽收件數</label><input type="number" id="repSignedCount" min="0" placeholder="0" class="w-full p-1.5 bg-white border rounded font-black text-blue-700"></div>
@@ -949,7 +948,7 @@
   <!-- ================= 核心 JavaScript ================= -->
   <script>
     var GAS_API_URL = "https://script.google.com/macros/s/AKfycbwFWWjYk8_Al8QAKZvvtMPdcMlU9zrNJF3c7QD8FT1XXn3GFI4xKGPgZBb6o8fg7-nKCQ/exec";
-    var DATA_VERSION_KEY = 'MIA_REPAIR_FORCE_LOGOUT_V2026_9';
+    var DATA_VERSION_KEY = 'MIA_REPAIR_FORCE_LOGOUT_V2026_10';
 
     async function callBackend(action, payload) {
       try {
@@ -2345,6 +2344,11 @@
       populateUserSelects();
       checkAuthSession();
       renderAllPanels();
+      
+      var cntZoneEl = document.getElementById('cnt-zone');
+      if (cntZoneEl) {
+        onCountsZoneChange(cntZoneEl.value);
+      }
     }
 
     window.onload = initApp;
