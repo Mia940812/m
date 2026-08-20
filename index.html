@@ -59,7 +59,7 @@
         <div class="text-xs font-bold flex items-center gap-2">
           <span>派件營運工作台</span>
           <span id="current-user-badge" class="px-1.5 py-0.5 rounded text-[10px] bg-blue-900/80 text-blue-300 border border-blue-700 font-semibold">未登入</span>
-          <span id="sync-status" class="text-[10px] text-emerald-400 font-semibold">🟢 雲端雙向連線已就緒</span>
+          <span id="sync-status" class="text-[10px] text-emerald-400 font-semibold">🟢 系統就緒</span>
         </div>
       </div>
       <div class="flex items-center gap-2 text-xs">
@@ -69,12 +69,12 @@
           <select id="user-role-select" onchange="handleHeaderRoleSwitch(this.value)" class="bg-slate-800 border border-slate-700 text-slate-200 rounded px-2 py-1 font-bold focus:outline-none cursor-pointer"></select>
         </div>
         <button type="button" onclick="logoutSession()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold border border-slate-700">🔒 登出</button>
-        <button type="button" onclick="resetSystemData()" class="px-2 py-1 rounded bg-rose-900 hover:bg-rose-800 text-rose-200 text-[11px] font-bold">清空數據</button>
+        <button type="button" onclick="resetSystemData()" class="px-2 py-1 rounded bg-rose-900 hover:bg-rose-800 text-rose-200 text-[11px] font-bold">清空快取</button>
       </div>
     </div>
   </header>
 
-  <!-- 頂部切換導航欄 (15大入口全開) -->
+  <!-- 頂部切換導航欄 (15大入口全部正常顯示) -->
   <nav class="bg-white border-b border-slate-200 sticky top-[49px] z-40 shadow-xs">
     <div class="max-w-7xl mx-auto px-2 py-2 flex flex-wrap items-center gap-1.5 text-xs font-bold">
       <button type="button" onclick="showTab('tab-schedule')" id="btn-tab-schedule" class="nav-btn active px-3 py-1.5 rounded-xl border bg-indigo-50 text-indigo-900 border-indigo-200">⏰ 14天公仔報更</button>
@@ -154,7 +154,7 @@
       </div>
     </div>
 
-    <!-- 2. 各區工作進度 (即時點擊切換 + 儲存) -->
+    <!-- 2. 各區工作進度 -->
     <div id="tab-progress" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="flex flex-wrap justify-between items-center gap-2 border-b pb-2">
@@ -182,7 +182,7 @@
       </div>
     </div>
 
-    <!-- 3. 區域分工排班 (完整 53 圍欄看板) -->
+    <!-- 3. 區域分工排班 -->
     <div id="tab-assignments" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
@@ -459,10 +459,7 @@
     <div id="tab-staff" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
-          <div>
-            <h3 class="font-bold text-sm text-slate-900">👥 人員名冊管理、帳號新增與專屬票價設定</h3>
-            <button type="button" onclick="resetStaffForm()" class="text-xs text-blue-600 font-bold hover:underline">🔄 重置輸入框</button>
-          </div>
+          <h3 class="font-bold text-sm text-slate-900">👥 人員名冊管理、帳號與專屬票價設定</h3>
           <button type="button" onclick="quickExportText('staff')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold shadow-xs">📤 匯出名冊</button>
         </div>
 
@@ -476,7 +473,6 @@
                 <th class="p-2.5">出糧週期</th>
                 <th class="p-2.5">密碼</th>
                 <th class="p-2.5">專屬單價 (東/麗/工/沙)</th>
-                <th class="p-2.5 text-center">操作</th>
               </tr>
             </thead>
             <tbody id="staffListTableBody" class="divide-y divide-slate-100"></tbody>
@@ -485,7 +481,7 @@
       </div>
     </div>
 
-    <!-- 9. 📦 詳細貨量核算打印表 (錄入 53 個二級圍欄與最新貨量) -->
+    <!-- 9. 📦 詳細貨量核算打印表 (最新 53 圍欄) -->
     <div id="tab-counts-detail" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4" id="printable-area">
         <div class="flex flex-wrap justify-between items-center gap-2 border-b pb-2">
@@ -601,7 +597,6 @@
                 <th class="p-2.5">違規事項</th>
                 <th class="p-2.5 text-right">罰款金額</th>
                 <th class="p-2.5">備註</th>
-                <th class="p-2.5 text-center">操作</th>
               </tr>
             </thead>
             <tbody id="violationsTableBody" class="divide-y divide-slate-100"></tbody>
@@ -614,10 +609,7 @@
     <div id="tab-truck" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="flex justify-between items-center border-b pb-2">
-          <div>
-            <h3 class="font-bold text-sm text-slate-900">🚗 司機車線調度登記</h3>
-            <span class="text-[11px] text-slate-500">清晰登記各車次與派送圍欄</span>
-          </div>
+          <h3 class="font-bold text-sm text-slate-900">🚗 司機車線調度登記</h3>
           <button type="button" onclick="quickExportText('truck')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold">📤 匯出車線</button>
         </div>
         <div class="overflow-x-auto border rounded-xl">
@@ -628,7 +620,6 @@
                 <th class="p-2.5">司機</th>
                 <th class="p-2.5">車次</th>
                 <th class="p-2.5">分區與圍欄路線</th>
-                <th class="p-2.5 text-center">操作</th>
               </tr>
             </thead>
             <tbody id="truckTableBody" class="divide-y divide-slate-100"></tbody>
@@ -653,7 +644,6 @@
                 <th class="p-2.5 text-center">數量</th>
                 <th class="p-2.5 text-right">金額</th>
                 <th class="p-2.5">代墊人</th>
-                <th class="p-2.5 text-center">操作</th>
               </tr>
             </thead>
             <tbody id="suppliesTableBody" class="divide-y divide-slate-100"></tbody>
@@ -678,7 +668,6 @@
                 <th class="p-2.5">電話</th>
                 <th class="p-2.5">分區</th>
                 <th class="p-2.5 text-center">狀態</th>
-                <th class="p-2.5 text-center">操作</th>
               </tr>
             </thead>
             <tbody id="recruitsTableBody" class="divide-y divide-slate-100"></tbody>
@@ -726,218 +715,25 @@
     </div>
   </div>
 
-  <!-- ================= 核心 JavaScript (完整數據與邏輯) ================= -->
+  <!-- ================= 核心 JavaScript (智能修復 + 完整數據) ================= -->
   <script>
     var GAS_API_URL = "https://script.google.com/macros/s/AKfycbwFWWjYk8_Al8QAKZvvtMPdcMlU9zrNJF3c7QD8FT1XXn3GFI4xKGPgZBb6o8fg7-nKCQ/exec";
 
-    // 完整的 53 個二級圍欄名冊
-    var initialFences = {
-      SKW: [
-        { id: "03F", name: "03F-東旭苑", defaultStaff: "俊華" },
-        { id: "06F", name: "06F-東濤苑", defaultStaff: "俊華" },
-        { id: "09F", name: "09F-富怡花園", defaultStaff: "倪志康" },
-        { id: "12F", name: "12F-杏花邨1號", defaultStaff: "景鴻" },
-        { id: "13F", name: "13F-杏花邨3號", defaultStaff: "景鴻" },
-        { id: "14F", name: "14F-杏花邨4號", defaultStaff: "景鴻" },
-        { id: "17F", name: "17F-香島", defaultStaff: "倪志康" },
-        { id: "18F", name: "18F-曉翠苑", defaultStaff: "黃傅釧" },
-        { id: "19F", name: "19F-漁灣邨", defaultStaff: "黃傅釧" },
-        { id: "21F", name: "21F-杏翠苑+翠灣邨", defaultStaff: "鄺家昊" },
-        { id: "22F", name: "22F-峰華邨+景翠苑", defaultStaff: "鄺家昊" },
-        { id: "26F", name: "26F-興華(1)邨", defaultStaff: "吳嘉榮" },
-        { id: "27F", name: "27F-興華(2)邨", defaultStaff: "吳嘉榮" },
-        { id: "28F", name: "28F-興民邨", defaultStaff: "李偉文" },
-        { id: "30F", name: "30F-新翠花園", defaultStaff: "李偉文" },
-        { id: "31F", name: "31F-環翠邨", defaultStaff: "李健龍" },
-        { id: "39F", name: "39F-柴灣地鐵站工業區", defaultStaff: "王利民" },
-        { id: "40F", name: "40F-小西灣工業區", defaultStaff: "王利民" },
-        { id: "41F", name: "41F-小西灣邨-1號托", defaultStaff: "景鴻" },
-        { id: "42F", name: "42F-小西灣邨-2號托", defaultStaff: "景鴻" },
-        { id: "43F", name: "43F-小西灣邨-3號托", defaultStaff: "景鴻" },
-        { id: "44F", name: "44F-樂軒+宏德+怡翠", defaultStaff: "鄺家昊" },
-        { id: "45F", name: "45F-柴灣+蝶翠+康平街", defaultStaff: "黃傅釧" },
-        { id: "46F", name: "46F-高威+康翠+灣景園", defaultStaff: "黃傅釧" },
-        { id: "60F", name: "60F-藍灣半島", defaultStaff: "李健龍" },
-        { id: "61F", name: "61F-富欣花園", defaultStaff: "倪志康" },
-        { id: "62F", name: "62F-愛蝶灣", defaultStaff: "吳嘉榮" },
-        { id: "64F", name: "64F-愛東邨", defaultStaff: "景鴻" },
-        { id: "65F", name: "65F-富景花園", defaultStaff: "李偉文" },
-        { id: "68F", name: "68F-東大街板A", defaultStaff: "景鴻" },
-        { id: "69F", name: "69F-峻峰花園", defaultStaff: "吳嘉榮" },
-        { id: "73F", name: "73F-東區樂翠台暫存點", defaultStaff: "王利民" },
-        { id: "15F", name: "15F-明華A-E座", defaultStaff: "鄺家昊" },
-        { id: "16F", name: "16F-明華1&2座", defaultStaff: "鄺家昊" },
-        { id: "76F", name: "76F-常安街簡約公屋暫存點", defaultStaff: "李偉文" },
-        { id: "74F", name: "74F-東區醫院暫存點", defaultStaff: "俊華" }
-      ],
-      KTLG: [
-        { id: "11E", name: "11E-麗港城-1號托", defaultStaff: "盧智聰" },
-        { id: "12E", name: "12E-麗港城-2號托", defaultStaff: "盧智聰" },
-        { id: "13E", name: "13E-麗港城-3號托", defaultStaff: "姜嘉敏KK" },
-        { id: "14E", name: "14E-麗港城-4號托", defaultStaff: "姜嘉敏KK" },
-        { id: "15E", name: "15E-麗港城-5號托", defaultStaff: "倪志康" }
-      ],
-      KTIND: [
-        { id: "01E", name: "01E-Koko Hills", defaultStaff: "周健" },
-        { id: "02E", name: "02E-觀塘工商區1號", defaultStaff: "周健" },
-        { id: "03E", name: "03E-觀塘工商區2號", defaultStaff: "余禮健" },
-        { id: "04E", name: "04E-觀塘工商區3號", defaultStaff: "余禮健" },
-        { id: "05E", name: "05E-觀塘工商區4號", defaultStaff: "姜嘉敏KK" },
-        { id: "06E", name: "06E-觀塘工商區5號", defaultStaff: "盧智聰" },
-        { id: "07E", name: "07E-觀塘工商區6號", defaultStaff: "周健" },
-        { id: "08E", name: "08E-觀塘工商區7號", defaultStaff: "余禮健" },
-        { id: "09E", name: "09E-觀塘工商區8號", defaultStaff: "周健" },
-        { id: "10E", name: "10E-鴻圖道+勵業街", defaultStaff: "余禮健" }
-      ],
-      ST: [
-        { id: "F58", name: "F58-沙田圍欄", defaultStaff: "吳瑋儒" }
-      ]
-    };
+    // 檢查並安全讀取快取（如果快取損壞或出現 undefined，自動重置為標準名冊）
+    var rawAccounts = localStorage.getItem('MIA_ACCOUNTS_CLEAN');
+    var accounts;
+    try {
+      accounts = JSON.parse(rawAccounts);
+      if (!Array.isArray(accounts) || !accounts.length || accounts.some(function(a){ return !a.name || a.name === 'undefined'; })) {
+        accounts = initialAccounts;
+        localStorage.setItem('MIA_ACCOUNTS_CLEAN', JSON.stringify(initialAccounts));
+      }
+    } catch(e) {
+      accounts = initialAccounts;
+    }
 
-    // 根據圖片完整錄入的二級圍欄預估件量 / 壓夜 / 次日派件量清單
-    var initialCountsData = [
-      // 東區 (SKW - 37筆)
-      { zone: "东区", code: "03F", name: "东旭苑", orig: 131, held: 75, after: 56 },
-      { zone: "东区", code: "06F", name: "东涛苑", orig: 64, held: 4, after: 60 },
-      { zone: "东区", code: "09F", name: "富怡花园", orig: 110, held: 11, after: 99 },
-      { zone: "东区", code: "12F", name: "杏花邨1号", orig: 81, held: 0, after: 81 },
-      { zone: "东区", code: "13F", name: "杏花邨3号", orig: 92, held: 0, after: 92 },
-      { zone: "东区", code: "14F", name: "杏花邨4号", orig: 97, held: 97, after: 0 },
-      { zone: "东区", code: "17F", name: "香岛", orig: 56, held: 2, after: 54 },
-      { zone: "东区", code: "18F", name: "晓翠苑", orig: 36, held: 0, after: 36 },
-      { zone: "东区", code: "19F", name: "渔湾邨", orig: 189, held: 143, after: 46 },
-      { zone: "东区", code: "21F", name: "杏翠苑+翠湾邨", orig: 265, held: 208, after: 57 },
-      { zone: "东区", code: "22F", name: "峰华邨+景翠苑", orig: 89, held: 5, after: 84 },
-      { zone: "东区", code: "26F", name: "兴华(1)邨", orig: 92, held: 91, after: 1 },
-      { zone: "东区", code: "27F", name: "兴华(2)邨", orig: 161, held: 75, after: 86 },
-      { zone: "东区", code: "28F", name: "兴民邨", orig: 83, held: 1, after: 82 },
-      { zone: "东区", code: "30F", name: "新翠花园", orig: 73, held: 10, after: 63 },
-      { zone: "东区", code: "31F", name: "环翠邨", orig: 205, held: 34, after: 171 },
-      { zone: "东区", code: "39F", name: "柴湾地铁站工业区", orig: 71, held: 0, after: 71 },
-      { zone: "东区", code: "40F", name: "小西湾工业区", orig: 77, held: 0, after: 77 },
-      { zone: "东区", code: "41F", name: "小西湾邨-1号托", orig: 99, held: 98, after: 1 },
-      { zone: "东区", code: "42F", name: "小西湾邨-2号托", orig: 106, held: 4, after: 102 },
-      { zone: "东区", code: "43F", name: "小西湾邨-3号托", orig: 200, held: 20, after: 180 },
-      { zone: "东区", code: "44F", name: "乐轩+宏德+怡翠", orig: 114, held: 83, after: 31 },
-      { zone: "东区", code: "45F", name: "柴湾+蝶翠+康平街", orig: 177, held: 175, after: 2 },
-      { zone: "东区", code: "46F", name: "高威+康翠+湾景园", orig: 175, held: 163, after: 12 },
-      { zone: "东区", code: "60F", name: "蓝湾半岛", orig: 234, held: 0, after: 234 },
-      { zone: "东区", code: "61F", name: "富欣花园", orig: 119, held: 0, after: 119 },
-      { zone: "东区", code: "62F", name: "爱蝶湾", orig: 145, held: 0, after: 145 },
-      { zone: "东区", code: "64F", name: "爱东邨", orig: 182, held: 112, after: 70 },
-      { zone: "东区", code: "65F", name: "富景花园", orig: 265, held: 0, after: 265 },
-      { zone: "东区", code: "68F", name: "东大街板A", orig: 154, held: 4, after: 150 },
-      { zone: "东区", code: "69F", name: "峻峰花园", orig: 90, held: 0, after: 90 },
-      { zone: "东区", code: "73F", name: "东区乐翠台暂存点", orig: 52, held: 0, after: 52 },
-      { zone: "东区", code: "15F", name: "明华A-E座", orig: 53, held: 0, after: 53 },
-      { zone: "东区", code: "16F", name: "明华1&2座", orig: 87, held: 0, after: 87 },
-      { zone: "东区", code: "76F", name: "常安街简约公屋暂存点", orig: 105, held: 4, after: 101 },
-      { zone: "东区", code: "74F", name: "东区医院暂存点", orig: 5, held: 0, after: 5 },
-      { zone: "东区", code: "68F", name: "东大街板A (加送)", orig: 154, held: 4, after: 150 },
-
-      // 觀塘區 (15筆)
-      { zone: "观塘区", code: "01E", name: "Koko Hills", orig: 66, held: 4, after: 62 },
-      { zone: "观塘区", code: "02E", name: "观塘工商区1号", orig: 350, held: 174, after: 176 },
-      { zone: "观塘区", code: "03E", name: "观塘工商区2号", orig: 65, held: 0, after: 65 },
-      { zone: "观塘区", code: "04E", name: "观塘工商区3号", orig: 200, held: 3, after: 197 },
-      { zone: "观塘区", code: "05E", name: "观塘工商区4号", orig: 57, held: 0, after: 57 },
-      { zone: "观塘区", code: "06E", name: "观塘工商区5号", orig: 83, held: 6, after: 77 },
-      { zone: "观塘区", code: "07E", name: "观塘工商区6号", orig: 170, held: 4, after: 166 },
-      { zone: "观塘区", code: "08E", name: "观塘工商区7号", orig: 42, held: 0, after: 42 },
-      { zone: "观塘区", code: "09E", name: "观塘工商区8号", orig: 68, held: 1, after: 67 },
-      { zone: "观塘区", code: "10E", name: "鸿图道+励业街", orig: 57, held: 5, after: 52 },
-      { zone: "观塘区", code: "11E", name: "丽港城-1号托", orig: 115, held: 0, after: 115 },
-      { zone: "观塘区", code: "12E", name: "丽港城-2号托", orig: 135, held: 1, after: 134 },
-      { zone: "观塘区", code: "13E", name: "丽港城-3号托", orig: 122, held: 0, after: 122 },
-      { zone: "观塘区", code: "14E", name: "丽港城-4号托", orig: 159, held: 0, after: 159 },
-      { zone: "观塘区", code: "15E", name: "丽港城-5号托", orig: 119, held: 0, after: 119 }
-    ];
-
-    var initialAccounts = [
-      { id: "KM-01", name: "Mia", team: "KM隊", role: "總管理員", cycle: "月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } },
-      { id: "A-01", name: "俊華", team: "A隊", role: "組長", cycle: "隔日糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } },
-      { id: "A-02", name: "盧智聰", team: "A隊", role: "全職步兵", cycle: "隔日糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } },
-      { id: "A-03", name: "姜嘉敏KK", team: "A隊", role: "全職步兵", cycle: "隔日糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } },
-      { id: "A-04", name: "吳瑋儒", team: "A隊", role: "兼職步兵", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } },
-      { id: "B-01", name: "景鴻", team: "B隊", role: "全職步兵", cycle: "隔日糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } },
-      { id: "B-02", name: "余禮健", team: "B隊", role: "兼職步兵", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } },
-      { id: "B-03", name: "周健", team: "B隊", role: "全職步兵", cycle: "隔日糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } },
-      { id: "C-01", name: "鄺家昊", team: "C隊", role: "兼職步兵", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } },
-      { id: "C-02", name: "黃傅釧", team: "C隊", role: "兼職步兵", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } },
-      { id: "C-03", name: "吳嘉榮", team: "C隊", role: "兼職步兵", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } },
-      { id: "C-04", name: "李偉文", team: "C隊", role: "兼職步兵", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } },
-      { id: "KM-02", name: "倪志康", team: "KM隊", role: "兼職步兵", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } },
-      { id: "KM-03", name: "王利民", team: "KM隊", role: "兼職步兵", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } },
-      { id: "KM-04", name: "李健龍", team: "KM隊", role: "兼職步兵", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } }
-    ];
-
-    var dailyReports = [
-      { id: "REP_1", date: "2026-08-17", staff: "倪志康", eastCount: 131, ktLgCount: 99, ktIndCount: 0, stCount: 0, totalPieces: 230, signedCount: 230, holdCount: 0, carAllowance: 50, penalty: 0, finalSalary: (131*4.0 + 99*4.0 + 50), photoProof: "" },
-      { id: "REP_2", date: "2026-08-17", staff: "俊華", eastCount: 222, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 222, signedCount: 222, holdCount: 0, carAllowance: 0, penalty: 0, finalSalary: (222*4.0), photoProof: "" },
-      { id: "REP_3", date: "2026-08-17", staff: "姜嘉敏KK", eastCount: 0, ktLgCount: 107, ktIndCount: 97, stCount: 0, totalPieces: 204, signedCount: 204, holdCount: 0, carAllowance: 0, penalty: 0, finalSalary: (107*4.0 + 97*4.5), photoProof: "" },
-      { id: "REP_4", date: "2026-08-17", staff: "盧智聰", eastCount: 0, ktLgCount: 112, ktIndCount: 86, stCount: 0, totalPieces: 198, signedCount: 198, holdCount: 0, carAllowance: 0, penalty: 0, finalSalary: (112*4.0 + 86*4.5), photoProof: "" },
-      { id: "REP_5", date: "2026-08-17", staff: "吳瑋儒", eastCount: 0, ktLgCount: 0, ktIndCount: 0, stCount: 59, totalPieces: 59, signedCount: 59, holdCount: 0, carAllowance: 0, penalty: 0, finalSalary: (59*7.0), photoProof: "" }
-    ];
-
-    var ticketsList = [
-      { id: "TK_1", tracking: "JT0025113529382", staff: "Q-嘉-小魚", type: "無物流更新", fine: 0, compensation: 0, customer: "何** 57783358", address: "九龍 觀塘區 麗港城9座12/F E室 (樓FF2209棟)", desc: "2026-08-11 11:52 司機取件後無物流更新，需核實是否在現場", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_2", tracking: "JT0025170839324", staff: "待指派", type: "未收到包裹", fine: 0, compensation: 0, customer: "a** 93462721", address: "九龍 觀塘區 藍田麗港城第四期21座9樓F室 (樓FF2221棟)", desc: "2026-08-15 18:54 快件簽收，客戶反饋未收到，需核實是否派錯", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_3", tracking: "JT0025144771644", staff: "王利民", type: "未收到包裹", fine: 0, compensation: 0, customer: "S** 53282835", address: "九龍 觀塘區 觀塘工業中心 2期 地庫層 E&C室 (樓F000638棟)", desc: "2026-08-13 16:06 快件簽收，客戶反映未收到，需電聯核實", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_4", tracking: "JT0025202283216", staff: "待指派", type: "更改地址", fine: 0, compensation: 0, customer: "J** 91212974", address: "九龍 觀塘區 觀塘道320號The Icon 9樓913室", desc: "原送貨地址912室，客戶更新為913室（隔壁單位）收", status: "已解決", appealText: "已按客戶新地址送達", photo: "" },
-      { id: "TK_5", tracking: "JT0025108138561", staff: "羅錦榮", type: "超時未派", fine: 0, compensation: 0, customer: "黃** 68074922", address: "九龍 觀塘區 觀塘道388號創紀之城1期1座2308室", desc: "2026-08-13 17:40 更改派送時間，客戶催件需盡快派送", status: "催件中", appealText: "", photo: "" },
-      { id: "TK_6", tracking: "JT0025126536353", staff: "周健", type: "照片不規範", fine: 0, compensation: 0, customer: "單** 67525600", address: "九龍 觀塘區 麗港城27座24樓F室 (樓FF2227棟)", desc: "2026-08-13 19:34 送達照片不規範，客戶未收到 (冇WhatsApp)", status: "已解決", appealText: "補回照片已確認", photo: "" },
-      { id: "TK_7", tracking: "JT0025068158356", staff: "Q-嘉-小魚", type: "少件/破損", fine: 0, compensation: 0, customer: "i** 62669887", address: "九龍 觀塘區 宏基資本大廈 19層全層 全室", desc: "2026-08-08 07:58 同包其他件已派完，核實是否漏派", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_8", tracking: "JT0025068138448", staff: "Q-嘉-小魚", type: "少件/破損", fine: 0, compensation: 0, customer: "N** 90169989", address: "九龍 觀塘區 海濱道151號廣生行中心11樓02-04室", desc: "2026-08-08 07:58 同包其他件已派完，核實是否漏派", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_9", tracking: "JT0025130604190", staff: "倪志康", type: "送錯地址", fine: 0, compensation: 0, customer: "金** 95567898", address: "九龍 觀塘區 巧明街99號巧明工廠大廈9樓C20室", desc: "反饋派錯門口；後續經 WhatsApp 聯絡確認客戶已收貨", status: "已解決", appealText: "客人已確認收貨", photo: "" },
-      { id: "TK_10", tracking: "JT0025140819200", staff: "周健", type: "超時未派", fine: 0, compensation: 0, customer: "k** 97710897", address: "九龍 觀塘區 宏基資本大廈 20層 全層室", desc: "2026-08-13 13:14 出倉派件中，派送前需先電聯消費者", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_11", tracking: "JT0025187283810", staff: "鄺家昊", type: "送錯地址", fine: 0, compensation: 0, customer: "何** 61121750", address: "香港島 東區 香港仔鴨脷洲大街145號金發大廈2樓D室", desc: "2026-08-17 12:29 客戶反饋簽收未收到，送錯位置", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_12", tracking: "JT0025230532842", staff: "盧智聰", type: "送錯地址", fine: 0, compensation: 0, customer: "M** 93795679", address: "香港島 東區 筲箕灣德雲樓4B (樓G000957棟)", desc: "2026-08-19 18:50 顧客反饋送錯地址未收到，需取回重派", status: "已處理", appealText: "已取回重派", photo: "" },
-      { id: "TK_13", tracking: "JT0025008741284", staff: "李偉文", type: "送錯地址", fine: 0, compensation: 0, customer: "劉** 68416887", address: "九龍 觀塘區 藍田麗港城 10座 25樓 C室", desc: "2026-08-04 20:53 顧客反饋送錯地址未收到包裹", status: "已處理", appealText: "已更正派送", photo: "" },
-      { id: "TK_14", tracking: "JT0024881775924", staff: "羅錦榮", type: "照片不規範", fine: 0, compensation: 0, customer: "G** 63883887", address: "九龍 觀塘區 香港企業大廈 11層 1106室", desc: "2026-07-29 14:34 客戶反饋簽收未收到，簽收圖片不規範", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_15", tracking: "JT0025007121305", staff: "待指派", type: "送錯地址", fine: 0, compensation: 0, customer: "T** 90895379", address: "香港島 東區 筲箕灣東大街2號麗東海景豪園2座20樓F室", desc: "2026-08-04 11:29 同客戶兩件反饋送錯單元 (件1)", status: "已處理", appealText: "", photo: "" },
-      { id: "TK_16", tracking: "JT0025006606703", staff: "待指派", type: "送錯地址", fine: 0, compensation: 0, customer: "T** 90895379", address: "香港島 東區 筲箕灣東大街2號麗東海景豪園2座20樓F室", desc: "2026-08-04 11:29 同客戶兩件反饋送錯單元 (件2)", status: "已處理", appealText: "", photo: "" },
-      { id: "TK_17", tracking: "JT0024973137081", staff: "王利民", type: "送錯地址", fine: 0, compensation: 0, customer: "叶** 67671990", address: "香港島 東區 東旭苑 東麗閣 7層 703室", desc: "2026-08-02 13:52 反饋收到非本人包裹、門口不對", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_18", tracking: "JT0024959334154", staff: "待指派", type: "照片不規範", fine: 0, compensation: 0, customer: "梁** 97706733", address: "九龍 觀塘區 偉業街142號 達通大廈6樓1室", desc: "2026-08-01 13:35 客戶反饋簽收未收到、圖片不符", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_19", tracking: "JT0024989081566", staff: "王利民", type: "未收到包裹", fine: 0, compensation: 0, customer: "F** 62238444", address: "九龍 觀塘區 鴻圖道 41號華鴻工貿中心7樓702A室", desc: "2026-08-03 21:30 客戶反饋簽收未收到，已回傳照片解決", status: "已解決", appealText: "已補照片", photo: "" },
-      { id: "TK_20", tracking: "JT0024956449821", staff: "姜嘉敏KK", type: "特殊情況", fine: 0, compensation: 0, customer: "杜** 98208665", address: "九龍 觀塘區 麗港城 30座 5層 H室", desc: "當晚壞𨋢放座頭，清潔包好放樓梯底，客人已自取", status: "已解決", appealText: "客人已自取確認", photo: "" },
-      { id: "TK_21", tracking: "JT0025004238936", staff: "吳嘉榮", type: "送錯地址", fine: 0, compensation: 0, customer: "客** 92361296", address: "香港島 東區 筲箕灣寶文街1號峻峰花園 D座 2603室", desc: "2026-08-04 11:06 疑似送錯門口，已加急取回重派", status: "已解決", appealText: "已取回重派", photo: "" },
-      { id: "TK_22", tracking: "JT0024953202959", staff: "黃傅釧", type: "送錯地址", fine: 0, compensation: 0, customer: "陳** 98643772", address: "香港島 東區 筲箕灣東旭苑東曉閣 20樓零一室", desc: "2026-08-01 15:33 反饋送錯家門，需取回重派", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_23", tracking: "JT0024958384876", staff: "李健龍", type: "送錯地址", fine: 0, compensation: 0, customer: "吳** 96595396", address: "香港島 東區 康翠台 1座 10層 K室", desc: "2026-08-02 15:52 反饋送錯地址未收到包裹", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_24", tracking: "JT0025057380466", staff: "吳瑋儒", type: "送錯地址", fine: 0, compensation: 0, customer: "林** 93002536", address: "九龍 觀塘區 巧明街 116-118號萬年工業大廈 6樓A座 B3室", desc: "2026-08-08 15:39 反映送錯地址，需安排重派", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_25", tracking: "JT0025062262591", staff: "Q-嘉-小魚", type: "少件/破損", fine: 0, compensation: 0, customer: "V** 95417858", address: "九龍 觀塘區 觀塘工業中心二期1樓J5", desc: "2026-08-08 11:19 司機取件，核實是否漏派", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_26", tracking: "JT0025061039326", staff: "周健", type: "送錯地址", fine: 0, compensation: 0, customer: "江** 97285373", address: "九龍 觀塘區 海濱道181號 One Harbour Square 8樓3室", desc: "2026-08-08 11:54 反饋送錯地址，需核實", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_27", tracking: "JT0025001607329", staff: "羅錦榮", type: "少件/破損", fine: 0, compensation: 0, customer: "光** 53212627", address: "香港島 東區 筲箕灣東大街98-112號 7-11便利店", desc: "2026-08-04 11:51 出倉派件中，核實是否漏派", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_28", tracking: "JT0025072811679", staff: "E-WE-小台", type: "客戶要求", fine: 0, compensation: 0, customer: "C** 62246352", address: "香港島 東區 筲箕灣愛東邨愛逸樓 35樓 3518室", desc: "2026-08-09 07:07 司機取件，客戶要求派送務必致電", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_29", tracking: "JT0025099061327", staff: "鄺家昊", type: "送錯地址", fine: 0, compensation: 0, customer: "衛** 57821942", address: "香港島 東區 筲箕灣阿公岩道 17號明華大廈 E座 512室", desc: "2026-08-10 15:39 住512派錯到513或515門口", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_30", tracking: "JT0024993430424", staff: "鄺家昊", type: "送錯地址", fine: 0, compensation: 0, customer: "林** 95358768", address: "香港島 東區 柴灣小西灣瑞發樓 802室", desc: "2026-08-04 15:03 住802派到902門口", status: "已解決", appealText: "已更正送達", photo: "" },
-      { id: "TK_31", tracking: "JT0025048231383", staff: "黃傅釧", type: "送錯地址", fine: 0, compensation: 0, customer: "H** 63070575", address: "香港島 東區 柴灣漁灣邨漁順樓 366室", desc: "2026-08-07 22:10 送錯地址 (366 唔係 566)", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_32", tracking: "JT0025090292722", staff: "待指派", type: "送錯地址", fine: 0, compensation: 0, customer: "P** 98794706", address: "香港島 東區 筲箕灣東旭苑東麗閣 28樓 2室", desc: "2026-08-11 13:18 反饋送錯家門口，需取回重派", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_33", tracking: "JT0025072453969", staff: "羅錦榮", type: "送錯地址", fine: 0, compensation: 0, customer: "H** 97795191", address: "香港島 東區 筲箕灣東旭苑東麗閣 40樓 01室", desc: "2026-08-11 13:11 住D座40樓01室送錯門口", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_34", tracking: "JT0025072826397", staff: "待指派", type: "已尋回", fine: 0, compensation: 0, customer: "張** 94304990", address: "香港島 東區 筲箕灣愛賢街 8號東旭苑東麗閣 35樓 01室", desc: "照片不對，成幢樓掃返已尋回", status: "已解決", appealText: "整棟巡查已尋獲", photo: "" },
-      { id: "TK_35", tracking: "JT0025090758344", staff: "待指派", type: "未收到包裹", fine: 0, compensation: 0, customer: "李** 67433930", address: "香港島 東區 東旭苑 東麗閣 26層 01室", desc: "2026-08-11 13:23 顧客反饋送錯地址未收到", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_36", tracking: "JT0025103719239", staff: "黃傅釧", type: "送錯地址", fine: 0, compensation: 0, customer: "c** 60120534", address: "香港島 東區 筲箕灣道 334~338號華寶大廈 15樓B室", desc: "反饋丟失；後指示前往筲箕灣道318號寶福15樓B室門口取回", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_37", tracking: "JT0025018305318", staff: "待指派", type: "送錯地址", fine: 0, compensation: 0, customer: "S** 60709790", address: "香港島 東區 小西灣瑞益樓 10樓 04室", desc: "2026-08-05 17:24 派錯地址 (1004 派錯去 1006)", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_38", tracking: "JT0024894042809", staff: "Q-嘉-小香", type: "貴重貨品無路由", fine: 0, compensation: 0, customer: "B** 95886920", address: "九龍 觀塘區 茶果嶺麗港城1期 21座 6F室", desc: "2026-07-31 06:05 司機取件後無路由，貨值一千多 (貴貨)", status: "加急處理", appealText: "", photo: "" },
-      { id: "TK_39", tracking: "JT0025030208899", staff: "王利民", type: "送錯地址", fine: 0, compensation: 0, customer: "陳** 91608979", address: "九龍 觀塘區 觀塘道 472-474號 觀塘工業中心第一期 9樓 F室", desc: "2026-08-06 15:35 反饋非本人包裹，需取回重派", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_40", tracking: "JT0024980932155", staff: "Q-嘉-徐耀明", type: "無物流更新", fine: 0, compensation: 0, customer: "周** 60939997", address: "九龍 觀塘區 啟滙 啟滙 6層 全層室", desc: "2026-08-03 12:52 司機取件後無路由", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_41", tracking: "JT0025020955723", staff: "吳瑋儒", type: "送錯地址", fine: 0, compensation: 0, customer: "b** 936****2954", address: "九龍 觀塘區 麗港城 19座 2E", desc: "2026-08-05 20:05 反饋送錯家門口，需取回重派", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_42", tracking: "JT0025016268623", staff: "黃傅釧", type: "送錯地址", fine: 0, compensation: 0, customer: "A** 92898525", address: "香港島 東區 柴灣柴灣道 111號高威閣 4座 19樓 H室", desc: "2026-08-05 16:22 送錯地址需核實", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_43", tracking: "JT0024476454322", staff: "系統記錄", type: "損壞賠償", fine: 0, compensation: 100, customer: "- -", address: "系統記錄已理賠包裹", desc: "未登記破損，已理賠", status: "已理賠", appealText: "系統已確認賠付", photo: "" },
-      { id: "TK_44", tracking: "JT0025014538716", staff: "盧智聰", type: "照片不規範", fine: 0, compensation: 0, customer: "C** 94066636", address: "九龍 觀塘區 創紀之城 5期 UC層 3號室", desc: "2026-08-05 12:47 簽收未收到，照片不規範", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_45", tracking: "JT0025050829672", staff: "盧智聰", type: "少件/破損", fine: 0, compensation: 0, customer: "B** 91848844", address: "九龍 觀塘區 觀塘駿業里 10號業運工業大廈 2樓 A室", desc: "2026-08-07 15:34 反饋少了一箱芒果", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_46", tracking: "JT0024984596851", staff: "Q-嘉-徐耀明", type: "少件/破損", fine: 0, compensation: 0, customer: "凌** 97818255", address: "九龍 觀塘區 麗港城 1期 2座 21樓 E室", desc: "2026-08-03 12:31 司機取件，核實是否漏派", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_47", tracking: "JT0024813782284", staff: "周健", type: "客戶棄件", fine: 0, compensation: 0, customer: "s** 61042515", address: "九龍 觀塘區 觀塘工業中心三期 12樓 V室 v7房", desc: "2026-08-08 14:25 客戶不認識送達位置，有意向棄件", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_48", tracking: "JT0025075941793", staff: "周健", type: "多件同時未收到", fine: 0, compensation: 0, customer: "伍** 56213447", address: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", desc: "2026-08-09 12:13 6件同時簽收但均未收到 (件1)", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_49", tracking: "JT0025074025118", staff: "周健", type: "多件同時未收到", fine: 0, compensation: 0, customer: "伍** 56213447", address: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", desc: "2026-08-09 12:13 6件同時簽收但均未收到 (件2)", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_50", tracking: "JT0025079153784", staff: "周健", type: "多件同時未收到", fine: 0, compensation: 0, customer: "伍** 56213447", address: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", desc: "2026-08-09 12:13 6件同時簽收但均未收到 (件3)", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_51", tracking: "JT0025079994845", staff: "周健", type: "多件同時未收到", fine: 0, compensation: 0, customer: "伍** 56213447", address: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", desc: "2026-08-09 12:13 6件同時簽收但均未收到 (件4)", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_52", tracking: "JT0025078391033", staff: "周健", type: "多件同時未收到", fine: 0, compensation: 0, customer: "伍** 56213447", address: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", desc: "2026-08-09 12:13 6件同時簽收但均未收到 (件5)", status: "待處理", appealText: "", photo: "" },
-      { id: "TK_53", tracking: "JT0025076006737", staff: "周健", type: "多件同時未收到", fine: 0, compensation: 0, customer: "伍** 56213447", address: "九龍 觀塘區 觀塘工業中心二期一樓 J8室", desc: "2026-08-09 12:13 6件同時簽收但均未收到 (件6)", status: "待處理", appealText: "", photo: "" }
-    ];
-
-    var accounts = JSON.parse(localStorage.getItem('MIA_ACCOUNTS_CLEAN')) || initialAccounts;
-    var fencesData = JSON.parse(localStorage.getItem('MIA_FENCES_CLEAN')) || initialFences;
-    var countsDataList = JSON.parse(localStorage.getItem('MIA_COUNTS_DATA_CLEAN')) || initialCountsData;
+    var fencesData = initialFences;
+    var countsDataList = initialCountsData;
     var violationsList = JSON.parse(localStorage.getItem('MIA_VIOLATIONS_CLEAN')) || [];
     var trucksList = JSON.parse(localStorage.getItem('MIA_TRUCKS_CLEAN')) || [];
     var suppliesList = JSON.parse(localStorage.getItem('MIA_SUPPLIES_CLEAN')) || [];
@@ -974,6 +770,7 @@
       }
     }
 
+    // 雲端同步並智能轉換 Google Sheets 中文表頭
     async function syncAllFromCloud() {
       var syncBadge = document.getElementById('sync-status');
       if (syncBadge) syncBadge.textContent = '🔄 正在同步雲端...';
@@ -981,8 +778,50 @@
       var res = await callBackend('loadAll');
       if (res && res.status === 'success' && res.data) {
         var d = res.data;
-        if (d.accounts && d.accounts.length) accounts = d.accounts;
-        if (d.dailyReports && d.dailyReports.length) dailyReports = d.dailyReports;
+
+        // 智能轉換人員名冊 (嚴防 undefined)
+        if (d.accounts && d.accounts.length) {
+          var mappedAccs = d.accounts.map(function(a) {
+            var rawName = a['人員姓名'] || a.name || a.staff || '';
+            if (!rawName || rawName === 'undefined') return null;
+            return {
+              id: a['員工編號'] || a.id || 'KM-00',
+              name: rawName,
+              team: a['隊伍'] || a.team || 'KM隊',
+              role: a['職級身份'] || a.role || '兼職步兵',
+              cycle: a['出糧週期'] || a.cycle || '半月糧',
+              pwd: a['登入密碼'] || a.pwd || '123',
+              prices: {
+                east: Number(a['東區單價'] || (a.prices && a.prices.east) || 4.0),
+                ktlg: Number(a['麗港城單價'] || (a.prices && a.prices.ktlg) || 4.0),
+                ktind: Number(a['觀塘工商單價'] || (a.prices && a.prices.ktind) || 4.5),
+                st: Number(a['沙田單價'] || (a.prices && a.prices.st) || 7.0)
+              }
+            };
+          }).filter(Boolean);
+
+          if (mappedAccs.length) accounts = mappedAccs;
+        }
+
+        if (d.dailyReports && d.dailyReports.length) {
+          dailyReports = d.dailyReports.map(function(r) {
+            return {
+              id: r['記錄ID'] || r.id || ('REP_' + Date.now()),
+              date: r['日期'] ? String(r['日期']).split('T')[0] : (r.date || ''),
+              staff: r['步兵姓名'] || r.staff || '',
+              eastCount: Number(r['東區票數'] || r.eastCount || 0),
+              ktLgCount: Number(r['麗港城票數'] || r.ktLgCount || 0),
+              ktIndCount: Number(r['觀塘工商票數'] || r.ktIndCount || 0),
+              stCount: Number(r['沙田票數'] || r.stCount || 0),
+              totalPieces: Number(r['總票數'] || r.totalPieces || 0),
+              signedCount: Number(r['已簽收'] || r.signedCount || 0),
+              holdCount: Number(r['滯留件數'] || r.holdCount || 0),
+              finalSalary: Number(r['實發工資'] || r.finalSalary || 0),
+              photoProof: r['相片憑證'] || r.photoProof || ''
+            };
+          });
+        }
+
         if (d.shiftsRecord) shiftsRecord = d.shiftsRecord;
         if (d.ticketsList && d.ticketsList.length) ticketsList = d.ticketsList;
 
@@ -1001,6 +840,7 @@
       }
     }
 
+    // 格式化下拉選單：嚴防 undefined，純中文「名字 - 隊伍」
     function populateUserSelects() {
       var loginSel = document.getElementById('login-user-select');
       var roleSel = document.getElementById('user-role-select');
@@ -1009,7 +849,10 @@
       var tkStaff = document.getElementById('tk-input-staff');
       var reconStaff = document.getElementById('recon-staff-select');
 
-      var opts = accounts.map(function(a) {
+      var validAccounts = accounts.filter(function(a) { return a && a.name && a.name !== 'undefined'; });
+      if (!validAccounts.length) validAccounts = initialAccounts;
+
+      var opts = validAccounts.map(function(a) {
         var teamStr = a.team ? (a.team.includes('隊') ? a.team : a.team + '隊') : 'KM隊';
         return '<option value="' + a.name + '">' + a.name + ' - ' + teamStr + '</option>';
       }).join('');
@@ -1023,12 +866,14 @@
     }
 
     function getAccountByName(name) {
-      return accounts.find(function(a) { return a.name === name; }) || { role: "兼職步兵", team: "KM隊", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } };
+      var found = accounts.find(function(a) { return a.name === name; });
+      if (found) return found;
+      return { name: name || "Mia", role: "總管理員", team: "KM隊", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 } };
     }
 
     function checkAuthSession() {
       var savedUser = sessionStorage.getItem('MIA_SESSION_USER');
-      if (savedUser) {
+      if (savedUser && savedUser !== 'undefined') {
         var u = getAccountByName(savedUser);
         currentUser = u.name;
         currentRole = u.role;
@@ -1098,7 +943,6 @@
       renderAssignmentsBoard();
     }
 
-    // 渲染最新 53 個圍欄詳細貨量核算表
     function renderCountsTable() {
       var tbody = document.getElementById('countsDetailTableBody');
       var tfoot = document.getElementById('countsDetailTableFooter');
@@ -1129,7 +973,6 @@
       }
     }
 
-    // 渲染各區工作進度 (即時切換與卡片更新)
     function switchProgressZone(zoneKey) {
       ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(function(k) {
         var btn = document.getElementById('prog-tab-' + k);
@@ -1149,7 +992,7 @@
       if (!container) return;
       var fences = fencesData[zoneKey] || [];
 
-      container.innerHTML = fences.map(function(f, idx) {
+      container.innerHTML = fences.map(function(f) {
         return '<div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5 text-xs shadow-xs">' +
           '<div class="flex justify-between items-center border-b pb-1.5">' +
             '<b class="text-slate-900 font-bold text-xs">' + f.name + '</b>' +
@@ -1177,7 +1020,6 @@
       }).join('');
     }
 
-    // 渲染分工排班看板 (全部 53 個圍欄)
     function renderAssignmentsBoard() {
       var grid = document.getElementById('assignments-grid');
       if (!grid) return;
@@ -1769,7 +1611,6 @@
           '<td class="p-2.5">' + a.cycle + '</td>' +
           '<td class="p-2.5 font-mono text-slate-500">' + a.pwd + '</td>' +
           '<td class="p-2.5 font-mono font-bold text-emerald-700">' + pr.east + ' / ' + pr.ktlg + ' / ' + pr.ktind + ' / ' + pr.st + '</td>' +
-          '<td class="p-2.5 text-center"><button type="button" onclick="editStaffAccount(\'' + a.id + '\')" class="text-blue-600 font-bold hover:underline">編輯</button></td>' +
         '</tr>';
       }).join('');
     }
@@ -1802,7 +1643,7 @@
     function renderViolationsTable() {
       var tbody = document.getElementById('violationsTableBody');
       if (!tbody) return;
-      tbody.innerHTML = violationsList.map(function(v, idx) {
+      tbody.innerHTML = violationsList.map(function(v) {
         return '<tr class="hover:bg-slate-50 text-[11px]">' +
           '<td class="p-2.5 font-mono">' + v.date + '</td>' +
           '<td class="p-2.5 font-bold text-slate-900">' + v.staff + '</td>' +
@@ -1810,53 +1651,49 @@
           '<td class="p-2.5 font-bold text-rose-700">' + v.type + '</td>' +
           '<td class="p-2.5 text-right font-black text-rose-600 font-mono">HK$ ' + v.amount + '</td>' +
           '<td class="p-2.5 text-slate-600">' + (v.desc || '-') + '</td>' +
-          '<td class="p-2.5 text-center"><button type="button" onclick="violationsList.splice(' + idx + ',1);localStorage.setItem(\'MIA_VIOLATIONS_CLEAN\',JSON.stringify(violationsList));renderViolationsTable();renderLeaderboard();renderProfitSummary();" class="text-rose-600 font-bold hover:underline">刪除</button></td>' +
         '</tr>';
-      }).join('') || '<tr><td colspan="7" class="p-4 text-center text-slate-400">目前無現場違規登記。</td></tr>';
+      }).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">目前無現場違規登記。</td></tr>';
     }
 
     function renderTruckTable() {
       var tbody = document.getElementById('truckTableBody');
       if (!tbody) return;
-      tbody.innerHTML = trucksList.map(function(t, idx) {
+      tbody.innerHTML = trucksList.map(function(t) {
         return '<tr class="hover:bg-slate-50 text-[11px]">' +
           '<td class="p-2.5 font-mono">' + t.date + '</td>' +
           '<td class="p-2.5 font-bold text-blue-900">' + t.driver + '</td>' +
           '<td class="p-2.5 font-bold text-emerald-700">' + t.trip + '</td>' +
           '<td class="p-2.5">' + t.route + '</td>' +
-          '<td class="p-2.5 text-center"><button type="button" onclick="trucksList.splice(' + idx + ',1);localStorage.setItem(\'MIA_TRUCKS_CLEAN\',JSON.stringify(trucksList));renderTruckTable();" class="text-rose-600 font-bold hover:underline">刪除</button></td>' +
         '</tr>';
-      }).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無司機車線調度記錄。</td></tr>';
+      }).join('') || '<tr><td colspan="4" class="p-4 text-center text-slate-400">目前無司機車線調度記錄。</td></tr>';
     }
 
     function renderSuppliesTable() {
       var tbody = document.getElementById('suppliesTableBody');
       if (!tbody) return;
-      tbody.innerHTML = suppliesList.map(function(s, idx) {
+      tbody.innerHTML = suppliesList.map(function(s) {
         return '<tr class="hover:bg-slate-50 text-[11px]">' +
           '<td class="p-2.5 font-mono">' + s.date + '</td>' +
           '<td class="p-2.5 font-bold">' + s.item + '</td>' +
           '<td class="p-2.5 text-center font-bold">' + s.qty + '</td>' +
           '<td class="p-2.5 text-right font-black text-rose-600 font-mono">HK$ ' + s.amount + '</td>' +
           '<td class="p-2.5">' + (s.buyer || '-') + '</td>' +
-          '<td class="p-2.5 text-center"><button type="button" onclick="suppliesList.splice(' + idx + ',1);localStorage.setItem(\'MIA_SUPPLIES_CLEAN\',JSON.stringify(suppliesList));renderSuppliesTable();renderProfitSummary();" class="text-rose-600 font-bold hover:underline">刪除</button></td>' +
         '</tr>';
-      }).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">目前無物資採購記錄。</td></tr>';
+      }).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無物資採購記錄。</td></tr>';
     }
 
     function renderRecruitsTable() {
       var tbody = document.getElementById('recruitsTableBody');
       if (!tbody) return;
-      tbody.innerHTML = recruitsList.map(function(r, idx) {
+      tbody.innerHTML = recruitsList.map(function(r) {
         return '<tr class="hover:bg-slate-50 text-[11px]">' +
           '<td class="p-2.5 font-mono">' + r.date + '</td>' +
           '<td class="p-2.5 font-bold text-slate-900">' + r.name + '</td>' +
           '<td class="p-2.5 font-mono">' + (r.phone || '-') + '</td>' +
           '<td class="p-2.5">' + r.zone + '</td>' +
           '<td class="p-2.5 text-center"><span class="px-1.5 py-0.5 rounded font-bold bg-blue-100 text-blue-800">' + r.status + '</span></td>' +
-          '<td class="p-2.5 text-center"><button type="button" onclick="recruitsList.splice(' + idx + ',1);localStorage.setItem(\'MIA_RECRUITS_CLEAN\',JSON.stringify(recruitsList));renderRecruitsTable();" class="text-rose-600 font-bold hover:underline">刪除</button></td>' +
         '</tr>';
-      }).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">目前無預約新人記錄。</td></tr>';
+      }).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無預約新人記錄。</td></tr>';
     }
 
     function viewLargeImage(src) {
@@ -1886,7 +1723,7 @@
     }
 
     function resetSystemData() {
-      if (!confirm('⚠️ 警告：確定要清空所有本機暫存資料並恢復原廠預設嗎？')) return;
+      if (!confirm('⚠️ 確定要清空本機暫存並刷新嗎？')) return;
       localStorage.clear();
       sessionStorage.clear();
       location.reload();
