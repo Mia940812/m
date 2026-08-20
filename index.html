@@ -87,7 +87,7 @@
       <button type="button" onclick="showTab('tab-leaderboard')" id="btn-tab-leaderboard" data-perm="leaderboard" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-rose-600 text-white">🏆 罰款獎池與龍虎榜</button>
       <button type="button" onclick="showTab('tab-report')" id="btn-tab-report" data-perm="report" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-slate-100 text-slate-800">📝 每日報數</button>
       
-      <!-- 🔒 Mia 專屬隱私功能模組 -->
+      <!-- 🔒 Mia 專屬隱私功能模組 (登入 Mia 後解鎖) -->
       <button type="button" onclick="showTab('tab-recon')" id="btn-tab-recon" data-perm="recon" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-indigo-700 text-white" style="display: none;">🔍 出糧核對與工資卡 (Mia專屬)</button>
       <button type="button" onclick="showTab('tab-staff')" id="btn-tab-staff" data-perm="staff" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-slate-900 text-white" style="display: none;">👥 人員名冊/權限 (Mia專屬)</button>
       <button type="button" onclick="showTab('tab-counts-detail')" id="btn-tab-counts-detail" data-perm="counts" class="admin-only nav-btn px-3 py-1.5 border bg-blue-700 text-white rounded-xl" style="display: none;">📦 詳細貨量與圍欄管理 (Mia專屬)</button>
@@ -310,7 +310,7 @@
       </div>
     </div>
 
-    <!-- 6. 每日報數 -->
+    <!-- 6. 每日報數 (已完整包含 8/15 - 8/19 全員 61 筆報數) -->
     <div id="tab-report" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
@@ -363,6 +363,7 @@
             </div>
           </div>
 
+          <!-- 簽收與滯留件數 + 單號快捷輸入 -->
           <div class="space-y-2 bg-blue-50/60 p-3 rounded-xl border border-blue-100">
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <div><label class="block font-bold mb-1">已簽收件數</label><input type="number" id="repSignedCount" min="0" placeholder="0" class="w-full p-1.5 bg-white border rounded font-black text-blue-700"></div>
@@ -903,7 +904,7 @@
     <!-- 14. 預約新人 -->
     <div id="tab-recruits" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-        <div class="flex justify-between items-center border-b pb-2">
+        <div class="border-b pb-2 flex justify-between items-center">
           <h3 class="font-bold text-sm text-slate-900">📋 預約新人面試與跟更檔案夾</h3>
           <button type="button" onclick="quickExportText('recruits')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold cursor-pointer">📤 匯出新人表</button>
         </div>
@@ -975,6 +976,270 @@
 
   <!-- ================= 核心 JavaScript (補齊缺失的函式) ================= -->
   <script>
+    var accounts = safeGetJSON('MIA_ACCOUNTS_CLEAN', initialAccounts);
+    var fencesData = safeGetJSON('MIA_FENCES_DATA_CLEAN', defaultFencesData);
+    var countsDetailList = safeGetJSON('MIA_COUNTS_DETAIL_DATA', defaultCountsDetailList);
+    var ticketsList = safeGetJSON('MIA_TICKETS_CLEAN', initialTicketsList);
+    var dailyReports = safeGetJSON('MIA_DAILY_REPORTS_CLEAN', initialDailyReports);
+    var violationsList = safeGetJSON('MIA_VIOLATIONS_CLEAN', []);
+    var shiftsRecord = safeGetJSON('MIA_SHIFTS_CLEAN', {});
+    var progressRecord = safeGetJSON('MIA_PROGRESS_DATA', {});
+    var trucksList = safeGetJSON('MIA_TRUCKS_CLEAN', []);
+    var suppliesList = safeGetJSON('MIA_SUPPLIES_CLEAN', []);
+    var recruitsList = safeGetJSON('MIA_RECRUITS_CLEAN', []);
+
+    var currentUser = null;
+    var currentRole = null;
+    var currentZone = 'SKW';
+    var currentCountsSubTab = 'report';
+
+    function getAccountByName(name) {
+      return accounts.find(function(a) { return a.name === name; }) || accounts[0] || initialAccounts[0];
+    }
+
+    function renderAllPanels() {
+      try { renderIconVisualSchedule(); } catch(e){ console.error(e); }
+      try { renderProgressCards(currentZone); } catch(e){ console.error(e); }
+      try { renderAssignmentsGrid(); } catch(e){ console.error(e); }
+      try { renderReportsTable(); } catch(e){ console.error(e); }
+      try { renderTicketsList(); } catch(e){ console.error(e); }
+      try { renderLeaderboard(); } catch(e){ console.error(e); }
+      try { filterReconHistory(); } catch(e){ console.error(e); }
+      try { renderStaffList(); } catch(e){ console.error(e); }
+      try { renderProfitSummary(); } catch(e){ console.error(e); }
+      try { renderViolationsTable(); } catch(e){ console.error(e); }
+      try { renderTruckTable(); } catch(e){ console.error(e); }
+      try { renderSuppliesTable(); } catch(e){ console.error(e); }
+      try { renderRecruitsTable(); } catch(e){ console.error(e); }
+      try { renderCountsDetailTable(); } catch(e){ console.error(e); }
+      try { renderFencesManagementTable(); } catch(e){ console.error(e); }
+    }
+
+    function renderReportsTable() {
+      var tbody = document.getElementById('reportTableBody');
+      if (!tbody) return;
+
+      var isAdmin = (currentUser === 'Mia' || currentRole === '總管理員' || currentRole === 'Admin');
+      var filtered = isAdmin ? dailyReports : dailyReports.filter(function(r) { return r.staff === currentUser || r.staff.includes(currentUser); });
+
+      tbody.innerHTML = filtered.map(function(r, idx) {
+        var photoHtml = r.photoProof ? '<img src="' + r.photoProof + '" onclick="viewLargeImage(\'' + r.photoProof + '\')" class="w-8 h-8 object-cover rounded-lg border cursor-pointer mx-auto shadow-xs">' : '<span class="text-slate-400">無</span>';
+        var actionHtml = isAdmin ? '<button type="button" onclick="dailyReports.splice(' + idx + ',1);localStorage.setItem(\'MIA_DAILY_REPORTS_CLEAN\',JSON.stringify(dailyReports));renderReportsTable();renderProfitSummary();" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' : '-';
+
+        return '<tr class="hover:bg-slate-50 text-[11px]">' +
+          '<td class="p-3 font-mono">' + r.date + '</td>' +
+          '<td class="p-3 font-bold text-slate-900">' + r.staff + '</td>' +
+          '<td class="p-3 text-center font-mono text-slate-600">' + (r.eastCount||0) + ' / ' + (r.ktLgCount||0) + ' / ' + (r.ktIndCount||0) + ' / ' + (r.stCount||0) + '</td>' +
+          '<td class="p-3 text-right font-black text-blue-700 font-mono">' + (r.totalPieces||0) + '</td>' +
+          '<td class="p-3 text-right font-bold text-emerald-700 font-mono">' + (r.signedCount||0) + ' / ' + (r.holdCount||0) + '</td>' +
+          '<td class="p-3 text-center">' + photoHtml + '</td>' +
+          '<td class="p-3 text-right font-black text-emerald-700 font-mono">HK$ ' + Number(r.finalSalary||0).toFixed(2) + '</td>' +
+          '<td class="p-3 text-center">' + actionHtml + '</td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="8" class="p-6 text-center text-slate-400">目前暫無報數記錄。</td></tr>';
+    }
+
+    function renderTicketsList() {
+      var tbody = document.getElementById('ticketsTableBody');
+      if (!tbody) return;
+
+      tbody.innerHTML = ticketsList.map(function(t, idx) {
+        var photoHtml = t.photo ? '<img src="' + t.photo + '" onclick="viewLargeImage(\'' + t.photo + '\')" class="w-8 h-8 object-cover rounded-lg border cursor-pointer mx-auto shadow-xs">' : '<span class="text-slate-400">無相片</span>';
+        var isExempted = t.status === '舉證成功(已剔除)';
+        
+        var statusBadge = isExempted 
+          ? '<span class="px-2 py-0.5 rounded font-black bg-emerald-100 text-emerald-800 border border-emerald-300">✨ 舉證成功(已剔除)</span>' 
+          : (t.status === '已解決' || t.status === '已處理' ? '<span class="px-1.5 py-0.5 rounded font-bold bg-blue-100 text-blue-800">' + t.status + '</span>' : '<span class="px-1.5 py-0.5 rounded font-bold bg-amber-100 text-amber-800">' + (t.status||'待處理') + '</span>');
+
+        var actionHtml = '<div class="flex items-center justify-center gap-1.5">' +
+            '<button type="button" onclick="editTicketRecord(\'' + t.id + '\')" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-white rounded text-[10px] font-bold shadow-xs cursor-pointer">✏️ 編輯</button>' +
+            (!isExempted ? '<button type="button" onclick="approveTicketExemption(\'' + t.id + '\')" class="px-2 py-0.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded text-[10px] font-bold shadow-xs cursor-pointer">⚖️ 舉證核准</button>' : '') +
+            '<button type="button" onclick="ticketsList.splice(' + idx + ',1);localStorage.setItem(\'MIA_TICKETS_CLEAN\',JSON.stringify(ticketsList));renderTicketsList();renderProfitSummary();renderLeaderboard();" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' +
+          '</div>';
+
+        return '<tr class="hover:bg-slate-50 text-[11px] ' + (isExempted ? 'bg-emerald-50/30' : '') + '">' +
+          '<td class="p-2.5 font-mono font-bold text-slate-900">' + t.tracking + '</td>' +
+          '<td class="p-2.5 font-bold text-blue-900">' + t.staff + '</td>' +
+          '<td class="p-2.5 text-slate-600">' + (t.customer || '-') + '</td>' +
+          '<td class="p-2.5 text-slate-700 max-w-[180px] truncate" title="' + (t.address||'') + '">' + (t.address || '-') + '</td>' +
+          '<td class="p-2.5 text-slate-600 max-w-[180px] truncate" title="' + (t.desc||'') + '">' + (t.desc || '-') + '</td>' +
+          '<td class="p-2.5 text-right font-black text-rose-600 font-mono">HK$ ' + (t.fine||0) + '</td>' +
+          '<td class="p-2.5 text-right font-black text-amber-700 font-mono">HK$ ' + (t.compensation||0) + '</td>' +
+          '<td class="p-2.5 text-center">' + statusBadge + '</td>' +
+          '<td class="p-2.5 text-slate-600">' + (t.appealText || '-') + '</td>' +
+          '<td class="p-2.5 text-center">' + photoHtml + '</td>' +
+          '<td class="p-2.5 text-center">' + actionHtml + '</td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="11" class="p-6 text-center text-slate-400">目前暫無工單記錄。</td></tr>';
+    }
+
+    function renderCountsDetailTable() {
+      var tbody = document.getElementById('countsDetailTableBody');
+      var tfoot = document.getElementById('countsDetailTableFooter');
+      if (!tbody) return;
+
+      var filterDate = document.getElementById('cnt-filter-date') ? document.getElementById('cnt-filter-date').value : '';
+      var dataToRender = (countsDetailList && countsDetailList.length > 0) ? countsDetailList : defaultCountsDetailList;
+
+      var filtered = dataToRender.filter(function(c) {
+        if (filterDate && c.date !== filterDate) return false;
+        return true;
+      });
+
+      var totOrig = 0, totHeld = 0, totAfter = 0, totDelivered = 0, totDiffAfter = 0, totDiffOrig = 0, totT3 = 0;
+
+      tbody.innerHTML = filtered.map(function(c, idx) {
+        var diffAfter = c.delivered - c.after;
+        var diffOrig = c.delivered - c.orig;
+
+        totOrig += c.orig;
+        totHeld += c.held;
+        totAfter += c.after;
+        totDelivered += c.delivered;
+        totDiffAfter += diffAfter;
+        totDiffOrig += diffOrig;
+        totT3 += c.t3;
+
+        var diffAfterColor = diffAfter >= 0 ? 'text-emerald-700' : 'text-rose-600';
+        var diffOrigColor = diffOrig >= 0 ? 'text-emerald-700' : 'text-rose-600';
+
+        return '<tr class="hover:bg-slate-50 text-[11px]">' +
+          '<td class="p-2.5 font-mono">' + c.date + '</td>' +
+          '<td class="p-2.5 font-bold">' + c.zone + '</td>' +
+          '<td class="p-2.5 font-bold text-blue-900">' + (c.fence || '-') + '</td>' +
+          '<td class="p-2.5 text-right font-black text-blue-700 font-mono">' + c.orig + '</td>' +
+          '<td class="p-2.5 text-right font-bold text-amber-700 font-mono">' + c.held + '</td>' +
+          '<td class="p-2.5 text-right font-black text-emerald-700 font-mono">' + c.after + '</td>' +
+          '<td class="p-2.5 text-right font-black font-mono">' + c.delivered + '</td>' +
+          '<td class="p-2.5 text-right font-black font-mono ' + diffAfterColor + '">' + (diffAfter >= 0 ? '+' : '') + diffAfter + '</td>' +
+          '<td class="p-2.5 text-right font-bold font-mono ' + diffOrigColor + '">' + (diffOrig >= 0 ? '+' : '') + diffOrig + '</td>' +
+          '<td class="p-2.5 text-right font-bold font-mono text-purple-700">' + c.t3 + '</td>' +
+          '<td class="p-2.5 text-slate-500">' + (c.note || '-') + '</td>' +
+          '<td class="p-2.5 text-center"><button type="button" onclick="countsDetailList.splice(' + idx + ',1);localStorage.setItem(\'MIA_COUNTS_DETAIL_DATA\',JSON.stringify(countsDetailList));renderCountsDetailTable();callBackend(\'syncCounts\', {countsJSON: JSON.stringify(countsDetailList)});" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button></td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="12" class="p-6 text-center text-slate-400">目前暫無詳細貨量記錄。</td></tr>';
+
+      if (tfoot) {
+        tfoot.innerHTML = '<tr>' +
+          '<td class="p-2.5 text-center" colspan="3">📊 合計 (TOTAL)</td>' +
+          '<td class="p-2.5 text-right text-blue-300 font-mono">' + totOrig + '</td>' +
+          '<td class="p-2.5 text-right text-amber-300 font-mono">' + totHeld + '</td>' +
+          '<td class="p-2.5 text-right text-emerald-300 font-mono">' + totAfter + '</td>' +
+          '<td class="p-2.5 text-right font-mono">' + totDelivered + '</td>' +
+          '<td class="p-2.5 text-right text-indigo-300 font-mono">' + (totDiffAfter >= 0 ? '+' : '') + totDiffAfter + '</td>' +
+          '<td class="p-2.5 text-right text-slate-300 font-mono">' + (totDiffOrig >= 0 ? '+' : '') + totDiffOrig + '</td>' +
+          '<td class="p-2.5 text-right text-purple-300 font-mono">' + totT3 + '</td>' +
+          '<td class="p-2.5" colspan="2">-</td>' +
+        '</tr>';
+      }
+    }
+
+    function renderLeaderboard() {
+      var tbody = document.getElementById('leaderboardDetailsTableBody');
+      var vbody = document.getElementById('leaderboardViolationsTableBody');
+      if (!tbody) return;
+
+      var totalFines = violationsList.reduce(function(s, v) { return s + (Number(v.amount) || 0); }, 0) + ticketsList.reduce(function(s, t) { return s + (Number(t.fine) || 0); }, 0);
+      var pool60 = totalFines * 0.6;
+
+      if (document.getElementById('leaderboard-total-pool')) document.getElementById('leaderboard-total-pool').textContent = 'HK$ ' + totalFines.toFixed(2);
+      if (document.getElementById('leaderboard-60-pool')) document.getElementById('leaderboard-60-pool').textContent = 'HK$ ' + pool60.toFixed(2);
+
+      var staffStats = accounts.map(function(a) {
+        var reps = dailyReports.filter(function(r) { return r.staff === a.name || r.staff.includes(a.name); });
+        var pcs = reps.reduce(function(s, r) { return s + (Number(r.totalPieces) || 0); }, 0);
+        var activeTks = ticketsList.filter(function(t) { return (t.staff === a.name || t.staff.includes(a.name)) && t.status !== '舉證成功(已剔除)'; }).length;
+        var vios = violationsList.filter(function(v) { return v.staff === a.name || v.staff.includes(a.name); }).length;
+        var isEligible = (activeTks === 0 && vios === 0 && pcs > 0);
+
+        return { name: a.name, team: a.team, pcs: pcs, tks: activeTks, vios: vios, isEligible: isEligible };
+      });
+
+      staffStats.sort(function(x, y) { return y.pcs - x.pcs; });
+      var eligibleList = staffStats.filter(function(s) { return s.isEligible; });
+      var top3 = eligibleList.slice(0, 3);
+      var top3TotalPcs = top3.reduce(function(s, item) { return s + item.pcs; }, 0);
+
+      tbody.innerHTML = staffStats.map(function(s, idx) {
+        var share = (s.isEligible && top3.includes(s) && top3TotalPcs > 0) ? (pool60 * (s.pcs / top3TotalPcs)) : 0;
+        var rankBadge = idx === 0 ? '🥇 1' : (idx === 1 ? '🥈 2' : (idx === 2 ? '🥉 3' : (idx + 1)));
+
+        return '<tr class="hover:bg-slate-50 text-[11px]">' +
+          '<td class="p-2.5 text-center font-bold font-mono">' + rankBadge + '</td>' +
+          '<td class="p-2.5 font-bold text-slate-900">' + s.name + '</td>' +
+          '<td class="p-2.5 text-slate-500">' + (s.team||'KM') + '隊</td>' +
+          '<td class="p-2.5 text-right font-black text-blue-700 font-mono">' + s.pcs + '</td>' +
+          '<td class="p-2.5 text-center font-bold text-emerald-700">100%</td>' +
+          '<td class="p-2.5 text-center font-bold text-rose-600 font-mono">' + s.tks + '</td>' +
+          '<td class="p-2.5 text-center font-bold text-amber-600 font-mono">' + s.vios + '</td>' +
+          '<td class="p-2.5 text-center">' + (s.isEligible ? '<span class="px-1.5 py-0.5 rounded font-bold bg-emerald-100 text-emerald-800 text-[10px]">具分紅資格</span>' : '<span class="px-1.5 py-0.5 rounded font-bold bg-slate-100 text-slate-500 text-[10px]">無資格</span>') + '</td>' +
+          '<td class="p-2.5 text-right font-black text-emerald-700 font-mono">HK$ ' + share.toFixed(2) + '</td>' +
+        '</tr>';
+      }).join('');
+
+      if (vbody) {
+        vbody.innerHTML = staffStats.filter(function(s) { return s.vios > 0 || s.tks > 0; }).map(function(s, idx) {
+          var vAmount = violationsList.filter(function(v) { return v.staff === s.name; }).reduce(function(sum, v) { return sum + (Number(v.amount)||0); }, 0);
+          var tFine = ticketsList.filter(function(t) { return (t.staff === s.name || t.staff.includes(s.name)) && t.status !== '舉證成功(已剔除)'; }).reduce(function(sum, t) { return sum + (Number(t.fine)||0); }, 0);
+          return '<tr class="hover:bg-rose-50/50 text-[11px]">' +
+            '<td class="p-2 text-center font-bold font-mono">#' + (idx+1) + '</td>' +
+            '<td class="p-2 font-bold text-rose-900">' + s.name + '</td>' +
+            '<td class="p-2 text-center font-mono font-bold text-rose-700">' + s.vios + '</td>' +
+            '<td class="p-2 text-right font-mono font-bold text-amber-700">HK$ ' + vAmount.toFixed(2) + '</td>' +
+            '<td class="p-2 text-right font-mono font-bold text-rose-600">HK$ ' + tFine.toFixed(2) + '</td>' +
+            '<td class="p-2.5 text-right font-black font-mono text-rose-700">HK$ ' + (vAmount + tFine).toFixed(2) + '</td>' +
+          '</tr>';
+        }).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">目前無違規人員，全員達標！</td></tr>';
+      }
+    }
+
+    function renderStaffList() {
+      var tbody = document.getElementById('staffListTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = accounts.map(function(a, idx) {
+        var pr = a.prices || { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 };
+        var permCount = (a.permissions || []).length;
+        return '<tr class="hover:bg-slate-50 text-[11px]">' +
+          '<td class="p-2.5 font-mono font-bold text-blue-700">' + a.id + '</td>' +
+          '<td class="p-2.5 font-bold text-slate-900">' + a.name + '</td>' +
+          '<td class="p-2.5 font-bold">' + a.role + ' (' + a.team + '隊)</td>' +
+          '<td class="p-2.5">' + a.cycle + '</td>' +
+          '<td class="p-2.5 font-mono text-slate-500">' + a.pwd + '</td>' +
+          '<td class="p-2.5 font-mono font-bold text-emerald-700">東:' + pr.east + ' / 麗:' + pr.ktlg + ' / 工:' + pr.ktind + ' / 沙:' + pr.st + '</td>' +
+          '<td class="p-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-900">開放 ' + permCount + ' 項</span></td>' +
+          '<td class="p-2.5 text-center">' +
+            '<button type="button" onclick="editStaffAccount(\'' + a.id + '\')" class="text-blue-600 font-bold hover:underline cursor-pointer mr-2">編輯/授權</button>' +
+            (a.name !== 'Mia' ? '<button type="button" onclick="accounts.splice(' + idx + ',1);localStorage.setItem(\'MIA_ACCOUNTS_CLEAN\',JSON.stringify(accounts));renderStaffList();populateUserSelects();callBackend(\'syncAccounts\', {accountsJSON: JSON.stringify(accounts)});" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' : '') +
+          '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function renderFencesManagementTable() {
+      var tbody = document.getElementById('fencesManagementTableBody');
+      if (!tbody) return;
+      var zoneNames = { SKW: '東區 (SKW)', KTLG: '觀塘麗港城', KTIND: '觀塘工商區', ST: '沙田 (ST-F58)' };
+      var html = '';
+
+      ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(function(zKey) {
+        var fences = (fencesData && fencesData[zKey] && fencesData[zKey].length > 0) ? fencesData[zKey] : (defaultFencesData[zKey] || []);
+        fences.forEach(function(f) {
+          html += '<tr class="hover:bg-slate-50 text-[11px]">' +
+            '<td class="p-2.5 font-bold text-slate-900">' + zoneNames[zKey] + '</td>' +
+            '<td class="p-2.5 font-mono text-slate-500">' + f.id + '</td>' +
+            '<td class="p-2.5 font-black text-blue-900">' + f.name + '</td>' +
+            '<td class="p-2.5 font-bold text-emerald-800">' + (f.defaultStaff || '未設定') + '</td>' +
+            '<td class="p-2.5 text-center">' +
+              '<button type="button" onclick="editCustomFence(\'' + zKey + '\', \'' + f.id + '\')" class="px-2 py-0.5 bg-slate-800 text-white rounded text-[10px] font-bold mr-1 cursor-pointer">編輯</button>' +
+              '<button type="button" onclick="deleteCustomFence(\'' + zKey + '\', \'' + f.id + '\')" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' +
+            '</td>' +
+          '</tr>';
+        });
+      });
+
+      tbody.innerHTML = html || '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無圍欄數據。</td></tr>';
+    }
+
     function renderProfitSummary() {
       var totPcs = dailyReports.reduce(function(s, r) { return s + (Number(r.totalPieces) || 0); }, 0);
       var totWages = dailyReports.reduce(function(s, r) { return s + (Number(r.finalSalary) || 0); }, 0);
@@ -1081,14 +1346,6 @@
       area.select();
       document.execCommand('copy');
       alert('📋 內容已成功複製至剪貼簿，可直接貼到 WhatsApp！');
-    }
-
-    function forceCleanReset() {
-      if (confirm('確定重置並重新載入所有最新完整資料？')) {
-        localStorage.clear();
-        sessionStorage.clear();
-        location.reload();
-      }
     }
 
     function onStaffSelectChange(name) {
@@ -1239,24 +1496,6 @@
       localStorage.setItem('MIA_RECRUITS_CLEAN', JSON.stringify(recruitsList));
       renderRecruitsTable();
       alert('✅ 預約新人已登記！');
-    }
-
-    function renderAllPanels() {
-      try { renderIconVisualSchedule(); } catch(e){ console.error(e); }
-      try { renderProgressCards(currentZone); } catch(e){ console.error(e); }
-      try { renderAssignmentsGrid(); } catch(e){ console.error(e); }
-      try { renderReportsTable(); } catch(e){ console.error(e); }
-      try { renderTicketsList(); } catch(e){ console.error(e); }
-      try { renderLeaderboard(); } catch(e){ console.error(e); }
-      try { filterReconHistory(); } catch(e){ console.error(e); }
-      try { renderStaffList(); } catch(e){ console.error(e); }
-      try { renderProfitSummary(); } catch(e){ console.error(e); }
-      try { renderViolationsTable(); } catch(e){ console.error(e); }
-      try { renderTruckTable(); } catch(e){ console.error(e); }
-      try { renderSuppliesTable(); } catch(e){ console.error(e); }
-      try { renderRecruitsTable(); } catch(e){ console.error(e); }
-      try { renderCountsDetailTable(); } catch(e){ console.error(e); }
-      try { renderFencesManagementTable(); } catch(e){ console.error(e); }
     }
 
     function initApp() {
