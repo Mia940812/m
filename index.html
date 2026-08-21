@@ -48,7 +48,7 @@
     </div>
   </header>
 
-  <!-- 頂部切換導航欄 -->
+  <!-- 頂部切換導航欄 (🔒 步兵無權限之私隱入口預設全部完全隱藏 style="display: none !important;") -->
   <nav class="bg-white border-b border-slate-200 sticky top-[49px] z-40 shadow-xs">
     <div class="max-w-7xl mx-auto px-2 py-2 flex flex-wrap items-center gap-1.5 text-xs font-bold" id="main-nav-container">
       <button type="button" onclick="showTab('tab-schedule')" id="btn-tab-schedule" data-perm="schedule" class="nav-btn active px-3.5 py-1.5 rounded-xl border bg-indigo-50 text-indigo-900 border-indigo-200">⏰ 14天公仔報更</button>
@@ -61,13 +61,13 @@
       <button type="button" onclick="showTab('tab-violations')" id="btn-tab-violations" data-perm="violations" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-amber-600 text-white">⚠️ 現場違規登記</button>
       <button type="button" onclick="showTab('tab-truck')" id="btn-tab-truck" data-perm="truck" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-slate-100 text-slate-800 border-slate-300">🚗 司機車線</button>
 
-      <!-- 預約新人 (Mia + 組長專屬) -->
+      <!-- 🔒 預約新人 (Mia + 組長專屬，預設隱藏) -->
       <button type="button" onclick="showTab('tab-recruits')" id="btn-tab-recruits" data-perm="recruits" class="leader-only nav-btn px-3 py-1.5 rounded-xl border bg-slate-100 text-slate-800 border-slate-300" style="display: none !important;">📋 預約新人</button>
 
-      <!-- 詳細貨量與圍欄管理 (Mia + 組長專屬) -->
+      <!-- 🔒 詳細貨量與圍欄管理 (Mia + 組長專屬，預設隱藏) -->
       <button type="button" onclick="showTab('tab-counts-detail')" id="btn-tab-counts-detail" data-perm="counts" class="leader-only nav-btn px-3 py-1.5 border bg-blue-700 text-white rounded-xl" style="display: none !important;">📦 詳細貨量與圍欄管理</button>
       
-      <!-- 🔒 Mia 4 大專屬隱私財務功能模組 -->
+      <!-- 🔒 Mia 4 大專屬私隱財務入口 (預設絕對隱藏，只有 Mia 登入解鎖) -->
       <button type="button" onclick="showTab('tab-recon')" id="btn-tab-recon" data-perm="recon" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-indigo-700 text-white" style="display: none !important;">🔍 出糧核對與工資卡 (Mia專屬)</button>
       <button type="button" onclick="showTab('tab-staff')" id="btn-tab-staff" data-perm="staff" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-slate-900 text-white" style="display: none !important;">👥 人員名冊/權限 (Mia專屬)</button>
       <button type="button" onclick="showTab('tab-profit')" id="btn-tab-profit" data-perm="profit" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-emerald-700 text-white" style="display: none !important;">📈 利潤分析 (Mia專屬)</button>
@@ -923,7 +923,7 @@
     </div>
   </div>
 
-  <!-- ================= 核心 JavaScript (全自動雲端雙向動態載入) ================= -->
+  <!-- ================= 核心 JavaScript (嚴格權限隔離與全自動雲端雙向動態載入) ================= -->
   <script>
     var GAS_API_URL = "https://script.google.com/macros/s/AKfycbwFWWjYk8_Al8QAKZvvtMPdcMlU9zrNJF3c7QD8FT1XXn3GFI4xKGPgZBb6o8fg7-nKCQ/exec";
 
@@ -1241,6 +1241,7 @@
       applyUserPermissions();
     }
 
+    // ⭐ 嚴格權限隔離：訪客/普通步兵模式下，私隱入口 100% 完全隱藏
     function applyUserPermissions() {
       var badge = document.getElementById('current-user-badge');
       var isMia = (currentUser === 'Mia' || currentRole === '總管理員' || currentRole === 'Admin');
@@ -1256,13 +1257,24 @@
       var u = currentUser ? getAccountByName(currentUser) : null;
       var userPerms = isMia ? defaultPermissions['總管理員'] : (isLeader ? defaultPermissions['組長'] : ((u && u.permissions) || defaultPermissions[currentRole] || defaultPermissions['全職步兵']));
 
+      // 控制頂部導航欄按鈕
       document.querySelectorAll('#main-nav-container button[data-perm]').forEach(function(btn) {
         var permKey = btn.getAttribute('data-perm');
-        if (isMia || (currentUser && userPerms.includes(permKey))) {
+        if (isMia || (currentUser && userPerms && userPerms.includes(permKey))) {
           btn.style.setProperty('display', 'inline-block', 'important');
         } else {
           btn.style.setProperty('display', 'none', 'important');
         }
+      });
+
+      // 嚴格隱藏 Mia 專屬按鈕
+      document.querySelectorAll('.admin-only').forEach(function(el) {
+        el.style.setProperty('display', isMia ? 'inline-block' : 'none', 'important');
+      });
+
+      // 嚴格隱藏組長專屬按鈕
+      document.querySelectorAll('.leader-only').forEach(function(el) {
+        el.style.setProperty('display', isLeader ? 'inline-block' : 'none', 'important');
       });
 
       var leaderTicketForm = document.getElementById('leader-ticket-form-container');
@@ -1304,7 +1316,7 @@
       var u = currentUser ? getAccountByName(currentUser) : null;
       var userPerms = isMia ? defaultPermissions['總管理員'] : (isLeader ? defaultPermissions['組長'] : ((u && u.permissions) || defaultPermissions[currentRole] || defaultPermissions['全職步兵']));
 
-      if (!isMia && (!currentUser || !userPerms.includes(permKey))) {
+      if (!isMia && (!currentUser || !userPerms || !userPerms.includes(permKey))) {
         alert('⚠️ 此功能為專屬管理專區，請先登入管理員帳戶！');
         return;
       }
@@ -2277,7 +2289,6 @@
       alert('📋 已成功複製至剪貼簿！可直接貼上 WhatsApp 傳送。');
     }
 
-    // ⭐ 自動背景同步 (不卡頓、穿透 CORS)
     function sendPayloadToGoogle(payload) {
       try {
         var bodyStr = JSON.stringify(payload);
@@ -2328,9 +2339,7 @@
       }, 700);
     }
 
-    // ⭐ 從 Google 試算表拉取全隊最新數據（自動合併人員名冊與每日報數）
     function pullAllCloudData(showPrompt) {
-      // 1. 同步拉取雲端報數
       fetch(GAS_API_URL + '?action=getDailyReports')
         .then(function(res) { return res.json(); })
         .then(function(cloudReports) {
@@ -2365,7 +2374,6 @@
           }
         }).catch(function(e) {});
 
-      // 2. 同步拉取雲端人員名冊（動態增加任何新步兵）
       fetch(GAS_API_URL + '?action=getAccounts')
         .then(function(res) { return res.json(); })
         .then(function(cloudAccounts) {
@@ -2441,7 +2449,6 @@
       autoGenerateStaffId('KM');
       showTab('tab-schedule');
 
-      // 每次開頁自動向 Google 拉取最新數據
       pullAllCloudData(false);
     };
   </script>
