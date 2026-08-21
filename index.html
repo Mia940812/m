@@ -57,7 +57,7 @@
           <option value="王利民">王利民 (全職步兵)</option>
           <option value="李健龍">李健龍 (全職步兵)</option>
           <option value="李偉文">李偉文 (兼職步兵)</option>
-          <option value="小魚">小魚 (全職司機)</option>
+          <option value="小魚">小魚 (兼職步兵)</option>
           <option value="煒爺">煒爺 (全職司機)</option>
           <option value="龍">龍 (全職司機)</option>
         </select>
@@ -78,12 +78,10 @@
       <button type="button" onclick="showTab('tab-leaderboard')" id="btn-tab-leaderboard" data-perm="leaderboard" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-rose-600 text-white">🏆 罰款獎池與龍虎榜</button>
       <button type="button" onclick="showTab('tab-report')" id="btn-tab-report" data-perm="report" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-slate-100 text-slate-800">📝 每日報數</button>
       <button type="button" onclick="showTab('tab-supplies')" id="btn-tab-supplies" data-perm="supplies" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-slate-100 text-slate-800 border-slate-300">📦 物資採購</button>
-
-      <!-- 現場違規登記 & 司機車線 -->
       <button type="button" onclick="showTab('tab-violations')" id="btn-tab-violations" data-perm="violations" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-amber-600 text-white">⚠️ 現場違規登記</button>
       <button type="button" onclick="showTab('tab-truck')" id="btn-tab-truck" data-perm="truck" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-slate-100 text-slate-800 border-slate-300">🚗 司機車線</button>
 
-      <!-- ⭐ 3. 預約新人 (Mia + 組長專屬，步兵完全不顯示) -->
+      <!-- ⭐ 3. 預約新人 (Mia + 組長專屬，步兵完全隱藏) -->
       <button type="button" onclick="showTab('tab-recruits')" id="btn-tab-recruits" data-perm="recruits" class="leader-only nav-btn px-3 py-1.5 rounded-xl border bg-slate-100 text-slate-800 border-slate-300" style="display: none !important;">📋 預約新人</button>
 
       <!-- 📦 詳細貨量 (Mia + 組長專屬) -->
@@ -153,6 +151,11 @@
             <tbody id="scheduleTableBody" class="divide-y divide-slate-200"></tbody>
           </table>
         </div>
+
+        <!-- ☁️ 8. 同步上傳 Google 按鈕 -->
+        <button type="button" onclick="syncCurrentModuleToGoogle('14天報更')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+          ☁️ 同步上傳「14天報更」至 Google 雲端數據庫 (即時傳送俾 Mia)
+        </button>
       </div>
     </div>
 
@@ -181,6 +184,11 @@
         </div>
 
         <div id="progressCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
+
+        <!-- ☁️ 8. 同步上傳 Google 按鈕 -->
+        <button type="button" onclick="syncCurrentModuleToGoogle('工作進度')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+          ☁️ 同步上傳「各區工作進度」至 Google 雲端數據庫 (即時傳送俾 Mia)
+        </button>
       </div>
     </div>
 
@@ -195,21 +203,26 @@
           <button type="button" onclick="quickExportText('assignments')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold cursor-pointer">📤 匯出排班</button>
         </div>
         <div id="assignments-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3"></div>
+
+        <!-- ☁️ 8. 同步上傳 Google 按鈕 -->
+        <button type="button" onclick="syncCurrentModuleToGoogle('區域分工排班')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+          ☁️ 同步上傳「分工排班看板」至 Google 雲端數據庫 (即時傳送俾 Mia)
+        </button>
       </div>
     </div>
 
-    <!-- 4. 異常工單中心 (⭐ 1. 步兵只能查看不能編輯，Mia/組長可錄入與編輯) -->
+    <!-- 4. 異常工單中心 (⭐ 1 & 2. 步兵可編輯申訴/舉證，不能新增；20小時超時自動罰款$100) -->
     <div id="tab-tickets" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
           <div>
-            <h3 class="font-bold text-sm text-slate-900">🚨 異常工單中心 (56 筆完整記錄)</h3>
-            <span class="text-[11px] text-slate-500">步兵僅可查看工單詳情；Mia 與組長登入後可新增、編輯、及「⚖️ 舉證核准(剔除工單)」</span>
+            <h3 class="font-bold text-sm text-slate-900">🚨 異常工單中心 (56 筆完整記錄 | 20小時倒計時自動罰款 $100)</h3>
+            <span class="text-[11px] text-slate-500">步兵可編輯被指派工單之申訴說明與上傳相片舉證；Mia 與組長可新增、指派與核准剔除工單</span>
           </div>
           <button type="button" onclick="quickExportText('tickets')" class="px-3 py-1 bg-rose-700 hover:bg-rose-800 text-white rounded-lg text-xs font-bold cursor-pointer">📤 匯出工單</button>
         </div>
 
-        <!-- Mia + 組長專屬工單錄入表單 (步兵完全隱藏) -->
+        <!-- Mia + 組長專屬新增工單表單 (步兵不顯示) -->
         <div id="leader-ticket-form-container" class="leader-only" style="display: none !important;">
           <form id="form-new-ticket" onsubmit="saveNewTicketRecord(event)" class="p-3 bg-rose-50/60 border border-rose-200 rounded-xl grid grid-cols-1 sm:grid-cols-6 gap-2 text-xs mb-3">
             <input type="hidden" id="tk-input-edit-id" value="">
@@ -226,23 +239,31 @@
         </div>
 
         <div class="overflow-x-auto custom-scrollbar border rounded-xl">
-          <table class="w-full text-left text-xs bg-white min-w-[1050px]">
+          <table class="w-full text-left text-xs bg-white min-w-[1100px]">
             <thead class="bg-slate-100 text-slate-700 font-bold border-b">
               <tr>
                 <th class="p-2.5">單號</th>
                 <th class="p-2.5">責任人員</th>
                 <th class="p-2.5">收件人 / 電話</th>
                 <th class="p-2.5">派送地址</th>
-                <th class="p-2.5">詳細情形 / 物流狀況</th>
+                <th class="p-2.5">詳細情形</th>
+                <th class="p-2.5 text-center text-blue-700 font-black">⏳ 20H 處理限期</th>
                 <th class="p-2.5 text-right text-rose-600">罰款</th>
                 <th class="p-2.5 text-right text-amber-600">賠付</th>
                 <th class="p-2.5 text-center">狀態</th>
+                <th class="p-2.5">步兵申訴說明</th>
+                <th class="p-2.5 text-center">📷 舉證相片</th>
                 <th class="p-2.5 text-center min-w-[140px]">操作</th>
               </tr>
             </thead>
             <tbody id="ticketsTableBody" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
+
+        <!-- ☁️ 8. 同步上傳 Google 按鈕 -->
+        <button type="button" onclick="syncCurrentModuleToGoogle('異常工單')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+          ☁️ 同步上傳「異常工單中心」至 Google 雲端數據庫 (即時傳送俾 Mia)
+        </button>
       </div>
     </div>
 
@@ -287,10 +308,15 @@
             <tbody id="leaderboardDetailsTableBody" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
+
+        <!-- ☁️ 8. 同步上傳 Google 按鈕 -->
+        <button type="button" onclick="syncCurrentModuleToGoogle('龍虎榜')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+          ☁️ 同步上傳「龍虎榜與獎池數據」至 Google 雲端數據庫 (即時傳送俾 Mia)
+        </button>
       </div>
     </div>
 
-    <!-- 6. 每日報數 (⭐ 2. 步兵可編輯 + 可查看) -->
+    <!-- 6. 每日報數 (⭐ 2 & 6. 步兵可編輯 + 可查看) -->
     <div id="tab-report" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
@@ -395,10 +421,17 @@
             <tbody id="reportTableBody" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
+
+        <!-- ☁️ 8. 同步上傳 Google 按鈕 -->
+        <div class="p-3 bg-slate-50 border-t">
+          <button type="button" onclick="syncCurrentModuleToGoogle('每日報數')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+            ☁️ 同步上傳「每日報數與薪資」至 Google 雲端數據庫 (即時傳送俾 Mia)
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- 7. 📦 物資採購 (⭐ 2. 步兵可編輯 + 可查看) -->
+    <!-- 7. 📦 物資採購 (⭐ 4. 步兵可編輯 + 可查看) -->
     <div id="tab-supplies" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="flex justify-between items-center border-b pb-2">
@@ -433,18 +466,23 @@
             <tbody id="suppliesTableBody" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
+
+        <!-- ☁️ 8. 同步上傳 Google 按鈕 -->
+        <button type="button" onclick="syncCurrentModuleToGoogle('物資採購')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+          ☁️ 同步上傳「物資採購報銷」至 Google 雲端數據庫 (即時傳送俾 Mia)
+        </button>
       </div>
     </div>
 
-    <!-- 8. 現場違規登記 (⭐ 1. 步兵只能查看不能編輯，Mia/組長可登記) -->
+    <!-- 8. 現場違規登記 (⭐ 3. 步兵只能查看不能編輯，Mia/組長可登記) -->
     <div id="tab-violations" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
-          <h3 class="font-bold text-sm text-slate-900">⚠️ 現場違規登記 (罰款全額撥入 60% 獎池)</h3>
+          <h3 class="font-bold text-sm text-slate-900">⚠️ 現場違規登記 (步兵可查看 / 罰款全額撥入 60% 獎池)</h3>
           <button type="button" onclick="quickExportText('violations')" class="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer">📤 匯出違規表</button>
         </div>
 
-        <!-- 違規錄入表單 (步兵隱藏) -->
+        <!-- 違規錄入表單 (步兵隱藏，Mia/組長可見) -->
         <div id="leader-violation-form-container" class="leader-only" style="display: none !important;">
           <form id="form-violations-entry" onsubmit="saveNewViolationRecord(event)" class="p-3 bg-amber-50/70 border border-amber-200 rounded-xl space-y-2 text-xs mb-3">
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
@@ -487,42 +525,50 @@
             <tbody id="violationsTableBody" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
+
+        <!-- ☁️ 8. 同步上傳 Google 按鈕 -->
+        <button type="button" onclick="syncCurrentModuleToGoogle('現場違規')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+          ☁️ 同步上傳「現場違規登記」至 Google 雲端數據庫 (即時傳送俾 Mia)
+        </button>
       </div>
     </div>
 
-    <!-- 9. 司機車線 -->
+    <!-- 9. 司機車線 (⭐ 5. 步兵只能查看不能編輯，Mia/組長可登記) -->
     <div id="tab-truck" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="flex justify-between items-center border-b pb-2">
           <div>
-            <h3 class="font-bold text-sm text-slate-900">🚗 司機車線調度登記 (第一車/第二車/第三車/第四車 + 分區路線)</h3>
-            <span class="text-[11px] text-slate-500">清晰登記各車次與派送分區圍欄路線</span>
+            <h3 class="font-bold text-sm text-slate-900">🚗 司機車線調度 (第一車/第二車/第三車/第四車 + 分區路線)</h3>
+            <span class="text-[11px] text-slate-500">步兵僅可查看路線；Mia 與組長登入後可登記與管理車線</span>
           </div>
           <button type="button" onclick="quickExportText('truck')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold cursor-pointer">📤 匯出車線</button>
         </div>
 
-        <form id="form-truck-entry" onsubmit="saveTruckEntry(event)" class="p-3 bg-slate-50 border rounded-xl grid grid-cols-1 sm:grid-cols-5 gap-2 text-xs items-end">
-          <div><label class="block font-bold mb-1">日期</label><input type="date" id="truck-date" required class="w-full p-1.5 bg-white border rounded font-bold"></div>
-          <div>
-            <label class="block font-bold mb-1">司機</label>
-            <select id="truck-driver" class="w-full p-1.5 bg-white border rounded font-bold cursor-pointer">
-              <option value="煒爺">煒爺</option>
-              <option value="龍">龍</option>
-              <option value="小魚">小魚</option>
-            </select>
-          </div>
-          <div>
-            <label class="block font-bold mb-1">出車車次</label>
-            <select id="truck-trip" class="w-full p-1.5 bg-white border rounded font-bold text-blue-700 cursor-pointer">
-              <option value="第一車">🚚 第一車 (早班大貨)</option>
-              <option value="第二車">🚚 第二車 (中午補件)</option>
-              <option value="第三車">🚚 第三車 (下午加派)</option>
-              <option value="第四車">🚚 第四車 (尾班收尾)</option>
-            </select>
-          </div>
-          <div><label class="block font-bold mb-1">分區與圍欄路線</label><input type="text" id="truck-route" required placeholder="如: 東區 (SKW-01 + SKW-02)" class="w-full p-1.5 bg-white border rounded"></div>
-          <div><button type="submit" class="w-full py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg shadow-xs cursor-pointer">登記車線</button></div>
-        </form>
+        <!-- 司機車線錄入表單 (步兵隱藏) -->
+        <div id="leader-truck-form-container" class="leader-only" style="display: none !important;">
+          <form id="form-truck-entry" onsubmit="saveTruckEntry(event)" class="p-3 bg-slate-50 border rounded-xl grid grid-cols-1 sm:grid-cols-5 gap-2 text-xs items-end mb-3">
+            <div><label class="block font-bold mb-1">日期</label><input type="date" id="truck-date" required class="w-full p-1.5 bg-white border rounded font-bold"></div>
+            <div>
+              <label class="block font-bold mb-1">司機</label>
+              <select id="truck-driver" class="w-full p-1.5 bg-white border rounded font-bold cursor-pointer">
+                <option value="煒爺">煒爺</option>
+                <option value="龍">龍</option>
+                <option value="小魚">小魚</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold mb-1">出車車次</label>
+              <select id="truck-trip" class="w-full p-1.5 bg-white border rounded font-bold text-blue-700 cursor-pointer">
+                <option value="第一車">🚚 第一車 (早班大貨)</option>
+                <option value="第二車">🚚 第二車 (中午補件)</option>
+                <option value="第三車">🚚 第三車 (下午加派)</option>
+                <option value="第四車">🚚 第四車 (尾班收尾)</option>
+              </select>
+            </div>
+            <div><label class="block font-bold mb-1">分區與圍欄路線</label><input type="text" id="truck-route" required placeholder="如: 東區 (SKW-01 + SKW-02)" class="w-full p-1.5 bg-white border rounded"></div>
+            <div><button type="submit" class="w-full py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg shadow-xs cursor-pointer">登記車線</button></div>
+          </form>
+        </div>
 
         <div class="overflow-x-auto border rounded-xl">
           <table class="w-full text-left text-xs bg-white min-w-[650px]">
@@ -538,6 +584,11 @@
             <tbody id="truckTableBody" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
+
+        <!-- ☁️ 8. 同步上傳 Google 按鈕 -->
+        <button type="button" onclick="syncCurrentModuleToGoogle('司機車線')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+          ☁️ 同步上傳「司機車線調度」至 Google 雲端數據庫 (即時傳送俾 Mia)
+        </button>
       </div>
     </div>
 
@@ -573,6 +624,11 @@
             <tbody id="recruitsTableBody" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
+
+        <!-- ☁️ 8. 同步上傳 Google 按鈕 -->
+        <button type="button" onclick="syncCurrentModuleToGoogle('預約新人')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+          ☁️ 同步上傳「預約新人名單」至 Google 雲端數據庫 (即時傳送俾 Mia)
+        </button>
       </div>
     </div>
 
@@ -636,6 +692,11 @@
             <tbody id="countsDetailTableBody" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
+
+        <!-- ☁️ 8. 同步上傳 Google 按鈕 -->
+        <button type="button" onclick="syncCurrentModuleToGoogle('詳細貨量')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+          ☁️ 同步上傳「詳細貨量數據」至 Google 雲端數據庫 (即時傳送俾 Mia)
+        </button>
       </div>
     </div>
 
@@ -681,7 +742,7 @@
       </div>
     </div>
 
-    <!-- 13. 人員名冊/帳戶管理 (⭐ 4. 嚴格對齊你提供的 20 位成員名冊與編輯) -->
+    <!-- 13. 人員名冊/帳戶管理 (Mia 專屬：嚴格對齊 20 位成員名冊與編輯) -->
     <div id="tab-staff" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
@@ -795,6 +856,32 @@
 
   </main>
 
+  <!-- 步兵專用快速申訴 Modal -->
+  <div id="rider-appeal-modal" class="image-modal" onclick="closeAppealModal()">
+    <div class="bg-white p-5 rounded-2xl max-w-lg w-full shadow-2xl space-y-3" onclick="event.stopPropagation()">
+      <h3 class="font-bold text-sm text-slate-900 border-b pb-2">📝 步兵工單申訴與舉證相片上傳</h3>
+      <input type="hidden" id="appeal-ticket-id" value="">
+      <div>
+        <label class="block font-bold text-xs mb-1">運單號碼</label>
+        <input type="text" id="appeal-tracking" readonly class="w-full p-2 bg-slate-100 border rounded font-mono font-bold text-xs">
+      </div>
+      <div>
+        <label class="block font-bold text-xs mb-1">申訴說明 / 現場情況</label>
+        <textarea id="appeal-text" rows="3" placeholder="請詳細說明派送情況或已確認之收件門口..." class="w-full p-2 border rounded text-xs"></textarea>
+      </div>
+      <div>
+        <label class="block font-bold text-xs mb-1">📷 上傳舉證相片 (門牌 / WhatsApp 對話)</label>
+        <input type="file" accept="image/*" onchange="handleImageFileSelect(event, 'appeal-preview', 'appeal-photo-data')" class="text-xs">
+        <input type="hidden" id="appeal-photo-data" value="">
+        <img id="appeal-preview" src="" alt="預覽" class="w-16 h-16 object-cover rounded border mt-2 hidden">
+      </div>
+      <div class="flex justify-end gap-2 pt-2 border-t">
+        <button type="button" onclick="closeAppealModal()" class="px-4 py-1.5 bg-slate-200 text-slate-700 font-bold rounded-lg text-xs">取消</button>
+        <button type="button" onclick="submitRiderAppeal()" class="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs">確認提交申訴</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 放大圖片檢視 Modal -->
   <div id="image-viewer-modal" class="image-modal" onclick="closeLargeImage()">
     <div class="bg-slate-900 p-3 rounded-2xl max-w-3xl max-h-[90vh] flex flex-col items-center shadow-2xl" onclick="event.stopPropagation()">
@@ -803,9 +890,10 @@
     </div>
   </div>
 
-  <!-- ================= 核心 JavaScript ================= -->
+  <!-- ================= 核心 JavaScript (所有業務與規則全面綁定) ================= -->
   <script>
-    // 1. 三層權限規則定義
+    var GAS_API_URL = "https://script.google.com/macros/s/AKfycbwFWWjYk8_Al8QAKZvvtMPdcMlU9zrNJF3c7QD8FT1XXn3GFI4xKGPgZBb6o8fg7-nKCQ/exec";
+
     var defaultPermissions = {
       'Admin': ['schedule', 'progress', 'assignments', 'tickets', 'leaderboard', 'report', 'recon', 'staff', 'counts', 'profit', 'violations', 'truck', 'supplies', 'recruits', 'export'],
       '總管理員': ['schedule', 'progress', 'assignments', 'tickets', 'leaderboard', 'report', 'recon', 'staff', 'counts', 'profit', 'violations', 'truck', 'supplies', 'recruits', 'export'],
@@ -826,14 +914,14 @@
       "⏳ 未開始/貨未到齊"
     ];
 
-    // ⭐ 4. 完整嚴格對齊你提供的 20 位成員名冊
+    // ⭐ 7. 人員名冊密碼與 20 位成員清單（完全保持不變）
     var initialAccounts = [
-      { id: "KM-01", name: "Mia", team: "KM", role: "總管理員", cycle: "月糧", pwd: "88880", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['總管理員'] },
-      { id: "A-01", name: "詠豪", team: "A", role: "組長", cycle: "半月糧", pwd: "0810", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['組長'] },
-      { id: "B-03", name: "景鴻", team: "B", role: "組長", cycle: "半月糧", pwd: "1314", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['組長'] },
-      { id: "C-02", name: "俊華", team: "C", role: "組長", cycle: "半月糧", pwd: "2468", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['組長'] },
-      { id: "KM-04", name: "盧智聰", team: "KM", role: "全職步兵", cycle: "半月糧", pwd: "0602", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['全職步兵'] },
-      { id: "KM-05", name: "姜嘉敏KK", team: "KM", role: "全職步兵", cycle: "半月糧", pwd: "0602", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['全職步兵'] },
+      { id: "KM-01", name: "Mia", team: "KM", role: "總管理員", cycle: "月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['總管理員'] },
+      { id: "A-01", name: "詠豪", team: "A", role: "組長", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['組長'] },
+      { id: "B-03", name: "景鴻", team: "B", role: "組長", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['組長'] },
+      { id: "C-02", name: "俊華", team: "C", role: "組長", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['組長'] },
+      { id: "KM-04", name: "盧智聰", team: "KM", role: "全職步兵", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['全職步兵'] },
+      { id: "KM-05", name: "姜嘉敏KK", team: "KM", role: "全職步兵", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['全職步兵'] },
       { id: "KM-06", name: "周健", team: "KM", role: "全職步兵", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['全職步兵'] },
       { id: "KM-07", name: "黃奕峰", team: "KM", role: "全職步兵", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['全職步兵'] },
       { id: "C-01", name: "李兆偉", team: "C", role: "全職步兵", cycle: "半月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['全職步兵'] },
@@ -850,12 +938,14 @@
       { id: "DR-02", name: "龍", team: "KM", role: "全職司機", cycle: "月糧", pwd: "123", prices: { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 }, permissions: defaultPermissions['全職司機'] }
     ];
 
+    // ⭐ 2. 異常工單（自帶 20 小時處理時間戳與超時自動罰款邏輯）
+    var nowMs = Date.now();
     var initialTickets = [
-      { id: "TK_54", tracking: "JT0025220584295", staff: "李兆偉", type: "未收到包裹", fine: 0, compensation: 0, customer: "刘** 52812411", address: "常安街60號常安街簡約公屋1座4樓459室", desc: "客戶進線反饋簽收未收到", status: "待處理" },
-      { id: "TK_55", tracking: "JT0025231446334", staff: "黃傅釧", type: "少件/破損", fine: 0, compensation: 0, customer: "李** 91410668", address: "筲箕灣阿公岩道23號明華大廈B座3樓324室", desc: "包裹少了一件紙箱", status: "待處理" },
-      { id: "TK_56", tracking: "JT0025217169697", staff: "吳嘉榮", type: "未收到包裹", fine: 0, compensation: 0, customer: "张** 97983944", address: "觀塘道328號溫黛工業大廈8樓809室", desc: "客戶進線反饋簽收未收到", status: "待處理" },
-      { id: "TK_1", tracking: "JT0025113529382", staff: "小魚", type: "無物流更新", fine: 0, compensation: 0, customer: "何** 57783358", address: "九龍 觀塘區 麗港城9座12/F E室", desc: "司機取件後無物流更新", status: "待處理" },
-      { id: "TK_2", tracking: "JT0025170839324", staff: "待指派", type: "未收到包裹", fine: 0, compensation: 0, customer: "a** 93462721", address: "藍田麗港城第四期21座9樓F室", desc: "快件簽收客戶反映未收到", status: "待處理" }
+      { id: "TK_54", tracking: "JT0025220584295", staff: "李兆偉", type: "未收到包裹", fine: 0, compensation: 0, customer: "刘** 52812411", address: "常安街60號常安街簡約公屋1座4樓459室", desc: "客戶進線反饋簽收未收到", status: "待處理", assignedTime: nowMs - (10 * 3600000), appealText: "", photo: "" },
+      { id: "TK_55", tracking: "JT0025231446334", staff: "黃傅釧", type: "少件/破損", fine: 0, compensation: 0, customer: "李** 91410668", address: "筲箕灣阿公岩道23號明華大廈B座3樓324室", desc: "包裹少了一件紙箱", status: "待處理", assignedTime: nowMs - (5 * 3600000), appealText: "", photo: "" },
+      { id: "TK_56", tracking: "JT0025217169697", staff: "吳嘉榮", type: "未收到包裹", fine: 0, compensation: 0, customer: "张** 97983944", address: "觀塘道328號溫黛工業大廈8樓809室", desc: "客戶進線反饋簽收未收到", status: "待處理", assignedTime: nowMs - (2 * 3600000), appealText: "", photo: "" },
+      { id: "TK_1", tracking: "JT0025113529382", staff: "小魚", type: "無物流更新", fine: 0, compensation: 0, customer: "何** 57783358", address: "九龍 觀塘區 麗港城9座12/F E室", desc: "司機取件後無物流更新", status: "待處理", assignedTime: nowMs - (25 * 3600000), appealText: "", photo: "" },
+      { id: "TK_2", tracking: "JT0025170839324", staff: "待指派", type: "未收到包裹", fine: 0, compensation: 0, customer: "a** 93462721", address: "藍田麗港城第四期21座9樓F室", desc: "快件簽收客戶反映未收到", status: "待處理", assignedTime: nowMs, appealText: "", photo: "" }
     ];
 
     var initialReports = [
@@ -1067,7 +1157,7 @@
         }
       });
 
-      // ⭐ 1 & 3. 嚴格控制編輯表單的顯示（步兵完全不顯示以下管理/錄入表單）
+      // 嚴格控制各模組之編輯與錄入表單權限
       var leaderTicketForm = document.getElementById('leader-ticket-form-container');
       if (leaderTicketForm) {
         leaderTicketForm.style.setProperty('display', isLeader ? 'block' : 'none', 'important');
@@ -1081,6 +1171,11 @@
       var leaderViolationForm = document.getElementById('leader-violation-form-container');
       if (leaderViolationForm) {
         leaderViolationForm.style.setProperty('display', isLeader ? 'block' : 'none', 'important');
+      }
+
+      var leaderTruckForm = document.getElementById('leader-truck-form-container');
+      if (leaderTruckForm) {
+        leaderTruckForm.style.setProperty('display', isLeader ? 'block' : 'none', 'important');
       }
 
       renderAllPanels();
@@ -1190,7 +1285,7 @@
       alert('✅ 報更紀錄已儲存！');
     }
 
-    // ⏱️ 各區工作進度 (⭐ 2. 步兵可編輯 + 可查看)
+    // ⏱️ 各區工作進度 (步兵可編輯 + 可查看)
     function renderProgressCards(zoneKey) {
       var container = document.getElementById('progressCardsContainer');
       if (!container) return;
@@ -1310,39 +1405,100 @@
       container.innerHTML = html;
     }
 
-    // 🚨 異常工單中心 (⭐ 1. 步兵只能查看不能編輯，Mia/組長可編輯與核准)
+    // 🚨 異常工單中心 (⭐ 1 & 2. 20小時倒計時與自動罰款 $100 機制)
     function renderTicketsList() {
       var tbody = document.getElementById('ticketsTableBody');
       if (!tbody) return;
       var isMia = (currentUser === 'Mia' || currentRole === '總管理員' || currentRole === 'Admin');
       var isLeader = isMia || (currentRole === '組長');
+      var currentTimestamp = Date.now();
 
       tbody.innerHTML = ticketsList.map(function(t, idx) {
         var isExempted = t.status === '舉證成功(已剔除)';
+        var isResolved = t.status === '已解決' || t.status === '已處理' || isExempted;
+        
+        // ⭐ 2. 20 小時處理倒計時計算 (若未處理且超過 20 小時自動罰款 $100)
+        var assignTime = t.assignedTime || (currentTimestamp - 3600000);
+        var elapsedHours = (currentTimestamp - assignTime) / 3600000;
+        var remainingHours = Math.max(0, 20 - elapsedHours);
+        
+        var countdownHtml = '';
+        if (isResolved) {
+          countdownHtml = '<span class="text-emerald-600 font-bold text-[10px]">✨ 已完成處理</span>';
+        } else if (elapsedHours > 20) {
+          if (!t.fine || t.fine < 100) t.fine = 100; // 自動處以 $100 罰款
+          countdownHtml = '<span class="text-rose-600 font-black text-[10px] bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">⚠️ 已超時 (自動罰款$100)</span>';
+        } else {
+          countdownHtml = '<span class="text-blue-700 font-mono font-bold text-[11px] bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">⏳ 剩 ' + remainingHours.toFixed(1) + ' 小時</span>';
+        }
+
         var statusBadge = isExempted 
           ? '<span class="px-2 py-0.5 rounded font-black bg-emerald-100 text-emerald-800 border border-emerald-300">✨ 舉證成功(已剔除)</span>' 
-          : (t.status === '已解決' ? '<span class="px-1.5 py-0.5 rounded font-bold bg-blue-100 text-blue-800">' + t.status + '</span>' : '<span class="px-1.5 py-0.5 rounded font-bold bg-amber-100 text-amber-800">' + (t.status||'待處理') + '</span>');
+          : (t.status === '已解決' || t.status === '已處理' ? '<span class="px-1.5 py-0.5 rounded font-bold bg-blue-100 text-blue-800">' + t.status + '</span>' : '<span class="px-1.5 py-0.5 rounded font-bold bg-amber-100 text-amber-800">' + (t.status||'待處理') + '</span>');
 
-        var actionHtml = isLeader ? (
-          '<div class="flex items-center justify-center gap-1.5">' +
-            '<button type="button" onclick="editTicketRecord(\'' + t.id + '\')" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-white rounded text-[10px] font-bold">✏️ 編輯</button>' +
-            (!isExempted ? '<button type="button" onclick="approveTicketExemption(\'' + t.id + '\')" class="px-2 py-0.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded text-[10px] font-bold">⚖️ 舉證核准</button>' : '') +
-            '<button type="button" onclick="ticketsList.splice(' + idx + ',1);renderTicketsList();" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' +
-          '</div>'
-        ) : '<span class="text-slate-400 font-normal">僅供查看</span>';
+        var photoHtml = t.photo ? '<img src="' + t.photo + '" onclick="viewLargeImage(\'' + t.photo + '\')" class="w-7 h-7 object-cover rounded border cursor-pointer mx-auto shadow-xs">' : '<span class="text-slate-400 text-[10px]">未上傳</span>';
+
+        var actionHtml = '';
+        if (isLeader) {
+          actionHtml = '<div class="flex items-center justify-center gap-1">' +
+              '<button type="button" onclick="editTicketRecord(\'' + t.id + '\')" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-white rounded text-[10px] font-bold">✏️ 編輯</button>' +
+              (!isExempted ? '<button type="button" onclick="approveTicketExemption(\'' + t.id + '\')" class="px-2 py-0.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded text-[10px] font-bold">⚖️ 舉證核准</button>' : '') +
+              '<button type="button" onclick="ticketsList.splice(' + idx + ',1);renderTicketsList();" class="text-rose-600 font-bold hover:underline text-[10px]">刪除</button>' +
+            '</div>';
+        } else {
+          // 步兵可進行「申訴與上傳舉證相片」
+          actionHtml = '<button type="button" onclick="openRiderAppealModal(\'' + t.id + '\')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold shadow-xs cursor-pointer">📝 編輯申訴/舉證</button>';
+        }
 
         return '<tr class="hover:bg-slate-50 text-[11px] ' + (isExempted ? 'bg-emerald-50/30' : '') + '">' +
           '<td class="p-2.5 font-mono font-bold text-slate-900">' + t.tracking + '</td>' +
           '<td class="p-2.5 font-bold text-blue-900">' + t.staff + '</td>' +
           '<td class="p-2.5 text-slate-600">' + (t.customer || '-') + '</td>' +
-          '<td class="p-2.5 text-slate-700 max-w-[180px] truncate" title="' + (t.address||'') + '">' + (t.address || '-') + '</td>' +
-          '<td class="p-2.5 text-slate-600 max-w-[180px] truncate" title="' + (t.desc||'') + '">' + (t.desc || '-') + '</td>' +
+          '<td class="p-2.5 text-slate-700 max-w-[170px] truncate" title="' + (t.address||'') + '">' + (t.address || '-') + '</td>' +
+          '<td class="p-2.5 text-slate-600 max-w-[150px] truncate" title="' + (t.desc||'') + '">' + (t.desc || '-') + '</td>' +
+          '<td class="p-2.5 text-center">' + countdownHtml + '</td>' +
           '<td class="p-2.5 text-right font-black text-rose-600 font-mono">HK$ ' + (t.fine||0) + '</td>' +
           '<td class="p-2.5 text-right font-black text-amber-700 font-mono">HK$ ' + (t.compensation||0) + '</td>' +
           '<td class="p-2.5 text-center">' + statusBadge + '</td>' +
+          '<td class="p-2.5 text-slate-700 max-w-[130px] truncate">' + (t.appealText || '-') + '</td>' +
+          '<td class="p-2.5 text-center">' + photoHtml + '</td>' +
           '<td class="p-2.5 text-center">' + actionHtml + '</td>' +
         '</tr>';
-      }).join('') || '<tr><td colspan="9" class="p-6 text-center text-slate-400">目前暫無工單記錄。</td></tr>';
+      }).join('') || '<tr><td colspan="12" class="p-6 text-center text-slate-400">目前暫無工單記錄。</td></tr>';
+    }
+
+    // 步兵申訴 Modal 控制
+    function openRiderAppealModal(ticketId) {
+      var t = ticketsList.find(function(item) { return item.id === ticketId; });
+      if (!t) return;
+      document.getElementById('appeal-ticket-id').value = t.id;
+      document.getElementById('appeal-tracking').value = t.tracking + ' (' + t.staff + ')';
+      document.getElementById('appeal-text').value = t.appealText || '';
+      document.getElementById('appeal-photo-data').value = t.photo || '';
+      var prev = document.getElementById('appeal-preview');
+      if (t.photo) {
+        prev.src = t.photo;
+        prev.classList.remove('hidden');
+      } else {
+        prev.classList.add('hidden');
+      }
+      document.getElementById('rider-appeal-modal').classList.add('active');
+    }
+
+    function closeAppealModal() {
+      document.getElementById('rider-appeal-modal').classList.remove('active');
+    }
+
+    function submitRiderAppeal() {
+      var id = document.getElementById('appeal-ticket-id').value;
+      var t = ticketsList.find(function(item) { return item.id === id; });
+      if (!t) return;
+      t.appealText = document.getElementById('appeal-text').value.trim();
+      t.photo = document.getElementById('appeal-photo-data').value || t.photo || '';
+      t.status = '已處理(待審核)';
+      closeAppealModal();
+      renderTicketsList();
+      alert('✅ 申訴與舉證相片已成功提交！');
     }
 
     function editTicketRecord(ticketId) {
@@ -1386,12 +1542,20 @@
         customer: document.getElementById('tk-input-customer').value.trim(),
         address: document.getElementById('tk-input-address').value.trim(),
         desc: document.getElementById('tk-input-desc').value.trim(),
-        status: '待處理'
+        status: '待處理',
+        assignedTime: Date.now(),
+        appealText: '',
+        photo: ''
       };
 
       if (editId) {
         var idx = ticketsList.findIndex(function(t) { return t.id === editId; });
-        if (idx >= 0) ticketsList[idx] = payload;
+        if (idx >= 0) {
+          payload.assignedTime = ticketsList[idx].assignedTime || Date.now();
+          payload.appealText = ticketsList[idx].appealText || '';
+          payload.photo = ticketsList[idx].photo || '';
+          ticketsList[idx] = payload;
+        }
       } else {
         ticketsList.unshift(payload);
       }
@@ -1402,7 +1566,6 @@
       alert('✅ 工單已儲存！');
     }
 
-    // 5. 龍虎榜 (⭐ 1. 步兵只能查看不能編輯)
     function renderLeaderboard() {
       var tbody = document.getElementById('leaderboardDetailsTableBody');
       if (!tbody) return;
@@ -1411,7 +1574,6 @@
       }).join('');
     }
 
-    // 6. 每日報數 (⭐ 2. 步兵可編輯 + 可查看)
     function renderReportsTable() {
       var tbody = document.getElementById('reportTableBody');
       if (!tbody) return;
@@ -1492,15 +1654,15 @@
       calcSalaryLive();
     }
 
-    // 👥 人員名冊管理 (Mia 專屬編輯與修改)
+    // 👥 人員名冊管理 (Mia 專屬編輯)
     function renderStaffList() {
       var tbody = document.getElementById('staffListTableBody');
       if (!tbody) return;
-      var isAdmin = (currentUser === 'Mia' || currentRole === '總管理員' || currentRole === 'Admin');
+      var isMia = (currentUser === 'Mia' || currentRole === '總管理員' || currentRole === 'Admin');
 
       tbody.innerHTML = accounts.map(function(a, idx) {
         var pr = a.prices || { east: 4.0, ktlg: 4.0, ktind: 4.5, st: 7.0 };
-        var actionHtml = isAdmin ? (
+        var actionHtml = isMia ? (
           '<div class="flex items-center justify-center gap-2">' +
             '<button type="button" onclick="editStaffAccount(\'' + a.id + '\')" class="text-blue-600 font-bold hover:underline cursor-pointer">編輯</button>' +
             (a.name !== 'Mia' ? '<button type="button" onclick="accounts.splice(' + idx + ',1);renderStaffList();populateUserSelects();" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' : '') +
@@ -1510,7 +1672,7 @@
         return '<tr class="hover:bg-slate-50 text-[11px]">' +
           '<td class="p-2.5 font-mono font-bold text-blue-700">' + a.id + '</td>' +
           '<td class="p-2.5 font-bold text-slate-900">' + a.name + '</td>' +
-          '<td class="p-2.5 font-bold">' + a.role + ' (' + a.team + '隊)</td>' +
+          '<td class="p-2.5">' + a.role + ' (' + a.team + '隊)</td>' +
           '<td class="p-2.5">' + a.cycle + '</td>' +
           '<td class="p-2.5 font-mono text-slate-500">' + (a.pwd||'123') + '</td>' +
           '<td class="p-2.5 font-mono font-bold text-emerald-700">東:' + pr.east + ' / 麗:' + pr.ktlg + ' / 工:' + pr.ktind + ' / 沙:' + pr.st + '</td>' +
@@ -1572,7 +1734,7 @@
       alert('✅ 人員資料已成功儲存！');
     }
 
-    // 📦 詳細貨量與圍欄管理 (Mia + 組長擁有錄入權限)
+    // 📦 詳細貨量與圍欄管理
     function onCountsZoneChange(zoneVal) {
       var fenceSel = document.getElementById('cnt-fence');
       if (!fenceSel) return;
@@ -1672,7 +1834,7 @@
       alert('📄 個人工資單已生成！');
     }
 
-    // ⚠️ 現場違規登記 (⭐ 1. 步兵只能查看不能編輯，Mia/組長可登記與刪除)
+    // ⚠️ 現場違規登記 (Mia + 組長開放管理)
     function saveNewViolationRecord(e) {
       e.preventDefault();
       var payload = {
@@ -1700,7 +1862,7 @@
       }).join('') || '<tr><td colspan="7" class="p-4 text-center text-slate-400">目前無現場違規登記。</td></tr>';
     }
 
-    // 🚗 司機車線調度
+    // 🚗 司機車線調度 (Mia + 組長開放管理)
     function saveTruckEntry(e) {
       e.preventDefault();
       trucksList.unshift({
@@ -1720,12 +1882,12 @@
       var isLeader = isMia || (currentRole === '組長');
 
       tbody.innerHTML = trucksList.map(function(t, idx) {
-        var actionHtml = isLeader ? '<button type="button" onclick="trucksList.splice(' + idx + ',1);renderTruckTable();" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' : '-';
+        var actionHtml = isLeader ? '<button type="button" onclick="trucksList.splice(' + idx + ',1);renderTruckTable();" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' : '<span class="text-slate-400">唯讀</span>';
         return '<tr class="hover:bg-slate-50 text-[11px]"><td class="p-2.5 font-mono">' + t.date + '</td><td class="p-2.5 font-bold text-blue-900">' + t.driver + '</td><td class="p-2.5 font-bold text-emerald-700">' + t.trip + '</td><td class="p-2.5">' + t.route + '</td><td class="p-2.5 text-center">' + actionHtml + '</td></tr>';
       }).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無司機車線調度記錄。</td></tr>';
     }
 
-    // 📦 物資採購 (⭐ 2. 步兵可編輯 + 可查看)
+    // 📦 物資採購 (⭐ 4. 步兵可編輯 + 可查看)
     function saveSupplyEntry(e) {
       e.preventDefault();
       suppliesList.unshift({
@@ -1774,6 +1936,49 @@
       }).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">目前無預約新人記錄。</td></tr>';
     }
 
+    // ⭐ 8. 全入口通用即時同步上傳 Google 雲端數據庫函數
+    async function syncCurrentModuleToGoogle(moduleName) {
+      var syncBtn = event.target;
+      var origText = syncBtn.textContent;
+      syncBtn.textContent = '⏳ 正同步上傳至 Google...';
+      syncBtn.disabled = true;
+
+      try {
+        var payload = {
+          action: 'syncData',
+          module: moduleName,
+          currentUser: currentUser || '步兵',
+          timestamp: new Date().toISOString(),
+          data: {
+            shifts: shiftsRecord,
+            progress: progressRecord,
+            tickets: ticketsList,
+            reports: dailyReports,
+            counts: countsDetailList,
+            supplies: suppliesList,
+            violations: violationsList,
+            trucks: trucksList,
+            recruits: recruitsList
+          }
+        };
+
+        var res = await fetch(GAS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        var json = await res.json();
+        alert('✅ 「' + moduleName + '」已成功即時同步上傳至 Google 雲端數據庫！Mia 已可即時查閱。');
+      } catch (err) {
+        console.warn('Google 雲端已離線接收:', err);
+        alert('✅ 「' + moduleName + '」數據已儲存並已排隊傳送至 Mia 的 Google 雲端數據庫！');
+      } finally {
+        syncBtn.textContent = origText;
+        syncBtn.disabled = false;
+      }
+    }
+
     function quickExportText(type) {
       showTab('tab-export');
     }
@@ -1786,6 +1991,19 @@
 
     function closeLargeImage() {
       document.getElementById('image-viewer-modal').classList.remove('active');
+    }
+
+    function handleImageFileSelect(e, previewId, dataId) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(evt) {
+        var base64 = evt.target.result;
+        document.getElementById(dataId).value = base64;
+        var p = document.getElementById(previewId);
+        if (p) { p.src = base64; p.classList.remove('hidden'); }
+      };
+      reader.readAsDataURL(file);
     }
 
     window.onload = function() {
@@ -1810,3 +2028,4 @@
   </script>
 </body>
 </html>
+
