@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mia組｜員工工資卡</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background:#f1f5f9; }
+    .pay-card { background: linear-gradient(145deg,#1e293b,#0f172a); border-radius:18px; }
+    @media print {
+      .no-print { display:none !important; }
+      .pay-card { background:#fff !important; color:#111 !important; }
+      .pay-card table th,.pay-card table td { color:#222 !important; border-color:#ccc !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4">
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-xl font-bold text-slate-800 mb-4">💰 Mia組 員工工資卡</h1>
+
+  <div class="bg-white p-4 rounded-xl shadow mb-4 no-print">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div>
+        <label class="text-sm text-slate-600">選擇員工</label>
+        <select id="selStaff" class="w-full border rounded-lg px-3 py-2 mt-1"></select>
+      </div>
+      <div>
+        <label class="text-sm text-slate-600">開始日期</label>
+        <input type="date" id="dtStart" class="w-full border rounded-lg px-3 py-2 mt-1">
+      </div>
+      <div>
+        <label class="text-sm text-slate-600">結束日期</label>
+        <input type="date" id="dtEnd" class="w-full border rounded-lg px-3 py-2 mt-1">
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-2 mt-3">
+      <button onclick="renderPaySlip()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">生成工資卡(自動計薪)</button>
+      <button onclick="window.print()" class="bg-slate-600 text-white px-4 py-2 rounded-lg">列印</button>
+      <button onclick="downloadCsv()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg">匯出CSV</button>
+    </div>
+  </div>
+
+  <div id="paySlipWrap"></div>
+</div>
+
+<script>
+// =========👉 你可以隨時修改呢度嘅單價規則 =========
+const PRICE_RULES = {
+  eastNormal: 4.0,        // 東區基礎單價
+  eastSpecial: 4.2,       // 東區特殊人員單價
+  ktLg: 4.0,              // 麗港城（九龍大件）統一單價
+  ktIndGroup1: 5.0,       // 觀塘工商第一組單價
+  ktIndGroup2: 4.5,       // 觀塘工商第二組單價
+  st: 7.0,                 // 沙田ST單價（你可以自己改）
+  carAllowanceSpecial: 50  // 倪志康、王利民嘅固定車津
+};
+
+// 特殊人員名單（完全同你系統入面嘅名一致）
+const SPECIAL_STAFF = {
+  eastSpecial: ["盧智聰", "姜嘉敏KK", "吳嘉榮"], // 東區$4.2嘅人
+  ktIndGroup1: ["景鴻", "詠豪", "盧智聰", "姜嘉敏KK", "倪志康", "王利民"], // 工商$5嘅人
+  ktIndGroup2: ["徐子傑", "吳瑋儒"], // 工商$4.5嘅人
+  carAllowance: ["倪志康", "王利民"] // 有$50固定車津嘅人
+};
+// ==================================================
+
+// 系統所有人員名單（同你人員名冊完全一致）
+const staffList = ["詠豪","景鴻","俊華","盧智聰","姜嘉敏KK","周健","黃奕峰","李兆偉","小肥","黃傅釧","吳嘉榮","吳瑋儒","倪志康","王利民","李健龍","李偉文","小魚","煒爺","龍","徐子傑","韓軍魁","羅健華","Mia"];
+
+const selStaff = document.getElementById('selStaff');
+const dtStart = document.getElementById('dtStart');
+const dtEnd = document.getElementById('dtEnd');
+const paySlipWrap = document.getElementById('paySlipWrap');
+
+// 填充員工下拉選單
+staffList.forEach(n=>{
+  const opt = document.createElement('option');
+  opt.value = n; opt.textContent = n;
+  selStaff.appendChild(opt);
+})
+
+// 預設日期範圍
+dtStart.value = "2026-08-01";
+dtEnd.value = "2026-08-18";
+
+// 讀取本地存儲嘅報數數據
+function getReports(){
+  const raw = localStorage.getItem("MIA_DATA_reports");
+  return raw ? JSON.parse(raw) : [];
+}
+
+// 單條記錄計算每日工資（完全跟你嘅規則）
+function calcDaily(row){
+  // 1. 計算東區工資
+  let eastPay = row.eastCount * PRICE_RULES.eastNormal;
+  if(SPECIAL_STAFF.eastSpecial.includes(row.staff)){
+    eastPay = row.eastCount * PRICE_RULES.eastSpecial;
+  }
+
+  // 2. 計算麗港城（九龍大件）工資
+  const ktLgPay = row.ktLgCount * PRICE_RULES.ktLg;
+
+  // 3. 計算觀塘工商（九龍細件）工資
+  let ktIndPay = row.ktIndCount * PRICE_RULES.ktIndGroup1; // 預設第一組價
+  if(SPECIAL_STAFF.ktIndGroup2.includes(row.staff)){
+    ktIndPay = row.ktIndCount * PRICE_RULES.ktIndGroup2;
+  }
+
+  // 4. 計算沙田ST工資
+  const stPay = row.stCount * PRICE_RULES.st;
+
+  // 5. 計算車津
+  let carAllowance = row.carAllowance || 0;
+  // 倪志康、王利民：有東區件就加$50固定車津
+  if(SPECIAL_STAFF.carAllowance.includes(row.staff) && row.eastCount > 0){
+    carAllowance += PRICE_RULES.carAllowanceSpecial;
+  }
+
+  // 6. 計算扣罰
+  const penalty = row.penalty || 0;
+
+  // 7. 當日總工資
+  const dailyTotal = eastPay + ktLgPay + ktIndPay + stPay + carAllowance - penalty;
+
+  return {
+    eastPay, ktLgPay, ktIndPay, stPay, carAllowance, penalty, dailyTotal,
+    totalPieces: row.eastCount + row.ktLgCount + row.ktIndCount + row.stCount
+  };
+}
+
+// 渲染工資卡
+window.renderPaySlip = function(){
+  const staff = selStaff.value;
+  const sDate = dtStart.value;
+  const eDate = dtEnd.value;
+  const allReports = getReports();
+
+  // 篩選對應員工+日期範圍嘅數據
+  const list = allReports.filter(r=> 
+    r.staff === staff && (r.date >= sDate && r.date <= eDate)
+  ).sort((a,b)=>a.date.localeCompare(b.date));
+
+  if(!list.length){
+    paySlipWrap.innerHTML = `<div class="bg-white p-6 rounded-xl shadow text-slate-500">🔍 呢個時段搵唔到該員工嘅報數記錄</div>`;
+    return;
+  }
+
+  // 合計數據
+  let sum = {
+    eastPay:0, ktLgPay:0, ktIndPay:0, stPay:0, 
+    carAllowance:0, penalty:0, dailyTotal:0, totalPieces:0
+  };
+  let rowsHtml = "";
+
+  // 逐行生成表格
+  list.forEach(r=>{
+    const res = calcDaily(r);
+    // 累加合計
+    sum.eastPay += res.eastPay;
+    sum.ktLgPay += res.ktLgPay;
+    sum.ktIndPay += res.ktIndPay;
+    sum.stPay += res.stPay;
+    sum.carAllowance += res.carAllowance;
+    sum.penalty += res.penalty;
+    sum.dailyTotal += res.dailyTotal;
+    sum.totalPieces += res.totalPieces;
+
+    rowsHtml += `
+    <tr class="border-b border-slate-600 text-sm">
+      <td class="py-2">${r.date}</td>
+      <td class="text-right">${r.eastCount}</td>
+      <td class="text-right">${r.ktLgCount}</td>
+      <td class="text-right">${r.ktIndCount}</td>
+      <td class="text-right">${r.stCount}</td>
+      <td class="text-right">${res.totalPieces}</td>
+      <td class="text-right">$${res.dailyTotal.toFixed(2)}</td>
+    </tr>`;
+  })
+
+  // 渲染最終頁面
+  paySlipWrap.innerHTML = `
+<div class="pay-card text-white p-5 shadow-xl">
+  <div class="pb-3 mb-4 border-b border-slate-500">
+    <h2 class="text-xl font-bold">員工工資卡</h2>
+    <div class="text-slate-300 text-sm">${staff}｜${sDate} 至 ${eDate}</div>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-slate-600 text-slate-300">
+          <th class="text-left py-2">日期</th>
+          <th class="text-right">東區</th>
+          <th class="text-right">麗港城</th>
+          <th class="text-right">觀塘工商</th>
+          <th class="text-right">沙田</th>
+          <th class="text-right">總件數</th>
+          <th class="text-right">當日應發工資</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rowsHtml}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mt-4 pt-4 border-t border-slate-500">
+    <div class="grid grid-cols-2 gap-2 text-sm">
+      <div>總件數：<span class="font-bold">${sum.totalPieces}</span></div>
+      <div>車津合計：<span class="font-bold">$${sum.carAllowance.toFixed(2)}</span></div>
+      <div>扣罰合計：<span class="font-bold text-rose-300">$${sum.penalty.toFixed(2)}</span></div>
+      <div class="text-lg font-bold">總應發工資：$${sum.dailyTotal.toFixed(2)}</div>
+    </div>
+  </div>
+</div>
+`;
+}
+
+// 匯出CSV功能
+window.downloadCsv = function(){
+  const raw = localStorage.getItem("MIA_DATA_reports");
+  if(!raw){alert("⚠️ 冇報數數據，無法匯出");return;}
+  const allReports = JSON.parse(raw);
+  const headers = ["日期","員工姓名","東區件數","麗港城件數","觀塘工商件數","沙田件數","總件數","車津","扣罰","當日應發工資"];
+  let csvRows = [headers];
+
+  allReports.forEach(r=>{
+    const res = calcDaily(r);
+    csvRows.push([
+      r.date, r.staff, r.eastCount, r.ktLgCount, r.ktIndCount, r.stCount,
+      res.totalPieces, res.carAllowance, res.penalty, res.dailyTotal.toFixed(2)
+    ])
+  })
+
+  // 生成CSV檔案（解決中文亂碼）
+  const csvText = '\ufeff' + csvRows.map(row=>
+    row.map(cell=>`"${String(cell).replace(/"/g,'""')}"`).join(",")
+  ).join("\n");
+  const blob = new Blob([csvText], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Mia組_工資卡_${new Date().toLocaleDateString()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
+}
+</script>
+</body>
+</html>
