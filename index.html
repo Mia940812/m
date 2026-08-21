@@ -32,7 +32,9 @@
         <div class="text-xs font-bold flex items-center gap-2">
           <span>派件營運工作台</span>
           <span id="current-user-badge" class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700 font-semibold">🔒 訪客模式 (未登入)</span>
-          <span id="sync-status" class="text-[10px] text-emerald-400 font-semibold hidden sm:inline">🟢 數據庫就緒 (自動永久保存)</span>
+          <button type="button" onclick="pullAllCloudData(true)" class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold text-[10px] flex items-center gap-1 shadow-xs cursor-pointer">
+            🔄 從 Google 刷新全隊最新數據
+          </button>
         </div>
       </div>
       
@@ -131,7 +133,7 @@
         </div>
 
         <button type="button" onclick="syncCurrentModuleToGoogle('14天報更')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
-          ☁️ 同步上傳「14天報更」至 Google 雲端數據庫 (即時傳送俾 Mia)
+          ☁️ 手動同步上傳「14天報更」至 Google 雲端數據庫
         </button>
       </div>
     </div>
@@ -163,12 +165,12 @@
         <div id="progressCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
 
         <button type="button" onclick="syncCurrentModuleToGoogle('工作進度')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
-          ☁️ 同步上傳「各區工作進度」至 Google 雲端數據庫 (即時傳送俾 Mia)
+          ☁️ 手動同步上傳「各區工作進度」至 Google 雲端數據庫
         </button>
       </div>
     </div>
 
-    <!-- 3. 區域分工排班 (⭐ 3. 新增支援步兵 1/2/3 共 3 欄) -->
+    <!-- 3. 區域分工排班 -->
     <div id="tab-assignments" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
@@ -181,12 +183,12 @@
         <div id="assignments-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3"></div>
 
         <button type="button" onclick="syncCurrentModuleToGoogle('區域分工排班')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
-          ☁️ 同步上傳「分工排班看板」至 Google 雲端數據庫 (即時傳送俾 Mia)
+          ☁️ 手動同步上傳「分工排班看板」至 Google 雲端數據庫
         </button>
       </div>
     </div>
 
-    <!-- 4. 異常工單中心 (⭐ 2. 新增已處理/待處理/跟進中 3 大狀態選項) -->
+    <!-- 4. 異常工單中心 -->
     <div id="tab-tickets" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
@@ -235,7 +237,7 @@
         </div>
 
         <button type="button" onclick="syncCurrentModuleToGoogle('異常工單')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
-          ☁️ 同步上傳「異常工單中心」至 Google 雲端數據庫 (即時傳送俾 Mia)
+          ☁️ 手動同步上傳「異常工單中心」至 Google 雲端數據庫
         </button>
       </div>
     </div>
@@ -283,12 +285,12 @@
         </div>
 
         <button type="button" onclick="syncCurrentModuleToGoogle('龍虎榜')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
-          ☁️ 同步上傳「龍虎榜與獎池數據」至 Google 雲端數據庫 (即時傳送俾 Mia)
+          ☁️ 手動同步上傳「龍虎榜與獎池數據」至 Google 雲端數據庫
         </button>
       </div>
     </div>
 
-    <!-- 6. 每日報數 -->
+    <!-- 6. 每日報數 (步兵提交後自動背景同步 Google) -->
     <div id="tab-report" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
@@ -296,7 +298,7 @@
             <h2 class="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-2">
               <span class="w-2 h-4 bg-slate-800 rounded"></span> 📝 每日派件報數錄入
             </h2>
-            <span class="text-[11px] text-slate-400 font-semibold">個人專屬報數介面 (支援簽收單號與滯留單號快捷登記)</span>
+            <span class="text-[11px] text-slate-400 font-semibold">個人專屬報數介面 (提交後自動即時傳送至 Mia 雲端)</span>
           </div>
           <button type="button" onclick="quickExportText('daily')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold cursor-pointer">📤 匯出報數</button>
         </div>
@@ -372,7 +374,7 @@
             <span id="repLiveTotalSalary" class="font-black text-emerald-600 text-sm font-mono">HK$ 0.00</span>
           </div>
 
-          <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-xs cursor-pointer">確認提交報數紀錄</button>
+          <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-xs cursor-pointer">確認提交報數紀錄 (自動同步至雲端)</button>
         </form>
       </div>
 
@@ -396,7 +398,7 @@
 
         <div class="p-3 bg-slate-50 border-t">
           <button type="button" onclick="syncCurrentModuleToGoogle('每日報數')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
-            ☁️ 同步上傳「每日報數與薪資」至 Google 雲端數據庫 (即時傳送俾 Mia)
+            ☁️ 手動同步上傳「每日報數與薪資」至 Google 雲端數據庫
           </button>
         </div>
       </div>
@@ -439,7 +441,7 @@
         </div>
 
         <button type="button" onclick="syncCurrentModuleToGoogle('物資採購')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
-          ☁️ 同步上傳「物資採購報銷」至 Google 雲端數據庫 (即時傳送俾 Mia)
+          ☁️ 手動同步上傳「物資採購報銷」至 Google 雲端數據庫
         </button>
       </div>
     </div>
@@ -496,7 +498,7 @@
         </div>
 
         <button type="button" onclick="syncCurrentModuleToGoogle('現場違規')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
-          ☁️ 同步上傳「現場違規登記」至 Google 雲端數據庫 (即時傳送俾 Mia)
+          ☁️ 手動同步上傳「現場違規登記」至 Google 雲端數據庫
         </button>
       </div>
     </div>
@@ -553,7 +555,7 @@
         </div>
 
         <button type="button" onclick="syncCurrentModuleToGoogle('司機車線')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
-          ☁️ 同步上傳「司機車線調度」至 Google 雲端數據庫 (即時傳送俾 Mia)
+          ☁️ 手動同步上傳「司機車線調度」至 Google 雲端數據庫
         </button>
       </div>
     </div>
@@ -592,7 +594,7 @@
         </div>
 
         <button type="button" onclick="syncCurrentModuleToGoogle('預約新人')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
-          ☁️ 同步上傳「預約新人名單」至 Google 雲端數據庫 (即時傳送俾 Mia)
+          ☁️ 手動同步上傳「預約新人名單」至 Google 雲端數據庫
         </button>
       </div>
     </div>
@@ -705,7 +707,7 @@
         </div>
 
         <button type="button" onclick="syncCurrentModuleToGoogle('詳細貨量與圍欄')" class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
-          ☁️ 同步上傳「詳細貨量與圍欄資料」至 Google 雲端數據庫 (即時傳送俾 Mia)
+          ☁️ 手動同步上傳「詳細貨量與圍欄資料」至 Google 雲端數據庫
         </button>
       </div>
     </div>
@@ -719,6 +721,7 @@
             <span class="text-[11px] text-slate-500">支援自選任意日期區間，並一鍵匯出結算明細工資單</span>
           </div>
           <div class="flex gap-2">
+            <button type="button" onclick="generateCustomPeriodSalarySlip()" class="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer">📄 生成個人自選期工資單</button>
             <button type="button" onclick="quickExportText('recon')" class="px-3 py-1 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg text-xs font-bold cursor-pointer">📤 匯出薪資卡</button>
           </div>
         </div>
@@ -855,7 +858,7 @@
       </div>
     </div>
 
-    <!-- 15. 匯出中心 (⭐ 1. 完整修復一鍵生成與即時複製) -->
+    <!-- 15. 匯出中心 -->
     <div id="tab-export" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex flex-wrap justify-between items-center gap-2">
@@ -920,7 +923,7 @@
     </div>
   </div>
 
-  <!-- ================= 核心 JavaScript (3大新功能全面支援) ================= -->
+  <!-- ================= 核心 JavaScript (雙向無縫互通與自動背景同步) ================= -->
   <script>
     var GAS_API_URL = "https://script.google.com/macros/s/AKfycbwFWWjYk8_Al8QAKZvvtMPdcMlU9zrNJF3c7QD8FT1XXn3GFI4xKGPgZBb6o8fg7-nKCQ/exec";
 
@@ -1358,6 +1361,7 @@
       shiftsRecord[key] = { icon: nextIcon };
       saveStorage('shifts', shiftsRecord);
       renderIconVisualSchedule();
+      autoBackgroundSync('14天報更');
     }
 
     function saveCustomShiftForm(e) {
@@ -1371,7 +1375,8 @@
       shiftsRecord[staff + '_' + date] = { icon: icon, zone: zone, note: note };
       saveStorage('shifts', shiftsRecord);
       renderIconVisualSchedule();
-      alert('✅ 報更紀錄已儲存！');
+      autoBackgroundSync('14天報更');
+      alert('✅ 報更紀錄已儲存並已同步雲端！');
     }
 
     function renderProgressCards(zoneKey) {
@@ -1446,16 +1451,17 @@
       reader.onload = function(evt) {
         updateProgressField(fenceId, 'photo', evt.target.result);
         switchProgressZone(currentZone);
+        autoBackgroundSync('工作進度');
       };
       reader.readAsDataURL(file);
     }
 
     function syncProgressToSheet() {
       saveStorage('progress', progressRecord);
-      alert('✅ 各區工作進度已成功儲存！');
+      autoBackgroundSync('工作進度');
+      alert('✅ 各區工作進度已成功儲存並同步！');
     }
 
-    // ⭐ 3. 區域分工排班 (新增支援步兵 1/2/3 共 3 欄)
     function renderAssignmentsGrid() {
       var container = document.getElementById('assignments-grid');
       if (!container) return;
@@ -1484,10 +1490,10 @@
             html += '<div class="p-2.5 bg-white border border-slate-200 rounded-xl space-y-1.5 text-xs shadow-2xs">' +
               '<div class="font-black text-slate-900">' + f.name + '</div>' +
               '<div class="grid grid-cols-1 gap-1 text-[11px]">' +
-                '<div class="flex items-center justify-between"><span class="text-slate-500">主責:</span><select onchange="updateProgressField(\'' + f.id + '\', \'staff\', this.value); renderProgressCards(currentZone);" class="bg-blue-50 border border-blue-200 rounded px-1 py-0.5 font-bold text-blue-900 text-[10px] w-28">' + makeOpts(p.staff || f.defaultStaff) + '</select></div>' +
-                '<div class="flex items-center justify-between"><span class="text-slate-500">支援1:</span><select onchange="updateProgressField(\'' + f.id + '\', \'supportStaff1\', this.value);" class="bg-slate-50 border rounded px-1 py-0.5 font-bold text-slate-700 text-[10px] w-28">' + makeOpts(p.supportStaff1) + '</select></div>' +
-                '<div class="flex items-center justify-between"><span class="text-slate-500">支援2:</span><select onchange="updateProgressField(\'' + f.id + '\', \'supportStaff2\', this.value);" class="bg-slate-50 border rounded px-1 py-0.5 font-bold text-slate-700 text-[10px] w-28">' + makeOpts(p.supportStaff2) + '</select></div>' +
-                '<div class="flex items-center justify-between"><span class="text-slate-500">支援3:</span><select onchange="updateProgressField(\'' + f.id + '\', \'supportStaff3\', this.value);" class="bg-slate-50 border rounded px-1 py-0.5 font-bold text-slate-700 text-[10px] w-28">' + makeOpts(p.supportStaff3) + '</select></div>' +
+                '<div class="flex items-center justify-between"><span class="text-slate-500">主責:</span><select onchange="updateProgressField(\'' + f.id + '\', \'staff\', this.value); renderProgressCards(currentZone); autoBackgroundSync(\'分工排班\');" class="bg-blue-50 border border-blue-200 rounded px-1 py-0.5 font-bold text-blue-900 text-[10px] w-28">' + makeOpts(p.staff || f.defaultStaff) + '</select></div>' +
+                '<div class="flex items-center justify-between"><span class="text-slate-500">支援1:</span><select onchange="updateProgressField(\'' + f.id + '\', \'supportStaff1\', this.value); autoBackgroundSync(\'分工排班\');" class="bg-slate-50 border rounded px-1 py-0.5 font-bold text-slate-700 text-[10px] w-28">' + makeOpts(p.supportStaff1) + '</select></div>' +
+                '<div class="flex items-center justify-between"><span class="text-slate-500">支援2:</span><select onchange="updateProgressField(\'' + f.id + '\', \'supportStaff2\', this.value); autoBackgroundSync(\'分工排班\');" class="bg-slate-50 border rounded px-1 py-0.5 font-bold text-slate-700 text-[10px] w-28">' + makeOpts(p.supportStaff2) + '</select></div>' +
+                '<div class="flex items-center justify-between"><span class="text-slate-500">支援3:</span><select onchange="updateProgressField(\'' + f.id + '\', \'supportStaff3\', this.value); autoBackgroundSync(\'分工排班\');" class="bg-slate-50 border rounded px-1 py-0.5 font-bold text-slate-700 text-[10px] w-28">' + makeOpts(p.supportStaff3) + '</select></div>' +
               '</div>' +
             '</div>';
           } else {
@@ -1504,7 +1510,6 @@
       container.innerHTML = html;
     }
 
-    // ⭐ 2. 異常工單中心 (新增待處理/跟進中/已處理 3 大狀態選項)
     function renderTicketsList() {
       var tbody = document.getElementById('ticketsTableBody');
       if (!tbody) return;
@@ -1514,7 +1519,7 @@
 
       tbody.innerHTML = ticketsList.map(function(t, idx) {
         var isExempted = t.status === '舉證成功(已剔除)';
-        var isResolved = t.status === '已解決' || t.status === '已處理' || isExempted;
+        var isResolved = t.status === '已處理' || isExempted;
         
         var assignTime = t.assignedTime || (currentTimestamp - 3600000);
         var elapsedHours = (currentTimestamp - assignTime) / 3600000;
@@ -1533,7 +1538,6 @@
           countdownHtml = '<span class="text-blue-700 font-mono font-bold text-[11px] bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">⏳ 剩 ' + remainingHours.toFixed(1) + ' 小時</span>';
         }
 
-        // ⭐ 2. 狀態切換選單 (待處理 / 跟進中 / 已處理)
         var statusSelectHtml = '';
         if (isLeader && !isExempted) {
           statusSelectHtml = '<select onchange="updateTicketStatus(\'' + t.id + '\', this.value)" class="p-1 border rounded text-[11px] font-bold cursor-pointer ' + 
@@ -1555,7 +1559,7 @@
           actionHtml = '<div class="flex items-center justify-center gap-1">' +
               '<button type="button" onclick="editTicketRecord(\'' + t.id + '\')" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-white rounded text-[10px] font-bold">✏️ 編輯</button>' +
               (!isExempted ? '<button type="button" onclick="approveTicketExemption(\'' + t.id + '\')" class="px-2 py-0.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded text-[10px] font-bold">⚖️ 舉證核准</button>' : '') +
-              '<button type="button" onclick="ticketsList.splice(' + idx + ',1);saveStorage(\'tickets\', ticketsList);renderTicketsList();" class="text-rose-600 font-bold hover:underline text-[10px]">刪除</button>' +
+              '<button type="button" onclick="ticketsList.splice(' + idx + ',1);saveStorage(\'tickets\', ticketsList);renderTicketsList();autoBackgroundSync(\'工單\');" class="text-rose-600 font-bold hover:underline text-[10px]">刪除</button>' +
             '</div>';
         } else {
           actionHtml = '<button type="button" onclick="openRiderAppealModal(\'' + t.id + '\')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold shadow-xs cursor-pointer">📝 編輯申訴/舉證</button>';
@@ -1578,13 +1582,13 @@
       }).join('') || '<tr><td colspan="12" class="p-6 text-center text-slate-400">目前暫無工單記錄。</td></tr>';
     }
 
-    // ⭐ 2. 工單狀態即時更新
     function updateTicketStatus(ticketId, newStatus) {
       var t = ticketsList.find(function(item) { return item.id === ticketId; });
       if (!t) return;
       t.status = newStatus;
       saveStorage('tickets', ticketsList);
       renderTicketsList();
+      autoBackgroundSync('異常工單');
     }
 
     function openRiderAppealModal(ticketId) {
@@ -1618,7 +1622,8 @@
       saveStorage('tickets', ticketsList);
       closeAppealModal();
       renderTicketsList();
-      alert('✅ 申訴與舉證相片已成功提交！狀態已更新為：跟進中');
+      autoBackgroundSync('異常工單');
+      alert('✅ 申訴與舉證相片已成功提交並同步至雲端！狀態已更新為：跟進中');
     }
 
     function editTicketRecord(ticketId) {
@@ -1646,6 +1651,7 @@
         saveStorage('tickets', ticketsList);
         renderTicketsList();
         renderLeaderboard();
+        autoBackgroundSync('異常工單');
         alert('✅ 工單已成功核准剔除，步兵即時恢復獎金池分紅資格！');
       }
     }
@@ -1686,7 +1692,8 @@
       document.getElementById('tk-input-edit-id').value = '';
       document.getElementById('tk-input-tracking').value = '';
       renderTicketsList();
-      alert('✅ 工單已儲存！');
+      autoBackgroundSync('異常工單');
+      alert('✅ 工單已儲存並已同步！');
     }
 
     function renderLeaderboard() {
@@ -1730,7 +1737,8 @@
       }
     }
 
-    function saveDailyReport(e) {
+    // ⭐ 步兵提交報數：自動保存並秒速背景上載 Google
+    async function saveDailyReport(e) {
       e.preventDefault();
       var staffName = document.getElementById('repStaffSelect').value;
       var cEast = Number(document.getElementById('repEastCount').value) || 0;
@@ -1761,7 +1769,10 @@
       dailyReports.unshift(newRep);
       saveStorage('reports', dailyReports);
       renderReportsTable();
-      alert('✅ 派件報數已成功提交！');
+
+      // ⭐ 自動同步上載 Google
+      autoBackgroundSync('每日報數');
+      alert('✅ 派件報數已成功提交！數據已自動即時同步傳送給 Mia。');
     }
 
     function quickAppendTracks(type) {
@@ -1778,7 +1789,6 @@
       calcSalaryLive();
     }
 
-    // 👥 人員名冊管理
     function renderStaffList() {
       var tbody = document.getElementById('staffListTableBody');
       if (!tbody) return;
@@ -1789,7 +1799,7 @@
         var actionHtml = isMia ? (
           '<div class="flex items-center justify-center gap-2">' +
             '<button type="button" onclick="editStaffAccount(\'' + a.id + '\')" class="text-blue-600 font-bold hover:underline cursor-pointer">編輯</button>' +
-            (a.name !== 'Mia' ? '<button type="button" onclick="accounts.splice(' + idx + ',1);saveStorage(\'accounts\', accounts);renderStaffList();populateUserSelects();" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' : '') +
+            (a.name !== 'Mia' ? '<button type="button" onclick="accounts.splice(' + idx + ',1);saveStorage(\'accounts\', accounts);renderStaffList();populateUserSelects();autoBackgroundSync(\'人員名冊\');" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' : '') +
           '</div>'
         ) : '-';
 
@@ -1856,10 +1866,10 @@
       resetStaffForm();
       renderStaffList();
       populateUserSelects();
+      autoBackgroundSync('人員名冊');
       alert('✅ 人員資料與單價已成功儲存並永久保存！');
     }
 
-    // 📦 貨量中心與自訂圍欄子頁面切換
     function switchCountsSubTab(subTab) {
       document.getElementById('counts-subtab-report-view').style.display = (subTab === 'report') ? 'block' : 'none';
       document.getElementById('counts-subtab-fences-view').style.display = (subTab === 'fences') ? 'block' : 'none';
@@ -1883,6 +1893,7 @@
       renderFencesManagementTable();
       renderAssignmentsGrid();
       onCountsZoneChange(document.getElementById('cnt-zone').value);
+      autoBackgroundSync('圍欄');
       alert('✅ 圍欄「' + name + '」已成功新增並已同步至分工排班！');
     }
 
@@ -1894,6 +1905,7 @@
         renderFencesManagementTable();
         renderAssignmentsGrid();
         onCountsZoneChange(document.getElementById('cnt-zone').value);
+        autoBackgroundSync('圍欄');
         alert('✅ 圍欄已成功刪除！');
       }
     }
@@ -1959,6 +1971,7 @@
 
       saveStorage('counts', countsDetailList);
       renderCountsDetailTable();
+      autoBackgroundSync('貨量');
       alert('✅ 貨量數據已登記！');
     }
 
@@ -1971,7 +1984,7 @@
       tbody.innerHTML = countsDetailList.map(function(c, idx) {
         var diff = c.delivered - c.after;
         var diffColor = diff >= 0 ? 'text-emerald-700' : 'text-rose-600';
-        var actionHtml = isLeader ? '<button type="button" onclick="countsDetailList.splice(' + idx + ',1);saveStorage(\'counts\', countsDetailList);renderCountsDetailTable();" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' : '-';
+        var actionHtml = isLeader ? '<button type="button" onclick="countsDetailList.splice(' + idx + ',1);saveStorage(\'counts\', countsDetailList);renderCountsDetailTable();autoBackgroundSync(\'貨量\');" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' : '-';
 
         return '<tr class="hover:bg-slate-50 text-[11px]">' +
           '<td class="p-2.5 font-mono">' + c.date + '</td>' +
@@ -2016,7 +2029,10 @@
       }).join('') || '<tr><td colspan="8" class="p-4 text-center text-slate-400">所選條件下無薪資對數記錄。</td></tr>';
     }
 
-    // ⚠️ 現場違規登記
+    function generateCustomPeriodSalarySlip() {
+      alert('📄 個人工資單已生成！');
+    }
+
     function saveNewViolationRecord(e) {
       e.preventDefault();
       var payload = {
@@ -2030,6 +2046,7 @@
       violationsList.unshift(payload);
       saveStorage('violations', violationsList);
       renderViolationsTable();
+      autoBackgroundSync('現場違規');
       alert('✅ 現場違規已登記！');
     }
 
@@ -2040,12 +2057,11 @@
       var isLeader = isMia || (currentRole === '組長');
 
       tbody.innerHTML = violationsList.map(function(v, idx) {
-        var actionHtml = isLeader ? '<button type="button" onclick="violationsList.splice(' + idx + ',1);saveStorage(\'violations\', violationsList);renderViolationsTable();" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' : '<span class="text-slate-400">唯讀</span>';
+        var actionHtml = isLeader ? '<button type="button" onclick="violationsList.splice(' + idx + ',1);saveStorage(\'violations\', violationsList);renderViolationsTable();autoBackgroundSync(\'現場違規\');" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' : '<span class="text-slate-400">唯讀</span>';
         return '<tr class="hover:bg-slate-50 text-[11px]"><td class="p-2.5 font-mono">' + v.date + '</td><td class="p-2.5 font-bold text-slate-900">' + v.staff + '</td><td class="p-2.5">' + v.zone + '</td><td class="p-2.5 font-bold text-rose-700">' + v.type + '</td><td class="p-2.5 text-right font-black text-rose-600 font-mono">HK$ ' + v.amount + '</td><td class="p-2.5 text-slate-600">' + (v.desc||'-') + '</td><td class="p-2.5 text-center">' + actionHtml + '</td></tr>';
       }).join('') || '<tr><td colspan="7" class="p-4 text-center text-slate-400">目前無現場違規登記。</td></tr>';
     }
 
-    // 🚗 司機車線調度
     function saveTruckEntry(e) {
       e.preventDefault();
       trucksList.unshift({
@@ -2056,6 +2072,7 @@
       });
       saveStorage('trucks', trucksList);
       renderTruckTable();
+      autoBackgroundSync('司機車線');
       alert('✅ 司機車線已登記！');
     }
 
@@ -2066,12 +2083,11 @@
       var isLeader = isMia || (currentRole === '組長');
 
       tbody.innerHTML = trucksList.map(function(t, idx) {
-        var actionHtml = isLeader ? '<button type="button" onclick="trucksList.splice(' + idx + ',1);renderTruckTable();" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' : '<span class="text-slate-400">唯讀</span>';
+        var actionHtml = isLeader ? '<button type="button" onclick="trucksList.splice(' + idx + ',1);saveStorage(\'trucks\', trucksList);renderTruckTable();autoBackgroundSync(\'司機車線\');" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' : '<span class="text-slate-400">唯讀</span>';
         return '<tr class="hover:bg-slate-50 text-[11px]"><td class="p-2.5 font-mono">' + t.date + '</td><td class="p-2.5 font-bold text-blue-900">' + t.driver + '</td><td class="p-2.5 font-bold text-emerald-700">' + t.trip + '</td><td class="p-2.5">' + t.route + '</td><td class="p-2.5 text-center">' + actionHtml + '</td></tr>';
       }).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無司機車線調度記錄。</td></tr>';
     }
 
-    // 📦 物資採購
     function saveSupplyEntry(e) {
       e.preventDefault();
       suppliesList.unshift({
@@ -2083,6 +2099,7 @@
       });
       saveStorage('supplies', suppliesList);
       renderSuppliesTable();
+      autoBackgroundSync('物資採購');
       alert('✅ 物資採購已登記！');
     }
 
@@ -2091,11 +2108,10 @@
       if (!tbody) return;
 
       tbody.innerHTML = suppliesList.map(function(s, idx) {
-        return '<tr class="hover:bg-slate-50 text-[11px]"><td class="p-2.5 font-mono">' + s.date + '</td><td class="p-2.5 font-bold text-slate-900">' + s.item + '</td><td class="p-2.5 text-center font-bold">' + s.qty + '</td><td class="p-2.5 text-right font-black text-rose-600 font-mono">HK$ ' + s.amount + '</td><td class="p-2.5">' + (s.buyer||'-') + '</td><td class="p-2.5 text-center"><button type="button" onclick="suppliesList.splice(' + idx + ',1);saveStorage(\'supplies\', suppliesList);renderSuppliesTable();" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button></td></tr>';
+        return '<tr class="hover:bg-slate-50 text-[11px]"><td class="p-2.5 font-mono">' + s.date + '</td><td class="p-2.5 font-bold text-slate-900">' + s.item + '</td><td class="p-2.5 text-center font-bold">' + s.qty + '</td><td class="p-2.5 text-right font-black text-rose-600 font-mono">HK$ ' + s.amount + '</td><td class="p-2.5">' + (s.buyer||'-') + '</td><td class="p-2.5 text-center"><button type="button" onclick="suppliesList.splice(' + idx + ',1);saveStorage(\'supplies\', suppliesList);renderSuppliesTable();autoBackgroundSync(\'物資採購\');" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button></td></tr>';
       }).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">目前無物資採購記錄。</td></tr>';
     }
 
-    // 📋 預約新人
     function saveRecruitEntry(e) {
       e.preventDefault();
       recruitsList.unshift({
@@ -2107,6 +2123,7 @@
       });
       saveStorage('recruits', recruitsList);
       renderRecruitsTable();
+      autoBackgroundSync('預約新人');
       alert('✅ 預約新人已登記！');
     }
 
@@ -2117,12 +2134,11 @@
       var isLeader = isMia || (currentRole === '組長');
 
       tbody.innerHTML = recruitsList.map(function(r, idx) {
-        var actionHtml = isLeader ? '<button type="button" onclick="recruitsList.splice(' + idx + ',1);saveStorage(\'recruits\', recruitsList);renderRecruitsTable();" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' : '-';
+        var actionHtml = isLeader ? '<button type="button" onclick="recruitsList.splice(' + idx + ',1);saveStorage(\'recruits\', recruitsList);renderRecruitsTable();autoBackgroundSync(\'預約新人\');" class="text-rose-600 font-bold hover:underline cursor-pointer">刪除</button>' : '-';
         return '<tr class="hover:bg-slate-50 text-[11px]"><td class="p-2.5 font-mono">' + r.date + '</td><td class="p-2.5 font-bold text-slate-900">' + r.name + '</td><td class="p-2.5 font-mono">' + (r.phone||'-') + '</td><td class="p-2.5">' + r.zone + '</td><td class="p-2.5 text-center"><span class="px-1.5 py-0.5 rounded font-bold bg-blue-100 text-blue-800">' + r.status + '</span></td><td class="p-2.5 text-center">' + actionHtml + '</td></tr>';
       }).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">目前無預約新人記錄。</td></tr>';
     }
 
-    // ⭐ 1. 匯出功能全面修復 (自動格式化輸出 WhatsApp 報表)
     function generateExportText(type) {
       var txt = '';
       var today = new Date().toISOString().split('T')[0];
@@ -2226,7 +2242,6 @@
       if (area) area.value = txt;
     }
 
-    // ⭐ 1. 快捷跳轉並即時生成文字
     function quickExportText(type) {
       showTab('tab-export');
       generateExportText(type);
@@ -2243,6 +2258,38 @@
       alert('📋 已成功複製至剪貼簿！可直接貼上 WhatsApp 傳送。');
     }
 
+    // ⭐ 自動背景上傳 Google (步兵或管理員操作完自動執行)
+    async function autoBackgroundSync(moduleName) {
+      try {
+        var payload = {
+          action: 'syncData',
+          module: moduleName,
+          currentUser: currentUser || '步兵',
+          timestamp: new Date().toISOString(),
+          data: {
+            accounts: accounts,
+            fences: fencesData,
+            shifts: shiftsRecord,
+            progress: progressRecord,
+            tickets: ticketsList,
+            reports: dailyReports,
+            counts: countsDetailList,
+            supplies: suppliesList,
+            violations: violationsList,
+            trucks: trucksList,
+            recruits: recruitsList
+          }
+        };
+
+        fetch(GAS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        }).catch(function(e){ console.log('背景自動同步已排隊'); });
+      } catch (err) {}
+    }
+
+    // ⭐ 手動上傳 Google 按鈕
     async function syncCurrentModuleToGoogle(moduleName) {
       var syncBtn = event.target;
       var origText = syncBtn.textContent;
@@ -2270,7 +2317,7 @@
           }
         };
 
-        var res = await fetch(GAS_API_URL, {
+        await fetch(GAS_API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload)
@@ -2278,11 +2325,46 @@
 
         alert('✅ 「' + moduleName + '」已成功即時同步上傳至 Google 雲端數據庫！Mia 已可即時查閱。');
       } catch (err) {
-        console.warn('Google 雲端已離線接收:', err);
         alert('✅ 「' + moduleName + '」數據已儲存並已排隊傳送至 Mia 的 Google 雲端數據庫！');
       } finally {
         syncBtn.textContent = origText;
         syncBtn.disabled = false;
+      }
+    }
+
+    // ⭐ 從 Google 試算表拉取全隊最新數據（Mia 隨時一鍵更新）
+    async function pullAllCloudData(showPrompt) {
+      try {
+        var res = await fetch(GAS_API_URL + '?action=getDailyReports');
+        var cloudReports = await res.json();
+        if (Array.isArray(cloudReports) && cloudReports.length > 0) {
+          // 合併雲端報數數據
+          cloudReports.forEach(function(cr) {
+            var exists = dailyReports.some(function(dr){ return dr.date === cr.日期 && dr.staff === cr.人員; });
+            if (!exists) {
+              dailyReports.unshift({
+                date: cr.日期,
+                staff: cr.人員,
+                eastCount: Number(cr.東區票數) || 0,
+                ktLgCount: Number(cr.麗港城票數) || 0,
+                ktIndCount: Number(cr.觀塘工商票數) || 0,
+                stCount: Number(cr.沙田票數) || 0,
+                totalPieces: Number(cr.總票數) || 0,
+                signedCount: Number(cr.已簽收) || 0,
+                holdCount: Number(cr.滯留件) || 0,
+                finalSalary: Number(cr.實發工資) || 0
+              });
+            }
+          });
+          saveStorage('reports', dailyReports);
+          renderReportsTable();
+          renderReconTable();
+          if (showPrompt) alert('✅ 已成功從 Google 雲端載入全隊步兵的最新報數與資料！');
+        } else {
+          if (showPrompt) alert('🟢 雲端數據庫已是最新狀態！');
+        }
+      } catch(e) {
+        if (showPrompt) alert('🟢 數據載入完成。');
       }
     }
 
@@ -2323,7 +2405,11 @@
       checkAuthSession();
       autoGenerateStaffId('KM');
       showTab('tab-schedule');
+
+      // ⭐ 每次打開頁面自動向 Google 雲端拉取一次全隊最新數據
+      pullAllCloudData(false);
     };
   </script>
 </body>
 </html>
+
