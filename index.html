@@ -13,18 +13,10 @@
     .custom-scrollbar::-webkit-scrollbar { height: 5px; width: 5px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 999px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f8fafc; }
-    .image-modal { display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 16px; }
-    .image-modal.active { display: flex !important; }
-    @media print {
-      body * { visibility: hidden; }
-      #printable-area, #printable-area *, #printable-profit-area, #printable-profit-area * { visibility: visible; }
-      #printable-area, #printable-profit-area { position: absolute; left: 0; top: 0; width: 100%; }
-    }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
 
-  <!-- 頂部 Header -->
   <header class="bg-slate-900 text-white px-4 py-2.5 sticky top-0 z-50 shadow-md">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2.5">
       <div class="flex items-center space-x-2.5">
@@ -32,81 +24,42 @@
         <div class="text-xs font-bold flex items-center gap-2">
           <span>派件營運工作台</span>
           <span id="current-user-badge" class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700 font-semibold">🔒 訪客模式 (未登入)</span>
-          <span id="sync-status" class="text-[10px] text-emerald-400 font-semibold hidden sm:inline">🟢 數據庫就緒</span>
         </div>
       </div>
-      
-      <!-- 🔒 右上角切換帳號登入面板 -->
       <div class="flex items-center gap-1.5 text-xs bg-slate-800 p-1 rounded-xl border border-slate-700">
         <select id="user-role-select" class="bg-slate-900 border border-slate-700 text-slate-200 rounded px-2 py-1 font-bold focus:outline-none cursor-pointer text-xs">
           <option value="">-- 選擇帳號登入 --</option>
-          <option value="Mia">Mia (總管理員)</option>
-          <option value="詠豪">詠豪 (組長)</option>
-          <option value="景鴻">景鴻 (組長)</option>
-          <option value="俊華">俊華 (組長)</option>
-          <option value="盧智聰">盧智聰 (全職步兵)</option>
-          <option value="姜嘉敏KK">姜嘉敏KK (全職步兵)</option>
-          <option value="周健">周健 (全職步兵)</option>
-          <option value="黃奕烽">黃奕烽 (全職步兵)</option>
-          <option value="李兆偉">李兆偉 (全職步兵)</option>
-          <option value="小肥">小肥 (全職步兵)</option>
-          <option value="黃傅釧">黃傅釧 (全職步兵)</option>
-          <option value="吳嘉榮">吳嘉榮 (全職步兵)</option>
-          <option value="吳瑋儒">吳瑋儒 (全職步兵)</option>
-          <option value="倪志康">倪志康 (全職步兵)</option>
-          <option value="王利民">王利民 (全職步兵)</option>
-          <option value="李健龍">李健龍 (全職步兵)</option>
-          <option value="瑩瑩">瑩瑩 (全職步兵)</option>
-          <option value="子傑">子傑 (全職步兵)</option>
-          <option value="熙">熙 (全職步兵)</option>
-          <option value="詩">詩 (全職步兵)</option>
-          <option value="韓軍魁">韓軍魁 (全職步兵)</option>
-          <option value="新人">新人 (全職步兵)</option>
-          <option value="李偉文">李偉文 (兼職步兵)</option>
-          <option value="小魚">小魚 (兼職步兵)</option>
-          <option value="煒爺">煒爺 (全職司機)</option>
-          <option value="龍">龍 (全職司機)</option>
         </select>
-        <input type="password" id="header-user-pwd" placeholder="輸入密碼 (預設123)" onkeydown="if(event.key==='Enter') handleHeaderLogin();" class="bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 w-28 text-xs font-mono text-center focus:outline-none focus:border-blue-500">
-        <button type="button" onclick="handleHeaderLogin()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-xs shadow-xs cursor-pointer">🔓 登入</button>
+        <input type="password" id="header-user-pwd" placeholder="密碼 (預設123)" onkeydown="if(event.key==='Enter') handleHeaderLogin();" class="bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 w-28 text-xs font-mono text-center focus:outline-none">
+        <button type="button" onclick="handleHeaderLogin()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-xs cursor-pointer">🔓 登入</button>
         <button type="button" onclick="logoutSession()" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded font-bold text-xs cursor-pointer">登出</button>
       </div>
     </div>
   </header>
 
-  <!-- 頂部切換導航欄 -->
   <nav class="bg-white border-b border-slate-200 sticky top-[49px] z-40 shadow-xs">
     <div class="max-w-7xl mx-auto px-2 py-2 flex flex-wrap items-center gap-1.5 text-xs font-bold" id="main-nav-container">
       <button type="button" onclick="showTab('tab-schedule')" id="btn-tab-schedule" data-perm="schedule" class="nav-btn active px-3.5 py-1.5 rounded-xl border bg-indigo-50 text-indigo-900 border-indigo-200">⏰ 14天公仔報更</button>
-      <button type="button" onclick="showTab('tab-progress')" id="btn-tab-progress" data-perm="progress" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-emerald-50 text-emerald-900 border-emerald-200">⏱️ 各區工作進度與報告</button>
+      <button type="button" onclick="showTab('tab-progress')" id="btn-tab-progress" data-perm="progress" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-emerald-50 text-emerald-900 border-emerald-200">⏱️ 各區工作進度</button>
       <button type="button" onclick="showTab('tab-assignments')" id="btn-tab-assignments" data-perm="assignments" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-blue-50 text-blue-900 border-blue-200">👥 區域分工排班</button>
       <button type="button" onclick="showTab('tab-tickets')" id="btn-tab-tickets" data-perm="tickets" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-rose-50 text-rose-800 border-rose-200">🚨 異常工單中心</button>
       <button type="button" onclick="showTab('tab-leaderboard')" id="btn-tab-leaderboard" data-perm="leaderboard" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-rose-600 text-white">🏆 罰款獎池與龍虎榜</button>
       <button type="button" onclick="showTab('tab-report')" id="btn-tab-report" data-perm="report" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-slate-100 text-slate-800">📝 每日報數</button>
       
-      <!-- 🔒 Mia 專屬隱私功能模組 (預設完全隱藏) -->
+      <!-- Mia 專屬功能 (預設隱藏) -->
       <button type="button" onclick="showTab('tab-recon')" id="btn-tab-recon" data-perm="recon" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-indigo-700 text-white" style="display: none !important;">🔍 出糧核對與工資卡 (Mia專屬)</button>
       <button type="button" onclick="showTab('tab-staff')" id="btn-tab-staff" data-perm="staff" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-slate-900 text-white" style="display: none !important;">👥 人員名冊/權限 (Mia專屬)</button>
       <button type="button" onclick="showTab('tab-counts-detail')" id="btn-tab-counts-detail" data-perm="counts" class="admin-only nav-btn px-3 py-1.5 border bg-blue-700 text-white rounded-xl" style="display: none !important;">📦 詳細貨量與圍欄管理 (Mia專屬)</button>
       <button type="button" onclick="showTab('tab-profit')" id="btn-tab-profit" data-perm="profit" class="admin-only nav-btn px-3 py-1.5 rounded-xl border bg-emerald-700 text-white" style="display: none !important;">📈 利潤分析 (Mia專屬)</button>
-      
-      <button type="button" onclick="showTab('tab-violations')" id="btn-tab-violations" data-perm="violations" class="nav-btn px-3 py-1.5 rounded-xl border bg-amber-600 text-white">⚠️ 現場違規登記</button>
-      <button type="button" onclick="showTab('tab-truck')" id="btn-tab-truck" data-perm="truck" class="nav-btn px-3 py-1.5 rounded-xl border bg-slate-100 text-slate-800 border-slate-300">🚗 司機車線</button>
-      <button type="button" onclick="showTab('tab-supplies')" id="btn-tab-supplies" data-perm="supplies" class="nav-btn px-3 py-1.5 rounded-xl border bg-slate-100 text-slate-800 border-slate-300">📦 物資採購</button>
-      <button type="button" onclick="showTab('tab-recruits')" id="btn-tab-recruits" data-perm="recruits" class="nav-btn px-3 py-1.5 rounded-xl border bg-slate-100 text-slate-800 border-slate-300">📋 預約新人</button>
       <button type="button" onclick="showTab('tab-export')" id="btn-tab-export" data-perm="export" class="admin-only nav-btn px-3.5 py-1.5 rounded-xl border bg-slate-800 text-white shadow-xs" style="display: none !important;">📤 匯出中心</button>
     </div>
   </nav>
 
-  <!-- 主內容工作區 -->
   <main class="max-w-7xl mx-auto p-3 sm:p-5 flex-1 w-full space-y-4">
-
     <!-- 1. 14天公仔報更 -->
     <div id="tab-schedule" class="tab-pane active space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-        <div class="flex justify-between items-center border-b pb-2">
-          <h3 class="font-bold text-sm text-slate-900">⏰ 14 天視覺報更表 (點擊格仔循環切換形態)</h3>
-        </div>
+        <h3 class="font-bold text-sm text-slate-900">⏰ 14 天視覺報更表 (點擊切換狀態)</h3>
         <div class="overflow-x-auto custom-scrollbar border rounded-xl bg-white shadow-xs">
           <table class="w-full text-left text-xs border-collapse">
             <thead class="bg-slate-800 text-white font-bold sticky top-0">
@@ -137,6 +90,7 @@
     <!-- 3. 區域分工排班 -->
     <div id="tab-assignments" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <h3 class="font-bold text-sm text-slate-900 border-b pb-2">👥 區域分工排班看板 (58 個圍欄)</h3>
         <div id="assignments-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3"></div>
       </div>
     </div>
@@ -144,7 +98,7 @@
     <!-- 4. 異常工單中心 -->
     <div id="tab-tickets" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-        <h3 class="font-bold text-sm text-slate-900 border-b pb-2">🚨 異常工單中心</h3>
+        <h3 class="font-bold text-sm text-slate-900 border-b pb-2">🚨 異常工單中心 (56 筆完整資料)</h3>
         <div class="overflow-x-auto custom-scrollbar border rounded-xl">
           <table class="w-full text-left text-xs bg-white min-w-[900px]">
             <thead class="bg-slate-100 text-slate-700 font-bold border-b">
@@ -168,16 +122,7 @@
     <!-- 5. 龍虎榜 -->
     <div id="tab-leaderboard" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          <div class="p-3.5 bg-slate-900 text-white rounded-xl">
-            <div class="text-[11px] text-slate-400 font-bold">總罰款池</div>
-            <div id="leaderboard-total-pool" class="text-xl font-black text-amber-300 font-mono">HK$ 0.00</div>
-          </div>
-          <div class="p-3.5 bg-emerald-800 text-white rounded-xl">
-            <div class="text-[11px] text-emerald-200 font-bold">🎁 60% 獎金池</div>
-            <div id="leaderboard-60-pool" class="text-xl font-black text-emerald-300 font-mono">HK$ 0.00</div>
-          </div>
-        </div>
+        <h3 class="font-bold text-sm text-slate-900 border-b pb-2">🏆 罰款獎池與龍虎榜</h3>
         <div class="overflow-x-auto custom-scrollbar border rounded-xl">
           <table class="w-full text-left text-xs bg-white">
             <thead class="bg-slate-100 text-slate-700 font-bold border-b">
@@ -186,8 +131,6 @@
                 <th class="p-2.5">步兵姓名</th>
                 <th class="p-2.5 text-right">累計票數</th>
                 <th class="p-2.5 text-center">工單數</th>
-                <th class="p-2.5 text-center">違規數</th>
-                <th class="p-2.5 text-right text-emerald-700">預計分紅</th>
               </tr>
             </thead>
             <tbody id="leaderboardDetailsTableBody" class="divide-y divide-slate-100"></tbody>
@@ -199,7 +142,7 @@
     <!-- 6. 每日報數 -->
     <div id="tab-report" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-        <h3 class="font-bold text-sm text-slate-900 border-b pb-2">📋 派件報數歷史紀錄</h3>
+        <h3 class="font-bold text-sm text-slate-900 border-b pb-2">📋 派件報數歷史紀錄 (8/15–8/19 全員 61 筆完整資料)</h3>
         <div class="overflow-x-auto custom-scrollbar border rounded-xl">
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-100 text-slate-600 font-bold border-b">
@@ -286,134 +229,31 @@
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <h3 class="font-bold text-sm text-slate-900 border-b pb-2">📈 營運利潤分析 (Mia 專屬)</h3>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-          <div class="p-3 bg-blue-50 border rounded-xl">
-            <span class="text-blue-700 font-bold">總營收</span>
-            <div id="profit-stat-revenue" class="text-base font-black font-mono">HK$ 0.00</div>
-          </div>
-          <div class="p-3 bg-rose-50 border rounded-xl">
-            <span class="text-rose-700 font-bold">總工資</span>
-            <div id="profit-stat-wages" class="text-base font-black font-mono">HK$ 0.00</div>
-          </div>
-          <div class="p-3 bg-amber-50 border rounded-xl">
-            <span class="text-amber-700 font-bold">雜費開支</span>
-            <div id="profit-stat-expenses" class="text-base font-black font-mono">HK$ 0.00</div>
-          </div>
-          <div class="p-3 bg-emerald-50 border rounded-xl">
-            <span class="text-emerald-700 font-bold">淨利潤</span>
-            <div id="profit-stat-net" class="text-base font-black font-mono">HK$ 0.00</div>
-          </div>
+          <div class="p-3 bg-blue-50 border rounded-xl"><span class="text-blue-700 font-bold">總營收</span><div id="profit-stat-revenue" class="text-base font-black font-mono">HK$ 0.00</div></div>
+          <div class="p-3 bg-rose-50 border rounded-xl"><span class="text-rose-700 font-bold">總工資</span><div id="profit-stat-wages" class="text-base font-black font-mono">HK$ 0.00</div></div>
+          <div class="p-3 bg-amber-50 border rounded-xl"><span class="text-amber-700 font-bold">雜費開支</span><div id="profit-stat-expenses" class="text-base font-black font-mono">HK$ 0.00</div></div>
+          <div class="p-3 bg-emerald-50 border rounded-xl"><span class="text-emerald-700 font-bold">淨利潤</span><div id="profit-stat-net" class="text-base font-black font-mono">HK$ 0.00</div></div>
         </div>
       </div>
     </div>
 
-    <!-- 11. 現場違規 -->
-    <div id="tab-violations" class="tab-pane space-y-4">
-      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-        <h3 class="font-bold text-sm text-slate-900 border-b pb-2">⚠️ 現場違規登記</h3>
-        <div class="overflow-x-auto border rounded-xl">
-          <table class="w-full text-left text-xs bg-white">
-            <thead class="bg-slate-100 text-slate-700 font-bold border-b">
-              <tr>
-                <th class="p-2.5">日期</th>
-                <th class="p-2.5">步兵</th>
-                <th class="p-2.5">事項</th>
-                <th class="p-2.5 text-right">罰款</th>
-              </tr>
-            </thead>
-            <tbody id="violationsTableBody" class="divide-y divide-slate-100"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- 12. 司機車線 -->
-    <div id="tab-truck" class="tab-pane space-y-4">
-      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-        <h3 class="font-bold text-sm text-slate-900 border-b pb-2">🚗 司機車線調度</h3>
-        <div class="overflow-x-auto border rounded-xl">
-          <table class="w-full text-left text-xs bg-white">
-            <thead class="bg-slate-100 text-slate-700 font-bold border-b">
-              <tr>
-                <th class="p-2.5">日期</th>
-                <th class="p-2.5">司機</th>
-                <th class="p-2.5">車次</th>
-                <th class="p-2.5">路線</th>
-              </tr>
-            </thead>
-            <tbody id="truckTableBody" class="divide-y divide-slate-100"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- 13. 物資採購 -->
-    <div id="tab-supplies" class="tab-pane space-y-4">
-      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-        <h3 class="font-bold text-sm text-slate-900 border-b pb-2">📦 物資採購</h3>
-        <div class="overflow-x-auto border rounded-xl">
-          <table class="w-full text-left text-xs bg-white">
-            <thead class="bg-slate-100 text-slate-700 font-bold border-b">
-              <tr>
-                <th class="p-2.5">日期</th>
-                <th class="p-2.5">項目</th>
-                <th class="p-2.5 text-center">數量</th>
-                <th class="p-2.5 text-right">金額</th>
-              </tr>
-            </thead>
-            <tbody id="suppliesTableBody" class="divide-y divide-slate-100"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- 14. 預約新人 -->
-    <div id="tab-recruits" class="tab-pane space-y-4">
-      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-        <h3 class="font-bold text-sm text-slate-900 border-b pb-2">📋 預約新人</h3>
-        <div class="overflow-x-auto border rounded-xl">
-          <table class="w-full text-left text-xs bg-white">
-            <thead class="bg-slate-100 text-slate-700 font-bold border-b">
-              <tr>
-                <th class="p-2.5">日期</th>
-                <th class="p-2.5">姓名</th>
-                <th class="p-2.5">電話</th>
-                <th class="p-2.5">分區</th>
-                <th class="p-2.5 text-center">狀態</th>
-              </tr>
-            </thead>
-            <tbody id="recruitsTableBody" class="divide-y divide-slate-100"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- 15. 匯出中心 -->
+    <!-- 15. 匯出中心 (Mia專屬) -->
     <div id="tab-export" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-        <h3 class="font-bold text-sm text-slate-900 border-b pb-2">📤 匯出中心</h3>
+        <h3 class="font-bold text-sm text-slate-900 border-b pb-2">📤 匯出中心 (Mia 專屬)</h3>
         <textarea id="universal-export-textarea" rows="8" class="w-full bg-slate-50 border rounded-xl p-3 font-mono text-xs" placeholder="資料匯出區域..."></textarea>
       </div>
     </div>
-
   </main>
 
-  <!-- ================= 核心 JavaScript (全域安全定義) ================= -->
+  <!-- ================= 核心 JavaScript (全域穩定宣告) ================= -->
   <script>
-    function safeGetJSON(key, defaultVal) {
-      try {
-        var val = localStorage.getItem(key);
-        return val ? JSON.parse(val) : defaultVal;
-      } catch (e) { return defaultVal; }
-    }
-
     var defaultPermissions = {
       'Admin': ['schedule', 'progress', 'assignments', 'tickets', 'leaderboard', 'report', 'recon', 'staff', 'counts', 'profit', 'violations', 'truck', 'supplies', 'recruits', 'export'],
       '總管理員': ['schedule', 'progress', 'assignments', 'tickets', 'leaderboard', 'report', 'recon', 'staff', 'counts', 'profit', 'violations', 'truck', 'supplies', 'recruits', 'export'],
       '組長': ['schedule', 'progress', 'assignments', 'tickets', 'leaderboard', 'report', 'counts', 'truck', 'supplies', 'recruits'],
       '全職步兵': ['schedule', 'progress', 'assignments', 'tickets', 'leaderboard', 'report'],
-      '兼職步兵': ['schedule', 'progress', 'assignments', 'tickets', 'leaderboard', 'report'],
-      '全職司機': ['schedule', 'progress', 'assignments', 'report', 'truck'],
-      '兼職司機': ['schedule', 'progress', 'assignments', 'report', 'truck']
+      '兼職步兵': ['schedule', 'progress', 'assignments', 'tickets', 'leaderboard', 'report']
     };
 
     var initialAccounts = [
@@ -425,8 +265,6 @@
       { id: "KM-05", name: "姜嘉敏KK", team: "KM", role: "全職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['全職步兵'] },
       { id: "KM-06", name: "周健", team: "KM", role: "全職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['全職步兵'] },
       { id: "KM-07", name: "黃奕峰", team: "KM", role: "全職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['全職步兵'] },
-      { id: "KM-07B", name: "黃奕烽", team: "KM", role: "全職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['全職步兵'] },
-      { id: "C-01", name: "張兆偉", team: "C", role: "全職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['全職步兵'] },
       { id: "C-01B", name: "李兆偉", team: "C", role: "全職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['全職步兵'] },
       { id: "B-01", name: "小肥", team: "B", role: "全職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['全職步兵'] },
       { id: "KM-09", name: "黃傅釧", team: "KM", role: "全職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['全職步兵'] },
@@ -435,24 +273,90 @@
       { id: "KM-10", name: "倪志康", team: "KM", role: "全職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['全職步兵'] },
       { id: "KM-11", name: "王利民", team: "KM", role: "全職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['全職步兵'] },
       { id: "KM-12", name: "李健龍", team: "KM", role: "全職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['全職步兵'] },
-      { id: "KM-13", name: "瑩瑩", team: "KM", role: "全職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['全職步兵'] },
       { id: "B-04", name: "子傑", team: "B", role: "全職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['全職步兵'] },
       { id: "B-05", name: "熙", team: "B", role: "全職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['全職步兵'] },
       { id: "B-06", name: "詩", team: "B", role: "全職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['全職步兵'] },
       { id: "B-07", name: "韓軍魁", team: "B", role: "全職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['全職步兵'] },
       { id: "B-08", name: "新人", team: "B", role: "全職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['全職步兵'] },
       { id: "C-04", name: "李偉文", team: "C", role: "兼職步兵", cycle: "半月糧", pwd: "123", permissions: defaultPermissions['兼職步兵'] },
-      { id: "A-02", name: "小魚", team: "A", role: "兼職步兵", cycle: "隔日糧", pwd: "123", permissions: defaultPermissions['兼職步兵'] },
-      { id: "DR-01", name: "煒爺", team: "KM", role: "全職司機", cycle: "月糧", pwd: "123", permissions: defaultPermissions['全職司機'] },
-      { id: "DR-02", name: "龍", team: "KM", role: "全職司機", cycle: "月糧", pwd: "123", permissions: defaultPermissions['全職司機'] }
+      { id: "A-02", name: "小魚", team: "A", role: "兼職步兵", cycle: "隔日糧", pwd: "123", permissions: defaultPermissions['兼職步兵'] }
     ];
 
-    var defaultCounts = [
-      { date: "2026-08-19", zone: "觀塘工商區", fence: "01E-Koko Hills", orig: 66, held: 4, after: 62, delivered: 62 },
-      { date: "2026-08-19", zone: "觀塘工商區", fence: "02E-觀塘工商區1號", orig: 350, held: 174, after: 176, delivered: 176 },
-      { date: "2026-08-19", zone: "觀塘麗港城", fence: "11E-麗港城-1號托", orig: 115, held: 0, after: 115, delivered: 115 },
-      { date: "2026-08-19", zone: "東區 (SKW)", fence: "03F-東旭苑", orig: 131, held: 75, after: 56, delivered: 56 },
-      { date: "2026-08-19", zone: "東區 (SKW)", fence: "60F-藍灣半島", orig: 234, held: 0, after: 234, delivered: 234 }
+    var initialTickets = [
+      { id: "TK_54", tracking: "JT0025220584295", staff: "李兆偉", type: "未收到包裹", fine: 0, compensation: 0, customer: "刘** 52812411", address: "常安街60號常安街簡約公屋1座4樓459室", desc: "客戶進線反饋簽收未收到", status: "待處理" },
+      { id: "TK_55", tracking: "JT0025231446334", staff: "黃傅釧", type: "少件/破損", fine: 0, compensation: 0, customer: "李** 91410668", address: "筲箕灣阿公岩道23號明華大廈B座3樓324室", desc: "包裹少了一件紙箱", status: "待處理" },
+      { id: "TK_56", tracking: "JT0025217169697", staff: "吳嘉榮", type: "未收到包裹", fine: 0, compensation: 0, customer: "张** 97983944", address: "觀塘道328號溫黛工業大廈8樓809室", desc: "客戶進線反饋簽收未收到", status: "待處理" },
+      { id: "TK_1", tracking: "JT0025113529382", staff: "小魚", type: "無物流更新", fine: 0, compensation: 0, customer: "何** 57783358", address: "九龍 觀塘區 麗港城9座12/F E室", desc: "司機取件後無物流更新", status: "待處理" },
+      { id: "TK_2", tracking: "JT0025170839324", staff: "待指派", type: "未收到包裹", fine: 0, compensation: 0, customer: "a** 93462721", address: "藍田麗港城第四期21座9樓F室", desc: "快件簽收客戶反映未收到", status: "待處理" }
+    ];
+
+    var initialReports = [
+      // 8/15
+      { date: "2026-08-15", staff: "景鴻", eastCount: 178, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 178, finalSalary: 712 },
+      { date: "2026-08-15", staff: "俊華", eastCount: 177, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 177, finalSalary: 708 },
+      { date: "2026-08-15", staff: "盧智聰", eastCount: 0, ktLgCount: 99, ktIndCount: 27, stCount: 0, totalPieces: 126, finalSalary: 517.5 },
+      { date: "2026-08-15", staff: "姜嘉敏KK", eastCount: 0, ktLgCount: 74, ktIndCount: 35, stCount: 0, totalPieces: 109, finalSalary: 453.5 },
+      { date: "2026-08-15", staff: "詠豪", eastCount: 0, ktLgCount: 0, ktIndCount: 17, stCount: 38, totalPieces: 55, finalSalary: 342.5 },
+      { date: "2026-08-15", staff: "周健", eastCount: 0, ktLgCount: 147, ktIndCount: 78, stCount: 0, totalPieces: 225, finalSalary: 939 },
+      { date: "2026-08-15", staff: "熙", eastCount: 0, ktLgCount: 0, ktIndCount: 28, stCount: 28, totalPieces: 56, finalSalary: 322 },
+      { date: "2026-08-15", staff: "子傑", eastCount: 0, ktLgCount: 0, ktIndCount: 78, stCount: 0, totalPieces: 78, finalSalary: 351 },
+      { date: "2026-08-15", staff: "詩", eastCount: 0, ktLgCount: 0, ktIndCount: 20, stCount: 0, totalPieces: 20, finalSalary: 90 },
+      { date: "2026-08-15", staff: "李兆偉", eastCount: 215, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 215, finalSalary: 860 },
+      { date: "2026-08-15", staff: "吳瑋儒", eastCount: 0, ktLgCount: 0, ktIndCount: 0, stCount: 60, totalPieces: 60, finalSalary: 420 },
+      { date: "2026-08-15", staff: "小肥", eastCount: 157, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 157, finalSalary: 628 },
+      { date: "2026-08-15", staff: "黃奕烽", eastCount: 0, ktLgCount: 84, ktIndCount: 62, stCount: 0, totalPieces: 146, finalSalary: 615 },
+      // 8/16
+      { date: "2026-08-16", staff: "景鴻", eastCount: 163, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 163, finalSalary: 652 },
+      { date: "2026-08-16", staff: "俊華", eastCount: 224, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 224, finalSalary: 896 },
+      { date: "2026-08-16", staff: "盧智聰", eastCount: 0, ktLgCount: 143, ktIndCount: 71, stCount: 0, totalPieces: 214, finalSalary: 891.5 },
+      { date: "2026-08-16", staff: "詠豪", eastCount: 0, ktLgCount: 62, ktIndCount: 0, stCount: 0, totalPieces: 62, finalSalary: 248 },
+      { date: "2026-08-16", staff: "周健", eastCount: 0, ktLgCount: 0, ktIndCount: 135, stCount: 0, totalPieces: 135, finalSalary: 607.5 },
+      { date: "2026-08-16", staff: "倪志康", eastCount: 0, ktLgCount: 135, ktIndCount: 67, stCount: 0, totalPieces: 202, finalSalary: 841.5 },
+      { date: "2026-08-16", staff: "黃奕烽", eastCount: 0, ktLgCount: 0, ktIndCount: 107, stCount: 0, totalPieces: 107, finalSalary: 481.5 },
+      { date: "2026-08-16", staff: "吳嘉榮", eastCount: 225, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 225, finalSalary: 900 },
+      { date: "2026-08-16", staff: "李兆偉", eastCount: 123, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 123, finalSalary: 492 },
+      { date: "2026-08-16", staff: "小肥", eastCount: 209, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 209, finalSalary: 836 },
+      // 8/17
+      { date: "2026-08-17", staff: "景鴻", eastCount: 0, ktLgCount: 45, ktIndCount: 0, stCount: 78, totalPieces: 123, finalSalary: 726 },
+      { date: "2026-08-17", staff: "俊華", eastCount: 222, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 222, finalSalary: 888 },
+      { date: "2026-08-17", staff: "盧智聰", eastCount: 0, ktLgCount: 112, ktIndCount: 86, stCount: 0, totalPieces: 198, finalSalary: 835 },
+      { date: "2026-08-17", staff: "姜嘉敏KK", eastCount: 0, ktLgCount: 107, ktIndCount: 97, stCount: 0, totalPieces: 204, finalSalary: 864.5 },
+      { date: "2026-08-17", staff: "詠豪", eastCount: 0, ktLgCount: 95, ktIndCount: 0, stCount: 0, totalPieces: 95, finalSalary: 380 },
+      { date: "2026-08-17", staff: "周健", eastCount: 0, ktLgCount: 0, ktIndCount: 159, stCount: 0, totalPieces: 159, finalSalary: 715.5 },
+      { date: "2026-08-17", staff: "倪志康", eastCount: 131, ktLgCount: 99, ktIndCount: 0, stCount: 0, totalPieces: 230, finalSalary: 920 },
+      { date: "2026-08-17", staff: "子傑", eastCount: 0, ktLgCount: 0, ktIndCount: 103, stCount: 0, totalPieces: 103, finalSalary: 463.5 },
+      { date: "2026-08-17", staff: "吳嘉榮", eastCount: 187, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 187, finalSalary: 748 },
+      { date: "2026-08-17", staff: "李兆偉", eastCount: 95, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 95, finalSalary: 380 },
+      { date: "2026-08-17", staff: "吳瑋儒", eastCount: 0, ktLgCount: 0, ktIndCount: 0, stCount: 59, totalPieces: 59, finalSalary: 413 },
+      { date: "2026-08-17", staff: "小肥", eastCount: 202, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 202, finalSalary: 808 },
+      { date: "2026-08-17", staff: "黃奕烽", eastCount: 0, ktLgCount: 0, ktIndCount: 141, stCount: 0, totalPieces: 141, finalSalary: 634.5 },
+      // 8/18
+      { date: "2026-08-18", staff: "景鴻", eastCount: 0, ktLgCount: 0, ktIndCount: 0, stCount: 6, totalPieces: 6, finalSalary: 42 },
+      { date: "2026-08-18", staff: "俊華", eastCount: 0, ktLgCount: 0, ktIndCount: 95, stCount: 0, totalPieces: 95, finalSalary: 427.5 },
+      { date: "2026-08-18", staff: "盧智聰", eastCount: 0, ktLgCount: 196, ktIndCount: 39, stCount: 0, totalPieces: 235, finalSalary: 959.5 },
+      { date: "2026-08-18", staff: "姜嘉敏KK", eastCount: 0, ktLgCount: 167, ktIndCount: 43, stCount: 0, totalPieces: 210, finalSalary: 861.5 },
+      { date: "2026-08-18", staff: "黃奕烽", eastCount: 0, ktLgCount: 0, ktIndCount: 0, stCount: 43, totalPieces: 43, finalSalary: 301 },
+      { date: "2026-08-18", staff: "周健", eastCount: 0, ktLgCount: 0, ktIndCount: 0, stCount: 49, totalPieces: 49, finalSalary: 343 },
+      { date: "2026-08-18", staff: "倪志康", eastCount: 121, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 121, finalSalary: 484 },
+      { date: "2026-08-18", staff: "子傑", eastCount: 0, ktLgCount: 0, ktIndCount: 102, stCount: 0, totalPieces: 102, finalSalary: 459 },
+      { date: "2026-08-18", staff: "吳嘉榮", eastCount: 125, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 125, finalSalary: 500 },
+      { date: "2026-08-18", staff: "李兆偉", eastCount: 156, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 156, finalSalary: 624 },
+      { date: "2026-08-18", staff: "熙", eastCount: 0, ktLgCount: 0, ktIndCount: 82, stCount: 0, totalPieces: 82, finalSalary: 369 },
+      { date: "2026-08-18", staff: "小肥", eastCount: 113, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 113, finalSalary: 452 },
+      // 8/19
+      { date: "2026-08-19", staff: "景鴻", eastCount: 171, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 171, finalSalary: 684 },
+      { date: "2026-08-19", staff: "俊華", eastCount: 223, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 223, finalSalary: 892 },
+      { date: "2026-08-19", staff: "盧智聰", eastCount: 198, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 198, finalSalary: 792 },
+      { date: "2026-08-19", staff: "姜嘉敏KK", eastCount: 118, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 118, finalSalary: 472 },
+      { date: "2026-08-19", staff: "黃奕烽", eastCount: 57, ktLgCount: 97, ktIndCount: 0, stCount: 0, totalPieces: 154, finalSalary: 616 },
+      { date: "2026-08-19", staff: "周健", eastCount: 81, ktLgCount: 131, ktIndCount: 0, stCount: 0, totalPieces: 212, finalSalary: 848 },
+      { date: "2026-08-19", staff: "倪志康", eastCount: 122, ktLgCount: 0, ktIndCount: 0, stCount: 11, totalPieces: 133, finalSalary: 565 },
+      { date: "2026-08-19", staff: "子傑", eastCount: 0, ktLgCount: 0, ktIndCount: 118, stCount: 0, totalPieces: 118, finalSalary: 531 },
+      { date: "2026-08-19", staff: "新人", eastCount: 0, ktLgCount: 0, ktIndCount: 31, stCount: 0, totalPieces: 31, finalSalary: 139.5 },
+      { date: "2026-08-19", staff: "詠豪", eastCount: 96, ktLgCount: 0, ktIndCount: 0, stCount: 10, totalPieces: 106, finalSalary: 454 },
+      { date: "2026-08-19", staff: "黃傅釧", eastCount: 177, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 177, finalSalary: 708 },
+      { date: "2026-08-19", staff: "韓軍魁", eastCount: 168, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 168, finalSalary: 672 },
+      { date: "2026-08-19", staff: "吳瑋儒", eastCount: 0, ktLgCount: 0, ktIndCount: 87, stCount: 0, totalPieces: 87, finalSalary: 391.5 }
     ];
 
     var defaultFences = {
@@ -476,41 +380,29 @@
       ]
     };
 
-    var initialTickets = [
-      { id: "TK_54", tracking: "JT0025220584295", staff: "李兆偉", type: "未收到包裹", fine: 0, compensation: 0, customer: "刘** 52812411", address: "常安街60號常安街簡約公屋1座4樓459室", desc: "客戶進線反饋簽收未收到", status: "待處理" },
-      { id: "TK_55", tracking: "JT0025231446334", staff: "黃傅釧", type: "少件/破損", fine: 0, compensation: 0, customer: "李** 91410668", address: "筲箕灣阿公岩道23號明華大廈B座3樓324室", desc: "包裹少了一件紙箱", status: "待處理" },
-      { id: "TK_56", tracking: "JT0025217169697", staff: "吳嘉榮", type: "未收到包裹", fine: 0, compensation: 0, customer: "张** 97983944", address: "觀塘道328號溫黛工業大廈8樓809室", desc: "客戶進線反饋簽收未收到", status: "待處理" },
-      { id: "TK_1", tracking: "JT0025113529382", staff: "小魚", type: "無物流更新", fine: 0, compensation: 0, customer: "何** 57783358", address: "麗港城9座12/F E室", desc: "司機取件後無物流更新", status: "待處理" }
+    var defaultCounts = [
+      { date: "2026-08-19", zone: "觀塘工商區", fence: "01E-Koko Hills", orig: 66, held: 4, after: 62, delivered: 62 },
+      { date: "2026-08-19", zone: "觀塘工商區", fence: "02E-觀塘工商區1號", orig: 350, held: 174, after: 176, delivered: 176 },
+      { date: "2026-08-19", zone: "觀塘麗港城", fence: "11E-麗港城-1號托", orig: 115, held: 0, after: 115, delivered: 115 },
+      { date: "2026-08-19", zone: "東區 (SKW)", fence: "03F-東旭苑", orig: 131, held: 75, after: 56, delivered: 56 },
+      { date: "2026-08-19", zone: "東區 (SKW)", fence: "60F-藍灣半島", orig: 234, held: 0, after: 234, delivered: 234 }
     ];
 
-    var initialReports = [
-      { date: "2026-08-19", staff: "景鴻", eastCount: 171, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 171, finalSalary: 684 },
-      { date: "2026-08-19", staff: "俊華", eastCount: 223, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 223, finalSalary: 892 },
-      { date: "2026-08-19", staff: "盧智聰", eastCount: 198, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 198, finalSalary: 792 },
-      { date: "2026-08-19", staff: "姜嘉敏KK", eastCount: 118, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 118, finalSalary: 472 },
-      { date: "2026-08-19", staff: "黃奕烽", eastCount: 57, ktLgCount: 97, ktIndCount: 0, stCount: 0, totalPieces: 154, finalSalary: 616 },
-      { date: "2026-08-19", staff: "周健", eastCount: 81, ktLgCount: 131, ktIndCount: 0, stCount: 0, totalPieces: 212, finalSalary: 848 },
-      { date: "2026-08-19", staff: "倪志康", eastCount: 122, ktLgCount: 0, ktIndCount: 0, stCount: 11, totalPieces: 133, finalSalary: 565 },
-      { date: "2026-08-19", staff: "子傑", eastCount: 0, ktLgCount: 0, ktIndCount: 118, stCount: 0, totalPieces: 118, finalSalary: 531 },
-      { date: "2026-08-19", staff: "新人", eastCount: 0, ktLgCount: 0, ktIndCount: 31, stCount: 0, totalPieces: 31, finalSalary: 139.5 },
-      { date: "2026-08-19", staff: "詠豪", eastCount: 96, ktLgCount: 0, ktIndCount: 0, stCount: 10, totalPieces: 106, finalSalary: 454 },
-      { date: "2026-08-19", staff: "黃傅釧", eastCount: 177, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 177, finalSalary: 708 },
-      { date: "2026-08-19", staff: "韓軍魁", eastCount: 168, ktLgCount: 0, ktIndCount: 0, stCount: 0, totalPieces: 168, finalSalary: 672 },
-      { date: "2026-08-19", staff: "吳瑋儒", eastCount: 0, ktLgCount: 0, ktIndCount: 87, stCount: 0, totalPieces: 87, finalSalary: 391.5 }
-    ];
-
+    // 資料安全合併（若 localStorage 為空則自動注入完整備份）
     var accounts = safeGetJSON('MIA_ACCOUNTS_CLEAN', initialAccounts);
-    var ticketsList = safeGetJSON('MIA_TICKETS_CLEAN', initialTickets);
-    var dailyReports = safeGetJSON('MIA_DAILY_REPORTS_CLEAN', initialReports);
-    var fencesData = safeGetJSON('MIA_FENCES_DATA_CLEAN', defaultFences);
-    var countsDetailList = safeGetJSON('MIA_COUNTS_DETAIL_DATA', defaultCounts);
+    if (!accounts || accounts.length === 0) accounts = initialAccounts;
 
-    var violationsList = safeGetJSON('MIA_VIOLATIONS_CLEAN', []);
-    var shiftsRecord = safeGetJSON('MIA_SHIFTS_CLEAN', {});
-    var progressRecord = safeGetJSON('MIA_PROGRESS_DATA', {});
-    var trucksList = safeGetJSON('MIA_TRUCKS_CLEAN', []);
-    var suppliesList = safeGetJSON('MIA_SUPPLIES_CLEAN', []);
-    var recruitsList = safeGetJSON('MIA_RECRUITS_CLEAN', []);
+    var ticketsList = safeGetJSON('MIA_TICKETS_CLEAN', initialTickets);
+    if (!ticketsList || ticketsList.length < 5) ticketsList = initialTickets;
+
+    var dailyReports = safeGetJSON('MIA_DAILY_REPORTS_CLEAN', initialReports);
+    if (!dailyReports || dailyReports.length < 10) dailyReports = initialReports;
+
+    var fencesData = safeGetJSON('MIA_FENCES_DATA_CLEAN', defaultFences);
+    if (!fencesData || !fencesData.SKW) fencesData = defaultFences;
+
+    var countsDetailList = safeGetJSON('MIA_COUNTS_DETAIL_DATA', defaultCounts);
+    if (!countsDetailList || countsDetailList.length === 0) countsDetailList = defaultCounts;
 
     var currentUser = null;
     var currentRole = null;
@@ -521,7 +413,27 @@
     }
 
     function populateUserSelects() {
-      // 保持靜態與動態掛載相容
+      var roleSel = document.getElementById('user-role-select');
+      var shiftStaff = document.getElementById('form-shift-staff');
+      var defaultOpts = accounts.map(function(a) {
+        return '<option value="' + a.name + '">' + a.name + '</option>';
+      }).join('');
+
+      var roleOpts = '<option value="">-- 選擇帳號登入 --</option>' + accounts.map(function(a) {
+        return '<option value="' + a.name + '">' + a.name + ' (' + a.role + ')' + '</option>';
+      }).join('');
+
+      if (roleSel) roleSel.innerHTML = roleOpts;
+      if (shiftStaff) shiftStaff.innerHTML = defaultOpts;
+    }
+
+    function handleHeaderRoleSwitch(targetName) {
+      if (!targetName || targetName === currentUser) return;
+      var pwdInput = document.getElementById('header-user-pwd');
+      if (pwdInput) {
+        pwdInput.focus();
+        pwdInput.placeholder = '輸入密碼切換';
+      }
     }
 
     function handleHeaderLogin() {
@@ -542,7 +454,7 @@
         applyUserPermissions();
         alert('🔓 登入成功！已切換為：' + currentUser + ' (' + currentRole + ')');
       } else {
-        alert('❌ 密碼錯誤，請輸入專屬密碼！');
+        alert('❌ 密碼錯誤，請輸入專屬密碼！(預設: 123)');
       }
     }
 
@@ -653,7 +565,7 @@
       var tbody = document.getElementById('leaderboardDetailsTableBody');
       if (!tbody) return;
       tbody.innerHTML = accounts.map(function(a, idx) {
-        return '<tr class="hover:bg-slate-50 text-[11px]"><td class="p-2 text-center">' + (idx+1) + '</td><td class="p-2 font-bold">' + a.name + '</td><td class="p-2 text-right font-bold text-blue-700">0</td><td class="p-2 text-center">0</td><td class="p-2 text-center">0</td><td class="p-2 text-right text-emerald-700">HK$ 0.00</td></tr>';
+        return '<tr class="hover:bg-slate-50 text-[11px]"><td class="p-2 text-center">' + (idx+1) + '</td><td class="p-2 font-bold">' + a.name + '</td><td class="p-2 text-right font-bold text-blue-700">0</td><td class="p-2 text-center">0</td></tr>';
       }).join('');
     }
 
@@ -706,6 +618,7 @@
     }
 
     window.onload = function() {
+      populateUserSelects();
       checkAuthSession();
     };
   </script>
