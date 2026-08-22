@@ -2644,7 +2644,32 @@
       }, 700);
     }
 
-             // ⭐ 8. 雙向自動載入雲端數據 (徹底清空 7 月殘留舊資料 + 自動設置 8 月日期區間 + 正向排序)
+                // ⭐ 姓名智能模糊匹配 (全名與報數小名雙向識別)
+    function normalizeStaffName(rawName) {
+      if (!rawName) return '';
+      var n = String(rawName).trim();
+      var aliasMap = {
+        '智聰': '盧智聰', '盧智聰': '盧智聰',
+        'KK': '姜嘉敏KK', '姜嘉敏KK': '姜嘉敏KK',
+        '康': '倪志康', '倪志康': '倪志康',
+        '民': '王利民', '王利民': '王利民',
+        '健': '周健', '周健': '周健',
+        '烽': '黃奕峰', '黃奕峰': '黃奕峰',
+        '偉': '李兆偉', '李兆偉': '李兆偉',
+        '釧': '黃傅釧', '黃傅釧': '黃傅釧',
+        '嘉榮': '吳嘉榮', '吳嘉榮': '吳嘉榮',
+        '瑋儒': '吳瑋儒', '吳瑋儒': '吳瑋儒',
+        '子傑': '徐子傑', '徐子傑': '徐子傑',
+        '魁': '韓軍魁', '韓軍魁': '韓軍魁',
+        '豪': '詠豪', '詠豪': '詠豪',
+        '俊華': '俊華', '景鴻': '景鴻', '細佬': '細佬',
+        '家昊': '家昊', '小肥': '小肥', 'FUI': 'FUI',
+        '文杰': '文杰', '熙': '熙', '新人': '新人', '銘': '銘'
+      };
+      return aliasMap[n] || n;
+    }
+
+    // ⭐ 8. 雙向自動載入雲端數據 (加入姓名智能對齊 + 8月順序排序)
     function pullAllCloudData(showPrompt) {
       // 1. 下載每日報數
       fetch(GAS_API_URL + '?action=getDailyReports')
@@ -2654,7 +2679,8 @@
             var freshReports = [];
             cloudReports.forEach(function(cr) {
               var rawDate = String(cr['日期'] || cr.date || '').trim();
-              var cStaff = cr['步兵姓名'] || cr['人員'] || cr.staff;
+              var rawStaff = cr['步兵姓名'] || cr['人員'] || cr.staff;
+              var cStaff = normalizeStaffName(rawStaff);
               
               if (rawDate && cStaff) {
                 var monthMatch = rawDate.match(/(\d+)月/);
@@ -2699,7 +2725,7 @@
             renderReportsTable();
             filterReconHistory();
           }
-          if (showPrompt) alert('✅ 數據刷新完成！已清除 7 月舊資料，並按 8月1日 至 8月19日 順序載入。');
+          if (showPrompt) alert('✅ 數據刷新完成！全隊姓名已完成智能對齊，並按 8月1日 至 8月19日 順序載入。');
         }).catch(function(e) {
           if (showPrompt) alert('⚠️ 載入失敗，請確認 Google Apps Script 已重新部署新版本！');
         });
@@ -2711,10 +2737,10 @@
           if (Array.isArray(cloudAccounts) && cloudAccounts.length > 0) {
             var updatedList = [];
             cloudAccounts.forEach(function(ca) {
-              var sName = ca['人員姓名'] || ca['姓名'] || ca.name;
+              var sName = normalizeStaffName(ca['人員姓名'] || ca['姓名'] || ca.name);
               if (sName) {
                 var rawPwd = String(ca['登入密碼'] || ca['密碼'] || '123').replace(/^'/, '');
-                var existing = accounts.find(function(a){ return a.name === sName; });
+                var existing = accounts.find(function(a){ return a.name === sName || normalizeStaffName(a.name) === sName; });
                 updatedList.push({
                   id: ca['員工編號'] || ca.id || (existing ? existing.id : ('KM-' + (updatedList.length+1))),
                   name: sName,
@@ -2751,10 +2777,10 @@
               var fId = cp['圍欄ID'] || cp.fenceId;
               if (fId) {
                 progressRecord[fId] = Object.assign(progressRecord[fId] || {}, {
-                  staff: cp['主責人員'] || '',
-                  supportStaff1: cp['支援1'] || '',
-                  supportStaff2: cp['支援2'] || '',
-                  supportStaff3: cp['支援3'] || '',
+                  staff: normalizeStaffName(cp['主責人員'] || ''),
+                  supportStaff1: normalizeStaffName(cp['支援1'] || ''),
+                  supportStaff2: normalizeStaffName(cp['支援2'] || ''),
+                  supportStaff3: normalizeStaffName(cp['支援3'] || ''),
                   completionStatus: cp['完成狀態'] || '1. 未到貨',
                   signed: Number(cp['已簽收']) || 0,
                   refund: Number(cp['已退款']) || 0,
