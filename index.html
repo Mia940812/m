@@ -2644,21 +2644,29 @@
       }, 700);
     }
 
-          // ⭐ 8. 雙向自動載入雲端數據 (已兼容新舊表頭，完整對齊 8 月數據)
+           // ⭐ 8. 雙向自動載入雲端數據 (自動清除7月舊資料 + 按 8月1日~8月19日 順序排列)
     function pullAllCloudData(showPrompt) {
       // 1. 下載每日報數
       fetch(GAS_API_URL + '?action=getDailyReports')
         .then(function(res) { return res.json(); })
         .then(function(cloudReports) {
           if (Array.isArray(cloudReports) && cloudReports.length > 0) {
+            var freshReports = [];
             cloudReports.forEach(function(cr) {
-              var cDate = cleanDateFormat(cr['日期'] || cr.date);
+              var rawDate = String(cr['日期'] || cr.date || '').trim();
               var cStaff = cr['步兵姓名'] || cr['人員'] || cr.staff;
-              if (cStaff) {
-                var idx = dailyReports.findIndex(function(dr){ return cleanDateFormat(dr.date) === cDate && dr.staff === cStaff; });
-                var item = {
-                  id: cr.id || ('REP_' + cDate + '_' + cStaff),
-                  date: cDate,
+              
+              if (rawDate && cStaff) {
+                var monthMatch = rawDate.match(/(\d+)月/);
+                var dayMatch = rawDate.match(/(\d+)日/);
+                var m = monthMatch ? parseInt(monthMatch[1], 10) : 8;
+                var d = dayMatch ? parseInt(dayMatch[1], 10) : 1;
+                var sortKey = m * 100 + d;
+
+                freshReports.push({
+                  id: 'REP_' + m + '_' + d + '_' + cStaff,
+                  date: rawDate,
+                  sortKey: sortKey,
                   staff: cStaff,
                   eastCount: Number(cr['東區票數(SKW)'] || cr['東區票數'] || cr['東區'] || cr.eastCount) || 0,
                   ktLgCount: Number(cr['麗港城票數'] || cr['觀塘麗港'] || cr.ktLgCount) || 0,
@@ -2671,16 +2679,21 @@
                   returnedCount: Number(cr['回倉件'] || cr.returnedCount) || 0,
                   holdCount: Number(cr['滯留件'] || cr.holdCount) || 0,
                   finalSalary: Number(cr['當日實發總工資(全包)'] || cr['當日實發工資(未計沙田)'] || cr['實發工資'] || cr.finalSalary) || 0
-                };
-                if (idx >= 0) dailyReports[idx] = item;
-                else dailyReports.unshift(item);
+                });
               }
             });
+
+            // 依日期從小到大 (8月1日 -> 8月19日) 嚴格順序排序
+            freshReports.sort(function(a, b) {
+              return a.sortKey - b.sortKey;
+            });
+
+            dailyReports = freshReports;
             saveStorage('reports', dailyReports);
             renderReportsTable();
             renderReconTable();
           }
-          if (showPrompt) alert('✅ 數據刷新完成！最新 8 月報數與工資已全部載入。');
+          if (showPrompt) alert('✅ 數據刷新完成！已按 8月1日 至 8月19日 正確順序排列。');
         }).catch(function(e) {});
 
       // 2. 下載人員名冊
@@ -2764,14 +2777,14 @@
                 };
               }
             });
-            saveStorage('shifts', shiftsRecord);
-            renderIconVisualSchedule();
-          }
-        }).catch(function(e) {});
+                     saveStorage('shifts', shiftsRecord);
+          renderIconVisualSchedule();
+        }
+      }).catch(function(e) {});
     }
 
-
     function viewLargeImage(src) {
+
       if (!src) return;
       document.getElementById('image-viewer-src').src = src;
       document.getElementById('image-viewer-modal').classList.add('active');
