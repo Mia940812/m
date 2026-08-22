@@ -2644,7 +2644,7 @@
       }, 700);
     }
 
-        // ⭐ 8. 雙向自動載入雲端數據 (已修復密碼引號 + 支援全隊自動同步分工與報更)
+          // ⭐ 8. 雙向自動載入雲端數據 (已兼容新舊表頭，完整對齊 8 月數據)
     function pullAllCloudData(showPrompt) {
       // 1. 下載每日報數
       fetch(GAS_API_URL + '?action=getDailyReports')
@@ -2652,25 +2652,25 @@
         .then(function(cloudReports) {
           if (Array.isArray(cloudReports) && cloudReports.length > 0) {
             cloudReports.forEach(function(cr) {
-              var cDate = cleanDateFormat(cr.日期 || cr.date);
-              var cStaff = cr.人員 || cr.staff;
+              var cDate = cleanDateFormat(cr['日期'] || cr.date);
+              var cStaff = cr['步兵姓名'] || cr['人員'] || cr.staff;
               if (cStaff) {
                 var idx = dailyReports.findIndex(function(dr){ return cleanDateFormat(dr.date) === cDate && dr.staff === cStaff; });
                 var item = {
                   id: cr.id || ('REP_' + cDate + '_' + cStaff),
                   date: cDate,
                   staff: cStaff,
-                  eastCount: Number(cr.東區票數 || cr.東區) || 0,
-                  ktLgCount: Number(cr.麗港城票數 || cr.麗港城) || 0,
-                  ktIndCount: Number(cr.觀塘工商票數 || cr.觀塘工商) || 0,
-                  stCount: Number(cr.沙田票數 || cr.沙田) || 0,
-                  totalPieces: Number(cr.總票數) || 0,
-                  signedCount: Number(cr.已簽收) || 0,
-                  refundCount: Number(cr.退款件) || 0,
-                  pendingCount: Number(cr.待攬件) || 0,
-                  returnedCount: Number(cr.回倉件) || 0,
-                  holdCount: Number(cr.滯留件) || 0,
-                  finalSalary: Number(cr.實發工資) || 0
+                  eastCount: Number(cr['東區票數(SKW)'] || cr['東區票數'] || cr['東區'] || cr.eastCount) || 0,
+                  ktLgCount: Number(cr['麗港城票數'] || cr['觀塘麗港'] || cr.ktLgCount) || 0,
+                  ktIndCount: Number(cr['工商區票數'] || cr['觀塘工商票數'] || cr['觀塘工商'] || cr.ktIndCount) || 0,
+                  stCount: Number(cr['沙田(F58)票數'] || cr['沙田票數'] || cr['沙田'] || cr.stCount) || 0,
+                  totalPieces: Number(cr['總派件票數'] || cr['總票數'] || cr.totalPieces) || 0,
+                  signedCount: Number(cr['已簽收'] || cr.signedCount) || 0,
+                  refundCount: Number(cr['退款件'] || cr.refundCount) || 0,
+                  pendingCount: Number(cr['待攬件'] || cr.pendingCount) || 0,
+                  returnedCount: Number(cr['回倉件'] || cr.returnedCount) || 0,
+                  holdCount: Number(cr['滯留件'] || cr.holdCount) || 0,
+                  finalSalary: Number(cr['當日實發總工資(全包)'] || cr['當日實發工資(未計沙田)'] || cr['實發工資'] || cr.finalSalary) || 0
                 };
                 if (idx >= 0) dailyReports[idx] = item;
                 else dailyReports.unshift(item);
@@ -2680,33 +2680,34 @@
             renderReportsTable();
             renderReconTable();
           }
+          if (showPrompt) alert('✅ 數據刷新完成！最新 8 月報數與工資已全部載入。');
         }).catch(function(e) {});
 
-           // 2. 下載人員名冊 (嚴格去重，防止人員名單無限倍增狂跳)
+      // 2. 下載人員名冊
       fetch(GAS_API_URL + '?action=getAccounts')
         .then(function(res) { return res.json(); })
         .then(function(cloudAccounts) {
           if (Array.isArray(cloudAccounts) && cloudAccounts.length > 0) {
             var updatedList = [];
             cloudAccounts.forEach(function(ca) {
-              var sName = ca.人員姓名 || ca.姓名 || ca.name;
+              var sName = ca['人員姓名'] || ca['姓名'] || ca.name;
               if (sName) {
-                var rawPwd = String(ca.登入密碼 || ca.密碼 || '123').replace(/^'/, '');
+                var rawPwd = String(ca['登入密碼'] || ca['密碼'] || '123').replace(/^'/, '');
                 var existing = accounts.find(function(a){ return a.name === sName; });
                 updatedList.push({
-                  id: ca.員工編號 || ca.id || (existing ? existing.id : ('KM-' + (updatedList.length+1))),
+                  id: ca['員工編號'] || ca.id || (existing ? existing.id : ('KM-' + (updatedList.length+1))),
                   name: sName,
-                  team: ca.所屬隊伍 || ca.隊伍 || (existing ? existing.team : 'KM'),
-                  role: ca.職級身份 || ca.職級 || (existing ? existing.role : '全職步兵'),
-                  cycle: ca.出糧週期 || (existing ? existing.cycle : '半月糧'),
+                  team: ca['所屬隊伍'] || ca['隊伍'] || (existing ? existing.team : 'KM'),
+                  role: ca['職級身份'] || ca['職級'] || (existing ? existing.role : '全職步兵'),
+                  cycle: ca['出糧週期'] || (existing ? existing.cycle : '半月糧'),
                   pwd: rawPwd,
                   prices: {
-                    east: Number(ca.東區單價) || 4.0,
-                    ktlg: Number(ca.麗港單價) || 4.0,
-                    ktind: Number(ca.工商單價) || 4.5,
-                    st: Number(ca.沙田單價) || 7.0
+                    east: Number(ca['東區單價']) || 4.0,
+                    ktlg: Number(ca['麗港單價']) || 4.0,
+                    ktind: Number(ca['工商單價']) || 4.5,
+                    st: Number(ca['沙田單價']) || 7.0
                   },
-                  permissions: defaultPermissions[ca.職級身份 || ca.職級 || '全職步兵'] || defaultPermissions['全職步兵']
+                  permissions: defaultPermissions[ca['職級身份'] || ca['職級'] || '全職步兵'] || defaultPermissions['全職步兵']
                 });
               }
             });
@@ -2726,19 +2727,19 @@
         .then(function(cloudProg) {
           if (Array.isArray(cloudProg) && cloudProg.length > 0) {
             cloudProg.forEach(function(cp) {
-              var fId = cp.圍欄ID;
+              var fId = cp['圍欄ID'] || cp.fenceId;
               if (fId) {
                 progressRecord[fId] = Object.assign(progressRecord[fId] || {}, {
-                  staff: cp.主責人員 || '',
-                  supportStaff1: cp.支援1 || '',
-                  supportStaff2: cp.支援2 || '',
-                  supportStaff3: cp.支援3 || '',
-                  completionStatus: cp.完成狀態 || '1. 未到貨',
-                  signed: Number(cp.已簽收) || 0,
-                  refund: Number(cp.已退款) || 0,
-                  pendingPickup: Number(cp.待攬件) || 0,
-                  returned: Number(cp.回倉件) || 0,
-                  hold: Number(cp.滯留件) || 0
+                  staff: cp['主責人員'] || '',
+                  supportStaff1: cp['支援1'] || '',
+                  supportStaff2: cp['支援2'] || '',
+                  supportStaff3: cp['支援3'] || '',
+                  completionStatus: cp['完成狀態'] || '1. 未到貨',
+                  signed: Number(cp['已簽收']) || 0,
+                  refund: Number(cp['已退款']) || 0,
+                  pendingPickup: Number(cp['待攬件']) || 0,
+                  returned: Number(cp['回倉件']) || 0,
+                  hold: Number(cp['滯留件']) || 0
                 });
               }
             });
@@ -2754,22 +2755,19 @@
         .then(function(cloudShifts) {
           if (Array.isArray(cloudShifts) && cloudShifts.length > 0) {
             cloudShifts.forEach(function(cs) {
-              var k = cs.報更鍵值;
+              var k = cs['報更鍵值'] || cs.key;
               if (k) {
                 shiftsRecord[k] = {
-                  icon: cs.圖標 || '未排',
-                  zone: cs.區域 || '',
-                  note: cs.備註 || ''
+                  icon: cs['圖標'] || '未排',
+                  zone: cs['區域'] || '',
+                  note: cs['備註'] || ''
                 };
               }
             });
             saveStorage('shifts', shiftsRecord);
             renderIconVisualSchedule();
           }
-          if (showPrompt) alert('✅ 已成功從 Google 雲端載入全隊最新分工、排班與名冊數據！');
-        }).catch(function(e) {
-          if (showPrompt) alert('🟢 數據載入完成。');
-        });
+        }).catch(function(e) {});
     }
 
 
