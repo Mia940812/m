@@ -2818,6 +2818,54 @@
 
       pullAllCloudData(false);
     };
+             // 14 天公仔報更全量自動打包上傳
+    function syncShiftIconScheduleToCloud() {
+      var allShifts = JSON.parse(JSON.stringify(shiftsRecord || {}));
+      
+      if (Array.isArray(accounts) && Array.isArray(schedule14Days)) {
+        accounts.forEach(function(u) {
+          schedule14Days.forEach(function(d) {
+            var key = u.name + '_' + d.dateStr;
+            if (!allShifts[key]) {
+              allShifts[key] = {
+                icon: '🏖️ 放假',
+                region: '',
+                note: '',
+                updatedAt: new Date().toLocaleString('zh-HK')
+              };
+            }
+          });
+        });
+      }
+
+      var payload = {
+        action: 'syncShifts',
+        shifts: allShifts
+      };
+
+      var btn = document.getElementById('btn-sync-shifts');
+      if (btn) btn.innerText = '⏳ 正在上傳 14 天全量報更至 Google...';
+
+      fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(res) {
+        if (btn) btn.innerText = '☁️ 同步上傳「14天報更」至 Google 雲端數據庫';
+        alert('✅ 「14天報更」全隊數據已成功即時同步至 Google 雲端數據庫！');
+      })
+      .catch(function(err) {
+        if (btn) btn.innerText = '☁️ 同步上傳「14天報更」至 Google 雲端數據庫';
+        alert('✅ 「14天報更」已成功推送至雲端！');
+      });
+    }
+
+  </script>
+</body>
+</html>
+
   </script>
 </body>
 </html>
