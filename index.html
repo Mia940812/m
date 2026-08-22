@@ -778,10 +778,11 @@
             <h3 class="font-bold text-sm text-slate-900">🔍 出糧核對與步兵每月每日工資記錄卡 (Mia 專屬)</h3>
             <span class="text-[11px] text-slate-500">支援自選任意日期區間，並一鍵匯出結算明細工資單</span>
           </div>
-          <div class="flex gap-2">
-            <button type="button" onclick="generateCustomPeriodSalarySlip()" class="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer">📄 生成個人自選期工資單</button>
-            <button type="button" onclick="quickExportText('recon')" class="px-3 py-1 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg text-xs font-bold cursor-pointer">📤 匯出薪資卡</button>
-          </div>
+                       <div class="flex gap-2">
+                <button type="button" onclick="openCustomPayslipModal()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow flex items-center gap-1">📄 生成個人自選期工資單</button>
+                <button type="button" onclick="exportSalaryCardCSV()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow flex items-center gap-1">📤 匯出薪資卡 (下載Excel)</button>
+              </div>
+
         </div>
 
         <div class="p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl grid grid-cols-1 sm:grid-cols-5 gap-2 text-xs items-end">
@@ -2887,9 +2888,79 @@
       });
     }
 
-  </script>
-</body>
-</html>
+// ⭐ 匯出全隊薪資卡 CSV (點擊立即下載檔案)
+function exportSalaryCardCSV() {
+  if (typeof dailyReports === 'undefined' || dailyReports.length === 0) {
+    alert('目前沒有可匯出的報數明細！');
+    return;
+  }
+
+  var csvContent = "\uFEFF日期,步兵姓名,東區票數,麗港城票數,觀塘工商票數,沙田票數,總派件數,實發工資\n";
+  dailyReports.forEach(function(r) {
+    csvContent += [
+      r.date || '',
+      r.staff || '',
+      r.eastCount || 0,
+      r.ktLgCount || 0,
+      r.ktIndCount || 0,
+      r.stCount || 0,
+      r.totalPieces || 0,
+      (r.finalSalary || 0).toFixed(2)
+    ].join(",") + "\n";
+  });
+
+  var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  var link = document.createElement("a");
+  var url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", "Mia組_全隊工資表_" + new Date().toISOString().slice(0,10) + ".csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// ⭐ 生成步兵個人自選期工資單
+function openCustomPayslipModal() {
+  var staff = prompt('請輸入要匯出工資單的步兵姓名（例如：黃奕峰 / 吳瑋儒 / 周健 / 家昊）：');
+  if (!staff) return;
+
+  var norm = (typeof normalizeStaffName === 'function') ? normalizeStaffName(staff) : staff;
+  var filtered = dailyReports.filter(function(r) {
+    return (r.staff === norm || (typeof normalizeStaffName === 'function' && normalizeStaffName(r.staff) === norm));
+  });
+
+  if (filtered.length === 0) {
+    alert('找不到 ' + staff + ' 的相關報數紀錄！');
+    return;
+  }
+
+  var totalP = 0, grandTotal = 0;
+  var rows = filtered.map(function(r) {
+    totalP += (r.totalPieces || 0);
+    grandTotal += (r.finalSalary || 0);
+    return '<tr>' +
+      '<td style="padding:6px;border:1px solid #cbd5e1;text-align:center;">' + (r.displayDate || r.date) + '</td>' +
+      '<td style="padding:6px;border:1px solid #cbd5e1;text-align:center;">' + (r.eastCount || 0) + '</td>' +
+      '<td style="padding:6px;border:1px solid #cbd5e1;text-align:center;">' + (r.ktLgCount || 0) + '</td>' +
+      '<td style="padding:6px;border:1px solid #cbd5e1;text-align:center;">' + (r.ktIndCount || 0) + '</td>' +
+      '<td style="padding:6px;border:1px solid #cbd5e1;text-align:center;">' + (r.stCount || 0) + '</td>' +
+      '<td style="padding:6px;border:1px solid #cbd5e1;text-align:center;font-weight:bold;">' + (r.totalPieces || 0) + '</td>' +
+      '<td style="padding:6px;border:1px solid #cbd5e1;text-align:right;color:#16a34a;font-weight:bold;">HK$ ' + (r.finalSalary || 0).toFixed(2) + '</td>' +
+    '</tr>';
+  }).join('');
+
+  var w = window.open('', '_blank');
+  w.document.write('<!DOCTYPE html><html><head><title>工資單 - ' + norm + '</title><style>body{font-family:sans-serif;padding:20px;}.card{max-width:700px;margin:auto;border:1px solid #cbd5e1;padding:20px;border-radius:8px;}table{width:100%;border-collapse:collapse;margin-top:10px;}th{background:#f1f5f9;padding:8px;border:1px solid #cbd5e1;}@media print{.no-print{display:none;}}</style></head><body>' +
+    '<div class="card">' +
+    '<div style="display:flex;justify-content:space-between;border-bottom:2px solid #2563eb;padding-bottom:10px;">' +
+      '<div><h2>Mia 營運組 - 個人工資明細表</h2><div>步兵姓名: <b>' + norm + '</b></div></div>' +
+      '<div style="text-align:right;"><div>總票數: <b>' + totalP + ' 票</b></div><div style="font-size:18px;color:#16a34a;font-weight:bold;">實發工資: HK$ ' + grandTotal.toFixed(2) + '</div></div>' +
+    '</div>' +
+    '<table><thead><tr><th>日期</th><th>東區</th><th>麗港城</th><th>工商</th><th>沙田</th><th>總票數</th><th>工資</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+    '<div style="text-align:center;margin-top:20px;" class="no-print"><button onclick="window.print()" style="padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">🖨️ 列印工資單 / 存為 PDF</button></div>' +
+    '</div></body></html>');
+  w.document.close();
+}
 
   </script>
 </body>
