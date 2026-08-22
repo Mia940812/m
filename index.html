@@ -2669,7 +2669,7 @@
       return aliasMap[n] || n;
     }
 
-    // ⭐ 8. 雙向自動載入雲端數據 (加入姓名智能對齊 + 8月順序排序)
+       // ⭐ 8. 雙向自動載入雲端數據 (全格式日期智能解析 + 正向排序)
     function pullAllCloudData(showPrompt) {
       // 1. 下載每日報數
       fetch(GAS_API_URL + '?action=getDailyReports')
@@ -2683,18 +2683,36 @@
               var cStaff = normalizeStaffName(rawStaff);
               
               if (rawDate && cStaff) {
-                var monthMatch = rawDate.match(/(\d+)月/);
-                var dayMatch = rawDate.match(/(\d+)日/);
-                var m = monthMatch ? parseInt(monthMatch[1], 10) : 8;
-                var d = dayMatch ? parseInt(dayMatch[1], 10) : 1;
+                var m = 8;
+                var d = 1;
+
+                // 智能兼容各類日期格式 (8月5日 / 2026-08-05 / 8/5)
+                var cnMatch = rawDate.match(/(\d+)月(\d+)日/);
+                var dashMatch = rawDate.match(/\d{4}[-\/](\d{1,2})[-\/](\d{1,2})/);
+                var slashMatch = rawDate.match(/^(\d{1,2})[\/-](\d{1,2})$/);
+
+                if (cnMatch) {
+                  m = parseInt(cnMatch[1], 10);
+                  d = parseInt(cnMatch[2], 10);
+                } else if (dashMatch) {
+                  m = parseInt(dashMatch[1], 10);
+                  d = parseInt(dashMatch[2], 10);
+                } else if (slashMatch) {
+                  m = parseInt(slashMatch[1], 10);
+                  d = parseInt(slashMatch[2], 10);
+                } else {
+                  var onlyD = rawDate.match(/(\d+)/);
+                  if (onlyD) d = parseInt(onlyD[1], 10);
+                }
                 
-                var stdDate = '2026-08-' + String(d).padStart(2, '0');
+                var stdDate = '2026-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+                var displayStr = m + '月' + d + '日';
                 var sortKey = m * 100 + d;
 
                 freshReports.push({
-                  id: 'REP_8_' + d + '_' + cStaff,
+                  id: 'REP_' + m + '_' + d + '_' + cStaff,
                   date: stdDate,
-                  displayDate: rawDate,
+                  displayDate: displayStr,
                   sortKey: sortKey,
                   staff: cStaff,
                   eastCount: Number(cr['東區票數(SKW)'] || cr['東區票數'] || cr['東區'] || cr.eastCount) || 0,
@@ -2712,6 +2730,7 @@
               }
             });
 
+            // 依日期從小到大 (8月1日 -> 8月19日) 嚴格順序排序
             freshReports.sort(function(a, b) {
               return a.sortKey - b.sortKey;
             });
@@ -2725,9 +2744,9 @@
             renderReportsTable();
             filterReconHistory();
           }
-          if (showPrompt) alert('✅ 數據刷新完成！全隊姓名已完成智能對齊，並按 8月1日 至 8月19日 順序載入。');
+          if (showPrompt) alert('✅ 數據刷新完成！日期已精確解析（8月1日至19日）。');
         }).catch(function(e) {
-          if (showPrompt) alert('⚠️ 載入失敗，請確認 Google Apps Script 已重新部署新版本！');
+          if (showPrompt) alert('⚠️ 載入失敗，請確認 Google Apps Script 連線！');
         });
 
       // 2. 下載人員名冊
@@ -2762,68 +2781,19 @@
               accounts = updatedList;
               saveStorage('accounts', accounts);
               populateUserSelects();
-              renderStaffList();
-              renderIconVisualSchedule();
-            }
-          }
-        }).catch(function(e) {});
-
-      // 3. 下載雲端工作進度與分工排班
-      fetch(GAS_API_URL + '?action=getProgress')
-        .then(function(res) { return res.json(); })
-        .then(function(cloudProg) {
-          if (Array.isArray(cloudProg) && cloudProg.length > 0) {
-            cloudProg.forEach(function(cp) {
-              var fId = cp['圍欄ID'] || cp.fenceId;
-              if (fId) {
-                progressRecord[fId] = Object.assign(progressRecord[fId] || {}, {
-                  staff: normalizeStaffName(cp['主責人員'] || ''),
-                  supportStaff1: normalizeStaffName(cp['支援1'] || ''),
-                  supportStaff2: normalizeStaffName(cp['支援2'] || ''),
-                  supportStaff3: normalizeStaffName(cp['支援3'] || ''),
-                  completionStatus: cp['完成狀態'] || '1. 未到貨',
-                  signed: Number(cp['已簽收']) || 0,
-                  refund: Number(cp['已退款']) || 0,
-                  pendingPickup: Number(cp['待攬件']) || 0,
-                  returned: Number(cp['回倉件']) || 0,
-                  hold: Number(cp['滯留件']) || 0
-                });
-              }
-            });
-            saveStorage('progress', progressRecord);
-            renderProgressCards(currentZone);
-            renderAssignmentsGrid();
-          }
-        }).catch(function(e) {});
-
-      // 4. 下載雲端 14 天報更
-      fetch(GAS_API_URL + '?action=getShifts')
-        .then(function(res) { return res.json(); })
-        .then(function(cloudShifts) {
-          if (Array.isArray(cloudShifts) && cloudShifts.length > 0) {
-            cloudShifts.forEach(function(cs) {
-              var k = cs['報更鍵值'] || cs.key;
-              if (k) {
-                shiftsRecord[k] = {
-                  icon: cs['圖標'] || '未排',
-                  zone: cs['區域'] || '',
-                  note: cs['備註'] || ''
-                };
-              }
-            });
-            saveStorage('shifts', shiftsRecord);
+                                   renderStaffList();
             renderIconVisualSchedule();
           }
-        }).catch(function(e) {});
+        }
+      }).catch(function(e) {});
     }
 
-
     function viewLargeImage(src) {
-
       if (!src) return;
       document.getElementById('image-viewer-src').src = src;
       document.getElementById('image-viewer-modal').classList.add('active');
     }
+
 
     function closeLargeImage() {
       document.getElementById('image-viewer-modal').classList.remove('active');
