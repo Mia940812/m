@@ -6,7 +6,7 @@
   <title>Mia組 - 派件營運全功能工作台</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { font-family: -appfle-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     .tab-pane { display: none !important; }
     .tab-pane.active { display: block !important; }
     .nav-btn.active { background-color: #0f172a !important; color: #ffffff !important; border-color: #0f172a !important; }
@@ -2643,8 +2643,9 @@
       }, 700);
     }
 
-    // ⭐ 8. 雙向自動載入雲端數據
+        // ⭐ 8. 雙向自動載入雲端數據 (已修復密碼引號 + 支援全隊自動同步分工與報更)
     function pullAllCloudData(showPrompt) {
+      // 1. 下載每日報數
       fetch(GAS_API_URL + '?action=getDailyReports')
         .then(function(res) { return res.json(); })
         .then(function(cloudReports) {
@@ -2680,6 +2681,7 @@
           }
         }).catch(function(e) {});
 
+      // 2. 下載人員名冊 (徹底過濾引號，解決密碼對唔上問題)
       fetch(GAS_API_URL + '?action=getAccounts')
         .then(function(res) { return res.json(); })
         .then(function(cloudAccounts) {
@@ -2688,13 +2690,14 @@
               var sName = ca.人員姓名 || ca.姓名 || ca.name;
               if (sName) {
                 var idx = accounts.findIndex(function(a){ return a.name === sName; });
+                var rawPwd = String(ca.登入密碼 || ca.密碼 || '123').replace(/^'/, '');
                 var item = {
                   id: ca.員工編號 || ca.id || ('KM-' + (accounts.length+1)),
                   name: sName,
                   team: ca.所屬隊伍 || ca.隊伍 || 'KM',
                   role: ca.職級身份 || ca.職級 || '全職步兵',
                   cycle: ca.出糧週期 || '半月糧',
-                  pwd: String(ca.登入密碼 || ca.密碼 || '123'),
+                  pwd: rawPwd,
                   prices: {
                     east: Number(ca.東區單價) || 4.0,
                     ktlg: Number(ca.麗港單價) || 4.0,
@@ -2711,11 +2714,60 @@
             populateUserSelects();
             renderStaffList();
           }
-          if (showPrompt) alert('✅ 已成功從 Google 雲端載入全隊最新數據！');
+        }).catch(function(e) {});
+
+      // 3. 下載雲端工作進度與分工排班
+      fetch(GAS_API_URL + '?action=getProgress')
+        .then(function(res) { return res.json(); })
+        .then(function(cloudProg) {
+          if (Array.isArray(cloudProg) && cloudProg.length > 0) {
+            cloudProg.forEach(function(cp) {
+              var fId = cp.圍欄ID;
+              if (fId) {
+                progressRecord[fId] = Object.assign(progressRecord[fId] || {}, {
+                  staff: cp.主責人員 || '',
+                  supportStaff1: cp.支援1 || '',
+                  supportStaff2: cp.支援2 || '',
+                  supportStaff3: cp.支援3 || '',
+                  completionStatus: cp.完成狀態 || '1. 未到貨',
+                  signed: Number(cp.已簽收) || 0,
+                  refund: Number(cp.已退款) || 0,
+                  pendingPickup: Number(cp.待攬件) || 0,
+                  returned: Number(cp.回倉件) || 0,
+                  hold: Number(cp.滯留件) || 0
+                });
+              }
+            });
+            saveStorage('progress', progressRecord);
+            renderProgressCards(currentZone);
+            renderAssignmentsGrid();
+          }
+        }).catch(function(e) {});
+
+      // 4. 下載雲端 14 天報更
+      fetch(GAS_API_URL + '?action=getShifts')
+        .then(function(res) { return res.json(); })
+        .then(function(cloudShifts) {
+          if (Array.isArray(cloudShifts) && cloudShifts.length > 0) {
+            cloudShifts.forEach(function(cs) {
+              var k = cs.報更鍵值;
+              if (k) {
+                shiftsRecord[k] = {
+                  icon: cs.圖標 || '未排',
+                  zone: cs.區域 || '',
+                  note: cs.備註 || ''
+                };
+              }
+            });
+            saveStorage('shifts', shiftsRecord);
+            renderIconVisualSchedule();
+          }
+          if (showPrompt) alert('✅ 已成功從 Google 雲端載入全隊最新分工、排班與名冊數據！');
         }).catch(function(e) {
           if (showPrompt) alert('🟢 數據載入完成。');
         });
     }
+
 
     function viewLargeImage(src) {
       if (!src) return;
