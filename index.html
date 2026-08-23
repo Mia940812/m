@@ -1092,16 +1092,17 @@
       alert("✅ 工單已登記（限期 30 小時）！");
     }
 
-    // 每日報數：手機直列分區拆解版面渲染
-        function renderDailyReportsTable() {
+       // 每日報數：精準對齊 Google 試算表（人員、東區票數、麗港城票數、觀塘工商票數、沙田票數）
+    function renderDailyReportsTable() {
       const tbody = document.getElementById('daily-reports-tbody');
       if (!tbody) return;
 
-      let displayList = dailyReports.slice().reverse();
+      // 試算表最頂第 2 行本身就是最新報數，直接按原序讀取
+      let displayList = dailyReports.slice(0, 200);
 
-      tbody.innerHTML = displayList.slice(0, 200).map((r, idx) => {
-        // 1. 智能格式化日期（消除 T16:00:00.000Z，只保留 YYYY-MM-DD）
-        let rawDate = String(r.date || r['日期'] || r['報數日期'] || '-');
+      tbody.innerHTML = displayList.map((r, idx) => {
+        // 1. 日期格式化 (去除 T16:00:00.000Z)
+        let rawDate = String(r['日期'] || r.date || r['報數日期'] || '-');
         let date = rawDate;
         if (rawDate.indexOf('T') !== -1) {
           let dt = new Date(rawDate);
@@ -1112,18 +1113,22 @@
           }
         }
 
-        // 2. 智能匹配姓名（兼容所有中英文欄位）
-        let name = r.staff || r['步兵姓名'] || r['人員姓名'] || r['姓名'] || '-';
+        // 2. 精準對齊試算表「人員」欄位
+        let name = r['人員'] || r['步兵姓名'] || r['人員姓名'] || r['姓名'] || r.staff || '-';
 
-        // 3. 票數計算
-        let skw = Number(r.skw || r['東區票數(SKW)'] || r['東區'] || 0);
-        let lg = Number(r.lg || r['麗港城票數'] || r['麗港城'] || 0);
-        let kt = Number(r.kt || r['工商區票數'] || r['觀塘工商'] || 0);
-        let st = Number(r.st || r['沙田(F58)票數'] || r['沙田'] || 0);
-        let tot = Number(r.totalPieces || r['總派件票數'] || r['總件數'] || (skw + lg + kt + st));
-        let signed = Number(r.signed || r['已簽收'] || tot);
-        let held = Number(r.held || r['滯留'] || 0);
-        let salary = Number(r.finalSalary || r['當日實發總工資(全包)'] || r['實發工資'] || (tot * 4.0)).toFixed(2);
+        // 3. 精準對齊四大分區票數欄位
+        let skw = Number(r['東區票數'] || r['東區票數(SKW)'] || r.skw || 0);
+        let lg = Number(r['麗港城票數'] || r.lg || 0);
+        let kt = Number(r['觀塘工商票數'] || r['工商區票數'] || r.kt || 0);
+        let st = Number(r['沙田票數'] || r['沙田(F58)票數'] || r.st || 0);
+        
+        let tot = Number(r['總票數'] || r['總派件票數'] || r['總件數'] || r.totalPieces || (skw + lg + kt + st));
+        let signed = Number(r['已簽收'] || r.signed || tot);
+        let held = Number(r['滯留'] || r.held || 0);
+
+        // 4. 工資計算
+        let rawSalary = r['當日實發總工資(全包)'] || r['實發工資'] || r['實發總工資'] || r.finalSalary;
+        let salary = (rawSalary !== undefined && rawSalary !== '') ? Number(rawSalary).toFixed(2) : (tot * 4.0).toFixed(2);
 
         return `
           <tr class="hover:bg-slate-50 border-b text-center text-xs font-mono">
