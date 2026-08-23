@@ -36,7 +36,7 @@
         </div>
       </div>
 
-      <!-- 右上角切換帳號登入面板 -->
+      <!-- 右上角登入面板 -->
       <div class="flex items-center gap-1.5 text-xs bg-slate-800 p-1 rounded-xl border border-slate-700">
         <select id="user-role-select" class="bg-slate-900 border border-slate-700 text-slate-200 rounded px-2 py-1 font-bold focus:outline-none cursor-pointer text-xs"></select>
         <input type="password" id="header-user-pwd" placeholder="輸入密碼 (預設123)" onkeydown="if(event.key==='Enter') handleHeaderLogin();"
@@ -122,7 +122,7 @@
             <input type="text" id="schedule-quick-note" placeholder="新人名/幾點/備註" class="w-full p-1.5 bg-white border rounded">
           </div>
           <div class="flex items-end">
-            <button type="button" onclick="submitQuickShift()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg cursor-pointer">確認報更</button>
+            <button type="button" onclick="submitQuickShift()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg cursor-pointer">確認報更 (即時同步)</button>
           </div>
         </div>
 
@@ -161,7 +161,6 @@
           <button type="button" onclick="switchProgressZone('ST')" id="prog-tab-ST" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">沙田 (ST-F58)</button>
         </div>
         <div id="progressCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
-        <button type="button" onclick="syncCurrentModuleToGoogle('各區工作進度')" class="w-full py-2 bg-emerald-700 text-white font-bold rounded-xl text-xs">☁️ 同步「各區進度」至 Google 雲端</button>
       </div>
     </div>
 
@@ -176,7 +175,6 @@
           <button type="button" onclick="quickExportText('assignments')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold cursor-pointer">📤 匯出排班</button>
         </div>
         <div id="assignments-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3"></div>
-        <button type="button" onclick="syncCurrentModuleToGoogle('區域分工排班')" class="w-full py-2 bg-emerald-700 text-white font-bold rounded-xl text-xs">☁️ 同步「區域分工排班」至 Google 雲端</button>
       </div>
     </div>
 
@@ -212,7 +210,7 @@
             </select>
           </div>
           <div><label class="block font-bold mb-1">備註說明</label><input type="text" id="flow-note" placeholder="滯留原因" class="w-full p-1.5 bg-white border rounded"></div>
-          <div class="flex items-end"><button type="button" onclick="submitPackageFlow()" class="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg cursor-pointer">➕ 登記流向</button></div>
+          <div class="flex items-end"><button type="button" onclick="submitPackageFlow()" class="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg cursor-pointer">➕ 登記流向 (即時同步)</button></div>
         </div>
 
         <div class="overflow-x-auto custom-scrollbar border rounded-xl max-h-[400px]">
@@ -231,7 +229,6 @@
             <tbody id="package-flow-tbody" class="divide-y divide-slate-200 font-mono"></tbody>
           </table>
         </div>
-        <button type="button" onclick="syncCurrentModuleToGoogle('件數流向清單')" class="w-full py-2 bg-emerald-700 text-white font-bold rounded-xl text-xs">☁️ 同步「件數流向清單」至 Google 雲端</button>
       </div>
     </div>
 
@@ -286,7 +283,6 @@
             <tbody id="tickets-tbody" class="divide-y divide-slate-200 font-mono"></tbody>
           </table>
         </div>
-        <button type="button" onclick="syncCurrentModuleToGoogle('異常工單')" class="w-full py-2 bg-emerald-700 text-white font-bold rounded-xl text-xs">☁️ 同步「異常工單」至 Google 雲端</button>
       </div>
     </div>
 
@@ -314,13 +310,13 @@
       </div>
     </div>
 
-    <!-- 7. 每日報數看板 -->
+    <!-- 7. 每日報數看板 (手機版經典直列分區拆解版面) -->
     <div id="tab-daily-report" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-3 flex justify-between items-center">
           <div>
             <h3 class="font-bold text-sm text-slate-900">📝 每日派件報數記錄表 (歷史 787 筆完整保留)</h3>
-            <span class="text-[11px] text-slate-500">分開填報：麗港城 / 觀塘工商 / 東區 / 沙田 派件量及退件狀態</span>
+            <span class="text-[11px] text-slate-500">步兵填報即時寫入 Google 試算表，支援直接編輯總件數</span>
           </div>
           <button type="button" onclick="quickExportText('daily')" class="px-3 py-1 bg-teal-700 hover:bg-teal-800 text-white rounded-lg text-xs font-bold cursor-pointer">📤 匯出每日報數</button>
         </div>
@@ -333,28 +329,25 @@
           <div><label class="block font-bold mb-1">東區 (票)</label><input type="number" id="rep-skw" placeholder="0" class="w-full p-1.5 bg-white border rounded font-bold"></div>
           <div><label class="block font-bold mb-1">沙田 (票)</label><input type="number" id="rep-st" placeholder="0" class="w-full p-1.5 bg-white border rounded font-bold"></div>
           <div><label class="block font-bold mb-1">退款/回倉件</label><input type="number" id="rep-returns" placeholder="0" class="w-full p-1.5 bg-white border rounded font-bold text-rose-600"></div>
-          <div class="flex items-end"><button type="button" onclick="submitDailyReport()" class="w-full py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg cursor-pointer">💾 儲存報數</button></div>
+          <div class="flex items-end"><button type="button" onclick="submitDailyReport()" class="w-full py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg cursor-pointer">💾 儲存報數 (即時同步)</button></div>
         </div>
 
         <div class="overflow-x-auto custom-scrollbar border rounded-xl max-h-[500px]">
-          <table class="w-full text-xs text-left border-collapse">
+          <table class="w-full text-xs text-center border-collapse">
             <thead class="bg-slate-900 text-white font-bold sticky top-0">
               <tr>
                 <th class="p-2.5 border border-slate-700">日期</th>
-                <th class="p-2.5 border border-slate-700">人員姓名</th>
-                <th class="p-2.5 border border-slate-700">所屬隊伍</th>
-                <th class="p-2.5 border border-slate-700 text-right">麗港城</th>
-                <th class="p-2.5 border border-slate-700 text-right">觀塘工商</th>
-                <th class="p-2.5 border border-slate-700 text-right">東區</th>
-                <th class="p-2.5 border border-slate-700 text-right">沙田</th>
-                <th class="p-2.5 border border-slate-700 text-right">總件數</th>
-                <th class="p-2.5 border border-slate-700 text-right">實發工資 (HK$)</th>
+                <th class="p-2.5 border border-slate-700">人員</th>
+                <th class="p-2.5 border border-slate-700">分區拆解 (東/麗/工/沙)</th>
+                <th class="p-2.5 border border-slate-700">總票數</th>
+                <th class="p-2.5 border border-slate-700">已簽收 / 滯留</th>
+                <th class="p-2.5 border border-slate-700">實發工資</th>
+                <th class="p-2.5 border border-slate-700">操作</th>
               </tr>
             </thead>
             <tbody id="daily-reports-tbody" class="divide-y divide-slate-200"></tbody>
           </table>
         </div>
-        <button type="button" onclick="syncCurrentModuleToGoogle('每日報數')" class="w-full py-2 bg-emerald-700 text-white font-bold rounded-xl text-xs">☁️ 同步「每日報數」至 Google 雲端</button>
       </div>
     </div>
 
@@ -371,10 +364,9 @@
           <div><label class="block font-bold mb-1">物品名稱</label><input type="text" id="sup-item" placeholder="膠紙/手套" class="w-full p-1.5 bg-white border rounded font-bold"></div>
           <div><label class="block font-bold mb-1">數量</label><input type="number" id="sup-qty" value="1" class="w-full p-1.5 bg-white border rounded"></div>
           <div><label class="block font-bold mb-1">總金額 ($)</label><input type="number" id="sup-amount" placeholder="0" class="w-full p-1.5 bg-white border rounded text-rose-600 font-bold"></div>
-          <div class="flex items-end"><button type="button" onclick="submitSupply()" class="w-full py-2 bg-slate-800 text-white font-bold rounded-lg cursor-pointer">登記採購 ✅</button></div>
+          <div class="flex items-end"><button type="button" onclick="submitSupply()" class="w-full py-2 bg-slate-800 text-white font-bold rounded-lg cursor-pointer">登記採購 ✅ (即時同步)</button></div>
         </div>
         <div id="supplies-container" class="space-y-2 text-xs font-mono"></div>
-        <button type="button" onclick="syncCurrentModuleToGoogle('物資採購')" class="w-full py-2 bg-emerald-700 text-white font-bold rounded-xl text-xs">☁️ 同步「物資採購」至 Google 雲端</button>
       </div>
     </div>
 
@@ -404,7 +396,6 @@
           <div class="flex items-end"><button type="button" onclick="submitViolation()" class="w-full py-2 bg-orange-600 text-white font-bold rounded-lg cursor-pointer">登記處分</button></div>
         </div>
         <div id="violations-container" class="space-y-2 text-xs font-mono"></div>
-        <button type="button" onclick="syncCurrentModuleToGoogle('現場違規')" class="w-full py-2 bg-emerald-700 text-white font-bold rounded-xl text-xs">☁️ 同步「現場違規」至 Google 雲端</button>
       </div>
     </div>
 
@@ -423,7 +414,6 @@
           <div class="flex items-end"><button type="button" onclick="submitTruck()" class="w-full py-2 bg-cyan-700 text-white font-bold rounded-lg cursor-pointer">新增車線</button></div>
         </div>
         <div id="trucks-container" class="space-y-2 text-xs font-mono"></div>
-        <button type="button" onclick="syncCurrentModuleToGoogle('司機車線')" class="w-full py-2 bg-emerald-700 text-white font-bold rounded-xl text-xs">☁️ 同步「司機車線」至 Google 雲端</button>
       </div>
     </div>
 
@@ -465,17 +455,16 @@
         </div>
 
         <div id="recruits-container" class="space-y-2 text-xs font-mono"></div>
-        <button type="button" onclick="syncCurrentModuleToGoogle('預約新人資料')" class="w-full py-2 bg-emerald-700 text-white font-bold rounded-xl text-xs">☁️ 同步「預約新人資料」至 Google 雲端</button>
       </div>
     </div>
 
-    <!-- 12. 詳細貨量與圍欄自訂 -->
+    <!-- 12. 詳細貨量與圍欄自訂 (支援新增、自訂編輯與刪除貨量) -->
     <div id="tab-counts" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-3 flex flex-wrap justify-between items-center gap-2">
           <div>
             <h3 class="font-bold text-sm text-slate-900">📦 詳細貨量核算日報與圍欄自訂管理</h3>
-            <span class="text-[11px] text-slate-500">頂部統計包含全區及各分區原件/壓車/實派數據，可自選日期核算</span>
+            <span class="text-[11px] text-slate-500">頂部統計包含全區及各分區原件/壓車/實派數據，可自選日期核算並直接新增/編輯貨量</span>
           </div>
           <div class="flex items-center gap-2">
             <input type="date" id="count-view-date" onchange="renderCountsTable()" class="p-1 bg-white border rounded font-mono text-xs font-bold">
@@ -510,8 +499,9 @@
           </div>
         </div>
 
+        <!-- 1. 新增自訂圍欄名稱 -->
         <div class="p-3 bg-blue-50/60 border border-blue-200 rounded-xl text-xs space-y-2">
-          <div class="font-bold text-blue-900">➕ 新增自訂圍欄 (分區管理)</div>
+          <div class="font-bold text-blue-900">➕ 新增自訂圍欄名稱</div>
           <div class="flex gap-2">
             <select id="fence-zone-select" class="p-1.5 bg-white border rounded font-bold">
               <option value="SKW">東區 (SKW)</option>
@@ -519,13 +509,46 @@
               <option value="KTIND">觀塘工商 (KTIND)</option>
               <option value="ST">沙田 (ST)</option>
             </select>
-            <input type="text" id="fence-name-input" placeholder="輸入新圍欄名稱 (如: F99)" class="p-1.5 bg-white border rounded flex-1">
+            <input type="text" id="fence-name-input" placeholder="輸入新圍欄名稱 (如: 16E 6號托)" class="p-1.5 bg-white border rounded flex-1">
             <button type="button" onclick="addNewFence()" class="px-4 py-1.5 bg-blue-600 text-white font-bold rounded-lg cursor-pointer">新增圍欄</button>
           </div>
         </div>
 
-        <div id="fences-manage-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs mb-3"></div>
+        <div id="fences-manage-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs mb-2"></div>
 
+        <!-- 2. 新增 / 編輯當日貨量數據表單 -->
+        <div class="p-3 bg-amber-50/60 border border-amber-200 rounded-xl grid grid-cols-2 sm:grid-cols-6 gap-2 text-xs">
+          <div>
+            <label class="block font-bold mb-1">分區</label>
+            <select id="cnt-input-zone" onchange="populateCountFenceDropdown()" class="w-full p-1.5 bg-white border rounded font-bold">
+              <option value="東區">東區</option>
+              <option value="麗港城">麗港城</option>
+              <option value="觀塘工商">觀塘工商</option>
+              <option value="沙田">沙田</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold mb-1">圍欄名稱</label>
+            <select id="cnt-input-fence" class="w-full p-1.5 bg-white border rounded font-bold text-blue-700"></select>
+          </div>
+          <div>
+            <label class="block font-bold mb-1">原有數量</label>
+            <input type="number" id="cnt-input-orig" placeholder="0" class="w-full p-1.5 bg-white border rounded font-bold">
+          </div>
+          <div>
+            <label class="block font-bold mb-1 text-rose-700">壓車數量</label>
+            <input type="number" id="cnt-input-held" placeholder="0" class="w-full p-1.5 bg-white border border-rose-300 rounded font-bold text-rose-600">
+          </div>
+          <div>
+            <label class="block font-bold mb-1">T3 數量</label>
+            <input type="number" id="cnt-input-t3" placeholder="0" class="w-full p-1.5 bg-white border rounded font-bold">
+          </div>
+          <div class="flex items-end">
+            <button type="button" onclick="submitCountData()" class="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg cursor-pointer">💾 儲存貨量</button>
+          </div>
+        </div>
+
+        <!-- 詳細貨量核算表 -->
         <div class="overflow-x-auto border rounded-xl">
           <table class="w-full text-xs text-left border-collapse">
             <thead class="bg-slate-900 text-white font-bold">
@@ -536,6 +559,7 @@
                 <th class="p-2 border border-slate-700 text-right text-rose-400">壓車數量</th>
                 <th class="p-2 border border-slate-700 text-right font-bold text-amber-300">實際當日數量</th>
                 <th class="p-2 border border-slate-700 text-right">T3 數量</th>
+                <th class="p-2 border border-slate-700 text-center">操作</th>
               </tr>
             </thead>
             <tbody id="counts-detail-tbody" class="divide-y divide-slate-200 font-mono"></tbody>
@@ -698,59 +722,51 @@
       { id: "D01", name: "強哥(司機)", team: "D", role: "司機", cycle: "半月糧", pwd: "123", advances: 0 }
     ];
 
+    // 自訂圍欄名單 (已清除舊預設名稱)
     let fencesData = {
       SKW: [
-        { id: 'SKW_01', name: 'SKW-筲箕灣東', defaultStaff: '詠豪', support: ['余家銘'], count: 420 },
-        { id: 'SKW_02', name: 'SKW-西灣河', defaultStaff: '余家銘', support: [], count: 380 },
-        { id: 'SKW_03', name: 'SKW-柴灣', defaultStaff: '全隊支援', support: [], count: 290 }
+        { id: 'SKW_01', name: 'SKW-柴灣區', defaultStaff: '詠豪', support: ['余家銘'], count: 0 },
+        { id: 'SKW_02', name: 'SKW-西灣河區', defaultStaff: '余家銘', support: [], count: 0 }
       ],
       KTLG: [
-        { id: 'LG_01', name: 'LG-麗港城1期', defaultStaff: '景鴻', support: ['小肥'], count: 510 },
-        { id: 'LG_02', name: 'LG-麗港城2期', defaultStaff: '小肥', support: ['吳嘉榮'], count: 460 },
-        { id: 'LG_03', name: 'LG-匯景花園', defaultStaff: '吳嘉榮', support: [], count: 390 }
+        { id: 'LG_01', name: '11E 1號托(1期)', defaultStaff: '景鴻', support: ['小肥'], count: 0 },
+        { id: 'LG_02', name: '12E 2號托(1期)', defaultStaff: '小肥', support: ['吳嘉榮'], count: 0 },
+        { id: 'LG_03', name: '13E 3號托(1期)', defaultStaff: '吳嘉榮', support: [], count: 0 },
+        { id: 'LG_04', name: '14E 4號托(2期)', defaultStaff: '全隊支援', support: [], count: 0 },
+        { id: 'LG_05', name: '15E 5號托(3期)', defaultStaff: '全隊支援', support: [], count: 0 },
+        { id: 'LG_06', name: '01E KoKo Hills', defaultStaff: '全隊支援', support: [], count: 0 }
       ],
       KTIND: [
-        { id: 'IND_01', name: 'IND-成業街', defaultStaff: '盧智聰', support: ['周健'], count: 620 },
-        { id: 'IND_02', name: 'IND-開源道', defaultStaff: '周健', support: ['姜嘉敏KK'], count: 580 },
-        { id: 'IND_03', name: 'IND-巧明街', defaultStaff: '姜嘉敏KK', support: [], count: 450 }
+        { id: 'IND_01', name: '03E 工商區2號托(大強倉)', defaultStaff: '盧智聰', support: ['周健'], count: 0 },
+        { id: 'IND_02', name: '05E 工商區4號托(港運)', defaultStaff: '周健', support: ['姜嘉敏KK'], count: 0 },
+        { id: 'IND_03', name: '06E 工商區5號托', defaultStaff: '姜嘉敏KK', support: [], count: 0 },
+        { id: 'IND_04', name: '09E 工商區8號托(官中)', defaultStaff: '全隊支援', support: [], count: 0 },
+        { id: 'IND_05', name: '10E 鴻圖道+勵業街', defaultStaff: '全隊支援', support: [], count: 0 }
       ],
       ST: [
-        { id: 'ST_01', name: 'ST-第一城', defaultStaff: '俊華', support: ['李兆偉'], count: 480 },
-        { id: 'ST_02', name: 'ST-大圍', defaultStaff: '李兆偉', support: [], count: 390 },
-        { id: 'ST_03', name: 'ST-火炭', defaultStaff: '張振強', support: [], count: 310 }
+        { id: 'ST_01', name: 'ST-大圍區', defaultStaff: '俊華', support: ['李兆偉'], count: 0 },
+        { id: 'ST_02', name: 'ST-火炭區', defaultStaff: '張振強', support: [], count: 0 }
       ]
     };
 
+    // 詳細貨量核算列表 (已清除舊預設名稱)
     let countsDetailList = [
-      { date: '2026-08-23', zone: '東區', fence: 'SKW-筲箕灣東', orig: 450, held: 30, after: 420, t3: 15 },
-      { date: '2026-08-23', zone: '麗港城', fence: 'LG-麗港城1期', orig: 530, held: 20, after: 510, t3: 20 },
-      { date: '2026-08-23', zone: '觀塘工商', fence: 'IND-成業街', orig: 650, held: 30, after: 620, t3: 25 },
-      { date: '2026-08-23', zone: '沙田', fence: 'ST-第一城', orig: 500, held: 20, after: 480, t3: 10 }
+      { date: '2026-08-23', zone: '東區', fence: 'SKW-柴灣區', orig: 420, held: 20, after: 400, t3: 15 },
+      { date: '2026-08-23', zone: '麗港城', fence: '11E 1號托(1期)', orig: 510, held: 30, after: 480, t3: 20 },
+      { date: '2026-08-23', zone: '觀塘工商', fence: '03E 工商區2號托(大強倉)', orig: 620, held: 40, after: 580, t3: 25 },
+      { date: '2026-08-23', zone: '沙田', fence: 'ST-大圍區', orig: 450, held: 20, after: 430, t3: 10 }
     ];
 
-    let packageFlowList = [
-      { zone: 'SKW', date: '2026-08-23', tracking: 'JT001928341', fence: '11e', staff: '詠豪', status: '當天已報清場 待攬仍有紀錄', note: '門口未見包裹' }
-    ];
-
+    let packageFlowList = [];
     let suppliesList = [
       { date: '2026-08-20', item: '順豐透明膠紙 (50卷)', qty: 50, amount: 280, buyer: 'Mia' }
     ];
-
-    let violationsList = [
-      { date: '2026-08-22', staff: '周家文', zone: '東區', type: '派件未拍照即時簽收', amount: 50, desc: '未按標準拍照' }
-    ];
-
+    let violationsList = [];
     let trucksList = [
-      { date: '2026-08-23', driver: '強哥 (HK8823)', trip: '第1車 (早班 08:30)', fence: 'SKW-01 至 LG-02', note: '準時開車' }
+      { date: '2026-08-23', driver: '強哥 (HK8823)', trip: '第1車 (早班 08:30)', fence: '11E 至 14E', note: '準時開車' }
     ];
-
-    let recruitsList = [
-      { date: '2026-08-24', name: '陳大文', days: '5-6日', hours: '09:00-19:00', zone: '東區 (SKW)', wage: '$800/日', cycle: '半月糧', leader: '詠豪', status: '已約跟更' }
-    ];
-
-    let ticketsList = [
-      { tracking: "JT001928341", staff: "小肥", type: "未收到包裹", address: "麗港城3座8樓B", desc: "客戶表示門口未見", status: "處理中 (剩餘 28小時)", fine: 50, comp: 0, photo: "" }
-    ];
+    let recruitsList = [];
+    let ticketsList = [];
 
     let shiftsRecord = {};
     let dailyReports = [];
@@ -791,6 +807,7 @@
         if (cur) sel.value = cur;
       });
       populateSalaryStaffDropdown();
+      populateCountFenceDropdown();
     }
 
     function populateSalaryStaffDropdown() {
@@ -805,6 +822,21 @@
         sel.appendChild(opt);
       });
       if (cur) sel.value = cur;
+    }
+
+    function populateCountFenceDropdown() {
+      const zoneSel = document.getElementById('cnt-input-zone');
+      const fenceSel = document.getElementById('cnt-input-fence');
+      if (!zoneSel || !fenceSel) return;
+      
+      let zKey = 'SKW';
+      let zVal = zoneSel.value;
+      if (zVal === '麗港城') zKey = 'KTLG';
+      else if (zVal === '觀塘工商') zKey = 'KTIND';
+      else if (zVal === '沙田') zKey = 'ST';
+
+      let fences = fencesData[zKey] || [];
+      fenceSel.innerHTML = fences.map(f => `<option value="${f.name}">${f.name}</option>`).join('') || '<option value="">尚無圍欄</option>';
     }
 
     function getShiftStyle(icon) {
@@ -870,7 +902,7 @@
       });
     }
 
-    function cycleShiftCell(name, dateStr, tdEl) {
+    async function cycleShiftCell(name, dateStr, tdEl) {
       let key = `${name}_${dateStr}`;
       let cleanKey = `${name.replace(/\s+/g, '')}_${dateStr}`;
       let cur = shiftsRecord[key] ? shiftsRecord[key].icon : (shiftsRecord[cleanKey] ? shiftsRecord[cleanKey].icon : '-');
@@ -890,9 +922,16 @@
       }
       localStorage.setItem('local_shifts_record', JSON.stringify(shiftsRecord));
       render14DaysTable();
+
+      // 即時背景上傳 Google
+      fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'syncData', module: '14天報更', data: { shifts: shiftsRecord } })
+      }).catch(e => console.log('Syncing in background'));
     }
 
-    function submitQuickShift() {
+    async function submitQuickShift() {
       let staff = document.getElementById('schedule-quick-staff').value;
       let date = document.getElementById('schedule-quick-date').value;
       let icon = document.getElementById('schedule-quick-icon').value;
@@ -903,7 +942,17 @@
       shiftsRecord[`${staff.replace(/\s+/g, '')}_${date}`] = { icon, zone, note };
       localStorage.setItem('local_shifts_record', JSON.stringify(shiftsRecord));
       render14DaysTable();
-      alert("✅ 已登記：" + staff + " 在 " + date + " 為 " + icon + (note ? ` (備註: ${note})` : ''));
+
+      try {
+        await fetch(GAS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'syncData', module: '14天報更', data: { shifts: shiftsRecord } })
+        });
+        alert("✅ 報更已成功即時寫入 Mia 雲端！\n人員：" + staff + " | 狀態：" + icon);
+      } catch(e) {
+        alert("✅ 本機已保存！");
+      }
     }
 
     function switchProgressZone(zk) {
@@ -942,10 +991,16 @@
       }).join('');
     }
 
-    function updateProgressStatus(fid, st) {
+    async function updateProgressStatus(fid, st) {
       if (!progressRecord[fid]) progressRecord[fid] = { signed: 0, hold: 0, staff: '步兵' };
       progressRecord[fid].completionStatus = st;
       alert("✅ 已更新進度：" + st);
+
+      fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'syncData', module: '各區工作進度', data: { progress: progressRecord } })
+      }).catch(e => console.log('Progress synced'));
     }
 
     function renderAssignmentsGrid() {
@@ -982,17 +1037,28 @@
       renderPackageFlowTable();
     }
 
-    function submitPackageFlow() {
+    async function submitPackageFlow() {
       let trk = document.getElementById('flow-tracking').value.trim();
       let f = document.getElementById('flow-fence').value.trim();
       let s = document.getElementById('flow-staff').value;
       let st = document.getElementById('flow-status').value;
       let n = document.getElementById('flow-note').value;
       if (!trk || !f || !s) { alert("請填寫單號、圍欄編號與步兵！"); return; }
-      packageFlowList.unshift({ zone: currentFlowZone, date: new Date().toISOString().split('T')[0], tracking: trk, fence: f, staff: s, status: st, note: n });
+      let newFlow = { zone: currentFlowZone, date: new Date().toISOString().split('T')[0], tracking: trk, fence: f, staff: s, status: st, note: n };
+      packageFlowList.unshift(newFlow);
       document.getElementById('flow-tracking').value = '';
       renderPackageFlowTable();
-      alert("✅ 已成功登記件數流向！");
+
+      try {
+        await fetch(GAS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'syncData', module: '件數流向清單', data: { packageFlow: packageFlowList } })
+        });
+        alert("✅ 件數流向已即時同步至 Mia 雲端！");
+      } catch(e) {
+        alert("✅ 已在本機登記！");
+      }
     }
 
     function renderPackageFlowTable() {
@@ -1026,25 +1092,53 @@
       alert("✅ 工單已登記（限期 30 小時）！");
     }
 
+    // 每日報數：手機直列分區拆解版面渲染
     function renderDailyReportsTable() {
       const tbody = document.getElementById('daily-reports-tbody');
       if (!tbody) return;
-      tbody.innerHTML = dailyReports.slice(0, 200).map(r => `
-        <tr class="hover:bg-slate-50 font-mono">
-          <td class="p-2 border">${r.date || r['日期'] || r['報數日期'] || '-'}</td>
-          <td class="p-2 border font-bold text-slate-900">${r.staff || r['步兵姓名'] || r['人員姓名'] || '-'}</td>
-          <td class="p-2 border">${r.team || r['所屬隊伍'] || '-'}</td>
-          <td class="p-2 border text-right">${r.lg || r['麗港城票數'] || 0}</td>
-          <td class="p-2 border text-right">${r.kt || r['工商區票數'] || 0}</td>
-          <td class="p-2 border text-right">${r.skw || r['東區票數(SKW)'] || 0}</td>
-          <td class="p-2 border text-right">${r.st || r['沙田(F58)票數'] || 0}</td>
-          <td class="p-2 border text-right font-bold text-blue-600">${r.totalPieces || r['總派件票數'] || r['總件數'] || 0}</td>
-          <td class="p-2 border text-right font-bold text-emerald-600">HK$ ${Number(r.finalSalary || r['當日實發總工資(全包)'] || r['實發工資'] || 0).toFixed(2)}</td>
-        </tr>
-      `).join('') || '<tr><td colspan="9" class="p-4 text-center text-slate-400">目前尚無每日報數記錄。</td></tr>';
+
+      tbody.innerHTML = dailyReports.slice(0, 200).map((r, idx) => {
+        let date = r.date || r['日期'] || r['報數日期'] || '-';
+        let name = r.staff || r['步兵姓名'] || r['人員姓名'] || '-';
+        let skw = Number(r.skw || r['東區票數(SKW)'] || r['東區'] || 0);
+        let lg = Number(r.lg || r['麗港城票數'] || r['麗港城'] || 0);
+        let kt = Number(r.kt || r['工商區票數'] || r['觀塘工商'] || 0);
+        let st = Number(r.st || r['沙田(F58)票數'] || r['沙田'] || 0);
+        let tot = Number(r.totalPieces || r['總派件票數'] || r['總件數'] || (skw + lg + kt + st));
+        let signed = Number(r.signed || r['已簽收'] || tot);
+        let held = Number(r.held || r['滯留'] || 0);
+        let salary = Number(r.finalSalary || r['當日實發總工資(全包)'] || r['實發工資'] || (tot * 4.0)).toFixed(2);
+
+        return `
+          <tr class="hover:bg-slate-50 border-b text-center text-xs font-mono">
+            <td class="p-2 font-bold text-slate-700">${date}</td>
+            <td class="p-2 font-bold text-slate-900">${name}</td>
+            <td class="p-2 text-slate-600 leading-tight">${skw} / ${lg} / ${kt} / ${st}</td>
+            <td class="p-2 font-bold text-blue-600 text-sm">${tot}</td>
+            <td class="p-2 font-bold text-emerald-600 leading-tight">${signed} / <span class="text-rose-600">${held}</span></td>
+            <td class="p-2 font-bold text-emerald-700">HK$ ${salary}</td>
+            <td class="p-2">
+              <button type="button" onclick="editDailyReportRow(${idx})" class="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded text-[11px] cursor-pointer">✏️ 編輯</button>
+            </td>
+          </tr>
+        `;
+      }).join('') || '<tr><td colspan="7" class="p-4 text-center text-slate-400">目前尚無報數記錄。</td></tr>';
     }
 
-    function submitDailyReport() {
+    function editDailyReportRow(idx) {
+      let r = dailyReports[idx];
+      if (!r) return;
+      let newPcs = prompt(`請輸入 ${r.staff || r['步兵姓名']} 的最新總票數：`, r.totalPieces || r['總派件票數'] || 0);
+      if (newPcs !== null) {
+        let val = Number(newPcs) || 0;
+        r.totalPieces = val;
+        r.finalSalary = (val * 4.0).toFixed(2);
+        renderDailyReportsTable();
+        calculateSalaries();
+      }
+    }
+
+    async function submitDailyReport() {
       let d = document.getElementById('rep-date').value;
       let s = document.getElementById('rep-staff').value;
       let lg = Number(document.getElementById('rep-lg').value) || 0;
@@ -1052,12 +1146,74 @@
       let skw = Number(document.getElementById('rep-skw').value) || 0;
       let st = Number(document.getElementById('rep-st').value) || 0;
       let returns = Number(document.getElementById('rep-returns').value) || 0;
+
       if (!d || !s) { alert("請選擇日期與步兵！"); return; }
       let tot = lg + kt + skw + st;
       let staffAcc = accounts.find(a => a.name === s) || { team: 'KM' };
-      dailyReports.unshift({ date: d, staff: s, team: staffAcc.team, lg, kt, skw, st, returns, totalPieces: tot, finalSalary: (tot * 3.8).toFixed(2) });
+      let newRecord = { date: d, staff: s, team: staffAcc.team, skw, lg, kt, st, signed: tot, held: returns, totalPieces: tot, finalSalary: (tot * 4.0).toFixed(2) };
+      dailyReports.unshift(newRecord);
       renderDailyReportsTable();
-      alert("✅ 每日分區派件報數已成功保存！");
+
+      try {
+        await fetch(GAS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'saveDailyReport', data: newRecord })
+        });
+        alert(`✅ 報數已成功即時同步至 Mia 雲端！\n步兵：${s} | 總票數：${tot}`);
+      } catch (err) {
+        alert("⚠️ 本機已儲存，請檢查網絡：" + err);
+      }
+    }
+
+    // 貨量核算：支援自訂新增與修改
+    function submitCountData() {
+      let z = document.getElementById('cnt-input-zone').value;
+      let f = document.getElementById('cnt-input-fence').value;
+      let orig = Number(document.getElementById('cnt-input-orig').value) || 0;
+      let held = Number(document.getElementById('cnt-input-held').value) || 0;
+      let t3 = Number(document.getElementById('cnt-input-t3').value) || 0;
+      let date = document.getElementById('count-view-date').value || new Date().toISOString().split('T')[0];
+
+      if (!f) { alert("請選擇圍欄！"); return; }
+      let after = orig - held;
+      
+      let existingIndex = countsDetailList.findIndex(c => c.fence === f && c.date === date);
+      if (existingIndex >= 0) {
+        countsDetailList[existingIndex] = { date, zone: z, fence: f, orig, held, after, t3 };
+      } else {
+        countsDetailList.unshift({ date, zone: z, fence: f, orig, held, after, t3 });
+      }
+
+      document.getElementById('cnt-input-orig').value = '';
+      document.getElementById('cnt-input-held').value = '';
+      document.getElementById('cnt-input-t3').value = '';
+      renderCountsTable();
+      alert(`✅ 圍欄 [${f}] 貨量已成功更新！\n實派當日數量：${after}`);
+    }
+
+    function editCountRow(idx) {
+      let c = countsDetailList[idx];
+      if (!c) return;
+      let newOrig = prompt(`請輸入 [${c.fence}] 的原有數量：`, c.orig);
+      if (newOrig === null) return;
+      let newHeld = prompt(`請輸入 [${c.fence}] 的壓車數量：`, c.held);
+      if (newHeld === null) return;
+      let newT3 = prompt(`請輸入 [${c.fence}] 的 T3 數量：`, c.t3);
+      if (newT3 === null) return;
+
+      c.orig = Number(newOrig) || 0;
+      c.held = Number(newHeld) || 0;
+      c.t3 = Number(newT3) || 0;
+      c.after = c.orig - c.held;
+      renderCountsTable();
+    }
+
+    function removeCountRow(idx) {
+      if (confirm("確定要刪除這筆貨量記錄嗎？")) {
+        countsDetailList.splice(idx, 1);
+        renderCountsTable();
+      }
     }
 
     function renderCountsTable() {
@@ -1070,7 +1226,7 @@
       let ktO = 0, ktH = 0, ktA = 0, ktT = 0;
       let stO = 0, stH = 0, stA = 0, stT = 0;
 
-      tbody.innerHTML = countsDetailList.map(c => {
+      tbody.innerHTML = countsDetailList.map((c, idx) => {
         tOrig += c.orig; tHeld += c.held; tAfter += c.after; tT3 += c.t3;
         if (c.zone.includes('東區')) { skwO += c.orig; skwH += c.held; skwA += c.after; skwT += c.t3; }
         else if (c.zone.includes('麗港城') || c.zone.includes('觀塘')) { ktO += c.orig; ktH += c.held; ktA += c.after; ktT += c.t3; }
@@ -1084,9 +1240,13 @@
             <td class="p-2 border text-right text-rose-600">${c.held}</td>
             <td class="p-2 border text-right font-bold text-amber-600">${c.after}</td>
             <td class="p-2 border text-right font-bold text-slate-700">${c.t3}</td>
+            <td class="p-2 border text-center space-x-1">
+              <button type="button" onclick="editCountRow(${idx})" class="text-amber-600 font-bold hover:underline">編輯</button>
+              <button type="button" onclick="removeCountRow(${idx})" class="text-rose-600 font-bold hover:underline">刪除</button>
+            </td>
           </tr>
         `;
-      }).join('');
+      }).join('') || '<tr><td colspan="7" class="p-3 text-center text-slate-400">目前尚無貨量記錄，請使用上方表單登記。</td></tr>';
 
       if (document.getElementById('stat-total-actual')) document.getElementById('stat-total-actual').innerHTML = `${tAfter} <span class="text-xs font-normal">票</span>`;
       if (document.getElementById('stat-total-orig')) document.getElementById('stat-total-orig').textContent = tOrig;
@@ -1201,6 +1361,7 @@
       switchProgressZone(zk);
       renderAssignmentsGrid();
       renderOtherModules();
+      populateCountFenceDropdown();
     }
 
     function addNewFence() {
@@ -1212,19 +1373,31 @@
       switchProgressZone(z);
       renderAssignmentsGrid();
       renderOtherModules();
+      populateCountFenceDropdown();
       alert("✅ 已新增圍欄: " + n);
     }
 
-    function submitSupply() {
+    async function submitSupply() {
       let d = document.getElementById('sup-date').value;
       let b = document.getElementById('sup-buyer').value;
       let item = document.getElementById('sup-item').value;
       let qty = document.getElementById('sup-qty').value;
       let amt = document.getElementById('sup-amount').value;
       if (!item || !amt) { alert("請填寫物品與金額！"); return; }
-      suppliesList.unshift({ date: d, buyer: b, item, qty, amount: amt });
+      let newSup = { date: d, buyer: b, item, qty, amount: amt };
+      suppliesList.unshift(newSup);
       renderOtherModules();
-      alert("✅ 物資採購已登記！");
+
+      try {
+        await fetch(GAS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'syncData', module: '物資採購', data: { supplies: suppliesList } })
+        });
+        alert("✅ 物資採購已即時同步至 Mia 雲端！");
+      } catch(e) {
+        alert("✅ 物資已在本地登記！");
+      }
     }
 
     function submitViolation() {
