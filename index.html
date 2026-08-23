@@ -1093,15 +1093,29 @@
     }
 
     // 每日報數：手機直列分區拆解版面渲染
-    function renderDailyReportsTable() {
+        function renderDailyReportsTable() {
       const tbody = document.getElementById('daily-reports-tbody');
       if (!tbody) return;
-let displayList = dailyReports.slice().reverse();
-tbody.innerHTML = displayList.slice(0, 200).map((r, idx) => {
 
-    
-        let date = r.date || r['日期'] || r['報數日期'] || '-';
-        let name = r.staff || r['步兵姓名'] || r['人員姓名'] || '-';
+      let displayList = dailyReports.slice().reverse();
+
+      tbody.innerHTML = displayList.slice(0, 200).map((r, idx) => {
+        // 1. 智能格式化日期（消除 T16:00:00.000Z，只保留 YYYY-MM-DD）
+        let rawDate = String(r.date || r['日期'] || r['報數日期'] || '-');
+        let date = rawDate;
+        if (rawDate.indexOf('T') !== -1) {
+          let dt = new Date(rawDate);
+          if (!isNaN(dt.getTime())) {
+            date = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+          } else {
+            date = rawDate.split('T')[0];
+          }
+        }
+
+        // 2. 智能匹配姓名（兼容所有中英文欄位）
+        let name = r.staff || r['步兵姓名'] || r['人員姓名'] || r['姓名'] || '-';
+
+        // 3. 票數計算
         let skw = Number(r.skw || r['東區票數(SKW)'] || r['東區'] || 0);
         let lg = Number(r.lg || r['麗港城票數'] || r['麗港城'] || 0);
         let kt = Number(r.kt || r['工商區票數'] || r['觀塘工商'] || 0);
@@ -1126,6 +1140,7 @@ tbody.innerHTML = displayList.slice(0, 200).map((r, idx) => {
         `;
       }).join('') || '<tr><td colspan="7" class="p-4 text-center text-slate-400">目前尚無報數記錄。</td></tr>';
     }
+
 
     function editDailyReportRow(idx) {
       let r = dailyReports[idx];
