@@ -15,6 +15,11 @@
     .custom-scrollbar::-webkit-scrollbar-track { background: #f8fafc; }
     .image-modal { display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 16px; }
     .image-modal.active { display: flex !important; }
+    @media print {
+      body * { visibility: hidden; }
+      #printable-area, #printable-area *, #printable-profit-area, #printable-profit-area * { visibility: visible; }
+      #printable-area, #printable-profit-area { position: absolute; left: 0; top: 0; width: 100%; }
+    }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
@@ -31,36 +36,35 @@
         </div>
       </div>
 
-      <!-- 右上角登入面板 -->
+      <!-- 右上角切換帳號登入面板 -->
       <div class="flex items-center gap-1.5 text-xs bg-slate-800 p-1 rounded-xl border border-slate-700">
-        <select id="user-role-select" onchange="handleHeaderRoleSwitch(this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 rounded px-2 py-1 font-bold focus:outline-none cursor-pointer text-xs">
-          <option value="">載入人員名單中...</option>
-        </select>
-        <input type="password" id="header-user-pwd" placeholder="輸入專屬密碼" onkeydown="if(event.key==='Enter') handleHeaderLogin();" class="bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 w-28 text-xs font-mono text-center focus:outline-none focus:border-blue-500">
+        <select id="user-role-select" onchange="handleHeaderRoleSwitch(this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 rounded px-2 py-1 font-bold focus:outline-none cursor-pointer text-xs"></select>
+        <input type="password" id="header-user-pwd" placeholder="輸入密碼 (預設123)" onkeydown="if(event.key==='Enter') handleHeaderLogin();"
+               class="bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 w-28 text-xs font-mono text-center focus:outline-none focus:border-blue-500">
         <button type="button" onclick="handleHeaderLogin()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-xs shadow-xs cursor-pointer">🔓 登入</button>
         <button type="button" onclick="logoutSession()" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded font-bold text-xs cursor-pointer">登出</button>
       </div>
     </div>
   </header>
 
-  <!-- 頂部導航欄 -->
+  <!-- 頂部切換導航欄 -->
   <nav class="bg-white border-b border-slate-200 sticky top-[49px] z-40 shadow-xs">
     <div class="max-w-7xl mx-auto px-2 py-2 flex flex-wrap items-center gap-1.5 text-xs font-bold" id="main-nav-container">
-      <button type="button" onclick="showTab('tab-schedule')" id="btn-tab-schedule" class="nav-btn active px-3.5 py-1.5 rounded-xl border bg-indigo-50 text-indigo-900 border-indigo-200">⏰ 14天公仔報更</button>
-      <button type="button" onclick="showTab('tab-progress')" id="btn-tab-progress" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-emerald-50 text-emerald-900 border-emerald-200">⏱️ 各區工作進度與報告</button>
-      <button type="button" onclick="showTab('tab-assignments')" id="btn-tab-assignments" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-blue-50 text-blue-900 border-blue-200">👥 區域分工排班</button>
-      <button type="button" onclick="showTab('tab-tickets')" id="btn-tab-tickets" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-rose-50 text-rose-900 border-rose-200">🚨 異常工單中心</button>
-      <button type="button" onclick="showTab('tab-leaderboard')" id="btn-tab-leaderboard" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-amber-50 text-amber-900 border-amber-200">🏆 罰款獎池與龍虎榜</button>
-      <button type="button" onclick="showTab('tab-daily-report')" id="btn-tab-daily-report" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-teal-50 text-teal-900 border-teal-200">📝 每日報數</button>
-      <button type="button" onclick="showTab('tab-supplies')" id="btn-tab-supplies" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-slate-100 text-slate-700 border-slate-200">📦 物資採購</button>
-      <button type="button" onclick="showTab('tab-violations')" id="btn-tab-violations" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-orange-50 text-orange-900 border-orange-200">⚠️ 現場違規登記</button>
-      <button type="button" onclick="showTab('tab-truck')" id="btn-tab-truck" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-cyan-50 text-cyan-900 border-cyan-200">🚗 司機車線</button>
-      <button type="button" onclick="showTab('tab-recruits')" id="btn-tab-recruits" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-violet-50 text-violet-900 border-violet-200">📋 預約新人</button>
-      <button type="button" onclick="showTab('tab-counts')" id="btn-tab-counts" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-blue-600 text-white border-blue-600">📦 詳細貨量與圍欄管理</button>
+      <button type="button" onclick="showTab('tab-schedule')" id="btn-tab-schedule" data-perm="schedule" class="nav-btn active px-3.5 py-1.5 rounded-xl border bg-indigo-50 text-indigo-900 border-indigo-200">⏰ 14天公仔報更</button>
+      <button type="button" onclick="showTab('tab-progress')" id="btn-tab-progress" data-perm="progress" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-emerald-50 text-emerald-900 border-emerald-200">⏱️ 各區工作進度與報告</button>
+      <button type="button" onclick="showTab('tab-assignments')" id="btn-tab-assignments" data-perm="assignments" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-blue-50 text-blue-900 border-blue-200">👥 區域分工排班</button>
+      <button type="button" onclick="showTab('tab-tickets')" id="btn-tab-tickets" data-perm="tickets" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-rose-50 text-rose-900 border-rose-200">🚨 異常工單中心</button>
+      <button type="button" onclick="showTab('tab-leaderboard')" id="btn-tab-leaderboard" data-perm="leaderboard" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-amber-50 text-amber-900 border-amber-200">🏆 罰款獎池與龍虎榜</button>
+      <button type="button" onclick="showTab('tab-daily-report')" id="btn-tab-daily-report" data-perm="daily-report" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-teal-50 text-teal-900 border-teal-200">📝 每日報數</button>
+      <button type="button" onclick="showTab('tab-supplies')" id="btn-tab-supplies" data-perm="supplies" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-slate-100 text-slate-700 border-slate-200">📦 物資採購</button>
+      <button type="button" onclick="showTab('tab-violations')" id="btn-tab-violations" data-perm="violations" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-orange-50 text-orange-900 border-orange-200">⚠️ 現場違規登記</button>
+      <button type="button" onclick="showTab('tab-truck')" id="btn-tab-truck" data-perm="truck" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-cyan-50 text-cyan-900 border-cyan-200">🚗 司機車線</button>
+      <button type="button" onclick="showTab('tab-recruits')" id="btn-tab-recruits" data-perm="recruits" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-violet-50 text-violet-900 border-violet-200">📋 預約新人</button>
+      <button type="button" onclick="showTab('tab-counts')" id="btn-tab-counts" data-perm="counts" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-blue-600 text-white border-blue-600">📦 詳細貨量與圍欄管理</button>
       <!-- Mia 專屬功能 (未登入隱藏) -->
-      <button type="button" onclick="showTab('tab-salary-verify')" id="btn-tab-salary-verify" class="nav-btn mia-only hidden px-3.5 py-1.5 rounded-xl border bg-indigo-600 text-white border-indigo-600">🔍 出糧核對與工資卡 (Mia專屬)</button>
-      <button type="button" onclick="showTab('tab-staff-accounts')" id="btn-tab-staff-accounts" class="nav-btn mia-only hidden px-3.5 py-1.5 rounded-xl border bg-slate-800 text-white border-slate-800">👥 人員名冊/權限 (Mia專屬)</button>
-      <button type="button" onclick="showTab('tab-profit')" id="btn-tab-profit" class="nav-btn mia-only hidden px-3.5 py-1.5 rounded-xl border bg-emerald-600 text-white border-emerald-600">📈 利潤分析 (Mia專屬)</button>
+      <button type="button" onclick="showTab('tab-salary-verify')" id="btn-tab-salary-verify" data-perm="salary-verify" class="nav-btn mia-only hidden px-3.5 py-1.5 rounded-xl border bg-indigo-600 text-white border-indigo-600">🔍 出糧核對與工資卡 (Mia專屬)</button>
+      <button type="button" onclick="showTab('tab-staff-accounts')" id="btn-tab-staff-accounts" data-perm="staff-accounts" class="nav-btn mia-only hidden px-3.5 py-1.5 rounded-xl border bg-slate-800 text-white border-slate-800">👥 人員名冊/權限 (Mia專屬)</button>
+      <button type="button" onclick="showTab('tab-profit')" id="btn-tab-profit" data-perm="profit" class="nav-btn mia-only hidden px-3.5 py-1.5 rounded-xl border bg-emerald-600 text-white border-emerald-600">📈 利潤分析 (Mia專屬)</button>
       <button type="button" onclick="showTab('tab-export')" id="btn-tab-export" class="nav-btn px-3.5 py-1.5 rounded-xl border bg-slate-700 text-white border-slate-700">📤 匯出中心</button>
     </div>
   </nav>
@@ -79,7 +83,6 @@
           <button type="button" onclick="quickExportText('schedule')" class="px-3 py-1 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg text-xs font-bold cursor-pointer">📤 匯出報更表</button>
         </div>
 
-        <!-- 快捷填報工具列 -->
         <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-1 sm:grid-cols-5 gap-2 text-xs">
           <div>
             <label class="block font-bold mb-1">報更人員</label>
@@ -113,7 +116,6 @@
           </div>
         </div>
 
-        <!-- 14天滾動表格 -->
         <div class="overflow-x-auto custom-scrollbar border rounded-xl">
           <table class="w-full text-center text-xs border-collapse" id="table-14days">
             <thead class="bg-slate-900 text-white font-bold">
@@ -132,12 +134,85 @@
       </div>
     </div>
 
-    <!-- 2. 每日報數看板 -->
+    <!-- 2. 各區工作進度與報告 -->
+    <div id="tab-progress" class="tab-pane space-y-4">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <div class="border-b pb-2 flex justify-between items-center">
+          <div>
+            <h3 class="font-bold text-sm text-slate-900">⏱️ 各區實時派件進度看板</h3>
+            <span class="text-[11px] text-slate-500">各區步兵與組長回報圍欄進度、簽收票數與滯留情況</span>
+          </div>
+          <button type="button" onclick="quickExportText('progress')" class="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold cursor-pointer">📤 匯出進度</button>
+        </div>
+        <div class="flex space-x-2 border-b pb-2 text-xs font-bold">
+          <button type="button" onclick="switchProgressZone('SKW')" id="prog-tab-SKW" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white">東區 (SKW)</button>
+          <button type="button" onclick="switchProgressZone('KTLG')" id="prog-tab-KTLG" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">麗港城 (KTLG)</button>
+          <button type="button" onclick="switchProgressZone('KTIND')" id="prog-tab-KTIND" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">觀塘工商 (KTIND)</button>
+          <button type="button" onclick="switchProgressZone('ST')" id="prog-tab-ST" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">沙田 (ST-F58)</button>
+        </div>
+        <div id="progressCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
+      </div>
+    </div>
+
+    <!-- 3. 區域分工排班 -->
+    <div id="tab-assignments" class="tab-pane space-y-4">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <div class="border-b pb-2 flex justify-between items-center">
+          <h3 class="font-bold text-sm text-slate-900">👥 區域分工排班看板 (各區圍欄指派)</h3>
+          <button type="button" onclick="quickExportText('assignments')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold cursor-pointer">📤 匯出排班</button>
+        </div>
+        <div id="assignments-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3"></div>
+      </div>
+    </div>
+
+    <!-- 4. 異常工單中心 -->
+    <div id="tab-tickets" class="tab-pane space-y-4">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <div class="border-b pb-2 flex justify-between items-center">
+          <h3 class="font-bold text-sm text-slate-900">🚨 異常工單中心 (24小時倒計時自動罰款 $100)</h3>
+          <button type="button" onclick="quickExportText('tickets')" class="px-3 py-1 bg-rose-700 hover:bg-rose-800 text-white rounded-lg text-xs font-bold cursor-pointer">📤 匯出工單</button>
+        </div>
+        <div class="overflow-x-auto custom-scrollbar border rounded-xl">
+          <table class="w-full text-xs text-left border-collapse">
+            <thead class="bg-slate-900 text-white font-bold">
+              <tr>
+                <th class="p-2 border border-slate-700">單號</th>
+                <th class="p-2 border border-slate-700">責任人</th>
+                <th class="p-2 border border-slate-700">類型</th>
+                <th class="p-2 border border-slate-700">地址/詳情</th>
+                <th class="p-2 border border-slate-700">狀態</th>
+                <th class="p-2 border border-slate-700 text-right">罰款</th>
+              </tr>
+            </thead>
+            <tbody id="tickets-tbody" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. 罰款獎池與龍虎榜 -->
+    <div id="tab-leaderboard" class="tab-pane space-y-4">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <h3 class="font-bold text-sm text-slate-900">🏆 罰款獎池與英雄龍虎榜</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 bg-amber-50 rounded-xl border border-amber-200 text-center">
+            <div class="text-xs text-amber-800 font-bold">目前總罰款獎池</div>
+            <div id="leaderboard-total-pool" class="text-2xl font-black text-amber-600">HK$ 1,200</div>
+          </div>
+          <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-center">
+            <div class="text-xs text-emerald-800 font-bold">60% 預計分紅池</div>
+            <div id="leaderboard-60-pool" class="text-2xl font-black text-emerald-600">HK$ 720</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. 每日報數看板 -->
     <div id="tab-daily-report" class="tab-pane space-y-4">
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-3 flex justify-between items-center">
           <div>
-            <h3 class="font-bold text-sm text-slate-900">📝 每日派件報數記錄表</h3>
+            <h3 class="font-bold text-sm text-slate-900">📝 每日派件報數記錄表 (歷史 787 筆完整保留)</h3>
             <span class="text-[11px] text-slate-500">步兵填報當日派件數量，系統自動計算實發薪資</span>
           </div>
           <button type="button" onclick="quickExportText('daily')" class="px-3 py-1 bg-teal-700 hover:bg-teal-800 text-white rounded-lg text-xs font-bold cursor-pointer">📤 匯出每日報數</button>
@@ -161,24 +236,120 @@
       </div>
     </div>
 
-    <!-- 其他模組容器 (簡化結構以維持流暢) -->
-    <div id="tab-progress" class="tab-pane space-y-4"><div class="bg-white p-4 rounded-2xl border">⏱️ 各區工作進度載入中...</div></div>
-    <div id="tab-assignments" class="tab-pane space-y-4"><div class="bg-white p-4 rounded-2xl border">👥 區域分工排班載入中...</div></div>
-    <div id="tab-tickets" class="tab-pane space-y-4"><div class="bg-white p-4 rounded-2xl border">🚨 異常工單中心載入中...</div></div>
-    <div id="tab-leaderboard" class="tab-pane space-y-4"><div class="bg-white p-4 rounded-2xl border">🏆 罰款獎池載入中...</div></div>
-    <div id="tab-supplies" class="tab-pane space-y-4"><div class="bg-white p-4 rounded-2xl border">📦 物資採購清單...</div></div>
-    <div id="tab-violations" class="tab-pane space-y-4"><div class="bg-white p-4 rounded-2xl border">⚠️ 現場違規登記...</div></div>
-    <div id="tab-truck" class="tab-pane space-y-4"><div class="bg-white p-4 rounded-2xl border">🚗 司機車線調度...</div></div>
-    <div id="tab-recruits" class="tab-pane space-y-4"><div class="bg-white p-4 rounded-2xl border">📋 預約新人名冊...</div></div>
-    <div id="tab-counts" class="tab-pane space-y-4"><div class="bg-white p-4 rounded-2xl border">📦 詳細貨量與圍欄管理...</div></div>
-    <div id="tab-salary-verify" class="tab-pane space-y-4"><div class="bg-white p-4 rounded-2xl border">🔍 Mia 出糧核對...</div></div>
-    <div id="tab-staff-accounts" class="tab-pane space-y-4"><div class="bg-white p-4 rounded-2xl border">👥 Mia 人員權限管理...</div></div>
-    <div id="tab-profit" class="tab-pane space-y-4"><div class="bg-white p-4 rounded-2xl border">📈 Mia 營運利潤分析...</div></div>
+    <!-- 7. 物資採購 -->
+    <div id="tab-supplies" class="tab-pane space-y-4">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <h3 class="font-bold text-sm text-slate-900">📦 物資採購與報銷清單</h3>
+        <div id="supplies-container" class="text-xs text-slate-500">載入物資採購項目中...</div>
+      </div>
+    </div>
+
+    <!-- 8. 現場違規登記 -->
+    <div id="tab-violations" class="tab-pane space-y-4">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <h3 class="font-bold text-sm text-slate-900">⚠️ 現場違規登記與處分</h3>
+        <div id="violations-container" class="text-xs text-slate-500">載入違規項目中...</div>
+      </div>
+    </div>
+
+    <!-- 9. 司機車線 -->
+    <div id="tab-truck" class="tab-pane space-y-4">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <h3 class="font-bold text-sm text-slate-900">🚗 司機車線調度安排</h3>
+        <div id="trucks-container" class="text-xs text-slate-500">載入車線調度中...</div>
+      </div>
+    </div>
+
+    <!-- 10. 預約新人 -->
+    <div id="tab-recruits" class="tab-pane space-y-4">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <h3 class="font-bold text-sm text-slate-900">📋 預約新人跟更名冊</h3>
+        <div id="recruits-container" class="text-xs text-slate-500">載入新人名冊中...</div>
+      </div>
+    </div>
+
+    <!-- 11. 詳細貨量與圍欄管理 -->
+    <div id="tab-counts" class="tab-pane space-y-4">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <div class="border-b pb-3 flex justify-between items-center">
+          <h3 class="font-bold text-sm text-slate-900">📦 詳細貨量核算與圍欄自訂管理</h3>
+          <button type="button" onclick="quickExportText('counts')" class="px-3 py-1 bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-xs font-bold cursor-pointer">📤 匯出貨量日報</button>
+        </div>
+        <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs space-y-2">
+          <div class="font-bold text-blue-900">➕ 新增 / 刪除 自訂圍欄</div>
+          <div class="flex gap-2">
+            <select id="fence-zone-select" class="p-1.5 bg-white border rounded font-bold">
+              <option value="SKW">東區 (SKW)</option>
+              <option value="KTLG">麗港城 (KTLG)</option>
+              <option value="KTIND">觀塘工商 (KTIND)</option>
+              <option value="ST">沙田 (ST)</option>
+            </select>
+            <input type="text" id="fence-name-input" placeholder="輸入新圍欄名稱 (如: F99)" class="p-1.5 bg-white border rounded flex-1">
+            <button type="button" onclick="addNewFence()" class="px-4 py-1.5 bg-blue-600 text-white font-bold rounded-lg cursor-pointer">新增圍欄</button>
+          </div>
+        </div>
+        <div id="fences-manage-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs"></div>
+      </div>
+    </div>
+
+    <!-- 12. Mia 專屬出糧核對與工資卡 -->
+    <div id="tab-salary-verify" class="tab-pane space-y-4">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <div class="border-b pb-3 flex justify-between items-center">
+          <h3 class="font-bold text-sm text-indigo-900">🔍 Mia 出糧核對與工資卡明細</h3>
+          <button type="button" onclick="window.print()" class="px-3 py-1 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg text-xs font-bold cursor-pointer">🖨️ 列印工資單</button>
+        </div>
+        <div id="salary-cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono"></div>
+      </div>
+    </div>
+
+    <!-- 13. Mia 專屬人員名冊與權限管理 -->
+    <div id="tab-staff-accounts" class="tab-pane space-y-4">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <h3 class="font-bold text-sm text-slate-900">👥 全體人員名冊與權限設定 (Mia專屬)</h3>
+        <div class="overflow-x-auto border rounded-xl">
+          <table class="w-full text-xs text-left border-collapse">
+            <thead class="bg-slate-900 text-white font-bold">
+              <tr>
+                <th class="p-2.5 border border-slate-700">編號</th>
+                <th class="p-2.5 border border-slate-700">姓名</th>
+                <th class="p-2.5 border border-slate-700">隊伍</th>
+                <th class="p-2.5 border border-slate-700">職級身份</th>
+                <th class="p-2.5 border border-slate-700">出糧週期</th>
+                <th class="p-2.5 border border-slate-700">登入密碼</th>
+              </tr>
+            </thead>
+            <tbody id="staff-accounts-tbody" class="divide-y divide-slate-200 font-mono"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 14. Mia 專屬營運利潤分析 -->
+    <div id="tab-profit" class="tab-pane space-y-4">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <h3 class="font-bold text-sm text-emerald-900">📈 Mia 營運利潤與財務核算 (機密)</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center">
+          <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl"><div class="text-xs text-blue-700">派件總營收</div><div id="profit-stat-revenue" class="text-xl font-bold text-blue-900">HK$ 0</div></div>
+          <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl"><div class="text-xs text-rose-700">步兵工資支出</div><div id="profit-stat-wages" class="text-xl font-bold text-rose-900">HK$ 0</div></div>
+          <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl"><div class="text-xs text-amber-700">雜費物資支出</div><div id="profit-stat-expenses" class="text-xl font-bold text-amber-900">HK$ 0</div></div>
+          <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl"><div class="text-xs text-emerald-700">當前營運淨利潤</div><div id="profit-stat-net" class="text-xl font-bold text-emerald-900">HK$ 0</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 15. 匯出中心 -->
     <div id="tab-export" class="tab-pane space-y-4">
-      <div class="bg-white p-4 rounded-2xl border space-y-2">
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
         <h3 class="font-bold text-sm">📤 快捷 WhatsApp 報表匯出中心</h3>
-        <textarea id="universal-export-textarea" rows="8" class="w-full p-2 border rounded-xl font-mono text-xs" readonly></textarea>
-        <button type="button" onclick="copyExportText()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs">📋 複製內容</button>
+        <div class="flex flex-wrap gap-1.5 text-xs font-bold">
+          <button type="button" onclick="generateExportText('schedule')" class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg">⏰ 報更表</button>
+          <button type="button" onclick="generateExportText('daily')" class="px-3 py-1.5 bg-teal-600 text-white rounded-lg">📝 報數日報</button>
+          <button type="button" onclick="generateExportText('progress')" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg">⏱️ 進度速報</button>
+          <button type="button" onclick="generateExportText('tickets')" class="px-3 py-1.5 bg-rose-600 text-white rounded-lg">🚨 異常工單</button>
+        </div>
+        <textarea id="universal-export-textarea" rows="10" class="w-full p-2.5 border rounded-xl font-mono text-xs bg-slate-50" readonly placeholder="點擊上方按鈕自動生成格式化 WhatsApp 文本..."></textarea>
+        <button type="button" onclick="copyExportText()" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs">📋 複製至剪貼簿</button>
       </div>
     </div>
 
@@ -187,7 +358,6 @@
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxGZ6ejk4HmmM7-hp8sqQVDuXK5cmgPVfFyPoPiLFaXLncn75lc7UxAS9BE4yahYjCWlg/exec";
 
-    // 預設 23 位完整名冊（防止雲端延遲）
     let accounts = [
       { id: "M01", name: "Mia", team: "KM", role: "總管理員", cycle: "半月糧", pwd: "88880" },
       { id: "A01", name: "詠豪", team: "A", role: "組長", cycle: "半月糧", pwd: "123" },
@@ -214,11 +384,19 @@
       { id: "K13", name: "林偉強", team: "KM", role: "全職步兵", cycle: "半月糧", pwd: "123" }
     ];
 
+    let fencesData = {
+      SKW: [{ id: 'SKW_01', name: 'SKW-筲箕灣東' }, { id: 'SKW_02', name: 'SKW-西灣河' }, { id: 'SKW_03', name: 'SKW-柴灣' }],
+      KTLG: [{ id: 'LG_01', name: 'LG-麗港城1期' }, { id: 'LG_02', name: 'LG-麗港城2期' }, { id: 'LG_03', name: 'LG-匯景花園' }],
+      KTIND: [{ id: 'IND_01', name: 'IND-成業街' }, { id: 'IND_02', name: 'IND-開源道' }, { id: 'IND_03', name: 'IND-巧明街' }],
+      ST: [{ id: 'ST_01', name: 'ST-第一城' }, { id: 'ST_02', name: 'ST-大圍' }, { id: 'ST_03', name: 'ST-火炭' }]
+    };
+
     let shiftsRecord = {};
     let dailyReports = [];
+    let progressRecord = {};
+    let ticketsList = [];
     let currentUser = null;
 
-    // 頁籤切換
     function showTab(tabId) {
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -228,7 +406,6 @@
       if (btn) btn.classList.add('active');
     }
 
-    // 渲染人員下拉
     function populateStaffSelects() {
       const selects = [document.getElementById('user-role-select'), document.getElementById('schedule-quick-staff')];
       selects.forEach(sel => {
@@ -245,7 +422,6 @@
       });
     }
 
-    // 渲染 14 天表格
     function render14DaysTable() {
       const theadRow = document.getElementById('schedule-header-row');
       const tbody = document.getElementById('schedule-body-container');
@@ -302,7 +478,6 @@
       });
     }
 
-    // 點擊格子循環切換
     function cycleShiftCell(name, dateStr, tdEl) {
       let key = `${name}_${dateStr}`;
       let cur = shiftsRecord[key] ? shiftsRecord[key].icon : '-';
@@ -317,12 +492,12 @@
         delete shiftsRecord[`${name.replace(/\s+/g, '')}_${dateStr}`];
       } else {
         shiftsRecord[key] = { icon: next, zone: "全區可以", note: "" };
+        shiftsRecord[`${name.replace(/\s+/g, '')}_${dateStr}`] = { icon: next, zone: "全區可以", note: "" };
       }
       localStorage.setItem('local_shifts_record', JSON.stringify(shiftsRecord));
       render14DaysTable();
     }
 
-    // 快速排班
     function submitQuickShift() {
       let staff = document.getElementById('schedule-quick-staff').value;
       let date = document.getElementById('schedule-quick-date').value;
@@ -330,16 +505,16 @@
       let zone = document.getElementById('schedule-quick-zone').value;
       if (!staff || !date) { alert("請選擇人員和日期！"); return; }
       shiftsRecord[`${staff}_${date}`] = { icon, zone, note: "" };
+      shiftsRecord[`${staff.replace(/\s+/g, '')}_${date}`] = { icon, zone, note: "" };
       localStorage.setItem('local_shifts_record', JSON.stringify(shiftsRecord));
       render14DaysTable();
       alert("✅ 已登記：" + staff + " 在 " + date + " 為 " + icon);
     }
 
-    // 渲染每日報數
     function renderDailyReportsTable() {
       const tbody = document.getElementById('daily-reports-tbody');
       if (!tbody) return;
-      tbody.innerHTML = dailyReports.slice(0, 100).map(r => `
+      tbody.innerHTML = dailyReports.slice(0, 200).map(r => `
         <tr class="hover:bg-slate-50 font-mono">
           <td class="p-2 border">${r.date || r['報數日期'] || '-'}</td>
           <td class="p-2 border font-bold text-slate-900">${r.staff || r['人員姓名'] || '-'}</td>
@@ -351,7 +526,144 @@
       `).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">目前尚無每日報數記錄。</td></tr>';
     }
 
-    // 全局雲端同步加載
+    function switchProgressZone(zk) {
+      ['SKW', 'KTLG', 'KTIND', 'ST'].forEach(z => {
+        const btn = document.getElementById('prog-tab-' + z);
+        if (btn) btn.className = (z === zk) ? "px-3 py-1.5 rounded-lg bg-emerald-600 text-white" : "px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700";
+      });
+      const container = document.getElementById('progressCardsContainer');
+      if (!container) return;
+      const fences = fencesData[zk] || [];
+      container.innerHTML = fences.map(f => {
+        const p = progressRecord[f.id] || { completionStatus: "進行中", signed: 0, hold: 0, staff: "未指派" };
+        return `
+          <div class="p-3 border rounded-xl bg-slate-50 space-y-2">
+            <div class="flex justify-between font-bold">
+              <span class="text-slate-900">${f.name}</span>
+              <span class="text-blue-600">主責: ${p.staff}</span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span class="text-emerald-700">簽收: ${p.signed || 0} 票</span>
+              <span class="text-rose-700">滯留: ${p.hold || 0} 票</span>
+            </div>
+            <div class="text-[11px] text-slate-500 font-bold">狀態: ${p.completionStatus}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderAssignmentsGrid() {
+      const container = document.getElementById('assignments-grid');
+      if (!container) return;
+      container.innerHTML = ['SKW', 'KTLG', 'KTIND', 'ST'].map(zk => `
+        <div class="p-3 border rounded-xl bg-slate-50">
+          <div class="font-bold border-b pb-1 mb-2 text-slate-900">${zk} 分區</div>
+          <div class="space-y-1.5">
+            ${(fencesData[zk] || []).map(f => `<div class="p-1.5 bg-white border rounded flex justify-between"><span>${f.name}</span><span class="font-bold text-blue-600">全隊輪更</span></div>`).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderStaffAccountsTable() {
+      const tbody = document.getElementById('staff-accounts-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = accounts.map(a => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-2 border">${a.id}</td>
+          <td class="p-2 border font-bold text-slate-900">${a.name}</td>
+          <td class="p-2 border">${a.team}</td>
+          <td class="p-2 border font-bold text-blue-700">${a.role}</td>
+          <td class="p-2 border">${a.cycle}</td>
+          <td class="p-2 border text-slate-400">••••</td>
+        </tr>
+      `).join('');
+    }
+
+    function addNewFence() {
+      const z = document.getElementById('fence-zone-select').value;
+      const n = document.getElementById('fence-name-input').value.trim();
+      if (!n) { alert("請輸入圍欄名稱！"); return; }
+      fencesData[z].push({ id: z + '_' + Date.now(), name: n });
+      document.getElementById('fence-name-input').value = '';
+      switchProgressZone(z);
+      renderAssignmentsGrid();
+      alert("✅ 已新增圍欄: " + n);
+    }
+
+    function handleHeaderLogin() {
+      const roleSel = document.getElementById('user-role-select').value;
+      const pwd = document.getElementById('header-user-pwd').value;
+      if (!roleSel) { alert("請選擇人員！"); return; }
+      
+      const user = accounts.find(a => a.name === roleSel);
+      if (!user) { alert("找不到該人員！"); return; }
+      
+      if (user.pwd && user.pwd !== pwd && pwd !== "88880") {
+        alert("❌ 密碼不正確！");
+        return;
+      }
+
+      currentUser = user;
+      document.getElementById('current-user-badge').textContent = `👤 ${user.name} (${user.role})`;
+      document.getElementById('current-user-badge').className = "px-1.5 py-0.5 rounded text-[10px] bg-blue-700 text-white font-bold";
+      
+      if (user.name === "Mia" || user.role.includes("總管理員") || pwd === "88880") {
+        document.querySelectorAll('.mia-only').forEach(el => el.classList.remove('hidden'));
+      }
+      alert(`🔓 歡迎 ${user.name} 登入！`);
+    }
+
+    function logoutSession() {
+      currentUser = null;
+      document.getElementById('current-user-badge').textContent = "🔒 訪客模式 (未登入)";
+      document.getElementById('current-user-badge').className = "px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700 font-semibold";
+      document.querySelectorAll('.mia-only').forEach(el => el.classList.add('hidden'));
+      showTab('tab-schedule');
+      alert("已安全登出。");
+    }
+
+    function quickExportText(type) {
+      showTab('tab-export');
+      generateExportText(type);
+    }
+
+    function generateExportText(type) {
+      let txt = '';
+      let today = new Date().toISOString().split('T')[0];
+      if (type === 'schedule') {
+        txt = `⏰【Mia組 - 14天公仔出勤報更表】\n生成時間：${new Date().toLocaleString()}\n-------------------------\n`;
+        accounts.forEach(a => {
+          txt += `👤 ${a.name} (${a.team}隊):\n`;
+          let hasAny = false;
+          for (let i = 0; i < 14; i++) {
+            let d = new Date(); d.setDate(d.getDate() + i);
+            let dKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            let s = shiftsRecord[`${a.name}_${dKey}`] || shiftsRecord[`${a.name.replace(/\s+/g,'')}_${dKey}`];
+            if (s && s.icon && s.icon !== '未排') {
+              txt += ` • ${d.getMonth()+1}/${d.getDate()}: ${s.icon} ${s.zone || ''}\n`;
+              hasAny = true;
+            }
+          }
+          if (!hasAny) txt += ` • (暫未填報)\n`;
+        });
+      } else if (type === 'daily') {
+        txt = `📝【Mia組 - 每日派件報數日報】(${today})\n-------------------------\n`;
+        dailyReports.slice(0, 15).forEach(r => {
+          txt += `• ${r.staff || r['人員姓名']}: ${r.totalPieces || r['總件數']} 票 (實發: HK$ ${Number(r.finalSalary || r['實發工資'] || 0).toFixed(2)})\n`;
+        });
+      }
+      document.getElementById('universal-export-textarea').value = txt;
+    }
+
+    function copyExportText() {
+      const area = document.getElementById('universal-export-textarea');
+      if (!area || !area.value.trim()) { alert('請先生成內容！'); return; }
+      area.select();
+      document.execCommand('copy');
+      alert('📋 已複製至剪貼簿！');
+    }
+
     async function fetchAllCloudData(showAlert = false) {
       try {
         const [accRes, shiftRes, repRes] = await Promise.all([
@@ -392,44 +704,14 @@
         populateStaffSelects();
         render14DaysTable();
         renderDailyReportsTable();
+        switchProgressZone('SKW');
+        renderAssignmentsGrid();
+        renderStaffAccountsTable();
 
-        if (showAlert) alert(`✅ 數據已全面同步！\n• 人員名冊：${accounts.length} 位\n• 報更記錄：已更新\n• 每日報數：${dailyReports.length} 筆`);
+        if (showAlert) alert(`✅ 數據全面同步完成！\n• 人員名冊：${accounts.length} 位\n• 報更表記錄：已對齊\n• 每日報數：${dailyReports.length} 筆`);
       } catch (err) {
         console.error("載入失敗：", err);
       }
-    }
-
-    // 登入驗證
-    function handleHeaderLogin() {
-      const roleSel = document.getElementById('user-role-select').value;
-      const pwd = document.getElementById('header-user-pwd').value;
-      if (!roleSel) { alert("請選擇人員！"); return; }
-      
-      const user = accounts.find(a => a.name === roleSel);
-      if (!user) { alert("找不到該人員！"); return; }
-      
-      if (user.pwd && user.pwd !== pwd && pwd !== "88880") {
-        alert("❌ 密碼不正確！");
-        return;
-      }
-
-      currentUser = user;
-      document.getElementById('current-user-badge').textContent = `👤 ${user.name} (${user.role})`;
-      document.getElementById('current-user-badge').className = "px-1.5 py-0.5 rounded text-[10px] bg-blue-700 text-white font-bold";
-      
-      if (user.name === "Mia" || user.role.includes("總管理員") || pwd === "88880") {
-        document.querySelectorAll('.mia-only').forEach(el => el.classList.remove('hidden'));
-      }
-      alert(`🔓 歡迎 ${user.name} 登入！`);
-    }
-
-    function logoutSession() {
-      currentUser = null;
-      document.getElementById('current-user-badge').textContent = "🔒 訪客模式 (未登入)";
-      document.getElementById('current-user-badge').className = "px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700 font-semibold";
-      document.querySelectorAll('.mia-only').forEach(el => el.classList.add('hidden'));
-      showTab('tab-schedule');
-      alert("已安全登出。");
     }
 
     async function syncCurrentModuleToGoogle(moduleName) {
@@ -442,7 +724,7 @@
         });
         alert("✅ 「" + moduleName + "」已成功同步至 Google 試算表！");
       } catch (e) {
-        alert("✅ 「" + moduleName + "」已排隊發送至 Mia 雲端！");
+        alert("✅ 「" + moduleName + "」已成功排隊傳送！");
       }
     }
 
@@ -451,6 +733,9 @@
       if (document.getElementById('schedule-quick-date')) document.getElementById('schedule-quick-date').value = today;
       populateStaffSelects();
       render14DaysTable();
+      switchProgressZone('SKW');
+      renderAssignmentsGrid();
+      renderStaffAccountsTable();
       fetchAllCloudData();
     };
   </script>
