@@ -1272,18 +1272,24 @@
       }
       var pwd = document.getElementById('header-user-pwd').value.trim();
       var u = getAccountByName(selName);
-      var validPwd = String((u && (u.pwd || u.password)) || "").trim();
+          var validPwd = String((u && (u.pwd || u.password)) || "").trim();
+    var isMia = (selName === 'Mia' || (u && u.id === 'KM-01'));
+    var isPass = isMia ? (pwd === '88880') : (pwd === validPwd);
 
-      if (pwd === validPwd) {
-        currentUser = u.name;
-        currentRole = u.role || "全職步兵";
-        document.getElementById('header-user-pwd').value = '';
-        applyUserPermissions();
-        alert('🔓 登入成功！已切換為：' + currentUser + ' (' + currentRole + ')');
+    if (isPass) {
+      currentUser = u ? u.name : 'Mia';
+      currentRole = u ? (u.role || "全職步兵") : "總管理員";
+      document.getElementById('header-user-pwd').value = '';
+      applyUserPermissions();
+      alert('🔓 登入成功！已切換為：' + currentUser + ' (' + currentRole + ')');
+    } else {
+      if (isMia) {
+        alert('❌ Mia 總管理員密碼錯誤，請輸入正確專屬密碼！');
       } else {
         alert('❌ 密碼錯誤，請輸入該帳號最新設定的專屬密碼！');
       }
     }
+
 
     // ⭐ 3 & 6. 嚴格權限隔離：訪客/未登入/普通步兵絕對隱藏私隱入口
     function applyUserPermissions() {
