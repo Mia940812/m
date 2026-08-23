@@ -1551,87 +1551,144 @@ function quickExportText(type) {
       alert(`✅ 成功新增人員：${n} (自動編號: ${autoId})`);
     }
 
-    function calculateSalaries() {
-      const container = document.getElementById('salary-cards-container');
-      if (!container) return;
-      
-      const filterStaff = document.getElementById('salary-filter-staff') ? document.getElementById('salary-filter-staff').value : 'ALL';
-      const targetAccounts = filterStaff === 'ALL' ? accounts : accounts.filter(a => a.name === filterStaff);
-      
-      const sDate = document.getElementById('salary-start-date') ? document.getElementById('salary-start-date').value : '';
-      const eDate = document.getElementById('salary-end-date') ? document.getElementById('salary-end-date').value : '';
+   function calculateSalaries() {
+  const container = document.getElementById('salary-cards-container');
+  if (!container) return;
 
-      container.innerHTML = targetAccounts.map(a => {
-        let staffReports = dailyReports.filter(r => {
-          let rName = r.staff || r['步兵姓名'] || r['人員姓名'] || '';
-          let rDate = r.date || r['日期'] || r['報數日期'] || '';
-          let matchStaff = (rName === a.name);
-          let matchDate = true;
-          if (sDate && rDate && rDate < sDate) matchDate = false;
-          if (eDate && rDate && rDate > eDate) matchDate = false;
-          return matchStaff && matchDate;
-        });
+  const filterStaff = document.getElementById('salary-filter-staff') ? document.getElementById('salary-filter-staff').value : 'ALL';
+  const sDateRaw = document.getElementById('salary-start-date') ? document.getElementById('salary-start-date').value : '';
+  const eDateRaw = document.getElementById('salary-end-date') ? document.getElementById('salary-end-date').value : '';
 
-        let lgPcs = staffReports.reduce((sum, cur) => sum + Number(cur.lg || cur['麗港城票數'] || 0), 0);
-        let ktPcs = staffReports.reduce((sum, cur) => sum + Number(cur.kt || cur['工商區票數'] || 0), 0);
-        let skwPcs = staffReports.reduce((sum, cur) => sum + Number(cur.skw || cur['東區票數(SKW)'] || 0), 0);
-        let stPcs = staffReports.reduce((sum, cur) => sum + Number(cur.st || cur['沙田(F58)票數'] || 0), 0);
-        let totPcs = staffReports.reduce((sum, cur) => sum + Number(cur.totalPieces || cur['總派件票數'] || cur['總件數'] || (lgPcs+ktPcs+skwPcs+stPcs)), 0);
+  // 標準化日期為 YYYY-MM-DD
+  function normalizeDate(d) {
+    if (!d) return '';
+    if (typeof d === 'string') {
+      d = d.trim().replace(/\//g, '-');
+      const parts = d.split('-');
+      if (parts.length === 3) {
+        if (parts[0].length === 4) return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+        if (parts[2].length === 4) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
+    }
+    return String(d).substring(0, 10);
+  }
 
-        let pEast = 4.0, pLg = 4.0, pKt = 4.5, pSt = 6.0;
-        let baseGross = (skwPcs * pEast) + (lgPcs * pLg) + (ktPcs * pKt) + (stPcs * pSt);
-        let advances = Number(a.advances || 0);
+  const sDate = normalizeDate(sDateRaw);
+  const eDate = normalizeDate(eDateRaw);
 
-        return `
-          <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5 shadow-xs" id="card-salary-${a.id}">
-            <div class="flex justify-between items-center border-b pb-1.5 font-bold">
-              <span class="text-sm text-slate-900">👤 ${a.name} (${a.team}隊 - ${a.role})</span>
-              <span class="text-indigo-700 font-mono font-bold">${a.id}</span>
-            </div>
+  function cleanName(n) {
+    if (!n) return '';
+    return String(n).replace(/\(.*?\)/g, '').replace(/（.*?）/g, '').trim();
+  }
 
-            <div class="grid grid-cols-2 gap-2 text-xs">
-              <div>區間總件數: <b class="text-blue-700">${totPcs} 票</b></div>
-              <div class="text-rose-600 font-bold">⚠️ 剩餘預支餘額: HK$ ${advances.toFixed(2)}</div>
-            </div>
+  const targetAccounts = filterStaff === 'ALL' 
+    ? accounts 
+    : accounts.filter(a => cleanName(a.name) === cleanName(filterStaff) || (a.id && filterStaff.includes(a.id)));
 
-            <div class="p-2 bg-white border rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-              <div>東區($): <input type="number" step="0.1" value="${pEast}" id="p-skw-${a.id}" onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${advances})" class="w-12 p-0.5 border rounded text-center font-bold"> x${skwPcs}</div>
-              <div>麗港城($): <input type="number" step="0.1" value="${pLg}" id="p-lg-${a.id}" onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${advances})" class="w-12 p-0.5 border rounded text-center font-bold"> x${lgPcs}</div>
-              <div>工商($): <input type="number" step="0.1" value="${pKt}" id="p-kt-${a.id}" onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${advances})" class="w-12 p-0.5 border rounded text-center font-bold"> x${ktPcs}</div>
-              <div>沙田($): <input type="number" step="0.1" value="${pSt}" id="p-st-${a.id}" onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${advances})" class="w-12 p-0.5 border rounded text-center font-bold"> x${stPcs}</div>
-            </div>
+  container.innerHTML = targetAccounts.map(a => {
+    const pureTargetName = cleanName(a.name);
+    const reports = window.dailyReports || [];
 
-            <div class="flex justify-between items-center text-xs">
-              <span>基本應發工資:</span>
-              <b class="text-slate-900" id="gross-${a.id}">HK$ ${baseGross.toFixed(2)}</b>
-            </div>
+    const staffReports = reports.filter(r => {
+      const rName = cleanName(r.staff || r['步兵姓名'] || r['人員姓名'] || r['姓名'] || '');
+      const rDate = normalizeDate(r.date || r['日期'] || r['報數日期'] || '');
 
-            <div class="flex justify-between items-center text-xs text-rose-600">
-              <label class="flex items-center gap-1 cursor-pointer font-bold">
-                <input type="checkbox" id="chk-adv-${a.id}" checked onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${advances})">
-                扣除預支金額 ($):
-              </label>
-              <input type="number" value="${advances}" id="deduct-adv-${a.id}" onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${advances})" class="w-20 p-0.5 border border-rose-300 rounded text-right font-bold text-rose-600">
-            </div>
+      const matchStaff = rName && (rName.includes(pureTargetName) || pureTargetName.includes(rName));
+      let matchDate = true;
+      if (sDate && rDate && rDate < sDate) matchDate = false;
+      if (eDate && rDate && rDate > eDate) matchDate = false;
 
-            <div class="flex justify-between items-center text-sm font-bold text-emerald-700 border-t pt-1.5">
-              <span>扣除後實發工資:</span>
-              <span class="text-base" id="net-${a.id}">HK$ ${(baseGross - advances).toFixed(2)}</span>
-            </div>
+      return matchStaff && matchDate;
+    });
 
-            <div class="pt-1.5 border-t space-y-1.5">
-              <input type="text" id="note-${a.id}" placeholder="📝 出糧核對備註說明 (如: 含津貼/已扣罰款)" class="w-full p-1.5 bg-white border rounded text-[11px]">
-              <div class="flex justify-between items-center text-xs">
-                <span class="text-slate-500">出糧方式: 轉數快 / 現金</span>
-                <label class="font-bold text-emerald-600 flex items-center gap-1 cursor-pointer">
-                  <input type="checkbox"> 已轉賬 ✅
-                </label>
-              </div>
+    let skwPcs = staffReports.reduce((sum, cur) => sum + Number(cur.skw || cur['東區票數'] || cur['東區'] || cur['SKW'] || 0), 0);
+    let lgPcs = staffReports.reduce((sum, cur) => sum + Number(cur.lg || cur['麗港城票數'] || cur['麗港城'] || cur['LG'] || 0), 0);
+    let ktPcs = staffReports.reduce((sum, cur) => sum + Number(cur.kt || cur['工商區票數'] || cur['工商'] || cur['KTIND'] || cur['KT'] || 0), 0);
+    let stPcs = staffReports.reduce((sum, cur) => sum + Number(cur.st || cur['沙田(F58)'] || cur['沙田票數'] || cur['沙田'] || cur['ST'] || 0), 0);
+    let totPcs = staffReports.reduce((sum, cur) => sum + Number(cur.totalPieces || cur['總票數'] || cur['每日總件數'] || cur['總件數'] || 0), 0);
+
+    if (totPcs === 0 && (skwPcs + lgPcs + ktPcs + stPcs) > 0) {
+      totPcs = skwPcs + lgPcs + ktPcs + stPcs;
+    }
+
+    const pEast = 4.0, pLg = 4.0, pKt = 4.5, pSt = 6.0;
+    const baseSal = (skwPcs * pEast) + (lgPcs * pLg) + (ktPcs * pKt) + (stPcs * pSt);
+    const maxAdv = a.advances || 0;
+
+    return `
+      <div class="p-4 bg-white border rounded-2xl shadow-xs space-y-3" id="salary-card-${a.id}">
+        <div class="flex justify-between items-center border-b pb-2">
+          <div>
+            <span class="font-bold text-slate-800 text-base">👤 ${a.name}</span>
+            <span class="text-xs text-slate-500 ml-2">${a.id || ''}</span>
+          </div>
+          <div class="text-xs space-x-2">
+            <span class="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">區間總件數: <b id="tot-pcs-${a.id}">${totPcs}</b> 票</span>
+            ${maxAdv > 0 ? `<span class="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">⚠️ 剩餘預支餘額: HK$ ${maxAdv.toFixed(2)}</span>` : ''}
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+          <div class="p-2 border rounded-lg bg-slate-50 space-y-1">
+            <span class="text-slate-500">東區($):</span>
+            <div class="flex items-center gap-1">
+              <input type="number" step="0.1" id="p-skw-${a.id}" value="${pEast}" onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${maxAdv})" class="w-14 p-1 bg-white border rounded text-center font-bold">
+              <span>x${skwPcs}</span>
             </div>
           </div>
-        `;
-      }).join('');
-    }
+          <div class="p-2 border rounded-lg bg-slate-50 space-y-1">
+            <span class="text-slate-500">麗港城($):</span>
+            <div class="flex items-center gap-1">
+              <input type="number" step="0.1" id="p-lg-${a.id}" value="${pLg}" onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${maxAdv})" class="w-14 p-1 bg-white border rounded text-center font-bold">
+              <span>x${lgPcs}</span>
+            </div>
+          </div>
+          <div class="p-2 border rounded-lg bg-slate-50 space-y-1">
+            <span class="text-slate-500">工商($):</span>
+            <div class="flex items-center gap-1">
+              <input type="number" step="0.1" id="p-kt-${a.id}" value="${pKt}" onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${maxAdv})" class="w-14 p-1 bg-white border rounded text-center font-bold">
+              <span>x${ktPcs}</span>
+            </div>
+          </div>
+          <div class="p-2 border rounded-lg bg-slate-50 space-y-1">
+            <span class="text-slate-500">沙田($):</span>
+            <div class="flex items-center gap-1">
+              <input type="number" step="0.1" id="p-st-${a.id}" value="${pSt}" onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${maxAdv})" class="w-14 p-1 bg-white border rounded text-center font-bold">
+              <span>x${stPcs}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-1 text-xs pt-1">
+          <div class="flex justify-between">
+            <span class="text-slate-600">基本應發工資:</span>
+            <span class="font-bold text-slate-800" id="base-sal-${a.id}">HK$ ${baseSal.toFixed(2)}</span>
+          </div>
+          <div class="flex justify-between items-center text-rose-600">
+            <label class="flex items-center gap-1">
+              <input type="checkbox" id="chk-adv-${a.id}" checked onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${maxAdv})"> 扣除預支金額 ($):
+            </label>
+            <input type="number" id="deduct-adv-${a.id}" value="${maxAdv}" onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${maxAdv})" class="w-20 p-1 bg-white border border-rose-300 rounded text-right font-bold text-rose-600">
+          </div>
+          <div class="flex justify-between text-sm font-bold text-emerald-700 pt-1 border-t">
+            <span>扣除後實發工資:</span>
+            <span id="final-sal-${a.id}">HK$ ${Math.max(0, baseSal - maxAdv).toFixed(2)}</span>
+          </div>
+        </div>
+
+        <div class="pt-1.5 border-t space-y-1.5">
+          <input type="text" id="note-${a.id}" placeholder="📝 出糧核對備註說明（如：含津貼/已扣罰款）" class="w-full p-1.5 bg-slate-50 border rounded text-xs">
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-slate-500">出糧方式: 轉數快 / 現金</span>
+            <label class="font-bold text-emerald-600 flex items-center gap-1 cursor-pointer">
+              <input type="checkbox" id="paid-${a.id}"> 已轉賬 ✅
+            </label>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
 
     function recomputeCard(id, skwPcs, lgPcs, ktPcs, stPcs, maxAdv) {
       let pSkw = Number(document.getElementById(`p-skw-${id}`).value) || 0;
