@@ -1551,7 +1551,7 @@ function quickExportText(type) {
       alert(`✅ 成功新增人員：${n} (自動編號: ${autoId})`);
     }
 
-   function calculateSalaries() {
+  function calculateSalaries() {
   const container = document.getElementById('salary-cards-container');
   if (!container) return;
 
@@ -1559,57 +1559,88 @@ function quickExportText(type) {
   const sDateRaw = document.getElementById('salary-start-date') ? document.getElementById('salary-start-date').value : '';
   const eDateRaw = document.getElementById('salary-end-date') ? document.getElementById('salary-end-date').value : '';
 
-  // 標準化日期為 YYYY-MM-DD
-  function normalizeDate(d) {
-    if (!d) return '';
-    if (typeof d === 'string') {
-      d = d.trim().replace(/\//g, '-');
-      const parts = d.split('-');
-      if (parts.length === 3) {
-        if (parts[0].length === 4) return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
-        if (parts[2].length === 4) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-      }
-    }
-    return String(d).substring(0, 10);
+  // 1. 跨多個儲存來源尋找報數資料
+  let reports = window.dailyReports || [];
+  if (!reports || reports.length === 0) {
+    try {
+      reports = JSON.parse(localStorage.getItem('dailyReports') || localStorage.getItem('local_daily_reports') || '[]');
+    } catch(e) { reports = []; }
   }
 
-  const sDate = normalizeDate(sDateRaw);
-  const eDate = normalizeDate(eDateRaw);
-
+  // 2. 清洗名字（移除 KM隊、括號、全形半形空白）
   function cleanName(n) {
     if (!n) return '';
-    return String(n).replace(/\(.*?\)/g, '').replace(/（.*?）/g, '').trim();
+    return String(n).replace(/\(.*?\)/g, '').replace(/（.*?）/g, '').replace(/\[.*?\]/g, '').replace(/\s+/g, '').trim().toLowerCase();
   }
 
-  const targetAccounts = filterStaff === 'ALL' 
-    ? accounts 
-    : accounts.filter(a => cleanName(a.name) === cleanName(filterStaff) || (a.id && filterStaff.includes(a.id)));
+  // 3. 通用數字提取（自動支援中英文多種欄位名）
+  function getVal(row, keys) {
+    for (let k of keys) {
+      if (row[k] !== undefined && row[k] !== null && row[k] !== '') {
+        let val = Number(row[k]);
+        if (!isNaN(val)) return val;
+      }
+    }
+    // 模糊鍵值比對
+    for (let rk in row) {
+      for (let k of keys) {
+        if (rk.toLowerCase().includes(k.toLowerCase())) {
+          let val = Number(row[rk]);
+          if (!isNaN(val)) return val;
+        }
+      }
+    }
+    return 0;
+  }
+
+  // 決定計算的人員名單
+  let targetAccounts = accounts;
+  if (filterStaff !== 'ALL') {
+    const pFilter = cleanName(filterStaff);
+    targetAccounts = accounts.filter(a => cleanName(a.name).includes(pFilter) || pFilter.includes(cleanName(a.name)));
+    if (targetAccounts.length === 0) {
+      targetAccounts = [{ id: 'KM-TEMP', name: filterStaff.split(' ')[0], team: 'KM', advances: 0 }];
+    }
+  }
+
+  if (reports.length === 0) {
+    container.innerHTML = `
+      <div class="p-6 bg-amber-50 border border-amber-200 rounded-xl text-center space-y-2">
+        <p class="text-amber-800 font-bold">⚠️ 尚未讀取到 Google 每日報數資料</p>
+        <p class="text-xs text-amber-600">請先點擊頂部綠色按鈕「從 Google 刷新全隊最新數據」，或檢查 Google 試算表連線。</p>
+      </div>
+    `;
+    return;
+  }
 
   container.innerHTML = targetAccounts.map(a => {
     const pureTargetName = cleanName(a.name);
-    const reports = window.dailyReports || [];
 
+    // 篩選出該步兵的紀錄
     const staffReports = reports.filter(r => {
-      const rName = cleanName(r.staff || r['步兵姓名'] || r['人員姓名'] || r['姓名'] || '');
-      const rDate = normalizeDate(r.date || r['日期'] || r['報數日期'] || '');
-
-      const matchStaff = rName && (rName.includes(pureTargetName) || pureTargetName.includes(rName));
-      let matchDate = true;
-      if (sDate && rDate && rDate < sDate) matchDate = false;
-      if (eDate && rDate && rDate > eDate) matchDate = false;
-
-      return matchStaff && matchDate;
+      let rName = cleanName(r.staff || r['步兵姓名'] || r['人員姓名'] || r['姓名'] || r['步兵'] || r['人員'] || '');
+      if (!rName) {
+        for (let k in r) {
+          if (k.includes('名') || k.includes('人') || k.includes('步兵')) {
+            rName = cleanName(r[k]);
+            break;
+          }
+        }
+      }
+      return rName && (rName.includes(pureTargetName) || pureTargetName.includes(rName));
     });
 
-    let skwPcs = staffReports.reduce((sum, cur) => sum + Number(cur.skw || cur['東區票數'] || cur['東區'] || cur['SKW'] || 0), 0);
-    let lgPcs = staffReports.reduce((sum, cur) => sum + Number(cur.lg || cur['麗港城票數'] || cur['麗港城'] || cur['LG'] || 0), 0);
-    let ktPcs = staffReports.reduce((sum, cur) => sum + Number(cur.kt || cur['工商區票數'] || cur['工商'] || cur['KTIND'] || cur['KT'] || 0), 0);
-    let stPcs = staffReports.reduce((sum, cur) => sum + Number(cur.st || cur['沙田(F58)'] || cur['沙田票數'] || cur['沙田'] || cur['ST'] || 0), 0);
-    let totPcs = staffReports.reduce((sum, cur) => sum + Number(cur.totalPieces || cur['總票數'] || cur['每日總件數'] || cur['總件數'] || 0), 0);
+    let skwPcs = 0, lgPcs = 0, ktPcs = 0, stPcs = 0, totPcs = 0;
 
-    if (totPcs === 0 && (skwPcs + lgPcs + ktPcs + stPcs) > 0) {
-      totPcs = skwPcs + lgPcs + ktPcs + stPcs;
-    }
+    staffReports.forEach(r => {
+      skwPcs += getVal(r, ['skw', '東區', '筲箕灣', '東區票數']);
+      lgPcs += getVal(r, ['lg', '麗港城', '麗港城票數', '茶果嶺']);
+      ktPcs += getVal(r, ['kt', 'ind', '工商', '工商區', '觀塘']);
+      stPcs += getVal(r, ['st', '沙田', '沙田(F58)', '沙田票數']);
+      totPcs += getVal(r, ['totalPieces', '總票數', '每日總件數', '總件數', 'total']);
+    });
+
+    if (totPcs === 0) totPcs = skwPcs + lgPcs + ktPcs + stPcs;
 
     const pEast = 4.0, pLg = 4.0, pKt = 4.5, pSt = 6.0;
     const baseSal = (skwPcs * pEast) + (lgPcs * pLg) + (ktPcs * pKt) + (stPcs * pSt);
@@ -1622,73 +1653,25 @@ function quickExportText(type) {
             <span class="font-bold text-slate-800 text-base">👤 ${a.name}</span>
             <span class="text-xs text-slate-500 ml-2">${a.id || ''}</span>
           </div>
-          <div class="text-xs space-x-2">
-            <span class="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">區間總件數: <b id="tot-pcs-${a.id}">${totPcs}</b> 票</span>
-            ${maxAdv > 0 ? `<span class="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">⚠️ 剩餘預支餘額: HK$ ${maxAdv.toFixed(2)}</span>` : ''}
-          </div>
+          <span class="text-xs font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700">找到 ${staffReports.length} 筆紀錄 | 總計: ${totPcs} 票</span>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-          <div class="p-2 border rounded-lg bg-slate-50 space-y-1">
-            <span class="text-slate-500">東區($):</span>
-            <div class="flex items-center gap-1">
-              <input type="number" step="0.1" id="p-skw-${a.id}" value="${pEast}" onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${maxAdv})" class="w-14 p-1 bg-white border rounded text-center font-bold">
-              <span>x${skwPcs}</span>
-            </div>
-          </div>
-          <div class="p-2 border rounded-lg bg-slate-50 space-y-1">
-            <span class="text-slate-500">麗港城($):</span>
-            <div class="flex items-center gap-1">
-              <input type="number" step="0.1" id="p-lg-${a.id}" value="${pLg}" onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${maxAdv})" class="w-14 p-1 bg-white border rounded text-center font-bold">
-              <span>x${lgPcs}</span>
-            </div>
-          </div>
-          <div class="p-2 border rounded-lg bg-slate-50 space-y-1">
-            <span class="text-slate-500">工商($):</span>
-            <div class="flex items-center gap-1">
-              <input type="number" step="0.1" id="p-kt-${a.id}" value="${pKt}" onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${maxAdv})" class="w-14 p-1 bg-white border rounded text-center font-bold">
-              <span>x${ktPcs}</span>
-            </div>
-          </div>
-          <div class="p-2 border rounded-lg bg-slate-50 space-y-1">
-            <span class="text-slate-500">沙田($):</span>
-            <div class="flex items-center gap-1">
-              <input type="number" step="0.1" id="p-st-${a.id}" value="${pSt}" onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${maxAdv})" class="w-14 p-1 bg-white border rounded text-center font-bold">
-              <span>x${stPcs}</span>
-            </div>
-          </div>
+          <div class="p-2 border rounded-lg bg-slate-50"><span class="text-slate-500">東區 ($${pEast}):</span> <b>x${skwPcs}</b></div>
+          <div class="p-2 border rounded-lg bg-slate-50"><span class="text-slate-500">麗港城 ($${pLg}):</span> <b>x${lgPcs}</b></div>
+          <div class="p-2 border rounded-lg bg-slate-50"><span class="text-slate-500">工商 ($${pKt}):</span> <b>x${ktPcs}</b></div>
+          <div class="p-2 border rounded-lg bg-slate-50"><span class="text-slate-500">沙田 ($${pSt}):</span> <b>x${stPcs}</b></div>
         </div>
 
-        <div class="space-y-1 text-xs pt-1">
-          <div class="flex justify-between">
-            <span class="text-slate-600">基本應發工資:</span>
-            <span class="font-bold text-slate-800" id="base-sal-${a.id}">HK$ ${baseSal.toFixed(2)}</span>
-          </div>
-          <div class="flex justify-between items-center text-rose-600">
-            <label class="flex items-center gap-1">
-              <input type="checkbox" id="chk-adv-${a.id}" checked onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${maxAdv})"> 扣除預支金額 ($):
-            </label>
-            <input type="number" id="deduct-adv-${a.id}" value="${maxAdv}" onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs}, ${maxAdv})" class="w-20 p-1 bg-white border border-rose-300 rounded text-right font-bold text-rose-600">
-          </div>
-          <div class="flex justify-between text-sm font-bold text-emerald-700 pt-1 border-t">
-            <span>扣除後實發工資:</span>
-            <span id="final-sal-${a.id}">HK$ ${Math.max(0, baseSal - maxAdv).toFixed(2)}</span>
-          </div>
-        </div>
-
-        <div class="pt-1.5 border-t space-y-1.5">
-          <input type="text" id="note-${a.id}" placeholder="📝 出糧核對備註說明（如：含津貼/已扣罰款）" class="w-full p-1.5 bg-slate-50 border rounded text-xs">
-          <div class="flex justify-between items-center text-xs">
-            <span class="text-slate-500">出糧方式: 轉數快 / 現金</span>
-            <label class="font-bold text-emerald-600 flex items-center gap-1 cursor-pointer">
-              <input type="checkbox" id="paid-${a.id}"> 已轉賬 ✅
-            </label>
-          </div>
+        <div class="pt-2 border-t flex justify-between items-center text-xs">
+          <span class="text-slate-600">應發工資:</span>
+          <span class="text-base font-bold text-emerald-600">HK$ ${baseSal.toFixed(2)}</span>
         </div>
       </div>
     `;
   }).join('');
 }
+
 
     function recomputeCard(id, skwPcs, lgPcs, ktPcs, stPcs, maxAdv) {
       let pSkw = Number(document.getElementById(`p-skw-${id}`).value) || 0;
