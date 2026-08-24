@@ -827,68 +827,167 @@ let fencesData = {
       fenceSel.innerHTML = fences.map(f => `<option value="${f.name}">${f.name}</option>`).join('') || '<option value="">尚無圍欄</option>';
     }
 
-    function getShiftStyle(icon) {
-      if (!icon || icon === '-') return "bg-white text-slate-300";
-      if (icon.includes('全天') || icon.includes('☀️')) return "bg-emerald-500 text-white font-bold";
-      if (icon.includes('半日') || icon.includes('⛅')) return "bg-amber-400 text-slate-900 font-bold";
-      if (icon.includes('救火') || icon.includes('🔥')) return "bg-purple-600 text-white font-black ring-2 ring-purple-300";
-      if (icon.includes('放假') || icon.includes('🏖️')) return "bg-rose-500 text-white font-black";
-      return "bg-slate-100 text-slate-700 font-bold";
-    }
+    // ==================== 14天報更 + 考勤標籤 + 上下午拆位 (適配原版 ID) ====================
+const SHIFT_TYPES = [
+  '🏖️ 放假',
+  '☀️ 全天｜全區',
+  '🌊 全天｜東區',
+  '🏙️ 全天｜麗港城',
+  '🏭 全天｜工商',
+  '🌲 全天｜沙田',
+  '🌅 上午半天',
+  '🌆 下午半天',
+  '🚒 隨時救火'
+];
 
-    function render14DaysTable() {
-      const theadRow = document.getElementById('schedule-header-row');
-      const tbody = document.getElementById('schedule-body-container');
-      if (!theadRow || !tbody) return;
+const ZONE_OPTIONS = ['無/放假', '東區', '麗港城', '工商', '沙田', '待定'];
+const ATTENDANCE_PENALTY_TAGS = ['⏰ 遲到', '⚽ 射波', '🏃 無故早走', '⚠️ 臨請'];
 
-      const dates = [];
-      const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-      theadRow.innerHTML = '<th class="p-2.5 border border-slate-700 sticky left-0 bg-slate-900 z-10 w-28 text-white">人員姓名</th><th class="p-2.5 border border-slate-700 w-16 text-white">隊伍</th>';
-      
-      for (let i = 0; i < 14; i++) {
-        let d = new Date();
-        d.setDate(d.getDate() + i);
-        let m = d.getMonth() + 1;
-        let day = d.getDate();
-        let yyyy = d.getFullYear();
-        let dStr = `${yyyy}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-        dates.push(dStr);
-        let th = document.createElement('th');
-        th.className = "p-2 border border-slate-700 text-center min-w-[76px] bg-slate-900 text-white";
-        th.innerHTML = `<div>${m}/${day}</div><div class="text-[10px] text-amber-400 font-bold">(${weekdays[d.getDay()]})</div>`;
-        theadRow.appendChild(th);
-      }
+function getShiftStyle(icon) {
+  if (!icon || icon === '-' || icon.includes('放假')) return "bg-slate-50 text-slate-400 border border-slate-200";
+  if (icon.includes('全天') || icon.includes('☀️') || icon.includes('🌊') || icon.includes('🏙️')) return "bg-emerald-500 text-white font-bold";
+  if (icon.includes('半日') || icon.includes('半天') || icon.includes('🌅') || icon.includes('🌆')) return "bg-amber-400 text-slate-900 font-bold";
+  if (icon.includes('救火') || icon.includes('🔥') || icon.includes('🚒')) return "bg-purple-600 text-white font-bold";
+  return "bg-slate-100 text-slate-700 font-bold";
+}
 
-      tbody.innerHTML = '';
-      accounts.forEach(a => {
-        let tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50";
-        tr.innerHTML = `<td class="p-2 font-bold border border-slate-200 sticky left-0 bg-white z-10 text-slate-900 text-left">${a.name}</td><td class="p-2 border border-slate-200 text-slate-500 font-bold">${a.team}</td>`;
-        
-        dates.forEach(dStr => {
-          let td = document.createElement('td');
-          td.className = "p-1.5 border border-slate-200 text-center cursor-pointer select-none transition ";
-          
-          let cleanName = a.name.replace(/\s+/g, '');
-          let k1 = `${a.name}_${dStr}`;
-          let k2 = `${cleanName}_${dStr}`;
-          let s = shiftsRecord[k1] || shiftsRecord[k2];
-          
-          if (s && s.icon && s.icon !== '-') {
-            td.innerHTML = `<div class="text-[11px] leading-tight">${s.icon}</div>${s.zone ? `<div class="text-[9px] opacity-90 truncate">${s.zone}</div>` : ''}`;
-            td.title = (s.zone ? s.zone + ' ' : '') + (s.note || '');
-            td.className += getShiftStyle(s.icon) + " rounded-md m-0.5";
-          } else {
-            td.textContent = '-';
-            td.className += " text-slate-300 hover:bg-blue-50";
-          }
-          
-          td.onclick = function() { cycleShiftCell(a.name, dStr, td); };
-          tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-      });
-    }
+function render14DaysTable() {
+  const theadRow = document.getElementById('schedule-header-row');
+  const tbody = document.getElementById('schedule-body-container');
+  if (!theadRow || !tbody) return;
+
+  const isMia = currentUser && (currentUser.name === 'Mia' || currentUser.isMia === true || (currentUser.role && currentUser.role.includes('總管理員')));
+  const isLeaderOrMia = currentUser && (isMia || (currentUser.role && currentUser.role.includes('組長')));
+  const staffList = window.accounts || [];
+
+  // 生成 14 天日期
+  const dates = [];
+  const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+  const today = new Date();
+  
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    const m = d.getMonth() + 1;
+    const day = d.getDate();
+    const w = weekdays[d.getDay()];
+    const iso = d.toISOString().substring(0, 10);
+    dates.push({ iso, label: `${m}/${day}`, w });
+  }
+
+  // 1. 渲染表頭
+  let thHtml = `<th class="p-2.5 border border-slate-700 sticky left-0 bg-slate-900 z-10 min-w-[80px]">人員姓名</th>`;
+  dates.forEach(d => {
+    thHtml += `<th class="p-2 border border-slate-700 min-w-[100px] text-center font-bold">${d.label}<br><span class="text-[10px] text-slate-400">(${d.w})</span></th>`;
+  });
+  theadRow.innerHTML = thHtml;
+
+  // 2. 渲染內容
+  tbody.innerHTML = staffList.map(a => {
+    const sName = a.name.split(' ')[0].split('(')[0];
+    let rowHtml = `
+      <tr class="hover:bg-slate-50/60 transition border-b border-slate-200">
+        <td class="p-2.5 font-bold text-slate-800 border-r border-slate-200 sticky left-0 bg-white z-10 shadow-xs">
+          ${sName}
+        </td>
+    `;
+
+    dates.forEach(d => {
+      const shift = (a.shifts && a.shifts[d.iso]) || '🏖️ 放假';
+      const penalty = (a.penalties && a.penalties[d.iso]) || '';
+      const splitPlan = (a.splitShifts && a.splitShifts[d.iso]) || { am: '待定', pm: '待定' };
+      const styleCls = getShiftStyle(shift);
+
+      rowHtml += `
+        <td class="p-1 border-r border-slate-200 align-top space-y-1">
+          <button onclick="cycleShiftCell('${a.id}', '${d.iso}')" class="w-full py-1 px-1 rounded text-[11px] font-bold transition shadow-2xs ${styleCls}">
+            ${shift}
+          </button>
+
+          <!-- 上下午拆位選項 (Mia 可改，其他人只讀) -->
+          <div class="p-1 bg-slate-50 rounded border border-slate-200 text-[10px] space-y-0.5">
+            <div class="flex items-center justify-between">
+              <span class="text-amber-700 font-bold">上:</span>
+              ${isMia ? `
+                <select onchange="updateSplitZone('${a.id}', '${d.iso}', 'am', this.value)" class="p-0.5 bg-white border rounded text-[9px]">
+                  ${ZONE_OPTIONS.map(z => `<option value="${z}" ${splitPlan.am === z ? 'selected' : ''}>${z}</option>`).join('')}
+                </select>
+              ` : `<span class="font-bold text-slate-700">${splitPlan.am}</span>`}
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-indigo-700 font-bold">下:</span>
+              ${isMia ? `
+                <select onchange="updateSplitZone('${a.id}', '${d.iso}', 'pm', this.value)" class="p-0.5 bg-white border rounded text-[9px]">
+                  ${ZONE_OPTIONS.map(z => `<option value="${z}" ${splitPlan.pm === z ? 'selected' : ''}>${z}</option>`).join('')}
+                </select>
+              ` : `<span class="font-bold text-slate-700">${splitPlan.pm}</span>`}
+            </div>
+          </div>
+
+          ${penalty ? `<div class="bg-rose-500 text-white text-[9px] font-bold rounded px-1 py-0.2">${penalty}</div>` : ''}
+        </td>
+      `;
+    });
+
+    rowHtml += `</tr>`;
+    return rowHtml;
+  }).join('');
+
+  // 3. 自動填滿所有下拉選單
+  populateStaffSelects();
+}
+
+function cycleShiftCell(aid, isoDate) {
+  const acc = (window.accounts || []).find(a => a.id === aid);
+  if (!acc) return;
+  if (!acc.shifts) acc.shifts = {};
+
+  const curr = acc.shifts[isoDate] || '🏖️ 放假';
+  const nextIdx = (SHIFT_TYPES.indexOf(curr) + 1) % SHIFT_TYPES.length;
+  acc.shifts[isoDate] = SHIFT_TYPES[nextIdx];
+
+  localStorage.setItem('local_accounts', JSON.stringify(window.accounts));
+  render14DaysTable();
+}
+
+function updateSplitZone(aid, isoDate, period, val) {
+  const acc = (window.accounts || []).find(a => a.id === aid);
+  if (!acc) return;
+  if (!acc.splitShifts) acc.splitShifts = {};
+  if (!acc.splitShifts[isoDate]) acc.splitShifts[isoDate] = { am: '待定', pm: '待定' };
+
+  acc.splitShifts[isoDate][period] = val;
+  localStorage.setItem('local_accounts', JSON.stringify(window.accounts));
+}
+
+function populateStaffSelects() {
+  const staffList = window.accounts || [];
+  
+  // 頂部登入下拉
+  const loginSelect = document.getElementById('login-staff') || document.querySelector('select[name="login-staff"]') || document.querySelectorAll('select')[0];
+  if (loginSelect) {
+    const cur = loginSelect.value;
+    let h = `<option value="">-- 請選擇人員 --</option><option value="Mia">👑 Mia (KM隊 - 總管理員)</option>`;
+    staffList.forEach(a => {
+      const n = a.name || a;
+      if (!n.includes('Mia')) h += `<option value="${n}">${n}</option>`;
+    });
+    loginSelect.innerHTML = h;
+    if (cur) loginSelect.value = cur;
+  }
+
+  // 報更區人員下拉
+  const rosterSelect = document.getElementById('roster-staff') || document.querySelector('select[name="roster-staff"]') || document.querySelectorAll('select')[1];
+  if (rosterSelect) {
+    let h = `<option value="">-- 請選擇報更人員 --</option>`;
+    staffList.forEach(a => {
+      const n = a.name || a;
+      h += `<option value="${n}">${n}</option>`;
+    });
+    rosterSelect.innerHTML = h;
+  }
+}
+
 
     async function cycleShiftCell(name, dateStr, tdEl) {
       let key = `${name}_${dateStr}`;
