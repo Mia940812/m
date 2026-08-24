@@ -1897,7 +1897,9 @@ window.defaultAccounts = [
 ];
 
 window.accounts = window.defaultAccounts;
-localStorage.setItem('local_accounts', JSON.stringify(window.accounts));
+try {
+  localStorage.setItem('local_accounts', JSON.stringify(window.accounts));
+} catch(e){}
 
 var STAFF_ALIAS_MAP = {
   '吳瑋儒': ['吳瑋儒', '瑋儒'],
@@ -1928,11 +1930,10 @@ function isRecordMatchStaff(reportName, targetName) {
   return false;
 }
 
-// 登入功能 (對應 handleHeaderLogin)
 function handleHeaderLogin() {
   var sel = document.getElementById('user-role-select');
   if (!sel || !sel.value) {
-    alert('⚠️ 請先選擇人員再登入！');
+    alert('請先選擇人員再登入！');
     return;
   }
   var val = sel.value;
@@ -1949,16 +1950,15 @@ function handleHeaderLogin() {
 
   localStorage.setItem('currentUser', JSON.stringify(window.currentUser));
   applyRolePermissions();
-  alert('✅ 歡迎登入，' + window.currentUser.name + ' [' + (window.currentUser.team || 'KM') + '隊 - ' + (window.currentUser.role || '步兵') + ']！');
+  alert('歡迎登入，' + window.currentUser.name + '！');
   render14DaysTable();
 }
 
-// 登出功能 (對應 logoutSession)
 function logoutSession() {
   window.currentUser = null;
   localStorage.removeItem('currentUser');
   applyRolePermissions();
-  alert('🔒 已成功登出！');
+  alert('已成功登出！');
   render14DaysTable();
 }
 
@@ -1981,7 +1981,7 @@ function applyRolePermissions() {
       badge.innerHTML = '👑 Mia (總管理員)';
       badge.className = 'px-1.5 py-0.5 rounded text-[10px] bg-purple-700 text-white font-bold';
     } else if (user) {
-      badge.innerHTML = '👤 ' + user.name + ' [' + (user.team || 'KM') + '隊 - ' + (user.role || '步兵') + ']';
+      badge.innerHTML = '👤 ' + user.name + ' [' + (user.team || 'KM') + '隊]';
       badge.className = 'px-1.5 py-0.5 rounded text-[10px] bg-blue-600 text-white font-bold';
     } else {
       badge.innerHTML = '🔒 訪客模式 (未登入)';
@@ -2108,34 +2108,12 @@ function populateStaffSelects() {
   }
 }
 
-// 雲端同步 (對應 fetchAllCloudData(true))
-async function fetchAllCloudData(showPrompt) {
-  var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycT7_l2B506K4zP37jG6Y3wZk2gN56N7j-example/exec';
-  try {
-    var res = await fetch(SCRIPT_URL + '?action=getAllData');
-    var data = await res.json();
-    if (data.accounts && data.accounts.length > 0) {
-      window.accounts = data.accounts;
-      localStorage.setItem('local_accounts', JSON.stringify(data.accounts));
-    }
-    if (data.dailyReports) {
-      window.dailyReports = data.dailyReports;
-      localStorage.setItem('dailyReports', JSON.stringify(data.dailyReports));
-    }
-    populateStaffSelects();
-    render14DaysTable();
-    if (showPrompt) alert('✅ 成功從雲端同步最新數據！');
-  } catch (err) {
-    if (!window.accounts || window.accounts.length === 0) {
-      window.accounts = window.defaultAccounts;
-      localStorage.setItem('local_accounts', JSON.stringify(window.accounts));
-    }
-    populateStaffSelects();
-    render14DaysTable();
-    if (showPrompt) alert('⚠️ 雲端連線失敗，已載入本地 25 人名冊！');
-  }
+function fetchAllCloudData(showPrompt) {
+  if (showPrompt) alert('已載入本地 25 人名單！');
+  populateStaffSelects();
+  render14DaysTable();
 }
-// 初始化
+
 window.addEventListener('DOMContentLoaded', function() {
   populateStaffSelects();
   render14DaysTable();
