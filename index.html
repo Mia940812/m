@@ -2082,7 +2082,7 @@ function populateStaffSelects() {
   h += '</optgroup>';
 
   h += '<optgroup label="🚗 司機團隊">';
-  staffList.filter(function(a) { return a.role && a.role.indexOf('司機') !== -1; }).forEach(function(a) {
+    staffList.filter(function(a) { return a.role && a.role.indexOf('司機') !== -1; }).forEach(function(a) {
     h += '<option value="' + a.name + '">🚗 ' + a.name + ' (' + a.role + ')</option>';
   });
   h += '</optgroup>';
@@ -2093,11 +2093,41 @@ function populateStaffSelects() {
   });
   h += '</optgroup>';
 
-  var loginSelect = document.getElementById('login-staff') || selects[0];
-  if (loginSelect) {
-    var cur = loginSelect.value;
-    loginSelect.innerHTML = h;
-    if (cur) loginSelect.value = cur;
+  // 自動寫入所有登入選單
+  document.querySelectorAll('select').forEach(function(sel) {
+    if (sel.id === 'login-staff' || sel.innerHTML.indexOf('請選擇') !== -1 || sel.innerHTML.indexOf('Mia') !== -1 || (sel.id && sel.id.indexOf('staff') !== -1)) {
+      var cur = sel.value;
+      sel.innerHTML = h;
+      if (cur) sel.value = cur;
+    }
+  });
+}
+
+// 雲端數據同步核心
+async function fetchAllCloudData() {
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycT7_l2B506K4zP37jG6Y3wZk2gN56N7j-example/exec';
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=getAllData');
+    const data = await res.json();
+    if (data.accounts && data.accounts.length > 0) {
+      window.accounts = data.accounts;
+      localStorage.setItem('local_accounts', JSON.stringify(data.accounts));
+    }
+    if (data.dailyReports) {
+      window.dailyReports = data.dailyReports;
+      localStorage.setItem('dailyReports', JSON.stringify(data.dailyReports));
+    }
+    populateStaffSelects();
+    render14DaysTable();
+    alert('✅ 成功從雲端同步最新數據！');
+  } catch (err) {
+    console.warn('雲端離線模式，載入本地名單');
+    if (!window.accounts || window.accounts.length === 0) {
+      window.accounts = window.defaultAccounts;
+      localStorage.setItem('local_accounts', JSON.stringify(window.accounts));
+    }
+    populateStaffSelects();
+    render14DaysTable();
   }
 }
 
@@ -2110,6 +2140,6 @@ window.addEventListener('DOMContentLoaded', function() {
   var loginBtn = document.querySelector('button[onclick*="login"], button:contains("登入")');
   if (loginBtn) loginBtn.onclick = handleLogin;
 });
-  </script>
+</script>
 </body>
 </html>
