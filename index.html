@@ -2064,36 +2064,38 @@ function cycleShiftCell(aid, isoDate) {
 }
 
 function populateStaffSelects() {
-  var staffList = window.accounts || window.defaultAccounts;
-  var loginSelect = document.getElementById('login-staff') || document.querySelector('select');
+  var staffList = window.accounts || window.defaultAccounts || [];
+  var selects = document.querySelectorAll('select');
+  if (!selects || selects.length === 0) return;
+
+  var h = '<option value="">-- 請選擇人員登入 --</option>';
+  h += '<optgroup label="👑 總管理員">';
+  staffList.filter(function(a) { return a.role === '總管理員' || a.isMia; }).forEach(function(a) {
+    h += '<option value="' + a.name + '">👑 ' + a.name + ' (總管理員)</option>';
+  });
+  h += '</optgroup>';
+
+  h += '<optgroup label="🎖️ 組長群">';
+  staffList.filter(function(a) { return a.role === '組長' || a.isLeader; }).forEach(function(a) {
+    if (a.name !== 'Mia') h += '<option value="' + a.name + '">🎖️ ' + a.name + ' (' + (a.team || '') + '隊組長)</option>';
+  });
+  h += '</optgroup>';
+
+  h += '<optgroup label="🚗 司機團隊">';
+  staffList.filter(function(a) { return a.role && a.role.indexOf('司機') !== -1; }).forEach(function(a) {
+    h += '<option value="' + a.name + '">🚗 ' + a.name + ' (' + a.role + ')</option>';
+  });
+  h += '</optgroup>';
+
+  h += '<optgroup label="🏃 步兵全體">';
+  staffList.filter(function(a) { return !a.isMia && a.role !== '總管理員' && a.role !== '組長' && (!a.role || a.role.indexOf('司機') === -1); }).forEach(function(a) {
+    h += '<option value="' + a.name + '">👤 ' + a.name + ' (' + (a.team || '') + '隊 - ' + (a.role || '步兵') + ')</option>';
+  });
+  h += '</optgroup>';
+
+  var loginSelect = document.getElementById('login-staff') || selects[0];
   if (loginSelect) {
     var cur = loginSelect.value;
-    var h = '<option value="">-- 請選擇人員登入 --</option>';
-    
-    h += '<optgroup label="👑 總管理員">';
-    staffList.filter(function(a) { return a.role === '總管理員'; }).forEach(function(a) {
-      h += '<option value="' + a.name + '">👑 ' + a.name + ' (總管理員)</option>';
-    });
-    h += '</optgroup>';
-
-    h += '<optgroup label="🎖️ 組長群">';
-    staffList.filter(function(a) { return a.role === '組長'; }).forEach(function(a) {
-      h += '<option value="' + a.name + '">🎖️ ' + a.name + ' (' + a.team + '隊組長)</option>';
-    });
-    h += '</optgroup>';
-
-    h += '<optgroup label="🚗 司機團隊">';
-    staffList.filter(function(a) { return a.role.indexOf('司機') !== -1; }).forEach(function(a) {
-      h += '<option value="' + a.name + '">🚗 ' + a.name + ' (' + a.role + ')</option>';
-    });
-    h += '</optgroup>';
-
-    h += '<optgroup label="🏃 步兵全體">';
-    staffList.filter(function(a) { return a.role.indexOf('步兵') !== -1; }).forEach(function(a) {
-      h += '<option value="' + a.name + '">👤 ' + a.name + ' (' + a.team + '隊 - ' + a.role + ')</option>';
-    });
-    h += '</optgroup>';
-
     loginSelect.innerHTML = h;
     if (cur) loginSelect.value = cur;
   }
