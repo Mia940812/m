@@ -2064,51 +2064,57 @@ function cycleShiftCell(aid, isoDate) {
 }
 
 function populateStaffSelects() {
-  var staffList = window.accounts || window.defaultAccounts || [];
-  var selects = document.querySelectorAll('select');
-  if (!selects || selects.length === 0) return;
-
-  var h = '<option value="">-- 請選擇人員登入 --</option>';
-  h += '<optgroup label="👑 總管理員">';
-  staffList.filter(function(a) { return a.role === '總管理員' || a.isMia; }).forEach(function(a) {
-    h += '<option value="' + a.name + '">👑 ' + a.name + ' (總管理員)</option>';
+  var list = window.accounts || window.defaultAccounts || [];
+  var opts = ['<option value="">-- 請選擇人員登入 --</option>'];
+  
+  opts.push('<optgroup label="👑 總管理員">');
+  list.forEach(function(a) {
+    if (a.role === '總管理員' || a.isMia) {
+      opts.push('<option value="' + a.name + '">👑 ' + a.name + ' (總管理員)</option>');
+    }
   });
-  h += '</optgroup>';
+  opts.push('</optgroup>');
 
-  h += '<optgroup label="🎖️ 組長群">';
-  staffList.filter(function(a) { return a.role === '組長' || a.isLeader; }).forEach(function(a) {
-    if (a.name !== 'Mia') h += '<option value="' + a.name + '">🎖️ ' + a.name + ' (' + (a.team || '') + '隊組長)</option>';
+  opts.push('<optgroup label="🎖️ 組長群">');
+  list.forEach(function(a) {
+    if ((a.role === '組長' || a.isLeader) && !a.isMia) {
+      opts.push('<option value="' + a.name + '">🎖️ ' + a.name + ' (' + (a.team || '') + '隊組長)</option>');
+    }
   });
-  h += '</optgroup>';
+  opts.push('</optgroup>');
 
-  h += '<optgroup label="🚗 司機團隊">';
-    staffList.filter(function(a) { return a.role && a.role.indexOf('司機') !== -1; }).forEach(function(a) {
-    h += '<option value="' + a.name + '">🚗 ' + a.name + ' (' + a.role + ')</option>';
+  opts.push('<optgroup label="🚗 司機團隊">');
+  list.forEach(function(a) {
+    if (a.role && a.role.indexOf('司機') !== -1) {
+      opts.push('<option value="' + a.name + '">🚗 ' + a.name + ' (' + a.role + ')</option>');
+    }
   });
-  h += '</optgroup>';
+  opts.push('</optgroup>');
 
-  h += '<optgroup label="🏃 步兵全體">';
-  staffList.filter(function(a) { return !a.isMia && a.role !== '總管理員' && a.role !== '組長' && (!a.role || a.role.indexOf('司機') === -1); }).forEach(function(a) {
-    h += '<option value="' + a.name + '">👤 ' + a.name + ' (' + (a.team || '') + '隊 - ' + (a.role || '步兵') + ')</option>';
+  opts.push('<optgroup label="🏃 步兵全體">');
+  list.forEach(function(a) {
+    var isOther = !a.isMia && a.role !== '總管理員' && a.role !== '組長' && (!a.role || a.role.indexOf('司機') === -1);
+    if (isOther) {
+      opts.push('<option value="' + a.name + '">👤 ' + a.name + ' (' + (a.team || '') + '隊 - ' + (a.role || '步兵') + ')</option>');
+    }
   });
-  h += '</optgroup>';
+  opts.push('</optgroup>');
 
-  // 自動寫入所有登入選單
+  var fullHtml = opts.join('');
   document.querySelectorAll('select').forEach(function(sel) {
-    if (sel.id === 'login-staff' || sel.innerHTML.indexOf('請選擇') !== -1 || sel.innerHTML.indexOf('Mia') !== -1 || (sel.id && sel.id.indexOf('staff') !== -1)) {
+    if (sel.id === 'login-staff' || sel.innerHTML.indexOf('請選擇') !== -1 || (sel.id && sel.id.indexOf('staff') !== -1)) {
       var cur = sel.value;
-      sel.innerHTML = h;
+      sel.innerHTML = fullHtml;
       if (cur) sel.value = cur;
     }
   });
 }
 
-// 雲端數據同步核心
 async function fetchAllCloudData() {
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycT7_l2B506K4zP37jG6Y3wZk2gN56N7j-example/exec';
+  var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycT7_l2B506K4zP37jG6Y3wZk2gN56N7j-example/exec';
   try {
-    const res = await fetch(SCRIPT_URL + '?action=getAllData');
-    const data = await res.json();
+    var res = await fetch(SCRIPT_URL + '?action=getAllData');
+    var data = await res.json();
     if (data.accounts && data.accounts.length > 0) {
       window.accounts = data.accounts;
       localStorage.setItem('local_accounts', JSON.stringify(data.accounts));
@@ -2121,7 +2127,6 @@ async function fetchAllCloudData() {
     render14DaysTable();
     alert('✅ 成功從雲端同步最新數據！');
   } catch (err) {
-    console.warn('雲端離線模式，載入本地名單');
     if (!window.accounts || window.accounts.length === 0) {
       window.accounts = window.defaultAccounts;
       localStorage.setItem('local_accounts', JSON.stringify(window.accounts));
@@ -2131,15 +2136,15 @@ async function fetchAllCloudData() {
   }
 }
 
-// 頁面加載自動執行
 window.addEventListener('DOMContentLoaded', function() {
   populateStaffSelects();
   render14DaysTable();
   applyRolePermissions();
-  
   var loginBtn = document.querySelector('button[onclick*="login"], button:contains("登入")');
   if (loginBtn) loginBtn.onclick = handleLogin;
 });
 </script>
 </body>
 </html>
+
+    
