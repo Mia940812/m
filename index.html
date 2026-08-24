@@ -1769,6 +1769,247 @@ function quickExportText(type) {
     `;
   }).join('');
 }
+// 步兵別名與外號精準映射字典
+const STAFF_ALIAS_MAP = {
+  '吳瑋儒': ['吳瑋儒', '陳瑋儒', '瑋儒'],
+  '家昊': ['家昊', '小肥', '昊昊', '肥仔'],
+  '黃傅釧': ['黃傅釧', '釧', '阿釧'],
+  '梁軒銘': ['梁軒銘', '銘', '阿銘', '軒銘'],
+  '王利民': ['王利民', '細佬', '民', '阿民', '細佬仔'],
+  '倪志康': ['倪志康', '康', '阿康'],
+  '盧智聰': ['盧智聰', '智聰'],
+  '文杰': ['文杰', '阿杰'],
+  'Mia': ['Mia', 'KM-01', '總管理員']
+};
+
+function calculateSalaries() {
+  const container = document.getElementById('salary-cards-container');
+  if (!container) return;
+
+  const isMia = currentUser && (currentUser.name === 'Mia' || currentUser.isMia === true || (currentUser.role && currentUser.role.includes('總管理員')));
+  const isLogged = !!currentUser;
+
+  if (!isLogged) {
+    container.innerHTML = `
+      <div class="p-6 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-2">
+        <p class="text-slate-700 font-bold">🔒 請先登入系統</p>
+        <p class="text-xs text-slate-500">登入後即可查閱個人工資結算與票數明細。</p>
+      </div>
+    `;
+    return;
+  }
+
+  const staffSelectEl = document.getElementById('salary-filter-staff');
+  const filterStaff = staffSelectEl ? staffSelectEl.value : 'ALL';
+  const sDateRaw = document.getElementById('salary-start-date')?.value || '';
+  const eDateRaw = document.getElementById('salary-end-date')?.value || '';
+
+  function normalizeDate(d) {
+    if (!d) return '';
+    if (typeof d === 'string') {
+      d = d.trim().replace(/\//g, '-');
+      const parts = d.split('-');
+      if (parts.length === 3) {
+        if (parts[0].length === 4) return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+        if (parts[2].length === 4) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
+    }
+    return String(d).substring(0, 10);
+  }
+
+  const sDate = normalizeDate(sDateRaw);
+  const eDate = normalizeDate(eDateRaw);
+
+  function cleanName(n) {
+    return String(n || '').replace(/\(.*?\)/g, '').replace(/（.*?）/g, '').replace(/\s+/g, '').trim().toLowerCase();
+  }
+
+  let reports = window.dailyReports || [];
+  if (!reports || reports.length === 0) {
+    try {
+      reports = JSON.parse(localStorage.getItem('dailyReports') || localStorage.getItem('local_daily_reports') || '[]');
+    } catch(e) { reports = []; }
+  }
+
+  function isRecordMatchStaff(reportStaffName, targetAccountName) {
+    const rName = cleanName(reportStaffName);
+    const tName = cleanName(targetAccountName);
+    if (!rName || !tName) return false;
+    if (rName === tName || rName.includes(tName) || tName.includes(rName)) return true;
+
+    for (let key in STAFF_ALIAS_MAP) {
+      const aliases = STAFF_ALIAS_MAP[key].map(a => cleanName(a));
+      const matchTarget = cleanName(key) === tName || aliases.includes(tName);
+      const matchReport = cleanName(key) === rName || aliases.includes(rName);
+      if (matchTarget && matchReport) return true;
+    }
+    return false;
+  }
+
+  function getVal(row, keys) {
+    for (let k of keys) {
+      if (row[k] !== undefined && row[k] !== null && row[k] !== '') {
+        let val = Number(row[k]);
+        if (!isNaN(val)) return val;
+      }
+    }
+    for (let rk in row) {
+      for (let k of keys) {
+        if (rk.toLowerCase().includes(k.toLowerCase())) {
+          let val = Number(row[rk]);
+          if (!isNaN(val)) return val;
+        }
+      }
+    }
+    return 0;
+  }
+
+  let targetAccounts = [];
+  if (isMia) {
+    if (staffSelectEl) staffSelectEl.parentElement.style.display = '';
+    if (filterStaff === 'ALL') {
+      targetAccounts = accounts;
+    } else {
+      targetAccounts = accounts.filter(a => isRecordMatchStaff(filterStaff, a.name));
+    }
+  } else {
+    if (staffSelectEl) staffSelectEl.parentElement.style.display = 'none';
+    targetAccounts = accounts.filter(a => isRecordMatchStaff(currentUser.name, a.name));
+    if (targetAccounts.length === 0) {
+      targetAccounts = [{ id: 'ME', name: currentUser.name, advances: 0 }];
+    }
+  }
+
+  if (targetAccounts.length === 0) {
+    container.innerHTML = `<div class="p-4 text-center text-slate-500 text-xs">查無符合條件的薪資紀錄</div>`;
+    return;
+  }
+
+  container.innerHTML = targetAccounts.map(a => {
+    const staffReports = reports.filter(r => {
+      let rName = r.staff || r['步兵姓名'] || r['人員姓名'] || r['姓名'] || r['步兵'] || r['人員'] || '';
+      if (!rName) {
+        for (let k in r) {
+          if (k.includes('名') || k.includes('人') || k.includes('步兵')) {
+            rName = r[k];
+            break;
+          }
+        }
+      }
+      const rDate = normalizeDate(r.date || r['日期'] || r['報數日期'] || '');
+      const matchStaff = isRecordMatchStaff(rName, a.name);
+      let matchDate = true;
+      if (sDate && rDate && rDate < sDate) matchDate = false;
+      if (eDate && rDate && rDate > eDate) matchDate = false;
+
+      return matchStaff && matchDate;
+    });
+
+    let skwPcs = 0, lgPcs = 0, ktPcs = 0, stPcs = 0, totPcs = 0;
+
+    staffReports.forEach(r => {
+      skwPcs += getVal(r, ['skw', '東區', '筲箕灣', '東區票數']);
+      lgPcs += getVal(r, ['lg', '麗港城', '麗港城票數', '茶果嶺']);
+      ktPcs += getVal(r, ['kt', 'ind', '工商', '工商區', '觀塘']);
+      stPcs += getVal(r, ['st', '沙田', '沙田(F58)', '沙田票數']);
+      totPcs += getVal(r, ['totalPieces', '總票數', '每日總件數', '總件數', 'total']);
+    });
+
+    if (totPcs === 0) totPcs = skwPcs + lgPcs + ktPcs + stPcs;
+
+    const pEast = 4.0, pLg = 4.0, pKt = 4.5, pSt = 6.0;
+    const baseSal = (skwPcs * pEast) + (lgPcs * pLg) + (ktPcs * pKt) + (stPcs * pSt);
+    const maxAdv = a.advances || 0;
+
+    return `
+      <div class="p-4 bg-white border rounded-2xl shadow-xs space-y-3" id="salary-card-${a.id}">
+        <div class="flex justify-between items-center border-b pb-2">
+          <div>
+            <span class="font-bold text-slate-800 text-base">👤 ${a.name} ${!isMia ? '(個人工資卡)' : ''}</span>
+            <span class="text-xs text-slate-500 ml-2">${a.id || ''}</span>
+          </div>
+          <div class="text-xs space-x-2">
+            <span class="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">區間紀錄: <b>${staffReports.length}</b> 筆 | 總計: <b id="tot-pcs-${a.id}">${totPcs}</b> 票</span>
+            ${maxAdv > 0 ? `<span class="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">剩餘預支: HK$ ${maxAdv.toFixed(2)}</span>` : ''}
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+          <div class="p-2 border rounded-lg bg-slate-50 space-y-1">
+            <span class="text-slate-500">東區:</span>
+            <div class="flex items-center gap-1 font-bold">
+              ${isMia ? `<input type="number" step="0.1" id="p-skw-${a.id}" value="${pEast}" oninput="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs})" class="w-14 p-1 bg-white border rounded text-center">` : `<span>$${pEast}</span>`}
+              <span class="text-blue-600">x${skwPcs}</span>
+            </div>
+          </div>
+          <div class="p-2 border rounded-lg bg-slate-50 space-y-1">
+            <span class="text-slate-500">麗港城:</span>
+            <div class="flex items-center gap-1 font-bold">
+              ${isMia ? `<input type="number" step="0.1" id="p-lg-${a.id}" value="${pLg}" oninput="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs})" class="w-14 p-1 bg-white border rounded text-center">` : `<span>$${pLg}</span>`}
+              <span class="text-blue-600">x${lgPcs}</span>
+            </div>
+          </div>
+          <div class="p-2 border rounded-lg bg-slate-50 space-y-1">
+            <span class="text-slate-500">工商:</span>
+            <div class="flex items-center gap-1 font-bold">
+              ${isMia ? `<input type="number" step="0.1" id="p-kt-${a.id}" value="${pKt}" oninput="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs})" class="w-14 p-1 bg-white border rounded text-center">` : `<span>$${pKt}</span>`}
+              <span class="text-blue-600">x${ktPcs}</span>
+            </div>
+          </div>
+          <div class="p-2 border rounded-lg bg-slate-50 space-y-1">
+            <span class="text-slate-500">沙田:</span>
+            <div class="flex items-center gap-1 font-bold">
+              ${isMia ? `<input type="number" step="0.1" id="p-st-${a.id}" value="${pSt}" oninput="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs})" class="w-14 p-1 bg-white border rounded text-center">` : `<span>$${pSt}</span>`}
+              <span class="text-blue-600">x${stPcs}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-1 text-xs pt-1">
+          <div class="flex justify-between">
+            <span class="text-slate-600">基本應發工資:</span>
+            <span class="font-bold text-slate-800" id="base-sal-${a.id}">HK$ ${baseSal.toFixed(2)}</span>
+          </div>
+          
+          ${isMia ? `
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <div class="flex items-center justify-between text-rose-600 bg-rose-50/50 p-1.5 rounded border border-rose-100">
+                <label class="flex items-center gap-1">
+                  <input type="checkbox" id="chk-adv-${a.id}" checked onchange="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs})"> 扣除預支/罰款:
+                </label>
+                <input type="number" id="deduct-adv-${a.id}" value="${maxAdv}" oninput="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs})" class="w-16 p-1 bg-white border border-rose-300 rounded text-right font-bold text-rose-600">
+              </div>
+
+              <div class="flex items-center justify-between text-emerald-700 bg-emerald-50/50 p-1.5 rounded border border-emerald-100">
+                <span>津貼 / Bonus ($):</span>
+                <input type="number" id="bonus-val-${a.id}" value="0" oninput="recomputeCard('${a.id}', ${skwPcs}, ${lgPcs}, ${ktPcs}, ${stPcs})" class="w-16 p-1 bg-white border border-emerald-300 rounded text-right font-bold text-emerald-700">
+              </div>
+            </div>
+          ` : ''}
+
+          <div class="flex justify-between text-sm font-bold text-emerald-700 pt-2 border-t">
+            <span>實發工資:</span>
+            <span id="final-sal-${a.id}">HK$ ${Math.max(0, baseSal - maxAdv).toFixed(2)}</span>
+          </div>
+        </div>
+
+        <div class="pt-1.5 border-t space-y-1.5 text-xs">
+          ${isMia ? `
+            <input type="text" id="note-${a.id}" placeholder="📝 出糧核對備註說明（如：含津貼/已扣罰款）" class="w-full p-1.5 bg-slate-50 border rounded text-xs">
+            <div class="flex justify-between items-center">
+              <span class="text-slate-500">出糧方式: 轉數快 / 現金</span>
+              <label class="font-bold text-emerald-600 flex items-center gap-1 cursor-pointer">
+                <input type="checkbox" id="paid-${a.id}"> 已轉賬 ✅
+              </label>
+            </div>
+          ` : `
+            <div class="text-slate-400 text-[11px] text-right">如對票數或金額有疑問，請向 Mia 查詢</div>
+          `}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
 
 // 實時連動計算各項單價、扣除與 Bonus
 function recomputeCard(id, skw, lg, kt, st) {
