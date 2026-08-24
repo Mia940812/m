@@ -1867,7 +1867,7 @@ function quickExportText(type) {
       </div>
     `;
   }).join('');
-// ==================== 1. 25位完整全體人員名冊 (總管/組長/步兵/司機) ====================
+// ==================== 25位全體人員名冊 ====================
 window.defaultAccounts = [
   { id: 'KM-01', name: 'Mia', team: 'KM', role: '總管理員', isLeader: true, isMia: true },
   { id: 'A-01', name: '詠豪', team: 'A', role: '組長', isLeader: true },
@@ -1896,11 +1896,9 @@ window.defaultAccounts = [
   { id: 'KM-13', name: '陳富強KM', team: 'KM', role: '全職步兵' }
 ];
 
-// 強制同步最新完整名單至本地儲存
 window.accounts = window.defaultAccounts;
 localStorage.setItem('local_accounts', JSON.stringify(window.accounts));
 
-// 別名對照表
 var STAFF_ALIAS_MAP = {
   '吳瑋儒': ['吳瑋儒', '瑋儒'],
   '小肥': ['小肥', '家昊', '昊昊', '肥仔'],
@@ -1922,7 +1920,7 @@ function isRecordMatchStaff(reportName, targetName) {
   var r = cleanStr(reportName);
   var t = cleanStr(targetName);
   if (!r || !t) return false;
-  if (r === t || r.includes(t) || t.includes(r)) return true;
+  if (r === t || r.indexOf(t) !== -1 || t.indexOf(r) !== -1) return true;
   for (var key in STAFF_ALIAS_MAP) {
     var aliases = STAFF_ALIAS_MAP[key].map(function(a) { return cleanStr(a); });
     if ((cleanStr(key) === t || aliases.indexOf(t) !== -1) && (cleanStr(key) === r || aliases.indexOf(r) !== -1)) return true;
@@ -1930,19 +1928,17 @@ function isRecordMatchStaff(reportName, targetName) {
   return false;
 }
 
-// ==================== 2. 登入與權限控制 ====================
-function handleLogin() {
-  var selectEl = document.getElementById('login-staff') || document.querySelector('select');
-  if (!selectEl) return;
-  var val = selectEl.value;
-  if (!val) {
+// 登入功能 (對應 handleHeaderLogin)
+function handleHeaderLogin() {
+  var sel = document.getElementById('user-role-select');
+  if (!sel || !sel.value) {
     alert('⚠️ 請先選擇人員再登入！');
     return;
   }
-  
+  var val = sel.value;
   var staffList = window.accounts || window.defaultAccounts;
   var found = staffList.find(function(a) { return a.name === val || a.id === val; });
-  
+
   if (val === 'Mia' || (found && found.isMia)) {
     window.currentUser = { name: 'Mia', team: 'KM', role: '總管理員', isMia: true, isLeader: true };
   } else if (found) {
@@ -1957,7 +1953,8 @@ function handleLogin() {
   render14DaysTable();
 }
 
-function handleLogout() {
+// 登出功能 (對應 logoutSession)
+function logoutSession() {
   window.currentUser = null;
   localStorage.removeItem('currentUser');
   applyRolePermissions();
@@ -1978,19 +1975,21 @@ function applyRolePermissions() {
     el.style.display = isLeader ? '' : 'none';
   });
 
-  var badge = document.getElementById('login-status-badge');
+  var badge = document.getElementById('current-user-badge');
   if (badge) {
     if (isMia) {
-      badge.innerHTML = '<span class="px-3 py-1 bg-purple-700 text-white font-bold rounded-lg text-xs">👑 Mia (總管理員)</span>';
+      badge.innerHTML = '👑 Mia (總管理員)';
+      badge.className = 'px-1.5 py-0.5 rounded text-[10px] bg-purple-700 text-white font-bold';
     } else if (user) {
-      badge.innerHTML = '<span class="px-3 py-1 bg-blue-600 text-white font-bold rounded-lg text-xs">👤 ' + user.name + ' [' + (user.team || 'KM') + '隊 - ' + (user.role || '步兵') + ']</span>';
+      badge.innerHTML = '👤 ' + user.name + ' [' + (user.team || 'KM') + '隊 - ' + (user.role || '步兵') + ']';
+      badge.className = 'px-1.5 py-0.5 rounded text-[10px] bg-blue-600 text-white font-bold';
     } else {
-      badge.innerHTML = '<span class="px-3 py-1 bg-slate-500 text-white font-bold rounded-lg text-xs">🔒 訪客模式 (未登入)</span>';
+      badge.innerHTML = '🔒 訪客模式 (未登入)';
+      badge.className = 'px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700 font-semibold';
     }
   }
 }
 
-// ==================== 3. 14天公仔報更表格 ====================
 var SHIFT_TYPES = ['🏖️ 放假', '☀️ 全天', '🌊 東區', '🏙️ 麗港城', '🏭 工商', '🌲 沙田', '🌅 上午', '🌆 下午', '🚒 救火'];
 
 function getShiftStyle(icon) {
@@ -2002,8 +2001,8 @@ function getShiftStyle(icon) {
 }
 
 function render14DaysTable() {
-  var theadRow = document.getElementById('schedule-header-row');
-  var tbody = document.getElementById('schedule-body-container');
+  var theadRow = document.getElementById('schedule-header-row') || document.querySelector('thead tr');
+  var tbody = document.getElementById('schedule-body-container') || document.querySelector('tbody');
   if (!theadRow || !tbody) return;
 
   var staffList = window.accounts || window.defaultAccounts;
@@ -2026,7 +2025,7 @@ function render14DaysTable() {
   tbody.innerHTML = staffList.map(function(a) {
     var isMia = a.role === '總管理員';
     var isLeader = a.role === '組長';
-    var isDriver = a.role.indexOf('司機') !== -1;
+    var isDriver = a.role && a.role.indexOf('司機') !== -1;
     var tag = isMia ? '👑' : (isLeader ? '🎖️' : (isDriver ? '🚗' : '👤'));
 
     var rowHtml = '<tr class="hover:bg-slate-50 transition border-b border-slate-200">' +
@@ -2101,16 +2100,16 @@ function populateStaffSelects() {
   opts.push('</optgroup>');
 
   var fullHtml = opts.join('');
-  document.querySelectorAll('select').forEach(function(sel) {
-    if (sel.id === 'login-staff' || sel.innerHTML.indexOf('請選擇') !== -1 || (sel.id && sel.id.indexOf('staff') !== -1)) {
-      var cur = sel.value;
-      sel.innerHTML = fullHtml;
-      if (cur) sel.value = cur;
-    }
-  });
+  var sel = document.getElementById('user-role-select');
+  if (sel) {
+    var cur = sel.value;
+    sel.innerHTML = fullHtml;
+    if (cur) sel.value = cur;
+  }
 }
 
-async function fetchAllCloudData() {
+// 雲端同步 (對應 fetchAllCloudData(true))
+async function fetchAllCloudData(showPrompt) {
   var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycT7_l2B506K4zP37jG6Y3wZk2gN56N7j-example/exec';
   try {
     var res = await fetch(SCRIPT_URL + '?action=getAllData');
@@ -2125,6 +2124,7 @@ async function fetchAllCloudData() {
     }
     populateStaffSelects();
     render14DaysTable();
+    if (showPrompt) alert('✅ 成功從雲端同步最新數據！');
   } catch (err) {
     if (!window.accounts || window.accounts.length === 0) {
       window.accounts = window.defaultAccounts;
@@ -2132,15 +2132,15 @@ async function fetchAllCloudData() {
     }
     populateStaffSelects();
     render14DaysTable();
+    if (showPrompt) alert('⚠️ 雲端連線失敗，已載入本地 25 人名冊！');
   }
 }
 
+// 初始化
 window.addEventListener('DOMContentLoaded', function() {
   populateStaffSelects();
   render14DaysTable();
   applyRolePermissions();
-  var loginBtn = document.querySelector('button[onclick*="login"], button:contains("登入")');
-  if (loginBtn) loginBtn.onclick = handleLogin;
 });
 </script>
 </body>
