@@ -2132,6 +2132,42 @@ window.addEventListener('DOMContentLoaded', function() {
   render14DaysTable();
   applyRolePermissions();
 });
+// ==================== 雲端數據同步核心 ====================
+async function fetchAllCloudData() {
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycT7_l2B506K4zP37jG6Y3wZk2gN56N7j-example/exec'; // 你的 Apps Script 網址
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=getAllData');
+    const data = await res.json();
+    if (data.accounts) {
+      window.accounts = data.accounts;
+      localStorage.setItem('local_accounts', JSON.stringify(data.accounts));
+    }
+    if (data.dailyReports) {
+      window.dailyReports = data.dailyReports;
+      localStorage.setItem('dailyReports', JSON.stringify(data.dailyReports));
+    }
+    populateStaffSelects();
+    render14DaysTable();
+    alert('✅ 成功從雲端同步最新數據！');
+  } catch (err) {
+    console.warn('雲端讀取離線模式，載入本地名單');
+    if (!window.accounts || window.accounts.length === 0) {
+      window.accounts = [
+        { id: '1', name: '吳瑋儒' },
+        { id: '2', name: '家昊' },
+        { id: '3', name: '黃傅釧' },
+        { id: '4', name: '梁軒銘' },
+        { id: '5', name: '王利民' },
+        { id: '6', name: '倪志康' },
+        { id: '7', name: '盧智聰' },
+        { id: '8', name: '文杰' }
+      ];
+      localStorage.setItem('local_accounts', JSON.stringify(window.accounts));
+    }
+    populateStaffSelects();
+    render14DaysTable();
+  }
+}
 
   </script>
 </body>
