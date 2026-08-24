@@ -1781,30 +1781,28 @@ const STAFF_ALIAS_MAP = {
   '文杰': ['文杰', '阿杰'],
   'Mia': ['Mia', 'KM-01', '總管理員']
 };
-    // ==================== 1. 14天報更模組（圖示 + 考勤違規標籤） ====================
-// 基礎排更選項（步兵可選）
+// ==================== 1. 優化版 14天報更（全新 Emoji + 上下午拆位調配 + 考勤標籤） ====================
 const SHIFT_TYPES = [
   '🏖️ 放假',
-  '🌅 全天 (全區)',
-  '🌅 全天 (東區)',
-  '🌅 全天 (麗港城)',
-  '🌅 全天 (工商)',
-  '🌅 全天 (沙田)',
-  '🌗 半天 (東區)',
-  '🌗 半天 (麗港城)',
-  '🌗 半天 (工商)',
-  '🌗 半天 (沙田)',
-  '🚨 隨時救火'
+  '☀️ 全天｜全區',
+  '🌊 全天｜東區',
+  '🏙️ 全天｜麗港城',
+  '🏭 全天｜工商',
+  '🌲 全天｜沙田',
+  '🌅 上午半天',
+  '🌆 下午半天',
+  '🚒 隨時救火'
 ];
 
-// Mia & 組長專屬考勤違規標籤
+const ZONE_OPTIONS = ['無/放假', '東區', '麗港城', '工商', '沙田', '待定'];
 const ATTENDANCE_PENALTY_TAGS = ['⏰ 遲到', '⚽ 射波', '🏃 無故早走', '⚠️ 臨請'];
 
 function render14DaysTable() {
   const container = document.getElementById('roster-14days-container');
   if (!container) return;
 
-  const isLeaderOrMia = currentUser && (currentUser.name === 'Mia' || currentUser.isMia === true || (currentUser.role && (currentUser.role.includes('組長') || currentUser.role.includes('管理員'))));
+  const isMia = currentUser && (currentUser.name === 'Mia' || currentUser.isMia === true || (currentUser.role && currentUser.role.includes('總管理員')));
+  const isLeaderOrMia = currentUser && (isMia || (currentUser.role && currentUser.role.includes('組長')));
   const dates = getNext14Days();
   const staffList = window.accounts || [];
 
@@ -1812,12 +1810,13 @@ function render14DaysTable() {
     <div class="bg-white p-4 rounded-xl border shadow-xs space-y-3">
       <div class="flex flex-wrap justify-between items-center gap-2 border-b pb-2">
         <div class="flex items-center gap-2">
-          <h3 class="font-bold text-slate-800 text-sm">📅 14天報更總表</h3>
-          ${isLeaderOrMia ? `<span class="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded">👑 管理/組長考勤模式已解鎖</span>` : ''}
+          <h3 class="font-bold text-slate-800 text-sm">📅 14天報更與上下午崗位調配表</h3>
+          ${isMia ? `<span class="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded">👑 Mia 管理模式（解鎖上下午拆位編輯）</span>` : ''}
         </div>
-        <div class="flex gap-2">
-          ${isLeaderOrMia ? `<button onclick="openAttendanceRecordModal()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-2.5 py-1 rounded shadow cursor-pointer">⚠️ 登記考勤違規 (遲到/射波/早走/臨請)</button>` : ''}
+        <div class="flex flex-wrap gap-2">
+          ${isLeaderOrMia ? `<button onclick="openAttendanceRecordModal()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-2.5 py-1 rounded shadow cursor-pointer">⚠️ 登記考勤違規</button>` : ''}
           <button onclick="export14DaysRosterText()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-2.5 py-1 rounded shadow cursor-pointer">📋 匯出14天報更</button>
+          <button onclick="exportSplitZoneScheduleText()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1 rounded shadow cursor-pointer">📋 匯出上下午分位總表</button>
         </div>
       </div>
 
@@ -1825,8 +1824,8 @@ function render14DaysTable() {
         <table class="w-full text-xs text-center border">
           <thead class="bg-slate-50 text-slate-700">
             <tr>
-              <th class="p-2 text-left min-w-[70px]">隊員</th>
-              ${dates.map(d => `<th class="p-1 min-w-[65px]">${d.slice(5)}</th>`).join('')}
+              <th class="p-2 text-left min-w-[80px]">隊員</th>
+              ${dates.map(d => `<th class="p-1.5 min-w-[110px] border-l">${d.slice(5)}</th>`).join('')}
             </tr>
           </thead>
           <tbody>
@@ -1834,17 +1833,41 @@ function render14DaysTable() {
               const staffName = a.name.split(' ')[0].split('(')[0];
               return `
                 <tr class="border-b hover:bg-slate-50/50">
-                  <td class="p-2 text-left font-bold text-slate-800">${staffName}</td>
+                  <td class="p-2 text-left font-bold text-slate-800 bg-slate-50/30">${staffName}</td>
                   ${dates.map(d => {
                     const shiftVal = (a.shifts && a.shifts[d]) || '🏖️ 放假';
                     const penaltyTag = (a.penalties && a.penalties[d]) || '';
+                    const splitPlan = (a.splitShifts && a.splitShifts[d]) || { am: '待定', pm: '待定' };
                     
                     return `
-                      <td class="p-1">
-                        <button onclick="cycleShiftCell('${a.id}', '${d}')" class="w-full py-1.5 px-0.5 rounded text-[10px] font-bold border transition shadow-2xs ${shiftVal.includes('放假') ? 'bg-slate-50 text-slate-400 border-slate-200' : 'bg-emerald-50 text-emerald-800 border-emerald-300'}">
+                      <td class="p-1.5 border-l align-top space-y-1">
+                        <!-- 基礎報更狀態（步兵/組長點選） -->
+                        <button onclick="cycleShiftCell('${a.id}', '${d}')" class="w-full py-1 px-1 rounded text-[10px] font-bold border transition shadow-2xs ${shiftVal.includes('放假') ? 'bg-slate-50 text-slate-400 border-slate-200' : 'bg-blue-50 text-blue-800 border-blue-200'}">
                           ${shiftVal}
                         </button>
-                        ${penaltyTag ? `<div class="mt-0.5 bg-rose-500 text-white text-[9px] font-bold rounded px-1 py-0.2 shadow-xs">${penaltyTag}</div>` : ''}
+
+                        <!-- Mia 專屬：上下午崗位拆分調配欄位 -->
+                        <div class="p-1 bg-slate-50 rounded border border-slate-200 text-[10px] space-y-0.5">
+                          <div class="flex items-center justify-between gap-0.5">
+                            <span class="text-amber-700 font-bold">上:</span>
+                            ${isMia ? `
+                              <select onchange="updateSplitZone('${a.id}', '${d}', 'am', this.value)" class="p-0.5 bg-white border rounded text-[9px] font-semibold">
+                                ${ZONE_OPTIONS.map(z => `<option value="${z}" ${splitPlan.am === z ? 'selected' : ''}>${z}</option>`).join('')}
+                              </select>
+                            ` : `<span class="font-bold text-slate-700">${splitPlan.am}</span>`}
+                          </div>
+                          <div class="flex items-center justify-between gap-0.5">
+                            <span class="text-indigo-700 font-bold">下:</span>
+                            ${isMia ? `
+                              <select onchange="updateSplitZone('${a.id}', '${d}', 'pm', this.value)" class="p-0.5 bg-white border rounded text-[9px] font-semibold">
+                                ${ZONE_OPTIONS.map(z => `<option value="${z}" ${splitPlan.pm === z ? 'selected' : ''}>${z}</option>`).join('')}
+                              </select>
+                            ` : `<span class="font-bold text-slate-700">${splitPlan.pm}</span>`}
+                          </div>
+                        </div>
+
+                        <!-- 考勤違規標籤 -->
+                        ${penaltyTag ? `<div class="bg-rose-500 text-white text-[9px] font-bold rounded px-1 py-0.2 shadow-xs">${penaltyTag}</div>` : ''}
                       </td>
                     `;
                   }).join('')}
@@ -1858,6 +1881,7 @@ function render14DaysTable() {
   `;
 }
 
+// 基礎報更切換
 function cycleShiftCell(aid, date) {
   const acc = (window.accounts || []).find(a => a.id === aid);
   if (!acc) return;
@@ -1871,46 +1895,34 @@ function cycleShiftCell(aid, date) {
   render14DaysTable();
 }
 
-// 登記考勤違規（只有 Mia 和組長可以操作）
-function openAttendanceRecordModal() {
-  const staffList = (window.accounts || []).map(a => a.name.split(' ')[0].split('(')[0]);
-  const staffChoice = prompt(`【登記考勤異常】\n請輸入步兵姓名：\n(${staffList.join(' / ')})`);
-  if (!staffChoice) return;
+// Mia 專屬：更新上下午指派區域
+function updateSplitZone(aid, date, period, val) {
+  const acc = (window.accounts || []).find(a => a.id === aid);
+  if (!acc) return;
+  if (!acc.splitShifts) acc.splitShifts = {};
+  if (!acc.splitShifts[date]) acc.splitShifts[date] = { am: '待定', pm: '待定' };
 
-  const targetAcc = (window.accounts || []).find(a => a.name.includes(staffChoice.trim()));
-  if (!targetAcc) { alert('找不到此位步兵'); return; }
-
-  const dateInput = prompt('請輸入違規日期 (YYYY-MM-DD)：', new Date().toISOString().substring(0, 10));
-  if (!dateInput) return;
-
-  const tagPrompt = ATTENDANCE_PENALTY_TAGS.map((t, i) => `${i + 1}. ${t}`).join('\n');
-  const tagIdx = prompt(`請選擇違規類型（輸入數字）：\n` + tagPrompt);
-  
-  if (tagIdx && ATTENDANCE_PENALTY_TAGS[parseInt(tagIdx) - 1]) {
-    if (!targetAcc.penalties) targetAcc.penalties = {};
-    targetAcc.penalties[dateInput] = ATTENDANCE_PENALTY_TAGS[parseInt(tagIdx) - 1];
-    localStorage.setItem('local_accounts', JSON.stringify(window.accounts));
-    alert(`✅ 已為 ${targetAcc.name} 在 ${dateInput} 標記「${targetAcc.penalties[dateInput]}」！`);
-    render14DaysTable();
-  }
+  acc.splitShifts[date][period] = val;
+  localStorage.setItem('local_accounts', JSON.stringify(window.accounts));
 }
 
-function export14DaysRosterText() {
-  let txt = `📋【14天排更與考勤紀錄表】\n====================\n`;
+// 匯出上下午分位總表文字（方便直接 WhatsApp 發布）
+function exportSplitZoneScheduleText() {
+  let txt = `📋【Mia組 - 14天上下午拆位調配總表】\n============================\n`;
   const dates = getNext14Days();
-  (window.accounts || []).forEach(a => {
-    const name = a.name.split(' ')[0];
-    txt += `👤 ${name}:\n`;
-    dates.forEach(d => {
-      const s = (a.shifts && a.shifts[d]) || '🏖️ 放假';
-      const p = (a.penalties && a.penalties[d]) ? ` [${a.penalties[d]}]` : '';
-      if (!s.includes('放假') || p) {
-        txt += `   - ${d.slice(5)}: ${s}${p}\n`;
+  dates.forEach(d => {
+    txt += `📅 日期：${d}\n`;
+    (window.accounts || []).forEach(a => {
+      const name = a.name.split(' ')[0];
+      const plan = (a.splitShifts && a.splitShifts[d]) ? a.splitShifts[d] : null;
+      if (plan && (plan.am !== '無/放假' || plan.pm !== '無/放假')) {
+        txt += `   👤 ${name} ➔ 上午: [${plan.am}] | 下午: [${plan.pm}]\n`;
       }
     });
+    txt += `----------------------------\n`;
   });
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(txt).then(() => alert('✅ 14天排更表已複製至剪貼簿！'));
+    navigator.clipboard.writeText(txt).then(() => alert('✅ 上下午分位總表已複製至剪貼簿！可直接發送群組。'));
   }
 }
 
