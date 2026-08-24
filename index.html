@@ -1867,17 +1867,50 @@ function quickExportText(type) {
       </div>
     `;
   }).join('');
-}
-// ==================== 1. 步兵別名精準對照表 (已移除陳瑋儒) ====================
+// ==================== 1. 25位完整全體人員名冊 (總管/組長/步兵/司機) ====================
+window.defaultAccounts = [
+  { id: 'KM-01', name: 'Mia', team: 'KM', role: '總管理員', isLeader: true, isMia: true },
+  { id: 'A-01', name: '詠豪', team: 'A', role: '組長', isLeader: true },
+  { id: 'B-03', name: '景鴻', team: 'B', role: '組長', isLeader: true },
+  { id: 'C-02', name: '俊華', team: 'C', role: '組長', isLeader: true },
+  { id: 'KM-04', name: '盧智聰', team: 'KM', role: '全職步兵' },
+  { id: 'KM-05', name: '姜嘉敏KK', team: 'KM', role: '全職步兵' },
+  { id: 'KM-06', name: '周健', team: 'KM', role: '全職步兵' },
+  { id: 'KM-07', name: '黃奕峰', team: 'KM', role: '全職步兵' },
+  { id: 'C-01', name: '李兆偉', team: 'C', role: '全職步兵' },
+  { id: 'B-01', name: '小肥', team: 'B', role: '全職步兵' },
+  { id: 'KM-09', name: '黃傅釧', team: 'KM', role: '全職步兵' },
+  { id: 'B-02', name: '吳嘉榮', team: 'B', role: '全職步兵' },
+  { id: 'KM-08', name: '吳瑋儒', team: 'KM', role: '全職步兵' },
+  { id: 'KM-10', name: '倪志康', team: 'KM', role: '全職步兵' },
+  { id: 'KM-11', name: '王利民', team: 'KM', role: '全職步兵' },
+  { id: 'KM-12', name: '李健龍', team: 'KM', role: '全職步兵' },
+  { id: 'C-04', name: '李偉文', team: 'C', role: '兼職步兵' },
+  { id: 'A-02', name: '小魚', team: 'A', role: '兼職步兵' },
+  { id: 'DR-01', name: '煒爺', team: 'KM', role: '全職司機' },
+  { id: 'DR-02', name: '龍', team: 'KM', role: '全職司機' },
+  { id: 'A-03', name: '徐子傑', team: 'A', role: '全職步兵' },
+  { id: 'B-04', name: '韓軍魁', team: 'B', role: '全職步兵' },
+  { id: 'A-04', name: '羅健華', team: 'A', role: '全職步兵' },
+  { id: 'D-02', name: '強', team: 'D', role: '全職司機' },
+  { id: 'KM-13', name: '陳富強KM', team: 'KM', role: '全職步兵' }
+];
+
+// 強制同步最新完整名單至本地儲存
+window.accounts = window.defaultAccounts;
+localStorage.setItem('local_accounts', JSON.stringify(window.accounts));
+
+// 別名對照表
 var STAFF_ALIAS_MAP = {
   '吳瑋儒': ['吳瑋儒', '瑋儒'],
-  '家昊': ['家昊', '小肥', '昊昊', '肥仔'],
+  '小肥': ['小肥', '家昊', '昊昊', '肥仔'],
   '黃傅釧': ['黃傅釧', '釧', '阿釧'],
-  '梁軒銘': ['梁軒銘', '銘', '阿銘', '軒銘'],
   '王利民': ['王利民', '細佬', '民', '阿民', '細佬仔'],
   '倪志康': ['倪志康', '康', '阿康'],
   '盧智聰': ['盧智聰', '智聰'],
-  '文杰': ['文杰', '阿杰'],
+  '姜嘉敏KK': ['姜嘉敏', 'KK', '嘉敏'],
+  '李健龍': ['健龍', '李健龍'],
+  '陳富強KM': ['陳富強', '富強', 'KM-13'],
   'Mia': ['Mia', 'KM-01', '總管理員']
 };
 
@@ -1892,14 +1925,46 @@ function isRecordMatchStaff(reportName, targetName) {
   if (r === t || r.includes(t) || t.includes(r)) return true;
   for (var key in STAFF_ALIAS_MAP) {
     var aliases = STAFF_ALIAS_MAP[key].map(function(a) { return cleanStr(a); });
-    var matchT = cleanStr(key) === t || aliases.indexOf(t) !== -1;
-    var matchR = cleanStr(key) === r || aliases.indexOf(r) !== -1;
-    if (matchT && matchR) return true;
+    if ((cleanStr(key) === t || aliases.indexOf(t) !== -1) && (cleanStr(key) === r || aliases.indexOf(r) !== -1)) return true;
   }
   return false;
 }
 
-// ==================== 2. 角色權限與入口顯示 ====================
+// ==================== 2. 登入與權限控制 ====================
+function handleLogin() {
+  var selectEl = document.getElementById('login-staff') || document.querySelector('select');
+  if (!selectEl) return;
+  var val = selectEl.value;
+  if (!val) {
+    alert('⚠️ 請先選擇人員再登入！');
+    return;
+  }
+  
+  var staffList = window.accounts || window.defaultAccounts;
+  var found = staffList.find(function(a) { return a.name === val || a.id === val; });
+  
+  if (val === 'Mia' || (found && found.isMia)) {
+    window.currentUser = { name: 'Mia', team: 'KM', role: '總管理員', isMia: true, isLeader: true };
+  } else if (found) {
+    window.currentUser = found;
+  } else {
+    window.currentUser = { name: val, role: '全職步兵' };
+  }
+
+  localStorage.setItem('currentUser', JSON.stringify(window.currentUser));
+  applyRolePermissions();
+  alert('✅ 歡迎登入，' + window.currentUser.name + ' [' + (window.currentUser.team || 'KM') + '隊 - ' + (window.currentUser.role || '步兵') + ']！');
+  render14DaysTable();
+}
+
+function handleLogout() {
+  window.currentUser = null;
+  localStorage.removeItem('currentUser');
+  applyRolePermissions();
+  alert('🔒 已成功登出！');
+  render14DaysTable();
+}
+
 function applyRolePermissions() {
   var user = window.currentUser || JSON.parse(localStorage.getItem('currentUser') || 'null');
   var isMia = user && (user.name === 'Mia' || user.isMia === true || (user.role && user.role.indexOf('總管理員') !== -1));
@@ -1916,22 +1981,23 @@ function applyRolePermissions() {
   var badge = document.getElementById('login-status-badge');
   if (badge) {
     if (isMia) {
-      badge.innerHTML = '<span class="px-2.5 py-1 bg-purple-700 text-white font-bold rounded-lg text-xs">👑 Mia (總管理員)</span>';
+      badge.innerHTML = '<span class="px-3 py-1 bg-purple-700 text-white font-bold rounded-lg text-xs">👑 Mia (總管理員)</span>';
     } else if (user) {
-      badge.innerHTML = '<span class="px-2.5 py-1 bg-blue-600 text-white font-bold rounded-lg text-xs">👤 ' + user.name + ' (' + (user.role || '步兵') + ')</span>';
+      badge.innerHTML = '<span class="px-3 py-1 bg-blue-600 text-white font-bold rounded-lg text-xs">👤 ' + user.name + ' [' + (user.team || 'KM') + '隊 - ' + (user.role || '步兵') + ']</span>';
     } else {
-      badge.innerHTML = '<span class="px-2.5 py-1 bg-slate-500 text-white font-bold rounded-lg text-xs">🔒 訪客模式 (未登入)</span>';
+      badge.innerHTML = '<span class="px-3 py-1 bg-slate-500 text-white font-bold rounded-lg text-xs">🔒 訪客模式 (未登入)</span>';
     }
   }
 }
 
-// ==================== 3. 14天報更 + 上下午拆位 + 考勤標籤 ====================
+// ==================== 3. 14天公仔報更表格 ====================
+var SHIFT_TYPES = ['🏖️ 放假', '☀️ 全天', '🌊 東區', '🏙️ 麗港城', '🏭 工商', '🌲 沙田', '🌅 上午', '🌆 下午', '🚒 救火'];
 
 function getShiftStyle(icon) {
-  if (!icon || icon === '-' || icon.indexOf('放假') !== -1) return "bg-slate-50 text-slate-400 border border-slate-200";
-  if (icon.indexOf('全天') !== -1 || icon.indexOf('☀️') !== -1 || icon.indexOf('🌊') !== -1 || icon.indexOf('🏙️') !== -1) return "bg-emerald-500 text-white font-bold";
-  if (icon.indexOf('半日') !== -1 || icon.indexOf('半天') !== -1 || icon.indexOf('🌅') !== -1 || icon.indexOf('🌆') !== -1) return "bg-amber-400 text-slate-900 font-bold";
-  if (icon.indexOf('救火') !== -1 || icon.indexOf('🔥') !== -1 || icon.indexOf('🚒') !== -1) return "bg-purple-600 text-white font-bold";
+  if (!icon || icon === '-' || icon.indexOf('放假') !== -1) return "bg-slate-100 text-slate-400 border border-slate-200";
+  if (icon.indexOf('全天') !== -1 || icon.indexOf('☀️') !== -1 || icon.indexOf('東區') !== -1 || icon.indexOf('麗港城') !== -1) return "bg-emerald-500 text-white font-bold";
+  if (icon.indexOf('上午') !== -1 || icon.indexOf('下午') !== -1 || icon.indexOf('🌅') !== -1 || icon.indexOf('🌆') !== -1) return "bg-amber-400 text-slate-900 font-bold";
+  if (icon.indexOf('救火') !== -1 || icon.indexOf('🚒') !== -1) return "bg-purple-600 text-white font-bold";
   return "bg-slate-100 text-slate-700 font-bold";
 }
 
@@ -1940,10 +2006,7 @@ function render14DaysTable() {
   var tbody = document.getElementById('schedule-body-container');
   if (!theadRow || !tbody) return;
 
-  var user = window.currentUser || JSON.parse(localStorage.getItem('currentUser') || 'null');
-  var isMia = user && (user.name === 'Mia' || user.isMia === true || (user.role && user.role.indexOf('總管理員') !== -1));
-  var staffList = window.accounts || [];
-
+  var staffList = window.accounts || window.defaultAccounts;
   var dates = [];
   var weekdays = ['日', '一', '二', '三', '四', '五', '六'];
   var today = new Date();
@@ -1951,47 +2014,34 @@ function render14DaysTable() {
   for (var i = 0; i < 14; i++) {
     var d = new Date(today);
     d.setDate(today.getDate() + i);
-    var m = d.getMonth() + 1;
-    var day = d.getDate();
-    var w = weekdays[d.getDay()];
-    var iso = d.toISOString().substring(0, 10);
-    dates.push({ iso: iso, label: m + '/' + day, w: w });
+    dates.push({ iso: d.toISOString().substring(0, 10), label: (d.getMonth() + 1) + '/' + d.getDate(), w: weekdays[d.getDay()] });
   }
 
-  var thHtml = '<th class="p-2.5 border border-slate-700 sticky left-0 bg-slate-900 z-10 min-w-[80px]">人員姓名</th>';
+  var thHtml = '<th class="p-2 border border-slate-700 sticky left-0 bg-slate-900 z-10 min-w-[130px] text-white text-xs">人員名單 (25人)</th>';
   dates.forEach(function(d) {
-    thHtml += '<th class="p-2 border border-slate-700 min-w-[100px] text-center font-bold">' + d.label + '<br><span class="text-[10px] text-slate-400">(' + d.w + ')</span></th>';
+    thHtml += '<th class="p-2 border border-slate-700 min-w-[85px] text-center text-xs font-bold text-white">' + d.label + '<br><span class="text-[10px] text-slate-300">(' + d.w + ')</span></th>';
   });
   theadRow.innerHTML = thHtml;
 
   tbody.innerHTML = staffList.map(function(a) {
-    var sName = a.name.split(' ')[0].split('(')[0];
-    var rowHtml = '<tr class="hover:bg-slate-50/60 transition border-b border-slate-200">' +
-      '<td class="p-2.5 font-bold text-slate-800 border-r border-slate-200 sticky left-0 bg-white z-10 shadow-xs">' + sName + '</td>';
+    var isMia = a.role === '總管理員';
+    var isLeader = a.role === '組長';
+    var isDriver = a.role.indexOf('司機') !== -1;
+    var tag = isMia ? '👑' : (isLeader ? '🎖️' : (isDriver ? '🚗' : '👤'));
+
+    var rowHtml = '<tr class="hover:bg-slate-50 transition border-b border-slate-200">' +
+      '<td class="p-2 font-bold text-slate-800 border-r border-slate-200 sticky left-0 bg-white z-10 text-xs">' +
+        '<div class="flex items-center justify-between gap-1">' +
+          '<span>' + tag + ' ' + a.name + '</span>' +
+          '<span class="text-[10px] px-1 py-0.2 bg-slate-100 rounded text-slate-500 font-normal">' + a.team + '隊</span>' +
+        '</div>' +
+      '</td>';
 
     dates.forEach(function(d) {
       var shift = (a.shifts && a.shifts[d.iso]) || '🏖️ 放假';
-      var penalty = (a.penalties && a.penalties[d.iso]) || '';
-      var splitPlan = (a.splitShifts && a.splitShifts[d.iso]) || { am: '待定', pm: '待定' };
       var styleCls = getShiftStyle(shift);
-
-      rowHtml += '<td class="p-1 border-r border-slate-200 align-top space-y-1">' +
-        '<button onclick="cycleShiftCell(\'' + a.id + '\', \'' + d.iso + '\')" class="w-full py-1 px-1 rounded text-[11px] font-bold transition shadow-2xs ' + styleCls + '">' + shift + '</button>' +
-        '<div class="p-1 bg-slate-50 rounded border border-slate-200 text-[10px] space-y-0.5">' +
-          '<div class="flex items-center justify-between">' +
-            '<span class="text-amber-700 font-bold">上:</span>' +
-            (isMia ? '<select onchange="updateSplitZone(\'' + a.id + '\', \'' + d.iso + '\', \'am\', this.value)" class="p-0.5 bg-white border rounded text-[9px]">' +
-              ZONE_OPTIONS.map(function(z) { return '<option value="' + z + '" ' + (splitPlan.am === z ? 'selected' : '') + '>' + z + '</option>'; }).join('') +
-            '</select>' : '<span class="font-bold text-slate-700">' + splitPlan.am + '</span>') +
-          '</div>' +
-          '<div class="flex items-center justify-between">' +
-            '<span class="text-indigo-700 font-bold">下:</span>' +
-            (isMia ? '<select onchange="updateSplitZone(\'' + a.id + '\', \'' + d.iso + '\', \'pm\', this.value)" class="p-0.5 bg-white border rounded text-[9px]">' +
-              ZONE_OPTIONS.map(function(z) { return '<option value="' + z + '" ' + (splitPlan.pm === z ? 'selected' : '') + '>' + z + '</option>'; }).join('') +
-            '</select>' : '<span class="font-bold text-slate-700">' + splitPlan.pm + '</span>') +
-          '</div>' +
-        '</div>' +
-        (penalty ? '<div class="bg-rose-500 text-white text-[9px] font-bold rounded px-1 py-0.2">' + penalty + '</div>' : '') +
+      rowHtml += '<td class="p-1 border-r border-slate-200 text-center">' +
+        '<button onclick="cycleShiftCell(\'' + a.id + '\', \'' + d.iso + '\')" class="w-full py-1.5 px-0.5 rounded text-[11px] font-bold shadow-2xs ' + styleCls + '">' + shift + '</button>' +
       '</td>';
     });
 
@@ -2006,169 +2056,58 @@ function cycleShiftCell(aid, isoDate) {
   var acc = (window.accounts || []).find(function(a) { return a.id === aid; });
   if (!acc) return;
   if (!acc.shifts) acc.shifts = {};
-
   var curr = acc.shifts[isoDate] || '🏖️ 放假';
   var nextIdx = (SHIFT_TYPES.indexOf(curr) + 1) % SHIFT_TYPES.length;
   acc.shifts[isoDate] = SHIFT_TYPES[nextIdx];
-
   localStorage.setItem('local_accounts', JSON.stringify(window.accounts));
   render14DaysTable();
-}
-
-function updateSplitZone(aid, isoDate, period, val) {
-  var acc = (window.accounts || []).find(function(a) { return a.id === aid; });
-  if (!acc) return;
-  if (!acc.splitShifts) acc.splitShifts = {};
-  if (!acc.splitShifts[isoDate]) acc.splitShifts[isoDate] = { am: '待定', pm: '待定' };
-
-  acc.splitShifts[isoDate][period] = val;
-  localStorage.setItem('local_accounts', JSON.stringify(window.accounts));
 }
 
 function populateStaffSelects() {
-  var staffList = window.accounts || [];
-  
-  var loginSelect = document.getElementById('login-staff') || document.querySelector('select[name="login-staff"]') || document.querySelectorAll('select')[0];
+  var staffList = window.accounts || window.defaultAccounts;
+  var loginSelect = document.getElementById('login-staff') || document.querySelector('select');
   if (loginSelect) {
     var cur = loginSelect.value;
-    var h = '<option value="">-- 請選擇人員 --</option><option value="Mia">👑 Mia (KM隊 - 總管理員)</option>';
-    staffList.forEach(function(a) {
-      var n = a.name || a;
-      if (n.indexOf('Mia') === -1) h += '<option value="' + n + '">' + n + '</option>';
+    var h = '<option value="">-- 請選擇人員登入 --</option>';
+    
+    h += '<optgroup label="👑 總管理員">';
+    staffList.filter(function(a) { return a.role === '總管理員'; }).forEach(function(a) {
+      h += '<option value="' + a.name + '">👑 ' + a.name + ' (總管理員)</option>';
     });
+    h += '</optgroup>';
+
+    h += '<optgroup label="🎖️ 組長群">';
+    staffList.filter(function(a) { return a.role === '組長'; }).forEach(function(a) {
+      h += '<option value="' + a.name + '">🎖️ ' + a.name + ' (' + a.team + '隊組長)</option>';
+    });
+    h += '</optgroup>';
+
+    h += '<optgroup label="🚗 司機團隊">';
+    staffList.filter(function(a) { return a.role.indexOf('司機') !== -1; }).forEach(function(a) {
+      h += '<option value="' + a.name + '">🚗 ' + a.name + ' (' + a.role + ')</option>';
+    });
+    h += '</optgroup>';
+
+    h += '<optgroup label="🏃 步兵全體">';
+    staffList.filter(function(a) { return a.role.indexOf('步兵') !== -1; }).forEach(function(a) {
+      h += '<option value="' + a.name + '">👤 ' + a.name + ' (' + a.team + '隊 - ' + a.role + ')</option>';
+    });
+    h += '</optgroup>';
+
     loginSelect.innerHTML = h;
     if (cur) loginSelect.value = cur;
   }
-
-  var rosterSelect = document.getElementById('roster-staff') || document.querySelector('select[name="roster-staff"]') || document.querySelectorAll('select')[1];
-  if (rosterSelect) {
-    var rh = '<option value="">-- 請選擇報更人員 --</option>';
-    staffList.forEach(function(a) {
-      var n = a.name || a;
-      rh += '<option value="' + n + '">' + n + '</option>';
-    });
-    rosterSelect.innerHTML = rh;
-  }
 }
 
-// ==================== 4. 老細對數模組 ====================
-function renderBossReconciliation() {
-  var container = document.getElementById('boss-reconcile-container');
-  if (!container) return;
-
-  var sDate = document.getElementById('boss-sdate') ? document.getElementById('boss-sdate').value : '';
-  var eDate = document.getElementById('boss-edate') ? document.getElementById('boss-edate').value : '';
-  var reports = window.dailyReports || JSON.parse(localStorage.getItem('dailyReports') || '[]');
-
-  var filtered = reports.filter(function(r) {
-    var d = String(r.date || r['日期'] || '').substring(0, 10);
-    if (sDate && d < sDate) return false;
-    if (eDate && d > eDate) return false;
-    return true;
-  });
-
-  var skwTotal = 0, lgTotal = 0, ktTotal = 0, stTotal = 0;
-  var staffBreakdown = {};
-
-  filtered.forEach(function(r) {
-    var sName = r.staff || r['步兵'] || r['姓名'] || '其他';
-    var skw = Number(r.skw || r['東區'] || 0);
-    var lg = Number(r.lg || r['麗港城'] || 0);
-    var kt = Number(r.kt || r.ind || r['工商'] || 0);
-    var st = Number(r.st || r['沙田'] || 0);
-
-    skwTotal += skw;
-    lgTotal += lg;
-    ktTotal += kt;
-    stTotal += st;
-
-    if (!staffBreakdown[sName]) staffBreakdown[sName] = { skw: 0, lg: 0, kt: 0, st: 0, tot: 0 };
-    staffBreakdown[sName].skw += skw;
-    staffBreakdown[sName].lg += lg;
-    staffBreakdown[sName].kt += kt;
-    staffBreakdown[sName].st += st;
-    staffBreakdown[sName].tot += (skw + lg + kt + st);
-  });
-
-  var pLg = 4.5, pKt = 5.5, pSkw = 4.7, pSt = 7.8;
-  var amtLg = lgTotal * pLg;
-  var amtKt = ktTotal * pKt;
-  var amtSkw = skwTotal * pSkw;
-  var amtSt = stTotal * pSt;
-  var grandTotalAmt = amtLg + amtKt + amtSkw + amtSt;
-  var grandTotalPcs = skwTotal + lgTotal + ktTotal + stTotal;
-
-  container.innerHTML = '<div class="bg-white p-4 rounded-xl border shadow-xs space-y-4">' +
-    '<div class="flex flex-wrap justify-between items-center gap-2 border-b pb-3">' +
-      '<h3 class="text-base font-bold text-slate-800">💼 老細專屬營收對數表</h3>' +
-      '<button onclick="exportBossReconcileText()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg font-bold shadow cursor-pointer">📋 一鍵匯出老細對數格式</button>' +
-    '</div>' +
-    '<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">' +
-      '<div class="p-2.5 bg-blue-50 border border-blue-100 rounded-lg"><p class="text-blue-600 font-semibold">麗港城 ($' + pLg + ')</p><p class="text-lg font-bold text-slate-800">' + lgTotal + ' <span class="text-xs font-normal">票</span></p><p class="text-emerald-700 font-bold">HK$ ' + amtLg.toFixed(1) + '</p></div>' +
-      '<div class="p-2.5 bg-indigo-50 border border-indigo-100 rounded-lg"><p class="text-indigo-600 font-semibold">工商區 KT ($' + pKt + ')</p><p class="text-lg font-bold text-slate-800">' + ktTotal + ' <span class="text-xs font-normal">票</span></p><p class="text-emerald-700 font-bold">HK$ ' + amtKt.toFixed(1) + '</p></div>' +
-      '<div class="p-2.5 bg-sky-50 border border-sky-100 rounded-lg"><p class="text-sky-600 font-semibold">東區 SKW ($' + pSkw + ')</p><p class="text-lg font-bold text-slate-800">' + skwTotal + ' <span class="text-xs font-normal">票</span></p><p class="text-emerald-700 font-bold">HK$ ' + amtSkw.toFixed(1) + '</p></div>' +
-      '<div class="p-2.5 bg-purple-50 border border-purple-100 rounded-lg"><p class="text-purple-600 font-semibold">沙田 F58 ($' + pSt + ')</p><p class="text-lg font-bold text-slate-800">' + stTotal + ' <span class="text-xs font-normal">票</span></p><p class="text-emerald-700 font-bold">HK$ ' + amtSt.toFixed(1) + '</p></div>' +
-    '</div>' +
-    '<div class="p-3 bg-slate-900 text-white rounded-lg flex justify-between items-center text-sm font-bold">' +
-      '<span>全區間總票數：' + grandTotalPcs + ' 票</span>' +
-      '<span class="text-emerald-400 text-base">應收總結算：HK$ ' + grandTotalAmt.toFixed(2) + '</span>' +
-    '</div>' +
-  '</div>';
-}
-
-function exportBossReconcileText() {
-  var sDate = document.getElementById('boss-sdate') ? document.getElementById('boss-sdate').value : '起算日';
-  var eDate = document.getElementById('boss-edate') ? document.getElementById('boss-edate').value : '結束日';
-  var txt = '📊【Mia組 - 老細各區營收對數表】\n📅 結算區間：' + sDate + ' 至 ' + eDate + '\n============================\n📍 麗港城: 票數 x $4.5\n📍 工商區: 票數 x $5.5\n📍 東區: 票數 x $4.7\n📍 沙田(F58): 票數 x $7.8\n============================\n💰 請核對後台總數。\n';
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(txt).then(function() { alert('✅ 老細對數報表已複製至剪貼簿！'); });
-  }
-}
-
-// 頁面加載時自動執行渲染
+// 頁面加載自動執行
 window.addEventListener('DOMContentLoaded', function() {
-  if (typeof initAccounts === 'function') initAccounts();
   populateStaffSelects();
   render14DaysTable();
   applyRolePermissions();
+  
+  var loginBtn = document.querySelector('button[onclick*="login"], button:contains("登入")');
+  if (loginBtn) loginBtn.onclick = handleLogin;
 });
-// ==================== 雲端數據同步核心 ====================
-async function fetchAllCloudData() {
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycT7_l2B506K4zP37jG6Y3wZk2gN56N7j-example/exec'; // 你的 Apps Script 網址
-  try {
-    const res = await fetch(SCRIPT_URL + '?action=getAllData');
-    const data = await res.json();
-    if (data.accounts) {
-      window.accounts = data.accounts;
-      localStorage.setItem('local_accounts', JSON.stringify(data.accounts));
-    }
-    if (data.dailyReports) {
-      window.dailyReports = data.dailyReports;
-      localStorage.setItem('dailyReports', JSON.stringify(data.dailyReports));
-    }
-    populateStaffSelects();
-    render14DaysTable();
-    alert('✅ 成功從雲端同步最新數據！');
-  } catch (err) {
-    console.warn('雲端讀取離線模式，載入本地名單');
-    if (!window.accounts || window.accounts.length === 0) {
-      window.accounts = [
-        { id: '1', name: '吳瑋儒' },
-        { id: '2', name: '家昊' },
-        { id: '3', name: '黃傅釧' },
-        { id: '4', name: '梁軒銘' },
-        { id: '5', name: '王利民' },
-        { id: '6', name: '倪志康' },
-        { id: '7', name: '盧智聰' },
-        { id: '8', name: '文杰' }
-      ];
-      localStorage.setItem('local_accounts', JSON.stringify(window.accounts));
-    }
-    populateStaffSelects();
-    render14DaysTable();
-  }
-}
-
   </script>
 </body>
 </html>
