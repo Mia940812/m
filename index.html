@@ -1094,7 +1094,7 @@
     }
 
     // 14 天報更渲染
-       function render14DaysTable() {
+         function render14DaysTable() {
       const theadRow = document.getElementById('schedule-header-row');
       const tbody = document.getElementById('schedule-body-container');
       if (!theadRow || !tbody) return;
@@ -1134,24 +1134,28 @@
           // 模糊匹配無前導零日期
           if (!rawShift && a.shifts) {
             const shortIso = `${d.iso.split('-')[0]}-${Number(d.iso.split('-')[1])}-${Number(d.iso.split('-')[2])}`;
-            rawShift = a.shifts[shortIso] || '🏖️';
+            rawShift = a.shifts[shortIso] || '';
           }
-          if (!rawShift) rawShift = '🏖️';
 
-          // 判斷類型
-          let isOff = false;
+          // 狀態判定：未填報 / 真放假 / 出更
+          let statusType = 'unsubmitted'; // 未報更期
           let emoji = '';
-          
-          if (rawShift.includes('🏖️') || rawShift.includes('放假')) {
-            isOff = true;
+
+          if (!rawShift) {
+            statusType = 'unsubmitted';
+          } else if (rawShift.includes('🏖️') || rawShift.includes('放假')) {
+            statusType = 'off';
           } else if (rawShift.includes('☀️')) {
+            statusType = 'work';
             emoji = '☀️';
           } else if (rawShift.includes('⛅') || rawShift.includes('半日')) {
+            statusType = 'work';
             emoji = '⛅';
           } else if (rawShift.includes('🔥') || rawShift.includes('救火')) {
+            statusType = 'work';
             emoji = '🔥';
           } else {
-            isOff = true;
+            statusType = 'unsubmitted';
           }
 
           // 提取備註內容 (例如 [13:00-18:00] 或 [漁+工])
@@ -1161,7 +1165,17 @@
             note = rawShift.replace(/☀️|⛅|🔥|🏖️|全天|放假|半日|全區可以|\(|\)/g, '').trim();
           }
 
-          if (isOff) {
+          if (statusType === 'unsubmitted') {
+            // 未填報更期：灰色背景 + 未報更期字樣
+            rowHtml += `
+              <td class="p-1 border-r border-slate-200 text-center">
+                <div class="w-full py-2 px-1 rounded flex items-center justify-center bg-slate-100/80 border border-dashed border-slate-300">
+                  <span class="text-[11px] font-bold text-slate-400">未報更期</span>
+                </div>
+              </td>
+            `;
+          } else if (statusType === 'off') {
+            // 真·放假：紅色加粗字體
             rowHtml += `
               <td class="p-1 border-r border-slate-200 text-center">
                 <div class="w-full py-1.5 px-1 rounded flex items-center justify-center bg-red-50 border border-red-100">
@@ -1170,6 +1184,7 @@
               </td>
             `;
           } else {
+            // 出更：純 Emoji 圖案 + 備註
             let styleCls = "bg-emerald-500 text-white shadow-xs";
             if (emoji === '⛅') styleCls = "bg-amber-400 text-slate-900 shadow-xs";
             else if (emoji === '🔥') styleCls = "bg-purple-600 text-white shadow-xs";
