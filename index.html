@@ -1094,7 +1094,7 @@
     }
 
     // 14 天報更渲染
-    function render14DaysTable() {
+       function render14DaysTable() {
       const theadRow = document.getElementById('schedule-header-row');
       const tbody = document.getElementById('schedule-body-container');
       if (!theadRow || !tbody) return;
@@ -1105,12 +1105,19 @@
       for (let i = 0; i < 14; i++) {
         const d = new Date(today);
         d.setDate(today.getDate() + i);
-        dates.push({ iso: d.toISOString().substring(0, 10), label: `${d.getMonth()+1}/${d.getDate()}`, w: weekdays[d.getDay()] });
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        dates.push({
+          iso: `${yyyy}-${mm}-${dd}`,
+          label: `${d.getMonth() + 1}/${d.getDate()}`,
+          w: weekdays[d.getDay()]
+        });
       }
 
-      let thHtml = `<th class="p-2.5 border border-slate-700 sticky left-0 bg-slate-900 z-10 min-w-[90px] text-white">人員姓名</th><th class="p-2.5 border border-slate-700 min-w-[50px] text-white">隊伍</th>`;
+      let thHtml = `<th class="p-2.5 border border-slate-700 sticky left-0 bg-slate-900 z-10 min-w-[90px] text-white">人員姓名</th><th class="p-2.5 border border-slate-700 min-w-[50px] text-white text-center">隊伍</th>`;
       dates.forEach(d => {
-        thHtml += `<th class="p-2 border border-slate-700 min-w-[105px] text-center font-bold text-white">${d.label}<br><span class="text-[10px] text-slate-400">(${d.w})</span></th>`;
+        thHtml += `<th class="p-2 border border-slate-700 min-w-[85px] text-center font-bold text-white">${d.label}<br><span class="text-[10px] text-slate-400">(${d.w})</span></th>`;
       });
       theadRow.innerHTML = thHtml;
 
@@ -1122,29 +1129,56 @@
         `;
 
         dates.forEach(d => {
-          const shift = (a.shifts && a.shifts[d.iso]) || '🏖️ 放假';
-          const isSplit = typeof shift === 'object' && shift.am;
+          let rawShift = (a.shifts && a.shifts[d.iso]) || '';
 
-          if (isSplit) {
+          // 模糊匹配無前導零日期
+          if (!rawShift && a.shifts) {
+            const shortIso = `${d.iso.split('-')[0]}-${Number(d.iso.split('-')[1])}-${Number(d.iso.split('-')[2])}`;
+            rawShift = a.shifts[shortIso] || '🏖️';
+          }
+          if (!rawShift) rawShift = '🏖️';
+
+          // 判斷類型
+          let isOff = false;
+          let emoji = '';
+          
+          if (rawShift.includes('🏖️') || rawShift.includes('放假')) {
+            isOff = true;
+          } else if (rawShift.includes('☀️')) {
+            emoji = '☀️';
+          } else if (rawShift.includes('⛅') || rawShift.includes('半日')) {
+            emoji = '⛅';
+          } else if (rawShift.includes('🔥') || rawShift.includes('救火')) {
+            emoji = '🔥';
+          } else {
+            isOff = true;
+          }
+
+          // 提取備註內容 (例如 [13:00-18:00] 或 [漁+工])
+          let noteMatch = rawShift.match(/\[(.*?)\]/);
+          let note = noteMatch ? noteMatch[1] : '';
+          if (!note && (rawShift.includes('13:') || rawShift.includes('14:') || rawShift.includes('早') || rawShift.includes('夜'))) {
+            note = rawShift.replace(/☀️|⛅|🔥|🏖️|全天|放假|半日|全區可以|\(|\)/g, '').trim();
+          }
+
+          if (isOff) {
             rowHtml += `
               <td class="p-1 border-r border-slate-200 text-center">
-                <div class="space-y-0.5">
-                  <div class="p-1 rounded bg-amber-400 text-slate-900 font-bold text-[10px]">☀️ ${shift.am}</div>
-                  <div class="p-1 rounded bg-indigo-600 text-white font-bold text-[10px]">🌆 ${shift.pm}</div>
+                <div class="w-full py-1.5 px-1 rounded flex items-center justify-center bg-red-50 border border-red-100">
+                  <span class="text-xs font-black text-red-600 tracking-wider">放假</span>
                 </div>
               </td>
             `;
           } else {
-            let styleCls = "bg-slate-100 text-slate-700";
-            if (shift.includes('☀️')) styleCls = "bg-emerald-500 text-white";
-            else if (shift.includes('半日') || shift.includes('⛅')) styleCls = "bg-amber-400 text-slate-900";
-            else if (shift.includes('放假')) styleCls = "bg-slate-50 text-slate-400";
-            else if (shift.includes('救火')) styleCls = "bg-purple-600 text-white";
+            let styleCls = "bg-emerald-500 text-white shadow-xs";
+            if (emoji === '⛅') styleCls = "bg-amber-400 text-slate-900 shadow-xs";
+            else if (emoji === '🔥') styleCls = "bg-purple-600 text-white shadow-xs";
 
             rowHtml += `
               <td class="p-1 border-r border-slate-200 text-center">
-                <div class="w-full py-2 px-1 rounded text-xs font-bold transition shadow-xs ${styleCls}">
-                  ${shift}
+                <div class="w-full py-1.5 px-1 rounded transition flex flex-col items-center justify-center ${styleCls}">
+                  <span class="text-lg leading-none">${emoji}</span>
+                  ${note ? `<span class="mt-0.5 text-[10px] font-bold bg-black/20 px-1 rounded truncate max-w-full leading-tight text-white">${note}</span>` : ''}
                 </div>
               </td>
             `;
@@ -1154,6 +1188,7 @@
         return rowHtml;
       }).join('');
     }
+
 
     function submitQuickShift() {
       const s = document.getElementById('schedule-quick-staff').value;
