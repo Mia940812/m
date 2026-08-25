@@ -1362,14 +1362,31 @@
       }
     }
 
-    // 排更表格
+      // 排更表格 (只顯示當日有出更的同事，自動隱藏放假及未排人員)
     function renderRosterTableModule() {
       const tbody = document.getElementById('roster-table-tbody');
       if (!tbody) return;
       const vDate = document.getElementById('roster-view-date')?.value || new Date().toISOString().split('T')[0];
       const isMia = currentUser && (currentUser.name === 'Mia' || currentUser.isMia === true || (currentUser.role && currentUser.role.includes('總管理員')));
 
-      tbody.innerHTML = accounts.map(a => {
+      // 過濾出當天有出更（非放假、非空白）的同事
+      const workingStaff = accounts.filter(a => {
+        const rawShift = (a.shifts && a.shifts[vDate]) || '';
+        const curRoster = (a.dailyRoster && a.dailyRoster[vDate]) || {};
+        
+        // 如果有手動排時間/區域，或 14天報更非放假即顯示
+        const hasRosterTime = curRoster.time && curRoster.time.trim() !== '';
+        const isWorkingShift = rawShift && !rawShift.includes('🏖️') && !rawShift.includes('放假');
+        
+        return isWorkingShift || hasRosterTime;
+      });
+
+      if (workingStaff.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">📅 ${vDate} 當天全員放假或未有出更人員記錄。</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = workingStaff.map(a => {
         if (!a.dailyRoster) a.dailyRoster = {};
         const curRoster = a.dailyRoster[vDate] || { time: '', zone: '', partner: '', note: '' };
 
@@ -1393,6 +1410,7 @@
         `;
       }).join('');
     }
+
 
     // 新人報更表
     function renderNewbieScheduleTable() {
