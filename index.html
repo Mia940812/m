@@ -1605,25 +1605,60 @@
       alert(`✅ 成功新增人員：${n} (${autoId})`);
     }
 
-    // 2. Google 刷新函數優化（直連讀取，絕不卡彈窗）
-    async function fetchAllCloudData(showPrompt) {
+       // 2. Google 試算表直連讀取 (JSONP 免跨域攔截)
+    function fetchAllCloudData(showPrompt) {
       const btn = document.querySelector('button[onclick*="fetchAllCloudData"]');
-      if (btn) btn.textContent = '⏳ 連線同步中...';
+      if (btn) btn.textContent = '⏳ 正在讀取 Google 試算表...';
 
-      try {
-        const res = await fetch(`${GAS_API_URL}?action=getAllData`, { mode: 'cors' });
-        const result = await res.json();
-
-        if (result && (result.data || Array.isArray(result))) {
-          const cloudData = result.data || result;
-          if (cloudData.dailyReports && Array.isArray(cloudData.dailyReports)) dailyReports = cloudData.dailyReports;
-          if (showPrompt) alert('✅ 成功從 Google 試算表載入全隊數據！');
+      const callbackName = 'googleCallback_' + Date.now();
+      window[callbackName] = function(result) {
+        try {
+          if (result) {
+            const cloudData = result.data || result;
+            if (cloudData.dailyReports && Array.isArray(cloudData.dailyReports)) {
+              dailyReports = cloudData.dailyReports;
+            } else if (Array.isArray(result)) {
+              dailyReports = result;
+            }
+            if (cloudData.shiftsRecord) {
+              shiftsRecord = cloudData.shiftsRecord;
+              accounts.forEach(a => {
+                if (!a.shifts) a.shifts = {};
+                Object.keys(shiftsRecord).forEach(k => {
+                  if (k.startsWith(a.name + '_') || k.startsWith(a.id + '_')) {
+                    const dStr = k.split('_')[1];
+                    a.shifts[dStr] = shiftsRecord[k].icon || shiftsRecord[k];
+                  }
+                });
+              });
+            }
+            if (cloudData.countsDetailList) countsDetailList = cloudData.countsDetailList;
+            if (cloudData.ticketsList) ticketsList = cloudData.ticketsList;
+            if (cloudData.packageFlowList) packageFlowList = cloudData.packageFlowList;
+            if (cloudData.recruitsList) recruitsList = cloudData.recruitsList;
+            if (cloudData.newbieShiftsRecord) newbieShiftsRecord = cloudData.newbieShiftsRecord;
+            if (showPrompt) alert('✅ 成功從 Google 試算表載入全隊所有歷史數據！');
+          }
+        } catch(err) {
+          console.log("解析錯誤：", err);
+        } finally {
+          cleanupAndRender();
         }
-      } catch (e) {
-        console.log("使用本地最新數據");
-        if (showPrompt) alert('✅ 數據庫已同步就緒！');
-      } finally {
+      };
+
+      const script = document.createElement('script');
+      script.src = `${GAS_API_URL}?action=getAllData&callback=${callbackName}&t=${Date.now()}`;
+      script.onerror = function() {
+        cleanupAndRender();
+        if (showPrompt) alert('⚠️ 已載入現有數據！');
+      };
+      document.body.appendChild(script);
+
+      function cleanupAndRender() {
         if (btn) btn.textContent = '🔄 從 Google 刷新全隊最新數據';
+        if (window[callbackName]) delete window[callbackName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+
         populateStaffSelects();
         render14DaysTable();
         renderNewbieScheduleTable();
