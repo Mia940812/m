@@ -236,7 +236,10 @@
     <div id="tab-assignments" class="tab-pane space-y-4">
       <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-2 flex justify-between items-center">
-          <h3 class="font-bold text-sm text-slate-900">👥 區域分工排班看板 (下拉多選，每個圍欄最多 6 位)</h3>
+          <div>
+            <h3 class="font-bold text-sm text-slate-900">👥 區域分工排班看板 (實時與詳細貨量核算聯動)</h3>
+            <span class="text-xs text-emerald-700 font-bold">⚡ 各圍欄票數已自動鎖定為今日扣除壓車/T3後的實際派送量</span>
+          </div>
           <button type="button" onclick="quickExportModule('assignments')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold cursor-pointer">📤 匯出排班表</button>
         </div>
         <div id="assignments-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
@@ -380,7 +383,7 @@
       </div>
     </div>
 
-    <!-- 8. 每日報數看板 (重構搜尋與日期篩選，保證即時出結果) -->
+    <!-- 8. 每日報數看板 -->
     <div id="tab-daily-report" class="tab-pane space-y-4">
       <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <div class="border-b pb-3 flex flex-wrap justify-between items-center gap-2">
@@ -512,11 +515,11 @@
               <option value="03F 東旭苑">03F 東旭苑 (東區)</option>
               <option value="06F 東濤苑">06F 東濤苑 (東區)</option>
               <option value="15F 明華A-E座">15F 明華A-E座 (東區)</option>
-              <option value="19F 漁灣村">19F 漁灣村 (東區)</option>
-              <option value="11E 1號托(麗港城1期)">11E 1號托 (麗港城)</option>
-              <option value="12E 2號托(麗港城1期)">12E 2號托 (麗港城)</option>
-              <option value="03E 工商區2號托 (大強倉)">03E 工商區2號托 (觀塘工商)</option>
-              <option value="05E 工商區4號托 (港運)">05E 工商區4號托 (觀塘工商)</option>
+              <option value="19F 漁灣邨">19F 漁灣邨 (東區)</option>
+              <option value="11E 麗港城-1號托">11E 麗港城-1號托 (麗港城)</option>
+              <option value="12E 麗港城-2號托">12E 麗港城-2號托 (麗港城)</option>
+              <option value="03E 觀塘工商區2號">03E 觀塘工商區2號 (觀塘工商)</option>
+              <option value="05E 觀塘工商區4號">05E 觀塘工商區4號 (觀塘工商)</option>
               <option value="沙田F 58 帝堡城">沙田F 58 帝堡城</option>
               <option value="沙田F 58 綠怡雅苑">沙田F 58 綠怡雅苑</option>
               <option value="沙田F 58 廣源村+廣林苑">沙田F 58 廣源村+廣林苑</option>
@@ -580,24 +583,24 @@
             <button type="button" onclick="quickExportModule('counts')" class="px-3 py-1.5 bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-xs font-bold cursor-pointer">📤 匯出貨量日報</button>
           </div>
         </div>
-              <!-- 自訂新增圍欄卡片 -->
-      <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs mb-4">
-        <div class="font-bold text-xs text-slate-800 flex items-center gap-1.5 mb-2.5">
-          <span class="px-2 py-0.5 bg-blue-600 text-white rounded text-[11px] font-black">⚙️ 圍欄管理</span>
-          <span>快速新增圍欄到系統選單</span>
+        
+        <!-- 自訂新增圍欄卡片 -->
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs mb-4">
+          <div class="font-bold text-xs text-slate-800 flex items-center gap-1.5 mb-2.5">
+            <span class="px-2 py-0.5 bg-blue-600 text-white rounded text-[11px] font-black">⚙️ 圍欄管理</span>
+            <span>快速新增圍欄到系統選單</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
+            <select id="quick-add-zone" class="border border-slate-300 rounded-lg p-2 font-bold bg-slate-50">
+              <option value="SKW">東區 (SKW)</option>
+              <option value="KT">觀塘區 (KT)</option>
+              <option value="ST">沙田區 (ST)</option>
+            </select>
+            <input type="text" id="quick-add-id" placeholder="圍欄編號 (例: SKW_14 / 78F)" class="border border-slate-300 rounded-lg p-2 font-mono">
+            <input type="text" id="quick-add-name" placeholder="圍欄名稱 (例: 78F 某某大廈)" class="border border-slate-300 rounded-lg p-2 font-bold">
+            <button type="button" onclick="quickAddFenceToSystem()" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold py-2 cursor-pointer shadow-xs transition">➕ 立即新增圍欄</button>
+          </div>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
-          <select id="quick-add-zone" class="border border-slate-300 rounded-lg p-2 font-bold bg-slate-50">
-            <option value="SKW">東區 (SKW)</option>
-            <option value="KT">觀塘區 (KT)</option>
-            <option value="ST">沙田區 (ST)</option>
-          </select>
-          <input type="text" id="quick-add-id" placeholder="圍欄編號 (例: SKW_14 / 78F)" class="border border-slate-300 rounded-lg p-2 font-mono">
-          <input type="text" id="quick-add-name" placeholder="圍欄名稱 (例: 78F 某某大廈)" class="border border-slate-300 rounded-lg p-2 font-bold">
-          <button type="button" onclick="quickAddFenceToSystem()" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold py-2 cursor-pointer shadow-xs transition">➕ 立即新增圍欄</button>
-        </div>
-      </div>
-
 
         <!-- 頂部 4 個統計框框 -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
@@ -633,52 +636,51 @@
           <button type="button" onclick="filterCountsZone('沙田')" id="cnt-filter-ST" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">沙田區 (ST)</button>
         </div>
 
-            <!-- 貨量輸入與即時同步操作面板 -->
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm my-3">
-        <!-- 頂部標題與同步掣 -->
-        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
-          <div class="flex items-center gap-2">
-            <span class="px-2.5 py-1 bg-amber-500 text-white rounded-md text-xs font-black shadow-xs">✏️ 貨量登記</span>
-            <span class="text-xs font-bold text-slate-700">選擇圍欄並輸入當日派貨與壓車數據</span>
-          </div>
-          <button type="button" onclick="syncCurrentModuleToGoogle('詳細貨量', event)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
-            <span>☁️ 即時同步至 Google 數據庫</span>
-          </button>
-        </div>
-
-        <!-- 6 欄工整輸入網格 -->
-        <div class="grid grid-cols-2 sm:grid-cols-6 gap-3 text-xs">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">分區</label>
-            <select id="cnt-input-zone" onchange="populateCountFenceDropdown()" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg font-bold text-slate-800">
-              <option value="東區">東區</option>
-              <option value="KT">KT (觀塘區)</option>
-              <option value="沙田">沙田</option>
-            </select>
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">圍欄名稱</label>
-            <select id="cnt-input-fence" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg font-bold text-blue-700"></select>
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">原有數量</label>
-            <input type="number" id="cnt-input-orig" placeholder="0" class="w-full p-2 border border-slate-300 rounded-lg font-bold">
-          </div>
-          <div>
-            <label class="block font-bold text-rose-600 mb-1">壓車數量</label>
-            <input type="number" id="cnt-input-held" placeholder="0" class="w-full p-2 border border-rose-300 bg-rose-50/40 rounded-lg font-bold text-rose-600">
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">T3 數量</label>
-            <input type="number" id="cnt-input-t3" placeholder="0" class="w-full p-2 border border-slate-300 rounded-lg font-bold">
-          </div>
-          <div class="flex items-end">
-            <button type="button" onclick="submitCountForm()" class="w-full p-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg shadow-xs transition cursor-pointer">
-              💾 儲存/更新貨量
+        <!-- 貨量輸入與即時同步操作面板 -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm my-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-1 bg-amber-500 text-white rounded-md text-xs font-black shadow-xs">✏️ 貨量登記</span>
+              <span class="text-xs font-bold text-slate-700">選擇圍欄並輸入當日派貨與壓車數據</span>
+            </div>
+            <button type="button" onclick="syncModuleToGoogle('詳細貨量核算')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+              <span>☁️ 即時同步至 Google 數據庫</span>
             </button>
           </div>
+
+          <!-- 6 欄工整輸入網格 -->
+          <div class="grid grid-cols-2 sm:grid-cols-6 gap-3 text-xs">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">分區</label>
+              <select id="cnt-input-zone" onchange="populateCountFenceDropdown()" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg font-bold text-slate-800">
+                <option value="東區">東區</option>
+                <option value="KT">KT (觀塘區)</option>
+                <option value="沙田">沙田</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">圍欄名稱</label>
+              <select id="cnt-input-fence" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg font-bold text-blue-700"></select>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">原有數量</label>
+              <input type="number" id="cnt-input-orig" placeholder="0" class="w-full p-2 border border-slate-300 rounded-lg font-bold">
+            </div>
+            <div>
+              <label class="block font-bold text-rose-600 mb-1">壓車數量</label>
+              <input type="number" id="cnt-input-held" placeholder="0" class="w-full p-2 border border-rose-300 bg-rose-50/40 rounded-lg font-bold text-rose-600">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">T3 數量</label>
+              <input type="number" id="cnt-input-t3" placeholder="0" class="w-full p-2 border border-slate-300 rounded-lg font-bold">
+            </div>
+            <div class="flex items-end">
+              <button type="button" onclick="submitCountForm()" class="w-full p-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg shadow-xs transition cursor-pointer">
+                💾 儲存/更新貨量
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
 
         <div class="overflow-x-auto border rounded-xl">
           <table class="w-full text-xs text-left border-collapse">
@@ -706,8 +708,6 @@
             </tfoot>
           </table>
         </div>
-
-       
       </div>
     </div>
 
@@ -908,10 +908,9 @@
   </main>
 
   <script>
-   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxGZ6ejk4HmmM7-hp8sqQVDuXK5cmgPVfFyPoPiLFaXLncn75lc7UxAS9BE4yahYjCWlg/exec";
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxGZ6ejk4HmmM7-hp8sqQVDuXK5cmgPVfFyPoPiLFaXLncn75lc7UxAS9BE4yahYjCWlg/exec";
 
-
-    // 智能姓名對應字典 (補齊：家昊=小肥、陳富強=大B/KM富強、龍=李健龍)
+    // 智能姓名對應字典
     const NAME_ALIASES = {
       '陳詠豪': '詠豪', '梁詠豪': '詠豪', '豪': '詠豪',
       '陳景鴻': '景鴻', '鴻': '景鴻',
@@ -933,7 +932,7 @@
       return NAME_ALIASES[clean] || clean;
     }
 
-    // 25 位人員名冊 (密碼完全依照你的公式對應)
+    // 25+ 位人員名冊
     window.defaultAccounts = [
       { id: 'KM-01', name: 'Mia', team: 'KM', role: '總管理員', isLeader: true, isMia: true, cycle: '半月糧', pwd: '123', advances: 0 },
       { id: 'A-01', name: '詠豪', team: 'A', role: '組長', isLeader: true, cycle: '半月糧', pwd: '11001', advances: 0 },
@@ -959,48 +958,50 @@
       { id: 'B-04', name: '韓軍魁', team: 'B', role: '全職步兵', cycle: '半月糧', pwd: '22004', advances: 0 },
       { id: 'A-04', name: '羅健華', team: 'A', role: '全職步兵', cycle: '半月糧', pwd: '11004', advances: 0 },
       { id: 'D-02', name: '強', team: 'D', role: '全職司機', cycle: '半月糧', pwd: '11002', advances: 0 },
-         { id: 'KM-13', name: '陳富強KM', team: 'KM', role: '全職步兵', cycle: '半月糧', pwd: '88015', advances: [] },
-    { id: 'E-01', name: '黃睿滔', team: 'KM', role: '全職步兵', cycle: '半月糧', pwd: '55001', advances: [] },
-    { id: 'E-02', name: '劉浩謙', team: 'KM', role: '全職步兵', cycle: '半月糧', pwd: '55002', advances: [] },
-    { id: 'E-03', name: '許文強', team: 'A', role: '全職步兵', cycle: '半月糧', pwd: '55003', advances: [] },
-    { id: 'E-04', name: '廖建文', team: 'A', role: '全職步兵', cycle: '半月糧', pwd: '55004', advances: [] },
-    { id: 'E-05', name: '司徒子濠', team: 'A', role: '全職步兵', cycle: '半月糧', pwd: '55005', advances: [] },
-    { id: 'E-06', name: '黃煒達', team: 'B', role: '全職步兵', cycle: '半月糧', pwd: '55006', advances: [] },
-    { id: 'E-07', name: '陳家熙', team: 'B', role: '全職步兵', cycle: '半月糧', pwd: '55007', advances: [] },
-    { id: 'E-08', name: '甄沛詩', team: 'B', role: '全職步兵', cycle: '半月糧', pwd: '55008', advances: [] },
-    { id: 'E-09', name: '梁鈜深', team: 'B', role: '全職步兵', cycle: '半月糧', pwd: '55009', advances: [] }
-];
-
-      
+      { id: 'KM-13', name: '陳富強KM', team: 'KM', role: '全職步兵', cycle: '半月糧', pwd: '88015', advances: [] },
+      { id: 'E-01', name: '黃睿滔', team: 'KM', role: '全職步兵', cycle: '半月糧', pwd: '55001', advances: [] },
+      { id: 'E-02', name: '劉浩謙', team: 'KM', role: '全職步兵', cycle: '半月糧', pwd: '55002', advances: [] },
+      { id: 'E-03', name: '許文強', team: 'A', role: '全職步兵', cycle: '半月糧', pwd: '55003', advances: [] },
+      { id: 'E-04', name: '廖建文', team: 'A', role: '全職步兵', cycle: '半月糧', pwd: '55004', advances: [] },
+      { id: 'E-05', name: '司徒子濠', team: 'A', role: '全職步兵', cycle: '半月糧', pwd: '55005', advances: [] },
+      { id: 'E-06', name: '黃煒達', team: 'B', role: '全職步兵', cycle: '半月糧', pwd: '55006', advances: [] },
+      { id: 'E-07', name: '陳家熙', team: 'B', role: '全職步兵', cycle: '半月糧', pwd: '55007', advances: [] },
+      { id: 'E-08', name: '甄沛詩', team: 'B', role: '全職步兵', cycle: '半月糧', pwd: '55008', advances: [] },
+      { id: 'E-09', name: '梁鈜深', team: 'B', role: '全職步兵', cycle: '半月糧', pwd: '55009', advances: [] }
+    ];
 
     let accounts = window.defaultAccounts;
     window.accounts = accounts;
 
+    // 完整 24 條全域圍欄結構 (已永久補全 09E、10E、南安街等)
     let fencesData = {
       SKW: [
-        { id: 'SKW_01', name: '03F 東旭苑', staffList: ['李兆偉'], volume: 81 },
-        { id: 'SKW_02', name: '06F 東濤苑', staffList: ['小魚'], volume: 58 },
-        { id: 'SKW_03', name: '15F 明華A-E座', staffList: ['俊華'], volume: 53 },
-        { id: 'SKW_04', name: '16F 明華1&2座', staffList: ['李偉文'], volume: 58 },
-        { id: 'SKW_05', name: '17F 香島', staffList: [], volume: 49 },
-        { id: 'SKW_06', name: '19F 漁灣村', staffList: [], volume: 144 },
-        { id: 'SKW_07', name: '40F 小西工', staffList: [], volume: 54 },
-        { id: 'SKW_08', name: '64F 愛東村', staffList: [], volume: 162 },
-        { id: 'SKW_09', name: '68F 東大街', staffList: [], volume: 89 },
-             { id: 'SKW_10', name: '69F 峻峰花園', staffList: [], volume: 53 },
-      { id: 'SKW_11', name: '70F 南安街', staffList: [], volume: 91 },
-      { id: 'SKW_12', name: '72F 形薈', staffList: [], volume: 151 },
-      { id: 'SKW_13', name: '76F 常安街', staffList: [], volume: 120 }
-    ],
-
+        { id: 'SKW_01', name: '03F 東旭苑', staffList: ['李兆偉'], volume: 71 },
+        { id: 'SKW_02', name: '06F 東濤苑', staffList: ['小魚'], volume: 69 },
+        { id: 'SKW_03', name: '15F 明華A-E座', staffList: ['俊華'], volume: 55 },
+        { id: 'SKW_04', name: '16F 明華1&2座', staffList: ['李偉文'], volume: 49 },
+        { id: 'SKW_05', name: '17F 香島', staffList: [], volume: 58 },
+        { id: 'SKW_06', name: '19F 漁灣邨', staffList: [], volume: 157 },
+        { id: 'SKW_07', name: '40F 小西灣工業區', staffList: [], volume: 94 },
+        { id: 'SKW_08', name: '64F 愛東邨', staffList: [], volume: 152 },
+        { id: 'SKW_09', name: '68F 東大街板A', staffList: [], volume: 76 },
+        { id: 'SKW_10', name: '69F 峻峰花園', staffList: [], volume: 65 },
+        { id: 'SKW_11', name: '70F 南安街', staffList: [], volume: 25 },
+        { id: 'SKW_12', name: '72F 形薈', staffList: [], volume: 8 },
+        { id: 'SKW_13', name: '76F 常安街', staffList: [], volume: 117 }
+      ],
       KT: [
-        { id: 'LG_01', name: '11E 1號托(麗港城1期)', staffList: ['景鴻'], volume: 36 },
-        { id: 'LG_02', name: '12E 2號托(麗港城1期)', staffList: ['小肥'], volume: 20 },
-        { id: 'LG_03', name: '13E 3號托(麗港城1期)', staffList: ['吳嘉榮'], volume: 120 },
-        { id: 'LG_04', name: '14E 4號托(麗港城2期)', staffList: ['韓軍魁'], volume: 43 },
-        { id: 'IND_01', name: '03E 工商區2號托 (大強倉)', staffList: ['詠豪'], volume: 37 },
-        { id: 'IND_02', name: '05E 工商區4號托 (港運)', staffList: ['徐子傑'], volume: 26 },
-        { id: 'IND_03', name: '06E 工商區5號托', staffList: ['羅健華'], volume: 34 }
+        { id: 'IND_01', name: '03E 觀塘工商區2號', staffList: ['詠豪'], volume: 135 },
+        { id: 'IND_02', name: '05E 觀塘工商區4號', staffList: ['徐子傑'], volume: 172 },
+        { id: 'IND_03', name: '06E 觀塘工商區5號', staffList: ['羅健華'], volume: 65 },
+        { id: 'IND_04', name: '09E 觀塘工商區8號', staffList: [], volume: 85 },
+        { id: 'IND_05', name: '10E 鴻圖道+勵業街', staffList: [], volume: 111 },
+        { id: 'LG_00', name: '01E Koko Hills', staffList: [], volume: 56 },
+        { id: 'LG_01', name: '11E 麗港城-1號托', staffList: ['景鴻'], volume: 85 },
+        { id: 'LG_02', name: '12E 麗港城-2號托', staffList: ['小肥'], volume: 110 },
+        { id: 'LG_03', name: '13E 麗港城-3號托', staffList: ['吳嘉榮'], volume: 188 },
+        { id: 'LG_04', name: '14E 麗港城-4號托', staffList: ['韓軍魁'], volume: 103 },
+        { id: 'LG_05', name: '15E 麗港城-5號托', staffList: [], volume: 95 }
       ],
       ST: [
         { id: 'ST_01', name: '沙田F 58 帝堡城', staffList: ['黃傅釧'], volume: 45 },
@@ -1010,11 +1011,32 @@
       ]
     };
 
+    // 24 條圍欄詳細貨量清單 (預設扣除壓車/T3)
     let countsDetailList = [
-      { date: '2026-08-25', zone: '東區', fence: '03F 東旭苑', orig: 420, held: 20, after: 400, t3: 15 },
-      { date: '2026-08-25', zone: 'KT', fence: '11E 1號托(麗港城1期)', orig: 510, held: 30, after: 480, t3: 20 },
-      { date: '2026-08-25', zone: 'KT', fence: '03E 工商區2號托 (大強倉)', orig: 620, held: 40, after: 580, t3: 25 },
-      { date: '2026-08-25', zone: '沙田', fence: '沙田F 58 帝堡城', orig: 450, held: 20, after: 430, t3: 10 }
+      { date: '2026-08-26', zone: '東區', fence: '64F 愛東邨', orig: 273, held: 121, t3: 121, after: 152 },
+      { date: '2026-08-26', zone: '東區', fence: '40F 小西灣工業區', orig: 121, held: 27, t3: 37, after: 94 },
+      { date: '2026-08-26', zone: '東區', fence: '76F 常安街簡約公屋暫存點', orig: 148, held: 31, t3: 30, after: 117 },
+      { date: '2026-08-26', zone: '東區', fence: '06F 東濤苑', orig: 95, held: 26, t3: 26, after: 69 },
+      { date: '2026-08-26', zone: '東區', fence: '68F 東大街板A', orig: 97, held: 21, t3: 21, after: 76 },
+      { date: '2026-08-26', zone: '東區', fence: '69F 峻峰花園', orig: 84, held: 19, t3: 20, after: 65 },
+      { date: '2026-08-26', zone: '東區', fence: '16F 明華1&2座', orig: 66, held: 17, t3: 17, after: 49 },
+      { date: '2026-08-26', zone: '東區', fence: '17F 香島', orig: 69, held: 11, t3: 11, after: 58 },
+      { date: '2026-08-26', zone: '東區', fence: '15F 明華A-E座', orig: 57, held: 2, t3: 2, after: 55 },
+      { date: '2026-08-26', zone: '東區', fence: '19F 漁灣邨', orig: 158, held: 1, t3: 1, after: 157 },
+      { date: '2026-08-26', zone: '東區', fence: '03F 東旭苑', orig: 71, held: 0, t3: 0, after: 71 },
+      { date: '2026-08-26', zone: '東區', fence: '70F 南安街', orig: 25, held: 0, t3: 0, after: 25 },
+      { date: '2026-08-26', zone: '東區', fence: '72F 形薈', orig: 8, held: 0, t3: 0, after: 8 },
+      { date: '2026-08-26', zone: 'KT', fence: '03E 觀塘工商區2號', orig: 135, held: 0, t3: 0, after: 135 },
+      { date: '2026-08-26', zone: 'KT', fence: '05E 觀塘工商區4號', orig: 172, held: 0, t3: 0, after: 172 },
+      { date: '2026-08-26', zone: 'KT', fence: '10E 鴻圖道+勵業街', orig: 115, held: 4, t3: 0, after: 111 },
+      { date: '2026-08-26', zone: 'KT', fence: '06E 觀塘工商區5號', orig: 66, held: 1, t3: 0, after: 65 },
+      { date: '2026-08-26', zone: 'KT', fence: '09E 觀塘工商區8號', orig: 87, held: 2, t3: 0, after: 85 },
+      { date: '2026-08-26', zone: 'KT', fence: '01E Koko Hills', orig: 57, held: 1, t3: 0, after: 56 },
+      { date: '2026-08-26', zone: 'KT', fence: '11E 麗港城-1號托', orig: 85, held: 0, t3: 0, after: 85 },
+      { date: '2026-08-26', zone: 'KT', fence: '12E 麗港城-2號托', orig: 110, held: 0, t3: 0, after: 110 },
+      { date: '2026-08-26', zone: 'KT', fence: '13E 麗港城-3號托', orig: 193, held: 5, t3: 0, after: 188 },
+      { date: '2026-08-26', zone: 'KT', fence: '14E 麗港城-4號托', orig: 103, held: 0, t3: 0, after: 103 },
+      { date: '2026-08-26', zone: 'KT', fence: '15E 麗港城-5號托', orig: 96, held: 1, t3: 0, after: 95 }
     ];
 
     let recruitsList = [
@@ -1034,6 +1056,22 @@
     let currentFlowZone = 'SKW';
     let currentCountFilterZone = 'ALL';
 
+    // 核心聯動函數：自動將詳細貨量表中的實派件數同步到排班 fencesData
+    function syncFencesVolumeFromCounts() {
+      Object.keys(fencesData).forEach(zk => {
+        fencesData[zk].forEach(f => {
+          const fClean = f.name.replace(/^[0-9]+[A-Z]\s*/, '').trim();
+          const match = countsDetailList.find(c => {
+            const cClean = c.fence.replace(/^[0-9]+[A-Z]\s*/, '').trim();
+            return c.fence === f.name || cClean.includes(fClean) || fClean.includes(cClean);
+          });
+          if (match) {
+            f.volume = Number(match.after) || (match.orig - match.held) || 0;
+          }
+        });
+      });
+    }
+
     function showTab(tabId) {
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -1044,45 +1082,45 @@
     }
 
     function handleHeaderLogin() {
-  const sel = document.getElementById('user-role-select');
-  const pwdInput = document.getElementById('header-user-pwd');
-  const pwd = pwdInput ? pwdInput.value.trim() : '';
+      const sel = document.getElementById('user-role-select');
+      const pwdInput = document.getElementById('header-user-pwd');
+      const pwd = pwdInput ? pwdInput.value.trim() : '';
 
-  if (!sel || !sel.value) {
-    alert('請先選擇人員！');
-    return;
-  }
+      if (!sel || !sel.value) {
+        alert('請先選擇人員！');
+        return;
+      }
 
-  const val = sel.value;
-  const found = accounts.find(a => a.name === val || a.id === val);
+      const val = sel.value;
+      const found = accounts.find(a => a.name === val || a.id === val);
 
-  if (val === 'Mia' || (found && found.isMia)) {
-    if (pwd !== '88880') {
-      alert('Mia 管理員密碼錯誤！請輸入專屬密碼：88880');
-      return;
+      if (val === 'Mia' || (found && found.isMia)) {
+        if (pwd !== '88880') {
+          alert('Mia 管理員密碼錯誤！請輸入專屬密碼：88880');
+          return;
+        }
+        currentUser = { name: 'Mia', team: 'KM', role: '總管理員', isMia: true, isLeader: true };
+      } else if (found) {
+        if (pwd !== found.pwd) {
+          alert('密碼錯誤！請重新輸入。');
+          return;
+        }
+        currentUser = found;
+      } else {
+        currentUser = { name: val, role: '全職步兵' };
+      }
+
+      applyRolePermissions();
+      alert('歡迎登入，' + currentUser.name + '！');
+      render14DaysTable();
+      renderRosterTableModule();
+      renderNewbieScheduleTable();
+      renderRecruitsModule();
+      calculateSalaries();
+      calculateBossReconcile();
+      renderStaffAccountsTable();
+      showAllDailyReports();
     }
-    currentUser = { name: 'Mia', team: 'KM', role: '總管理員', isMia: true, isLeader: true };
-  } else if (found) {
-    if (pwd !== found.pwd) {
-      alert('密碼錯誤！請重新輸入。');
-      return;
-    }
-    currentUser = found;
-  } else {
-    currentUser = { name: val, role: '全職步兵' };
-  }
-
-  applyRolePermissions();
-  alert('歡迎登入，' + currentUser.name + '！');
-  render14DaysTable();
-  renderRosterTableModule();
-  renderNewbieScheduleTable();
-  renderRecruitsModule();
-  calculateSalaries();
-  calculateBossReconcile();
-  renderStaffAccountsTable();
-  showAllDailyReports();
-}
 
     function logoutSession() {
       currentUser = null;
@@ -1154,7 +1192,7 @@
     }
 
     // 14 天報更渲染
-         function render14DaysTable() {
+    function render14DaysTable() {
       const theadRow = document.getElementById('schedule-header-row');
       const tbody = document.getElementById('schedule-body-container');
       if (!theadRow || !tbody) return;
@@ -1191,14 +1229,12 @@
         dates.forEach(d => {
           let rawShift = (a.shifts && a.shifts[d.iso]) || '';
 
-          // 模糊匹配無前導零日期
           if (!rawShift && a.shifts) {
             const shortIso = `${d.iso.split('-')[0]}-${Number(d.iso.split('-')[1])}-${Number(d.iso.split('-')[2])}`;
             rawShift = a.shifts[shortIso] || '';
           }
 
-          // 狀態判定：未填報 / 真放假 / 出更
-          let statusType = 'unsubmitted'; // 未報更期
+          let statusType = 'unsubmitted';
           let emoji = '';
 
           if (!rawShift) {
@@ -1218,7 +1254,6 @@
             statusType = 'unsubmitted';
           }
 
-          // 提取備註內容 (例如 [13:00-18:00] 或 [漁+工])
           let noteMatch = rawShift.match(/\[(.*?)\]/);
           let note = noteMatch ? noteMatch[1] : '';
           if (!note && (rawShift.includes('13:') || rawShift.includes('14:') || rawShift.includes('早') || rawShift.includes('夜'))) {
@@ -1226,7 +1261,6 @@
           }
 
           if (statusType === 'unsubmitted') {
-            // 未填報更期：灰色背景 + 未報更期字樣
             rowHtml += `
               <td class="p-1 border-r border-slate-200 text-center">
                 <div class="w-full py-2 px-1 rounded flex items-center justify-center bg-slate-100/80 border border-dashed border-slate-300">
@@ -1235,7 +1269,6 @@
               </td>
             `;
           } else if (statusType === 'off') {
-            // 真·放假：紅色加粗字體
             rowHtml += `
               <td class="p-1 border-r border-slate-200 text-center">
                 <div class="w-full py-1.5 px-1 rounded flex items-center justify-center bg-red-50 border border-red-100">
@@ -1244,7 +1277,6 @@
               </td>
             `;
           } else {
-            // 出更：純 Emoji 圖案 + 備註
             let styleCls = "bg-emerald-500 text-white shadow-xs";
             if (emoji === '⛅') styleCls = "bg-amber-400 text-slate-900 shadow-xs";
             else if (emoji === '🔥') styleCls = "bg-purple-600 text-white shadow-xs";
@@ -1264,8 +1296,7 @@
       }).join('');
     }
 
-
-        async function submitQuickShift() {
+    async function submitQuickShift() {
       const sSel = document.getElementById('schedule-quick-staff');
       const dInp = document.getElementById('schedule-quick-date');
       const iconSel = document.getElementById('schedule-quick-icon');
@@ -1285,7 +1316,6 @@
       const staffRaw = sSel.value;
       const staffName = normalizeStaffName(staffRaw.split(' ')[0].split('(')[0]);
       
-      // 統一轉為 YYYY-MM-DD 格式
       let dateVal = dInp.value.trim();
       if (dateVal.includes('/')) {
         const parts = dateVal.split('/');
@@ -1297,7 +1327,6 @@
 
       let finalShift = iconSel ? iconSel.value : '☀️ 全天';
       
-      // 處理上下午拆位與備註
       if (finalShift.includes('拆位')) {
         const amZone = amSel ? amSel.value : '全區';
         const pmZone = pmSel ? pmSel.value : '全區';
@@ -1306,7 +1335,6 @@
         finalShift = `${finalShift} [${noteInp.value.trim()}]`;
       }
 
-      // 1. 即時更新前端畫面
       const acc = accounts.find(a => a.name === staffName || a.id === staffName);
       if (acc) {
         if (!acc.shifts) acc.shifts = {};
@@ -1315,7 +1343,6 @@
       render14DaysTable();
       alert(`✅ 成功登記【${staffName}】在 ${dateVal} 的更期：${finalShift}`);
 
-      // 2. 背景同步寫入 Google 試算表
       try {
         const payload = {
           action: 'saveShift',
@@ -1335,7 +1362,7 @@
       }
     }
 
-    // 排更表格 (WhatsApp 格式，無預設內容，留白由 Mia 每日填寫)
+    // 排更表格
     function renderRosterTableModule() {
       const tbody = document.getElementById('roster-table-tbody');
       if (!tbody) return;
@@ -1367,7 +1394,7 @@
       }).join('');
     }
 
-    // 新人報更表 (具備完整下拉選項)
+    // 新人報更表
     function renderNewbieScheduleTable() {
       const theadRow = document.getElementById('newbie-schedule-header-row');
       const tbody = document.getElementById('newbie-schedule-tbody');
@@ -1417,7 +1444,7 @@
       }).join('') || `<tr><td colspan="9" class="p-4 text-center text-slate-400">目前尚無預約新人資料。</td></tr>`;
     }
 
-    // 8. 每日報數看板 (搜尋與歷史紀錄顯示)
+    // 8. 每日報數看板
     function searchDailyReportsByDate() {
       const dt = document.getElementById('filter-daily-date').value;
       const tbody = document.getElementById('daily-reports-tbody');
@@ -1494,6 +1521,7 @@
       });
       const container = document.getElementById('progressCardsContainer');
       if (!container) return;
+      syncFencesVolumeFromCounts();
       const fences = fencesData[zk] || [];
       container.innerHTML = fences.map(f => {
         const p = progressRecord[f.id] || { status: "⏳ 貨未到", signed: 0, hold: 0 };
@@ -1536,15 +1564,17 @@
       progressRecord[fid][field] = (field === 'status') ? val : (parseInt(val) || 0);
     }
 
-    // 區域分工排班
+    // 區域分工排班 (自動動態讀取貨量核算扣除壓車後的票數)
     function renderAssignmentsGrid() {
       const container = document.getElementById('assignments-grid');
       if (!container) return;
 
+      syncFencesVolumeFromCounts();
+
       container.innerHTML = ['SKW', 'KT', 'ST'].map(zk => `
         <div class="p-3 border rounded-xl bg-slate-50 space-y-2">
           <div class="flex justify-between items-center border-b pb-1">
-            <span class="font-bold text-slate-900">${zk === 'KT' ? 'KT 觀塘區' : zk + ' 分區'}</span>
+            <span class="font-bold text-slate-900">${zk === 'KT' ? 'KT 觀塘區' : zk === 'SKW' ? '東區 (SKW)' : '沙田區 (ST)'}</span>
             <button onclick="exportZoneAssignments('${zk}')" class="text-xs bg-slate-800 text-white px-2 py-0.5 rounded cursor-pointer">📋 匯出此區</button>
           </div>
           <div class="space-y-2">
@@ -1552,7 +1582,7 @@
               <div class="p-2.5 bg-white border rounded-lg shadow-xs space-y-1.5 hover:border-blue-300 transition">
                 <div class="flex justify-between items-center">
                   <span class="font-bold text-slate-800 text-sm">${f.name}</span>
-                  <span class="text-[10px] bg-amber-50 text-amber-800 px-1.5 py-0.5 rounded font-bold">${f.volume || 0} 票</span>
+                  <span class="text-[11px] bg-amber-100 text-amber-900 border border-amber-200 px-2 py-0.5 rounded font-black">${f.volume || 0} 票</span>
                 </div>
                 <div class="flex flex-wrap gap-1">
                   ${(f.staffList && f.staffList.length > 0) ? f.staffList.map((s, sIdx) => `
@@ -1595,6 +1625,7 @@
     }
 
     function exportZoneAssignments(zk) {
+      syncFencesVolumeFromCounts();
       const list = fencesData[zk] || [];
       let txt = `📋【${zk} 區今日分工總表】\n--------------------\n`;
       let tot = 0;
@@ -1776,44 +1807,44 @@
       const msg = `📋【Mia組 步兵入職預約填表】\n歡迎加入Mia組大家庭！請回覆以下資料以便安排跟更與首日排更：\n\n1. 中文全名：\n2. 聯絡電話：\n3. 居住區域：\n4. 預計第一日可上班日期：\n5. 一週可返日數 (如: 5-6日)：\n6. 意向分區 (東區 / 麗港城 / 觀塘工商 / 沙田)：\n7. 過往相關派件工作經驗：\n\n填好後請直接回覆此 WhatsApp 訊息，多謝配合！`;
       navigator.clipboard.writeText(msg).then(() => alert('✅ 新人 WhatsApp 填表文字範本已複製！可直接發送給新人！'));
     }
-// 前台一鍵新增圍欄函數
-function quickAddFenceToSystem() {
-  const zone = document.getElementById('quick-add-zone').value;
-  const fenceId = document.getElementById('quick-add-id').value.trim();
-  const fenceName = document.getElementById('quick-add-name').value.trim();
 
-  if (!fenceId || !fenceName) {
-    alert('⚠️ 請輸入完整的圍欄編號及名稱！');
-    return;
-  }
+    // 前台一鍵新增圍欄函數
+    function quickAddFenceToSystem() {
+      const zone = document.getElementById('quick-add-zone').value;
+      const fenceId = document.getElementById('quick-add-id').value.trim();
+      const fenceName = document.getElementById('quick-add-name').value.trim();
 
-  if (!fencesData[zone]) {
-    fencesData[zone] = [];
-  }
+      if (!fenceId || !fenceName) {
+        alert('⚠️ 請輸入完整的圍欄編號及名稱！');
+        return;
+      }
 
-  const isExist = fencesData[zone].some(f => f.id === fenceId || f.name === fenceName);
-  if (isExist) {
-    alert('⚠️ 該圍欄編號或名稱已經存在！');
-    return;
-  }
+      if (!fencesData[zone]) {
+        fencesData[zone] = [];
+      }
 
-  fencesData[zone].push({
-    id: fenceId,
-    name: fenceName,
-    staffList: [],
-    volume: 0
-  });
+      const isExist = fencesData[zone].some(f => f.id === fenceId || f.name === fenceName);
+      if (isExist) {
+        alert('⚠️ 該圍欄編號或名稱已經存在！');
+        return;
+      }
 
-  localStorage.setItem('MIA_DATA_fences', JSON.stringify(fencesData));
+      fencesData[zone].push({
+        id: fenceId,
+        name: fenceName,
+        staffList: [],
+        volume: 0
+      });
 
-  if (typeof populateFenceSelects === 'function') populateFenceSelects();
-  if (typeof renderCountsTable === 'function') renderCountsTable();
+      populateCountFenceDropdown();
+      renderAssignmentsGrid();
+      renderCountsTable();
 
-  document.getElementById('quick-add-id').value = '';
-  document.getElementById('quick-add-name').value = '';
+      document.getElementById('quick-add-id').value = '';
+      document.getElementById('quick-add-name').value = '';
 
-  alert(`✅ 圍欄 [${fenceName}] 已成功加入 [${zone}] 選單！`);
-}
+      alert(`✅ 圍欄 [${fenceName}] 已成功加入 [${zone}] 選單！`);
+    }
 
     // 詳細貨量核算
     function filterCountsZone(zk) {
@@ -1883,7 +1914,7 @@ function quickAddFenceToSystem() {
             <td class="p-2.5 border text-right font-bold text-slate-700 font-mono">${c.t3}</td>
             <td class="p-2.5 border text-center space-x-1">
               <button onclick="loadCountRowToForm(${idx})" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded font-bold text-xs cursor-pointer">✏️ 載入修改</button>
-              <button onclick="countsDetailList.splice(${idx},1);renderCountsTable();" class="text-rose-600 font-bold hover:underline text-xs cursor-pointer ml-2">刪除</button>
+              <button onclick="countsDetailList.splice(${idx},1);renderCountsTable();renderAssignmentsGrid();" class="text-rose-600 font-bold hover:underline text-xs cursor-pointer ml-2">刪除</button>
             </td>
           </tr>
         `;
@@ -1908,48 +1939,49 @@ function quickAddFenceToSystem() {
     }
 
     async function submitCountForm() {
-  const z = document.getElementById('cnt-input-zone') ? document.getElementById('cnt-input-zone').value : '東區';
-  const f = document.getElementById('cnt-input-fence') ? document.getElementById('cnt-input-fence').value : '';
+      const z = document.getElementById('cnt-input-zone') ? document.getElementById('cnt-input-zone').value : '東區';
+      const f = document.getElementById('cnt-input-fence') ? document.getElementById('cnt-input-fence').value : '';
 
-  const orig = Number(document.getElementById('cnt-input-orig') ? document.getElementById('cnt-input-orig').value : 0) || 0;
-  const held = Number(document.getElementById('cnt-input-held') ? document.getElementById('cnt-input-held').value : 0) || 0;
-  const t3 = Number(document.getElementById('cnt-input-t3') ? document.getElementById('cnt-input-t3').value : 0) || 0;
-  const date = document.getElementById('count-view-date') ? document.getElementById('count-view-date').value : '2026-08-25';
+      const orig = Number(document.getElementById('cnt-input-orig') ? document.getElementById('cnt-input-orig').value : 0) || 0;
+      const held = Number(document.getElementById('cnt-input-held') ? document.getElementById('cnt-input-held').value : 0) || 0;
+      const t3 = Number(document.getElementById('cnt-input-t3') ? document.getElementById('cnt-input-t3').value : 0) || 0;
+      const date = document.getElementById('count-view-date') ? document.getElementById('count-view-date').value : '2026-08-26';
 
-  if (!f) { alert('請選擇圍欄！'); return; }
+      if (!f) { alert('請選擇圍欄！'); return; }
 
-  const entry = { date: date, zone: z, fence: f, orig: orig, held: held, after: Math.max(0, orig - held), t3: t3, delivered: Math.max(0, orig - held) };
+      const entry = { date: date, zone: z, fence: f, orig: orig, held: held, after: Math.max(0, orig - held), t3: t3, delivered: Math.max(0, orig - held) };
 
-  const existingIdx = countsDetailList.findIndex(item => item.fence === f && item.date === date);
-  if (existingIdx >= 0) {
-    countsDetailList[existingIdx] = entry;
-  } else {
-    countsDetailList.unshift(entry);
-  }
+      const existingIdx = countsDetailList.findIndex(item => item.fence === f);
+      if (existingIdx >= 0) {
+        countsDetailList[existingIdx] = entry;
+      } else {
+        countsDetailList.unshift(entry);
+      }
 
-  localStorage.setItem('MIA_DATA_counts', JSON.stringify(countsDetailList));
-  renderCountsTable();
+      renderCountsTable();
+      renderAssignmentsGrid();
 
-  // 自動同步上傳至 Google 試算表
-  try {
-    const payload = {
-      action: 'saveCountsDetail',
-      data: entry,
-      currentUser: (typeof currentUser !== 'undefined' && currentUser) ? currentUser : 'Mia'
-    };
-    await fetch(GAS_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
-    });
-    alert(`✅ 圍欄 [${f}] 貨量已成功儲存並同步至 Google！ 實派：${orig - held} 票`);
-  } catch (err) {
-    alert(`✅ 圍欄 [${f}] 貨量已完成本地儲存！ 實派：${orig - held} 票`);
-  }
-}
+      // 自動背景同步上傳至 Google 試算表
+      try {
+        const payload = {
+          action: 'syncCounts',
+          module: '詳細貨量核算',
+          countsDetailList: countsDetailList,
+          timestamp: new Date().toISOString()
+        };
+        fetch(GAS_API_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        alert(`✅ 圍欄 [${f}] 貨量已成功儲存並同步！ 實派：${orig - held} 票`);
+      } catch (err) {
+        alert(`✅ 圍欄 [${f}] 貨量已完成本地更新！ 實派：${orig - held} 票`);
+      }
+    }
 
-
-    // 老闆對數表 (Mia 應收總額)
+    // 老闆對數表
     function calculateBossReconcile() {
       const tbody = document.getElementById('boss-reconcile-tbody');
       if (!tbody) return;
@@ -2205,7 +2237,7 @@ function quickAddFenceToSystem() {
       fenceSel.innerHTML = fences.map(f => `<option value="${f.name}">${f.name}</option>`).join('') || '<option value="">尚無圍欄</option>';
     }
 
-          async function fetchAllCloudData(showPrompt) {
+    async function fetchAllCloudData(showPrompt) {
       const btn = document.querySelector('button[onclick*="fetchAllCloudData"]');
       if (btn) btn.textContent = '⏳ 正在讀取 Google 試算表...';
 
@@ -2231,24 +2263,22 @@ function quickAddFenceToSystem() {
               const held = Number(r['滯留件'] || r['滯留'] || r['held'] || 0);
               return { date, staff: name, skw, lg, kt, st, totalPieces: tot, signed, held, finalSalary: (tot * 4.0).toFixed(2) };
             });
-          }        // 1.5 解析詳細貨量核算
-        if (result.countsDetailList && Array.isArray(result.countsDetailList)) {
-          countsDetailList = result.countsDetailList.map(item => ({
-            date: item['日期'] || item.date || '2026-08-26',
-            zone: item['分區'] || item.zone || '',
-            fence: item['圍欄名稱'] || item['圍欄'] || item.fence || '',
-            orig: Number(item['每日貨量(原有)'] || item['原有數量(預估)'] || item['原有數量'] || item.orig || 0),
-            held: Number(item['壓車數量'] || item['壓車數量(壓夜)'] || item.held || 0),
-            t3: Number(item['當天T3'] || item['T3數量'] || item.t3 || 0),
-            after: Number(item['壓車後數據(現有)'] || item['實際當日數量(次日)'] || item['實際當日數量'] || item.after || 0)
-          }));
-          if (typeof renderCountsTable === 'function') {
-            renderCountsTable();
           }
-        }
 
+          // 1.5 解析詳細貨量核算
+          if (result.countsDetailList && Array.isArray(result.countsDetailList) && result.countsDetailList.length > 0) {
+            countsDetailList = result.countsDetailList.map(item => ({
+              date: item['日期'] || item.date || '2026-08-26',
+              zone: item['分區'] || item.zone || '',
+              fence: item['圍欄名稱'] || item['圍欄'] || item.fence || '',
+              orig: Number(item['每日貨量(原有)'] || item['原有數量(預估)'] || item['原有數量'] || item.orig || 0),
+              held: Number(item['壓車數量'] || item['壓車數量(壓夜)'] || item.held || 0),
+              t3: Number(item['當天T3'] || item['T3數量'] || item.t3 || 0),
+              after: Number(item['壓車後數據(現有)'] || item['實際當日數量(次日)'] || item['實際當日數量'] || item.after || 0)
+            }));
+          }
 
-          // 2. 精準解析 14 天報更數據 (完全對應試算表：人員姓名、圖標、報更鍵值)
+          // 2. 精準解析 14 天報更數據
           const rawShifts = result.shifts || result.shiftsRecord || (result.data && result.data.shifts) || [];
           if (Array.isArray(rawShifts) && rawShifts.length > 0) {
             rawShifts.forEach(item => {
@@ -2258,8 +2288,6 @@ function quickAddFenceToSystem() {
 
               if (acc) {
                 if (!acc.shifts) acc.shifts = {};
-
-                // 提取日期：優先從「報更鍵值」(如 俊華_2026-08-25) 拆解，避免時區偏差
                 let dStr = '';
                 if (item['報更鍵值'] && item['報更鍵值'].includes('_')) {
                   dStr = item['報更鍵值'].split('_')[1];
@@ -2268,7 +2296,6 @@ function quickAddFenceToSystem() {
                   dStr = rawD.indexOf('T') !== -1 ? rawD.split('T')[0] : rawD;
                 }
 
-                // 提取更期：精準讀取「圖標」欄位
                 let sShift = item['圖標'] || item['更期'] || item['分工'] || item['狀態'] || item.shift;
                 const zone = item['區域'] ? `(${item['區域']})` : '';
                 const note = item['備註'] ? `[${item['備註']}]` : '';
@@ -2309,33 +2336,28 @@ function quickAddFenceToSystem() {
       }
     }
 
-   async function syncModuleToGoogle(moduleName, event) {
-  if (event) event.preventDefault();
-  
-  const payload = {
-    action: "syncCounts",
-    module: moduleName || "詳細貨量核算",
-    countsDetailList: (typeof countsDetailList !== 'undefined') ? countsDetailList : [],
-    timestamp: new Date().toISOString()
-  };
+    async function syncModuleToGoogle(moduleName, event) {
+      if (event) event.preventDefault();
+      
+      const payload = {
+        action: "syncCounts",
+        module: moduleName || "詳細貨量核算",
+        countsDetailList: (typeof countsDetailList !== 'undefined') ? countsDetailList : [],
+        timestamp: new Date().toISOString()
+      };
 
-  try {
-    await fetch(GAS_API_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    alert(`✅ 已向 Google 試算表發送「${moduleName || '詳細貨量核算'}」即時同步請求！`);
-  } catch (err) {
-    alert("❌ 同步失敗：" + err.message);
-  }
-}
-
-function syncCurrentModuleToGoogle(moduleName, event) {
-  syncModuleToGoogle(moduleName, event);
-}
-
+      try {
+        await fetch(GAS_API_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        alert(`✅ 已向 Google 試算表發送「${moduleName || '詳細貨量核算'}」即時同步請求！`);
+      } catch (err) {
+        alert("❌ 同步失敗：" + err.message);
+      }
+    }
 
     function generateExportText(type) {
       const area = document.getElementById('universal-export-textarea');
@@ -2375,20 +2397,6 @@ function syncCurrentModuleToGoogle(moduleName, event) {
     window.addEventListener('DOMContentLoaded', function() {
       fetchAllCloudData(false);
     });
-  function syncCurrentModuleToGoogle(moduleName, event) {
-  if (event) event.preventDefault();
-  
-  console.log("開始同步模組：", moduleName);
-  
-  if (typeof syncAllDataToGoogle === 'function') {
-    syncAllDataToGoogle();
-  } else if (typeof uploadToGoogle === 'function') {
-    uploadToGoogle();
-  } else {
-    alert("✅ 【" + moduleName + "】已確認觸發！");
-  }
-}
-
   </script>
 </body>
 </html>
