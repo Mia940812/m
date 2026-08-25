@@ -1525,19 +1525,71 @@
       alert(`✅ 成功新增人員：${n} (${autoId})`);
     }
 
-    function fetchAllCloudData(showPrompt) {
-      populateStaffSelects();
-      render14DaysTable();
-      renderNewbieScheduleTable();
-      renderAssignmentsGrid();
-      switchProgressZone('SKW');
-      renderRecruitsModule();
-      renderCountsTable();
-      renderStaffAccountsTable();
-      calculateSalaries();
-      calculateBossReconcile();
-      applyRolePermissions();
-      if (showPrompt) alert('✅ 成功從雲端同步全體 25 人最新名冊、報更與報數數據！');
+    async function fetchAllCloudData(showPrompt) {
+      const btn = document.querySelector('button[onclick*="fetchAllCloudData"]');
+      if (btn) btn.textContent = '⏳ 正在向 Google 下載中...';
+
+      try {
+        const res = await fetch(`${GAS_API_URL}?action=getAllData&t=${Date.now()}`);
+        const result = await res.json();
+
+        if (result && (result.status === 'success' || result.data || Array.isArray(result))) {
+          const cloudData = result.data || result;
+
+          // 1. 載入雲端每日報數記錄 (700+ 筆歷史資料與各區票數)
+          if (cloudData.dailyReports && Array.isArray(cloudData.dailyReports)) {
+            dailyReports = cloudData.dailyReports;
+          } else if (Array.isArray(cloudData)) {
+            dailyReports = cloudData;
+          }
+
+          // 2. 載入雲端 14 天報更數據
+          if (cloudData.shiftsRecord) {
+            shiftsRecord = cloudData.shiftsRecord;
+            accounts.forEach(a => {
+              if (!a.shifts) a.shifts = {};
+              Object.keys(shiftsRecord).forEach(k => {
+                if (k.startsWith(a.name + '_') || k.startsWith(a.id + '_')) {
+                  const dStr = k.split('_')[1];
+                  a.shifts[dStr] = shiftsRecord[k].icon || shiftsRecord[k];
+                }
+              });
+            });
+          }
+
+          // 3. 載入雲端貨量、工單、流向與新人資料
+          if (cloudData.countsDetailList) countsDetailList = cloudData.countsDetailList;
+          if (cloudData.ticketsList) ticketsList = cloudData.ticketsList;
+          if (cloudData.packageFlowList) packageFlowList = cloudData.packageFlowList;
+          if (cloudData.recruitsList) recruitsList = cloudData.recruitsList;
+          if (cloudData.newbieShiftsRecord) newbieShiftsRecord = cloudData.newbieShiftsRecord;
+          if (cloudData.suppliesList) suppliesList = cloudData.suppliesList;
+          if (cloudData.violationsList) violationsList = cloudData.violationsList;
+          if (cloudData.trucksList) trucksList = cloudData.trucksList;
+
+          if (showPrompt) alert('✅ 成功從 Google 試算表載入全隊最新數據！');
+        } else if (showPrompt) {
+          alert('⚠️ 雲端已連線，已為您刷新本地顯示！');
+        }
+      } catch (err) {
+        console.warn('Google 載入失敗，使用本地數據：', err);
+        if (showPrompt) alert('⚠️ 連接 Google 試算表逾時，已為您呈顯現有數據！');
+      } finally {
+        if (btn) btn.textContent = '🔄 從 Google 刷新全隊最新數據';
+
+        // 重新渲染全部頁面模組
+        populateStaffSelects();
+        render14DaysTable();
+        renderNewbieScheduleTable();
+        renderAssignmentsGrid();
+        switchProgressZone('SKW');
+        renderRecruitsModule();
+        renderCountsTable();
+        renderStaffAccountsTable();
+        calculateSalaries();
+        calculateBossReconcile();
+        applyRolePermissions();
+      }
     }
 
     function generateExportText(type) {
@@ -1582,6 +1634,7 @@
     window.addEventListener('DOMContentLoaded', function() {
       fetchAllCloudData(false);
     });
+
   </script>
 </body>
 </html>
