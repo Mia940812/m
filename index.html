@@ -1605,59 +1605,56 @@
       alert(`✅ 成功新增人員：${n} (${autoId})`);
     }
 
-       // 2. Google 試算表直連讀取 (JSONP 免跨域攔截)
-    function fetchAllCloudData(showPrompt) {
+          async function fetchAllCloudData(showPrompt) {
       const btn = document.querySelector('button[onclick*="fetchAllCloudData"]');
       if (btn) btn.textContent = '⏳ 正在讀取 Google 試算表...';
 
-      const callbackName = 'googleCallback_' + Date.now();
-      window[callbackName] = function(result) {
-        try {
-          if (result) {
-            const cloudData = result.data || result;
-            if (cloudData.dailyReports && Array.isArray(cloudData.dailyReports)) {
-              dailyReports = cloudData.dailyReports;
-            } else if (Array.isArray(result)) {
-              dailyReports = result;
-            }
-            if (cloudData.shiftsRecord) {
-              shiftsRecord = cloudData.shiftsRecord;
-              accounts.forEach(a => {
-                if (!a.shifts) a.shifts = {};
-                Object.keys(shiftsRecord).forEach(k => {
-                  if (k.startsWith(a.name + '_') || k.startsWith(a.id + '_')) {
-                    const dStr = k.split('_')[1];
-                    a.shifts[dStr] = shiftsRecord[k].icon || shiftsRecord[k];
-                  }
-                });
-              });
-            }
-            if (cloudData.countsDetailList) countsDetailList = cloudData.countsDetailList;
-            if (cloudData.ticketsList) ticketsList = cloudData.ticketsList;
-            if (cloudData.packageFlowList) packageFlowList = cloudData.packageFlowList;
-            if (cloudData.recruitsList) recruitsList = cloudData.recruitsList;
-            if (cloudData.newbieShiftsRecord) newbieShiftsRecord = cloudData.newbieShiftsRecord;
-            if (showPrompt) alert('✅ 成功從 Google 試算表載入全隊所有歷史數據！');
+      try {
+        const response = await fetch(GAS_API_URL + "?action=getAllData&t=" + Date.now(), {
+          method: "GET",
+          redirect: "follow"
+        });
+        const result = await response.json();
+
+        if (result) {
+          let list = [];
+          if (Array.isArray(result)) {
+            list = result;
+          } else if (result.data && Array.isArray(result.data)) {
+            list = result.data;
+          } else if (result.dailyReports && Array.isArray(result.dailyReports)) {
+            list = result.dailyReports;
+          } else if (result.records && Array.isArray(result.records)) {
+            list = result.records;
           }
-        } catch(err) {
-          console.log("解析錯誤：", err);
-        } finally {
-          cleanupAndRender();
+
+          if (list.length > 0) {
+            dailyReports = list.map(r => {
+              const rawDate = String(r['日期'] || r['date'] || r['報數日期'] || '-');
+              let date = rawDate.indexOf('T') !== -1 ? rawDate.split('T')[0] : rawDate;
+              const name = r['人員'] || r['步兵姓名'] || r['人員姓名'] || r['姓名'] || r['staff'] || '-';
+              const skw = Number(r['東區票數'] || r['東區'] || r['skw'] || 0);
+              const lg = Number(r['麗港城票數'] || r['麗港城'] || r['lg'] || 0);
+              const kt = Number(r['觀塘工商票數'] || r['工商區票數'] || r['工商'] || r['kt'] || 0);
+              const st = Number(r['沙田票數'] || r['沙田(F58)票數'] || r['沙田'] || r['st'] || 0);
+              const tot = Number(r['總票數'] || r['總派件票數'] || r['總件數'] || r['totalPieces'] || (skw + lg + kt + st));
+              const signed = Number(r['已簽收'] || r['signed'] || tot);
+              const held = Number(r['滯留'] || r['held'] || 0);
+              const sal = r['當日實發總工資(全包)'] || r['實發工資'] || r['finalSalary'] || (tot * 4.0).toFixed(2);
+
+              return { date, staff: name, skw, lg, kt, st, totalPieces: tot, signed, held, finalSalary: sal };
+            });
+
+            if (showPrompt) alert(`✅ 成功從 Google 試算表載入 ${dailyReports.length} 筆最新數據！`);
+          } else {
+            if (showPrompt) alert('✅ 雲端連線成功，目前試算表無新增記錄。');
+          }
         }
-      };
-
-      const script = document.createElement('script');
-      script.src = `${GAS_API_URL}?action=getAllData&callback=${callbackName}&t=${Date.now()}`;
-      script.onerror = function() {
-        cleanupAndRender();
-        if (showPrompt) alert('⚠️ 已載入現有數據！');
-      };
-      document.body.appendChild(script);
-
-      function cleanupAndRender() {
+      } catch (err) {
+        console.warn("Fetch 讀取失敗，使用本機快取：", err);
+        if (showPrompt) alert('⚠️ 無法連線至 Google 試算表，已載入現有數據。');
+      } finally {
         if (btn) btn.textContent = '🔄 從 Google 刷新全隊最新數據';
-        if (window[callbackName]) delete window[callbackName];
-        if (script.parentNode) script.parentNode.removeChild(script);
 
         populateStaffSelects();
         render14DaysTable();
