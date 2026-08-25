@@ -1605,7 +1605,7 @@
       alert(`✅ 成功新增人員：${n} (${autoId})`);
     }
 
-          async function fetchAllCloudData(showPrompt) {
+              async function fetchAllCloudData(showPrompt) {
       const btn = document.querySelector('button[onclick*="fetchAllCloudData"]');
       if (btn) btn.textContent = '⏳ 正在讀取 Google 試算表...';
 
@@ -1617,19 +1617,19 @@
         const result = await response.json();
 
         if (result) {
-          let list = [];
+          // 1. 深度搜尋所有可能的每日報數陣列
+          let rawList = [];
           if (Array.isArray(result)) {
-            list = result;
-          } else if (result.data && Array.isArray(result.data)) {
-            list = result.data;
-          } else if (result.dailyReports && Array.isArray(result.dailyReports)) {
-            list = result.dailyReports;
-          } else if (result.records && Array.isArray(result.records)) {
-            list = result.records;
+            rawList = result;
+          } else {
+            rawList = result.dailyReports || result.reports || result.data || result.records || result.rows || result.list || [];
+            if (!Array.isArray(rawList) && typeof rawList === 'object') {
+              rawList = rawList.dailyReports || rawList.reports || rawList.records || Object.values(rawList).find(v => Array.isArray(v)) || [];
+            }
           }
 
-          if (list.length > 0) {
-            dailyReports = list.map(r => {
+          if (Array.isArray(rawList) && rawList.length > 0) {
+            dailyReports = rawList.map(r => {
               const rawDate = String(r['日期'] || r['date'] || r['報數日期'] || '-');
               let date = rawDate.indexOf('T') !== -1 ? rawDate.split('T')[0] : rawDate;
               const name = r['人員'] || r['步兵姓名'] || r['人員姓名'] || r['姓名'] || r['staff'] || '-';
@@ -1644,15 +1644,52 @@
 
               return { date, staff: name, skw, lg, kt, st, totalPieces: tot, signed, held, finalSalary: sal };
             });
+          }
 
-            if (showPrompt) alert(`✅ 成功從 Google 試算表載入 ${dailyReports.length} 筆最新數據！`);
-          } else {
-            if (showPrompt) alert('✅ 雲端連線成功，目前試算表無新增記錄。');
+          // 2. 解包 14 天報更數據
+          const rawShifts = result.shiftsRecord || result.shifts || (result.data && result.data.shiftsRecord);
+          if (rawShifts) {
+            shiftsRecord = rawShifts;
+            accounts.forEach(a => {
+              if (!a.shifts) a.shifts = {};
+              if (Array.isArray(rawShifts)) {
+                rawShifts.forEach(item => {
+                  const sName = item.staff || item['人員'] || item['姓名'];
+                  const sDate = item.date || item['日期'];
+                  const sIcon = item.icon || item.shift || item['更期'];
+                  if (sName && sDate && (sName.includes(a.name) || a.name.includes(sName))) {
+                    a.shifts[sDate] = sIcon;
+                  }
+                });
+              } else if (typeof rawShifts === 'object') {
+                Object.keys(rawShifts).forEach(k => {
+                  if (k.includes(a.name) || k.includes(a.id)) {
+                    const parts = k.split('_');
+                    if (parts.length > 1) {
+                      const dStr = parts[1];
+                      a.shifts[dStr] = rawShifts[k].icon || rawShifts[k];
+                    }
+                  }
+                });
+              }
+            });
+          }
+
+          // 3. 解包其他模組
+          if (result.countsDetailList || (result.data && result.data.countsDetailList)) {
+            countsDetailList = result.countsDetailList || result.data.countsDetailList;
+          }
+          if (result.recruitsList || (result.data && result.data.recruitsList)) {
+            recruitsList = result.recruitsList || result.data.recruitsList;
+          }
+
+          if (showPrompt) {
+            alert(`✅ 雲端載入完成！\n已成功同步 ${dailyReports.length} 筆每日報數與全體人員更期！`);
           }
         }
       } catch (err) {
-        console.warn("Fetch 讀取失敗，使用本機快取：", err);
-        if (showPrompt) alert('⚠️ 無法連線至 Google 試算表，已載入現有數據。');
+        console.warn("解析失敗：", err);
+        if (showPrompt) alert('⚠️ 雲端讀取異常，已保留現有畫面。');
       } finally {
         if (btn) btn.textContent = '🔄 從 Google 刷新全隊最新數據';
 
@@ -1669,6 +1706,7 @@
         applyRolePermissions();
       }
     }
+
 
     function generateExportText(type) {
       const area = document.getElementById('universal-export-textarea');
