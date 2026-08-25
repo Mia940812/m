@@ -1824,25 +1824,47 @@
       alert(`已將 [${c.fence}] 數據填入上方表單，修改後直接按下「💾 儲存/更新貨量」即可！`);
     }
 
-    function submitCountData() {
-      const z = document.getElementById('cnt-input-zone').value;
-      const f = document.getElementById('cnt-input-fence').value;
-      const orig = Number(document.getElementById('cnt-input-orig').value) || 0;
-      const held = Number(document.getElementById('cnt-input-held').value) || 0;
-      const t3 = Number(document.getElementById('cnt-input-t3').value) || 0;
-      const date = document.getElementById('count-view-date').value || '2026-08-25';
+    async function submitCountForm() {
+  const z = document.getElementById('cnt-input-zone') ? document.getElementById('cnt-input-zone').value : '東區';
+  const f = document.getElementById('cnt-input-fence') ? document.getElementById('cnt-input-fence').value : '';
 
-      if (!f) { alert('請選擇圍欄！'); return; }
-      const existingIdx = countsDetailList.findIndex(item => item.fence === f);
-      if (existingIdx >= 0) {
-        countsDetailList[existingIdx] = { date, zone: z, fence: f, orig, held, after: orig - held, t3 };
-      } else {
-        countsDetailList.unshift({ date, zone: z, fence: f, orig, held, after: orig - held, t3 });
-      }
+  const orig = Number(document.getElementById('cnt-input-orig') ? document.getElementById('cnt-input-orig').value : 0) || 0;
+  const held = Number(document.getElementById('cnt-input-held') ? document.getElementById('cnt-input-held').value : 0) || 0;
+  const t3 = Number(document.getElementById('cnt-input-t3') ? document.getElementById('cnt-input-t3').value : 0) || 0;
+  const date = document.getElementById('count-view-date') ? document.getElementById('count-view-date').value : '2026-08-25';
 
-      renderCountsTable();
-      alert(`✅ 圍欄 [${f}] 貨量已成功儲存/更新！實派：${orig - held} 票`);
-    }
+  if (!f) { alert('請選擇圍欄！'); return; }
+
+  const entry = { date: date, zone: z, fence: f, orig: orig, held: held, after: Math.max(0, orig - held), t3: t3, delivered: Math.max(0, orig - held) };
+
+  const existingIdx = countsDetailList.findIndex(item => item.fence === f && item.date === date);
+  if (existingIdx >= 0) {
+    countsDetailList[existingIdx] = entry;
+  } else {
+    countsDetailList.unshift(entry);
+  }
+
+  localStorage.setItem('MIA_DATA_counts', JSON.stringify(countsDetailList));
+  renderCountsTable();
+
+  // 自動同步上傳至 Google 試算表
+  try {
+    const payload = {
+      action: 'saveCountsDetail',
+      data: entry,
+      currentUser: (typeof currentUser !== 'undefined' && currentUser) ? currentUser : 'Mia'
+    };
+    await fetch(GAS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    alert(`✅ 圍欄 [${f}] 貨量已成功儲存並同步至 Google！ 實派：${orig - held} 票`);
+  } catch (err) {
+    alert(`✅ 圍欄 [${f}] 貨量已完成本地儲存！ 實派：${orig - held} 票`);
+  }
+}
+
 
     // 老闆對數表 (Mia 應收總額)
     function calculateBossReconcile() {
