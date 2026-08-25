@@ -2231,6 +2231,21 @@ function quickAddFenceToSystem() {
               return { date, staff: name, skw, lg, kt, st, totalPieces: tot, signed, held, finalSalary: (tot * 4.0).toFixed(2) };
             });
           }
+                  // 1.5 解析詳細貨量核算
+        if (result.countsDetailList && Array.isArray(result.countsDetailList)) {
+          countsDetailList = result.countsDetailList.map(item => ({
+            zone: item['分區'] || item.zone || '',
+            fence: item['圍欄名稱'] || item['圍欄'] || item.fence || '',
+            orig: Number(item['每日貨量(原有)'] || item['原有數量(預估)'] || item['原有數量'] || item.orig || 0),
+            held: Number(item['壓車數量'] || item['壓車數量(壓夜)'] || item.held || 0),
+            t3: Number(item['當天T3'] || item['T3數量'] || item.t3 || 0),
+            after: Number(item['壓車後數據(現有)'] || item['實際當日數量(次日)'] || item['實際當日數量'] || item.after || 0)
+          }));
+          if (typeof renderCountsTable === 'function') {
+            renderCountsTable();
+          }
+        }
+
 
           // 2. 精準解析 14 天報更數據 (完全對應試算表：人員姓名、圖標、報更鍵值)
           const rawShifts = result.shifts || result.shiftsRecord || (result.data && result.data.shifts) || [];
