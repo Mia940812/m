@@ -1992,7 +1992,7 @@
       fenceSel.innerHTML = fences.map(f => `<option value="${f.name}">${f.name}</option>`).join('') || '<option value="">尚無圍欄</option>';
     }
 
-       async function fetchAllCloudData(showPrompt) {
+          async function fetchAllCloudData(showPrompt) {
       const btn = document.querySelector('button[onclick*="fetchAllCloudData"]');
       if (btn) btn.textContent = '⏳ 正在讀取 Google 試算表...';
 
@@ -2007,59 +2007,60 @@
             dailyReports = list.map(r => {
               const rawDate = String(r['日期'] || r['date'] || '-');
               const date = rawDate.indexOf('T') !== -1 ? rawDate.split('T')[0] : rawDate;
-              const rawName = r['人員'] || r['步兵姓名'] || r['姓名'] || r['staff'] || '-';
+              const rawName = r['人員姓名'] || r['人員'] || r['步兵姓名'] || r['姓名'] || r['staff'] || '-';
               const name = normalizeStaffName(rawName);
               const skw = Number(r['東區票數'] || r['東區'] || r['skw'] || 0);
               const lg = Number(r['麗港城票數'] || r['麗港城'] || r['lg'] || 0);
               const kt = Number(r['觀塘工商票數'] || r['工商區票數'] || r['kt'] || 0);
               const st = Number(r['沙田票數'] || r['沙田(F58)票數'] || r['st'] || 0);
               const tot = Number(r['總票數'] || r['總派件票數'] || (skw + lg + kt + st));
-              return { date, staff: name, skw, lg, kt, st, totalPieces: tot, finalSalary: (tot * 4.0).toFixed(2) };
+              const signed = Number(r['已簽收'] || r['signed'] || tot);
+              const held = Number(r['滯留件'] || r['滯留'] || r['held'] || 0);
+              return { date, staff: name, skw, lg, kt, st, totalPieces: tot, signed, held, finalSalary: (tot * 4.0).toFixed(2) };
             });
-
-            const dates = dailyReports.map(d => d.date).filter(d => d && d.length === 10).sort();
-            if (dates.length > 0) {
-              if (document.getElementById('boss-start-date')) document.getElementById('boss-start-date').value = dates[0];
-              if (document.getElementById('boss-end-date')) document.getElementById('boss-end-date').value = dates[dates.length - 1];
-              if (document.getElementById('salary-start-date')) document.getElementById('salary-start-date').value = dates[0];
-              if (document.getElementById('salary-end-date')) document.getElementById('salary-end-date').value = dates[dates.length - 1];
-            }
           }
 
-          // 2. 深度搜尋並解析 14 天報更數據 (支援物件、陣列及橫向試算表格)
+          // 2. 精準解析 14 天報更數據 (完全對應試算表：人員姓名、圖標、報更鍵值)
           const rawShifts = result.shifts || result.shiftsRecord || (result.data && result.data.shifts) || [];
           if (Array.isArray(rawShifts) && rawShifts.length > 0) {
             rawShifts.forEach(item => {
-              const rawName = item['人員'] || item['步兵姓名'] || item['姓名'] || item.staff || item['人員姓名'];
+              const rawName = item['人員姓名'] || item['人員'] || item['步兵姓名'] || item['姓名'] || item.staff;
               const sName = normalizeStaffName(rawName);
               const acc = accounts.find(a => a.name === sName);
-              
+
               if (acc) {
                 if (!acc.shifts) acc.shifts = {};
-                
-                // 情況 A：直式記錄 (有日期與更期欄位)
-                if (item['日期'] || item.date) {
-                  const rawD = String(item['日期'] || item.date);
-                  const dStr = rawD.indexOf('T') !== -1 ? rawD.split('T')[0] : rawD;
-                  const sShift = item['更期'] || item['分工'] || item['狀態'] || item.shift;
-                  if (dStr && sShift) acc.shifts[dStr] = sShift;
+
+                // 提取日期：優先從「報更鍵值」(如 俊華_2026-08-25) 拆解，避免時區偏差
+                let dStr = '';
+                if (item['報更鍵值'] && item['報更鍵值'].includes('_')) {
+                  dStr = item['報更鍵值'].split('_')[1];
+                } else if (item['報更日期'] || item['日期'] || item.date) {
+                  const rawD = String(item['報更日期'] || item['日期'] || item.date);
+                  dStr = rawD.indexOf('T') !== -1 ? rawD.split('T')[0] : rawD;
                 }
-                
-                // 情況 B：橫式記錄 (欄位直接是日期 YYYY-MM-DD 或 MM/DD)
-                Object.keys(item).forEach(k => {
-                  if (k.includes('2026') || k.includes('-') || k.includes('/')) {
-                    const cleanDate = k.indexOf('T') !== -1 ? k.split('T')[0] : k;
-                    if (item[k]) acc.shifts[cleanDate] = item[k];
-                  }
-                });
+
+                // 提取更期：精準讀取「圖標」欄位
+                let sShift = item['圖標'] || item['更期'] || item['分工'] || item['狀態'] || item.shift;
+                const zone = item['區域'] ? `(${item['區域']})` : '';
+                const note = item['備註'] ? `[${item['備註']}]` : '';
+
+                if (sShift && (zone || note)) {
+                  sShift = `${sShift}${zone}${note}`;
+                }
+
+                if (dStr && sShift) {
+                  acc.shifts[dStr] = sShift;
+                }
               }
             });
           }
 
-          if (showPrompt) alert(`✅ 成功載入 Google 試算表 ${dailyReports.length} 筆歷史數據及全隊更期！`);
+          if (showPrompt) alert(`✅ 成功載入 Google 試算表 ${dailyReports.length} 筆報數及全隊更期！`);
         }
       } catch (err) {
-        if (showPrompt) alert('✅ 數據庫已同步就緒！');
+        console.error("載入失敗：", err);
+        if (showPrompt) alert('⚠️ 雲端讀取異常，已保留現有畫面。');
       } finally {
         if (btn) btn.textContent = '🔄 從 Google 刷新全隊最新數據';
         populateStaffSelects();
