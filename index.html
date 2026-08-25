@@ -1362,7 +1362,18 @@
       }
     }
 
-      // 排更表格 (只顯示當日有出更的同事，自動隱藏放假及未排人員)
+         // 建立安全的排更更新函數（徹底避免找不到變數 a 報錯）
+    function updateStaffRoster(staffName, field, value) {
+      const vDate = document.getElementById('roster-view-date')?.value || new Date().toISOString().split('T')[0];
+      const acc = accounts.find(a => a.name === staffName);
+      if (acc) {
+        if (!acc.dailyRoster) acc.dailyRoster = {};
+        if (!acc.dailyRoster[vDate]) acc.dailyRoster[vDate] = { time: '', zone: '', partner: '', note: '' };
+        acc.dailyRoster[vDate][field] = value;
+      }
+    }
+
+    // 排更表格 (只顯示當日有出更的同事，自動隱藏放假及未排人員)
     function renderRosterTableModule() {
       const tbody = document.getElementById('roster-table-tbody');
       if (!tbody) return;
@@ -1373,11 +1384,8 @@
       const workingStaff = accounts.filter(a => {
         const rawShift = (a.shifts && a.shifts[vDate]) || '';
         const curRoster = (a.dailyRoster && a.dailyRoster[vDate]) || {};
-        
-        // 如果有手動排時間/區域，或 14天報更非放假即顯示
         const hasRosterTime = curRoster.time && curRoster.time.trim() !== '';
         const isWorkingShift = rawShift && !rawShift.includes('🏖️') && !rawShift.includes('放假');
-        
         return isWorkingShift || hasRosterTime;
       });
 
@@ -1395,21 +1403,22 @@
             <td class="p-2.5 font-bold text-blue-700">${a.id} (${a.team}隊)</td>
             <td class="p-2.5 font-bold text-slate-900">${a.name}</td>
             <td class="p-1">
-              ${isMia ? `<input type="text" placeholder="如: 09:00-19:00" value="${curRoster.time}" onchange="if(!a.dailyRoster) a.dailyRoster={}; if(!a.dailyRoster['${vDate}']) a.dailyRoster['${vDate}']={}; a.dailyRoster['${vDate}'].time=this.value;" class="w-full p-1.5 bg-white border rounded text-xs font-bold">` : `<span>${curRoster.time || '-'}</span>`}
+              ${isMia ? `<input type="text" placeholder="如: 09:00-19:00" value="${curRoster.time || ''}" onchange="updateStaffRoster('${a.name}', 'time', this.value)" class="w-full p-1.5 bg-white border rounded text-xs font-bold">` : `<span>${curRoster.time || '-'}</span>`}
             </td>
             <td class="p-1">
-              ${isMia ? `<input type="text" placeholder="如: SKW 03F/19F" value="${curRoster.zone}" onchange="if(!a.dailyRoster) a.dailyRoster={}; if(!a.dailyRoster['${vDate}']) a.dailyRoster['${vDate}']={}; a.dailyRoster['${vDate}'].zone=this.value;" class="w-full p-1.5 bg-white border rounded text-xs font-bold text-emerald-800">` : `<span class="font-bold text-emerald-800">${curRoster.zone || '-'}</span>`}
+              ${isMia ? `<input type="text" placeholder="如: SKW 03F/19F" value="${curRoster.zone || ''}" onchange="updateStaffRoster('${a.name}', 'zone', this.value)" class="w-full p-1.5 bg-white border rounded text-xs font-bold text-emerald-800">` : `<span class="font-bold text-emerald-800">${curRoster.zone || '-'}</span>`}
             </td>
             <td class="p-1">
-              ${isMia ? `<input type="text" placeholder="如: 俊華/小魚" value="${curRoster.partner}" onchange="if(!a.dailyRoster) a.dailyRoster={}; if(!a.dailyRoster['${vDate}']) a.dailyRoster['${vDate}']={}; a.dailyRoster['${vDate}'].partner=this.value;" class="w-full p-1.5 bg-white border rounded text-xs font-bold text-indigo-700">` : `<span class="text-indigo-700 font-bold">${curRoster.partner || '-'}</span>`}
+              ${isMia ? `<input type="text" placeholder="如: 俊華/小魚" value="${curRoster.partner || ''}" onchange="updateStaffRoster('${a.name}', 'partner', this.value)" class="w-full p-1.5 bg-white border rounded text-xs font-bold text-indigo-700">` : `<span class="text-indigo-700 font-bold">${curRoster.partner || '-'}</span>`}
             </td>
             <td class="p-1">
-              ${isMia ? `<input type="text" placeholder="特別交待..." value="${curRoster.note}" onchange="if(!a.dailyRoster) a.dailyRoster={}; if(!a.dailyRoster['${vDate}']) a.dailyRoster['${vDate}']={}; a.dailyRoster['${vDate}'].note=this.value;" class="w-full p-1.5 bg-white border rounded text-xs">` : `<span class="text-slate-500">${curRoster.note || '-'}</span>`}
+              ${isMia ? `<input type="text" placeholder="特別交待..." value="${curRoster.note || ''}" onchange="updateStaffRoster('${a.name}', 'note', this.value)" class="w-full p-1.5 bg-white border rounded text-xs">` : `<span class="text-slate-500">${curRoster.note || '-'}</span>`}
             </td>
           </tr>
         `;
       }).join('');
     }
+
 
 
     // 新人報更表
