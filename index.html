@@ -1205,30 +1205,73 @@
     }
 
 
-    function submitQuickShift() {
-      const s = document.getElementById('schedule-quick-staff').value;
-      const d = document.getElementById('schedule-quick-date').value;
-      const ic = document.getElementById('schedule-quick-icon').value;
-      const nt = document.getElementById('schedule-quick-note').value.trim();
-      if (!s || !d) { alert('請選擇人員與日期！'); return; }
+        async function submitQuickShift() {
+      const sSel = document.getElementById('schedule-quick-staff');
+      const dInp = document.getElementById('schedule-quick-date');
+      const iconSel = document.getElementById('schedule-quick-icon');
+      const noteInp = document.getElementById('schedule-quick-note');
+      const amSel = document.getElementById('split-am-zone') || document.getElementById('schedule-am-zone');
+      const pmSel = document.getElementById('split-pm-zone') || document.getElementById('schedule-pm-zone');
 
-      const isMia = currentUser && (currentUser.name === 'Mia' || currentUser.isMia === true || (currentUser.role && currentUser.role.includes('總管理員')));
-      const acc = accounts.find(a => a.name === s);
+      if (!sSel || !sSel.value) {
+        alert('請先選擇報更人員！');
+        return;
+      }
+      if (!dInp || !dInp.value) {
+        alert('請選擇報更日期！');
+        return;
+      }
+
+      const staffRaw = sSel.value;
+      const staffName = normalizeStaffName(staffRaw.split(' ')[0].split('(')[0]);
+      
+      // 統一轉為 YYYY-MM-DD 格式
+      let dateVal = dInp.value.trim();
+      if (dateVal.includes('/')) {
+        const parts = dateVal.split('/');
+        if (parts.length === 3) {
+          if (parts[0].length === 4) dateVal = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+          else dateVal = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        }
+      }
+
+      let finalShift = iconSel ? iconSel.value : '☀️ 全天';
+      
+      // 處理上下午拆位與備註
+      if (finalShift.includes('拆位')) {
+        const amZone = amSel ? amSel.value : '全區';
+        const pmZone = pmSel ? pmSel.value : '全區';
+        finalShift = `⛅ [上:${amZone} 下:${pmZone}]`;
+      } else if (noteInp && noteInp.value.trim()) {
+        finalShift = `${finalShift} [${noteInp.value.trim()}]`;
+      }
+
+      // 1. 即時更新前端畫面
+      const acc = accounts.find(a => a.name === staffName || a.id === staffName);
       if (acc) {
         if (!acc.shifts) acc.shifts = {};
-        if (ic === '⛅ 拆位' && isMia) {
-          const am = document.getElementById('schedule-am-zone').value || '未排';
-          const pm = document.getElementById('schedule-pm-zone').value || '未排';
-          acc.shifts[d] = { am: am, pm: pm };
-        } else if (ic === '⛅ 只能返半日') {
-          acc.shifts[d] = nt ? `⛅半日(${nt})` : '⛅ 半日';
-        } else if (ic === '☀️ 全天') {
-          acc.shifts[d] = nt ? `☀️${nt}` : '☀️ 全天';
-        } else {
-          acc.shifts[d] = ic;
-        }
-        render14DaysTable();
-        alert(`✅ 已成功登記 ${s} 於 ${d} 的報更/分工！`);
+        acc.shifts[dateVal] = finalShift;
+      }
+      render14DaysTable();
+      alert(`✅ 成功登記【${staffName}】在 ${dateVal} 的更期：${finalShift}`);
+
+      // 2. 背景同步寫入 Google 試算表
+      try {
+        const payload = {
+          action: 'saveShift',
+          staff: staffName,
+          date: dateVal,
+          shift: finalShift,
+          key: `${staffName}_${dateVal}`
+        };
+        fetch(GAS_API_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.warn('Google 雲端背景備份排隊中...');
       }
     }
 
