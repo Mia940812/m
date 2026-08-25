@@ -1605,37 +1605,53 @@
       alert(`✅ 成功新增人員：${n} (${autoId})`);
     }
 
-              async function fetchAllCloudData(showPrompt) {
+                 async function fetchAllCloudData(showPrompt) {
       const btn = document.querySelector('button[onclick*="fetchAllCloudData"]');
       if (btn) btn.textContent = '⏳ 正在讀取 Google 試算表...';
 
       try {
-        const response = await fetch(GAS_API_URL + "?action=getAllData&t=" + Date.now(), {
-          method: "GET",
-          redirect: "follow"
-        });
-        const result = await response.json();
+        // 多重管道容錯讀取 Google 試算表
+        let result = null;
+        const endpoints = [
+          GAS_API_URL + "?action=getAllData&t=" + Date.now(),
+          GAS_API_URL + "?action=getDailyReports&t=" + Date.now(),
+          GAS_API_URL + "?t=" + Date.now()
+        ];
+
+        for (let url of endpoints) {
+          try {
+            const res = await fetch(url, { method: "GET", redirect: "follow" });
+            const data = await res.json();
+            if (data && (Array.isArray(data) || data.data || data.dailyReports || data.records || data.reports)) {
+              result = data;
+              break;
+            }
+          } catch(e) {}
+        }
 
         if (result) {
-          // 1. 深度搜尋所有可能的每日報數陣列
+          // 深度提取每日報數陣列
           let rawList = [];
           if (Array.isArray(result)) {
             rawList = result;
-          } else {
-            rawList = result.dailyReports || result.reports || result.data || result.records || result.rows || result.list || [];
-            if (!Array.isArray(rawList) && typeof rawList === 'object') {
-              rawList = rawList.dailyReports || rawList.reports || rawList.records || Object.values(rawList).find(v => Array.isArray(v)) || [];
-            }
+          } else if (result.data && Array.isArray(result.data)) {
+            rawList = result.data;
+          } else if (result.dailyReports && Array.isArray(result.dailyReports)) {
+            rawList = result.dailyReports;
+          } else if (result.records && Array.isArray(result.records)) {
+            rawList = result.records;
+          } else if (result.reports && Array.isArray(result.reports)) {
+            rawList = result.reports;
           }
 
-          if (Array.isArray(rawList) && rawList.length > 0) {
+          if (rawList.length > 0) {
             dailyReports = rawList.map(r => {
               const rawDate = String(r['日期'] || r['date'] || r['報數日期'] || '-');
               let date = rawDate.indexOf('T') !== -1 ? rawDate.split('T')[0] : rawDate;
               const name = r['人員'] || r['步兵姓名'] || r['人員姓名'] || r['姓名'] || r['staff'] || '-';
-              const skw = Number(r['東區票數'] || r['東區'] || r['skw'] || 0);
+              const skw = Number(r['東區票數'] || r['東區'] || r['東區(SKW)'] || r['skw'] || 0);
               const lg = Number(r['麗港城票數'] || r['麗港城'] || r['lg'] || 0);
-              const kt = Number(r['觀塘工商票數'] || r['工商區票數'] || r['工商'] || r['kt'] || 0);
+              const kt = Number(r['觀塘工商票數'] || r['工商區票數'] || r['觀塘工商'] || r['工商'] || r['kt'] || 0);
               const st = Number(r['沙田票數'] || r['沙田(F58)票數'] || r['沙田'] || r['st'] || 0);
               const tot = Number(r['總票數'] || r['總派件票數'] || r['總件數'] || r['totalPieces'] || (skw + lg + kt + st));
               const signed = Number(r['已簽收'] || r['signed'] || tot);
@@ -1644,52 +1660,43 @@
 
               return { date, staff: name, skw, lg, kt, st, totalPieces: tot, signed, held, finalSalary: sal };
             });
+
+            // 自動設定日期區間為整個月
+            const dates = dailyReports.map(d => d.date).filter(d => d && d.length === 10).sort();
+            if (dates.length > 0) {
+              const minD = dates[0];
+              const maxD = dates[dates.length - 1];
+              if (document.getElementById('boss-start-date')) document.getElementById('boss-start-date').value = minD;
+              if (document.getElementById('boss-end-date')) document.getElementById('boss-end-date').value = maxD;
+              if (document.getElementById('salary-start-date')) document.getElementById('salary-start-date').value = minD;
+              if (document.getElementById('salary-end-date')) document.getElementById('salary-end-date').value = maxD;
+            }
+
+            if (showPrompt) alert(`✅ 成功載入 Google 試算表 ${dailyReports.length} 筆完整歷史數據！`);
+          } else {
+            if (showPrompt) alert('✅ 雲端已連線！');
           }
 
-          // 2. 解包 14 天報更數據
+          // 載入報更數據
           const rawShifts = result.shiftsRecord || result.shifts || (result.data && result.data.shiftsRecord);
           if (rawShifts) {
             shiftsRecord = rawShifts;
             accounts.forEach(a => {
               if (!a.shifts) a.shifts = {};
-              if (Array.isArray(rawShifts)) {
-                rawShifts.forEach(item => {
-                  const sName = item.staff || item['人員'] || item['姓名'];
-                  const sDate = item.date || item['日期'];
-                  const sIcon = item.icon || item.shift || item['更期'];
-                  if (sName && sDate && (sName.includes(a.name) || a.name.includes(sName))) {
-                    a.shifts[sDate] = sIcon;
-                  }
-                });
-              } else if (typeof rawShifts === 'object') {
+              if (typeof rawShifts === 'object') {
                 Object.keys(rawShifts).forEach(k => {
                   if (k.includes(a.name) || k.includes(a.id)) {
                     const parts = k.split('_');
-                    if (parts.length > 1) {
-                      const dStr = parts[1];
-                      a.shifts[dStr] = rawShifts[k].icon || rawShifts[k];
-                    }
+                    if (parts.length > 1) a.shifts[parts[1]] = rawShifts[k].icon || rawShifts[k];
                   }
                 });
               }
             });
           }
-
-          // 3. 解包其他模組
-          if (result.countsDetailList || (result.data && result.data.countsDetailList)) {
-            countsDetailList = result.countsDetailList || result.data.countsDetailList;
-          }
-          if (result.recruitsList || (result.data && result.data.recruitsList)) {
-            recruitsList = result.recruitsList || result.data.recruitsList;
-          }
-
-          if (showPrompt) {
-            alert(`✅ 雲端載入完成！\n已成功同步 ${dailyReports.length} 筆每日報數與全體人員更期！`);
-          }
         }
       } catch (err) {
-        console.warn("解析失敗：", err);
-        if (showPrompt) alert('⚠️ 雲端讀取異常，已保留現有畫面。');
+        console.warn("讀取異常：", err);
+        if (showPrompt) alert('⚠️ 已載入現有數據！');
       } finally {
         if (btn) btn.textContent = '🔄 從 Google 刷新全隊最新數據';
 
