@@ -2293,9 +2293,33 @@ function quickAddFenceToSystem() {
       }
     }
 
-    async function syncModuleToGoogle(moduleName) {
-      alert(`✅ 已向 Google 試算表發送「${moduleName}」即時同步請求！`);
-    }
+   async function syncModuleToGoogle(moduleName, event) {
+  if (event) event.preventDefault();
+  
+  const payload = {
+    action: "syncCounts",
+    module: moduleName || "詳細貨量核算",
+    countsDetailList: (typeof countsDetailList !== 'undefined') ? countsDetailList : [],
+    timestamp: new Date().toISOString()
+  };
+
+  try {
+    await fetch(GAS_API_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    alert(`✅ 已向 Google 試算表發送「${moduleName || '詳細貨量核算'}」即時同步請求！`);
+  } catch (err) {
+    alert("❌ 同步失敗：" + err.message);
+  }
+}
+
+function syncCurrentModuleToGoogle(moduleName, event) {
+  syncModuleToGoogle(moduleName, event);
+}
+
 
     function generateExportText(type) {
       const area = document.getElementById('universal-export-textarea');
