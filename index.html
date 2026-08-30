@@ -2455,16 +2455,20 @@
             }));
           }
 
+                    // 5. 14 天報更數據 (強效智慧對齊版)
           const rawShifts = result.shifts || result.shiftsRecord || [];
           if (Array.isArray(rawShifts) && rawShifts.length > 0) {
             rawShifts.forEach(item => {
               const rawName = item['人員姓名'] || item['人員'] || item['姓名'] || item.staff;
               const sName = normalizeStaffName(rawName);
-              const acc = accounts.find(a => a.name === sName);
+              const fullList = getCombinedAccountsList();
+              const acc = fullList.find(a => a.name === sName);
 
               if (acc) {
                 if (!acc.shifts) acc.shifts = {};
                 let dStr = '';
+                
+                // 智慧提取 YYYY-MM-DD 日期
                 if (item['報更鍵值'] && item['報更鍵值'].includes('_')) {
                   dStr = item['報更鍵值'].split('_')[1];
                 } else if (item['報更日期'] || item['日期'] || item.date) {
@@ -2472,12 +2476,32 @@
                   dStr = rawD.indexOf('T') !== -1 ? rawD.split('T')[0] : rawD;
                 }
 
-                let sShift = item['圖標/時段'] || item['圖標'] || item['更期'] || item['分工'] || item.shift;
+                // 清洗日期格式為標準 YYYY-MM-DD
+                if (dStr) {
+                  dStr = dStr.trim();
+                  if (dStr.includes('/')) {
+                    const p = dStr.split('/');
+                    if (p.length === 3) {
+                      dStr = p[0].length === 4 
+                        ? `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}`
+                        : `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+                    }
+                  }
+                }
+
+                let sShift = item['圖標/時段'] || item['圖標'] || item['更期'] || item['分工'] || item['狀態'] || item.shift || '';
                 const zone = item['區域'] ? `(${item['區域']})` : '';
                 const note = item['備註'] ? `[${item['備註']}]` : '';
 
-                if (sShift && (zone || note)) sShift = `${sShift}${zone}${note}`;
-                if (dStr && sShift) acc.shifts[dStr] = sShift;
+                if (sShift && (zone || note) && !sShift.includes('[') && !sShift.includes('(')) {
+                  sShift = `${sShift}${zone}${note}`;
+                }
+
+                if (dStr && sShift) {
+                  acc.shifts[dStr] = sShift;
+                  const shortIso = `${dStr.split('-')[0]}-${Number(dStr.split('-')[1])}-${Number(dStr.split('-')[2])}`;
+                  acc.shifts[shortIso] = sShift;
+                }
               }
             });
           }
