@@ -1,251 +1,250 @@
-<!DOCTYPE html>
-<html lang="zh-HK">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Mia組｜員工工資卡</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background:#f1f5f9; }
-    .pay-card { background: linear-gradient(145deg,#1e293b,#0f172a); border-radius:18px; }
-    @media print {
-      .no-print { display:none !important; }
-      .pay-card { background:#fff !important; color:#111 !important; }
-      .pay-card table th,.pay-card table td { color:#222 !important; border-color:#ccc !important; }
+/**
+ * Mia 派件營運全功能工作台 - 支援「排更表格」專屬獨立儲存與全模組中樞
+ */
+
+function getSheetData(sheetName) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return [];
+  var data = sheet.getDataRange().getValues();
+  if (data.length <= 1) return [];
+  var headers = data[0];
+  return data.slice(1).map(function(row) {
+    var obj = {};
+    headers.forEach(function(h, i) {
+      if (h) obj[String(h).trim()] = row[i];
+    });
+    return obj;
+  });
+}
+
+function doGet(e) {
+  var action = (e && e.parameter) ? e.parameter.action : '';
+  var result = {};
+
+  if (action === 'getAllData' || !action) {
+    result = {
+      status: 'success',
+      dailyReports: getSheetData('每日報數'),
+      accounts: getSheetData('人員名冊'),
+      shifts: getSheetData('14天報更').length > 0 ? getSheetData('14天報更') : getSheetData('報更紀錄'),
+      rosterList: getSheetData('排更表格'), // 新增排更表格讀取
+      countsDetailList: getSheetData('各區貨量'),
+      recruitsList: getSheetData('預約新人').length > 0 ? getSheetData('預約新人') : getSheetData('預約新人資料'),
+      suppliesList: getSheetData('物資採購'),
+      packageFlowList: getSheetData('件數流向'),
+      ticketsList: getSheetData('現場違規').length > 0 ? getSheetData('現場違規') : getSheetData('異常工單')
+    };
+  } else if (action === 'getDailyReports') {
+    result = getSheetData('每日報數');
+  } else if (action === 'getAccounts') {
+    result = getSheetData('人員名冊');
+  } else if (action === 'getShifts') {
+    result = getSheetData('14天報更');
+  } else if (action === 'getRoster') {
+    result = getSheetData('排更表格');
+  } else if (action === 'getCounts') {
+    result = getSheetData('各區貨量');
+  } else if (action === 'getNewRecruits') {
+    result = getSheetData('預約新人');
+  } else {
+    result = { status: 'success', message: '後端運作正常', timestamp: new Date() };
+  }
+
+  return ContentService.createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var postData = {};
+  try {
+    postData = JSON.parse(e.postData.contents);
+  } catch (err) {
+    postData = (e && e.parameter) ? e.parameter : {};
+  }
+
+  var action = postData.action;
+  var moduleName = postData.module || '';
+  var data = postData.data || {};
+  var nowStr = new Date().toLocaleString('zh-HK');
+
+  // 單筆報數
+  if (action === 'saveDailyReport') {
+    var sheet = ss.getSheetByName('每日報數') || ss.insertSheet('每日報數');
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(['日期', '人員', '東區票數', '麗港城票數', '觀塘工商票數', '沙田票數', '總票數', '已簽收', '滯留', '當日實發總工資(全包)', '明細備註說明', '更新時間']);
     }
-  </style>
-</head>
-<body class="min-h-screen p-4">
-<div class="max-w-2xl mx-auto">
-  <h1 class="text-xl font-bold text-slate-800 mb-4">💰 Mia組 員工工資卡</h1>
+    var d = data || {};
+    var skw = Number(d.skw || 0);
+    var lg = Number(d.lg || 0);
+    var kt = Number(d.kt || 0);
+    var st = Number(d.st || 0);
+    var tot = Number(d.totalPieces || (skw + lg + kt + st));
+    var sal = Number(d.finalSalary || (tot * 4.0));
 
-  <div class="bg-white p-4 rounded-xl shadow mb-4 no-print">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-      <div>
-        <label class="text-sm text-slate-600">選擇員工</label>
-        <select id="selStaff" class="w-full border rounded-lg px-3 py-2 mt-1"></select>
-      </div>
-      <div>
-        <label class="text-sm text-slate-600">開始日期</label>
-        <input type="date" id="dtStart" class="w-full border rounded-lg px-3 py-2 mt-1">
-      </div>
-      <div>
-        <label class="text-sm text-slate-600">結束日期</label>
-        <input type="date" id="dtEnd" class="w-full border rounded-lg px-3 py-2 mt-1">
-      </div>
-    </div>
-    <div class="flex flex-wrap gap-2 mt-3">
-      <button onclick="renderPaySlip()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">生成工資卡(自動計薪)</button>
-      <button onclick="window.print()" class="bg-slate-600 text-white px-4 py-2 rounded-lg">列印</button>
-      <button onclick="downloadCsv()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg">匯出CSV</button>
-    </div>
-  </div>
+    sheet.insertRowBefore(2);
+    sheet.getRange(2, 1, 1, 12).setValues([[
+      d.date || '', d.staff || d.name || '', skw, lg, kt, st, tot, d.signed || tot, d.held || 0, sal, d.note || '即時同步上報', nowStr
+    ]]);
 
-  <div id="paySlipWrap"></div>
-</div>
-
-<script>
-// =========👉 你可以隨時修改呢度嘅單價規則 =========
-const PRICE_RULES = {
-  eastNormal: 4.0,        // 東區基礎單價
-  eastSpecial: 4.2,       // 東區特殊人員單價
-  ktLg: 4.0,              // 麗港城（九龍大件）統一單價
-  ktIndGroup1: 5.0,       // 觀塘工商第一組單價
-  ktIndGroup2: 4.5,       // 觀塘工商第二組單價
-  st: 7.0,                 // 沙田ST單價（你可以自己改）
-  carAllowanceSpecial: 50  // 倪志康、王利民嘅固定車津
-};
-
-// 特殊人員名單（完全同你系統入面嘅名一致）
-const SPECIAL_STAFF = {
-  eastSpecial: ["盧智聰", "姜嘉敏KK", "吳嘉榮"], // 東區$4.2嘅人
-  ktIndGroup1: ["景鴻", "詠豪", "盧智聰", "姜嘉敏KK", "倪志康", "王利民"], // 工商$5嘅人
-  ktIndGroup2: ["徐子傑", "吳瑋儒"], // 工商$4.5嘅人
-  carAllowance: ["倪志康", "王利民"] // 有$50固定車津嘅人
-};
-// ==================================================
-
-// 系統所有人員名單（同你人員名冊完全一致）
-const staffList = ["詠豪","景鴻","俊華","盧智聰","姜嘉敏KK","周健","黃奕峰","李兆偉","小肥","黃傅釧","吳嘉榮","吳瑋儒","倪志康","王利民","李健龍","李偉文","小魚","煒爺","龍","徐子傑","韓軍魁","羅健華","Mia"];
-
-const selStaff = document.getElementById('selStaff');
-const dtStart = document.getElementById('dtStart');
-const dtEnd = document.getElementById('dtEnd');
-const paySlipWrap = document.getElementById('paySlipWrap');
-
-// 填充員工下拉選單
-staffList.forEach(n=>{
-  const opt = document.createElement('option');
-  opt.value = n; opt.textContent = n;
-  selStaff.appendChild(opt);
-})
-
-// 預設日期範圍
-dtStart.value = "2026-08-01";
-dtEnd.value = "2026-08-18";
-
-// 讀取本地存儲嘅報數數據
-function getReports(){
-  const raw = localStorage.getItem("MIA_DATA_reports");
-  return raw ? JSON.parse(raw) : [];
-}
-
-// 單條記錄計算每日工資（完全跟你嘅規則）
-function calcDaily(row){
-  // 1. 計算東區工資
-  let eastPay = row.eastCount * PRICE_RULES.eastNormal;
-  if(SPECIAL_STAFF.eastSpecial.includes(row.staff)){
-    eastPay = row.eastCount * PRICE_RULES.eastSpecial;
+    return ContentService.createTextOutput(JSON.stringify({ status: 'success' })).setMimeType(ContentService.MimeType.JSON);
   }
 
-  // 2. 計算麗港城（九龍大件）工資
-  const ktLgPay = row.ktLgCount * PRICE_RULES.ktLg;
+  // 通用同步 (syncData)
+  if (action === 'syncData') {
 
-  // 3. 計算觀塘工商（九龍細件）工資
-  let ktIndPay = row.ktIndCount * PRICE_RULES.ktIndGroup1; // 預設第一組價
-  if(SPECIAL_STAFF.ktIndGroup2.includes(row.staff)){
-    ktIndPay = row.ktIndCount * PRICE_RULES.ktIndGroup2;
+    // 0. 排更表格 (WhatsApp 每日排班分工表)
+    if (moduleName.includes('排更表格') || data.roster || data.dailyRoster) {
+      var sheetR = ss.getSheetByName('排更表格') || ss.insertSheet('排更表格');
+      sheetR.clear();
+      sheetR.appendRow(['日期', '人員姓名', '分配分區', '上班時間', '負責圍欄', '搭檔Partner', '備註說明', '更新時間']);
+      var rList = data.roster || data.dailyRoster || (Array.isArray(data) ? data : []);
+      var rRows = [];
+      rList.forEach(function(item) {
+        rRows.push([
+          item.date || '',
+          item.name || item['人員姓名'] || '',
+          item.zone || item['分配分區'] || 'SKW',
+          item.time || item['上班時間'] || '09:00-19:00',
+          item.fence || item['負責圍欄'] || '',
+          item.partner || item['搭檔Partner'] || '',
+          item.note || item['備註說明'] || '',
+          nowStr
+        ]);
+      });
+      if (rRows.length > 0) sheetR.getRange(2, 1, rRows.length, 8).setValues(rRows);
+    }
+
+    // 1. 預約新人
+    if (moduleName.includes('新人') || data.newRecruits || data.recruitsList) {
+      var sheetN = ss.getSheetByName('預約新人') || ss.insertSheet('預約新人');
+      sheetN.clear();
+      sheetN.appendRow(['新人姓名', '聯絡電話', '居住區域', '第一日上班日期', '過往做過工作', '約定計算薪金', '意向分區', '負責組長', '更新時間']);
+      var nList = data.newRecruits || data.recruitsList || (Array.isArray(data) ? data : []);
+      var nRows = [];
+      nList.forEach(function(item) {
+        nRows.push([
+          item.name || item['新人姓名'] || '',
+          item.phone || item['聯絡電話'] || '',
+          item.address || item.residence || item['居住區域'] || '',
+          item.startDate || item['第一日上班日期'] || item.date || '',
+          item.experience || item.exp || item['過往做過工作'] || '',
+          item.wage || item.salary || item['約定計算薪金'] || '',
+          item.zone || item['意向分區'] || '',
+          item.leader || item['負責組長'] || '',
+          nowStr
+        ]);
+      });
+      if (nRows.length > 0) sheetN.getRange(2, 1, nRows.length, 9).setValues(nRows);
+    }
+
+    // 2. 14天視覺報更
+    if (moduleName.includes('14天報更') || (moduleName.includes('報更') && !moduleName.includes('排更表格')) || data.shifts) {
+      var sheetS = ss.getSheetByName('14天報更') || ss.insertSheet('14天報更');
+      sheetS.clear();
+      sheetS.appendRow(['報更鍵值', '人員姓名', '報更日期', '圖標/時段', '區域', '備註', '更新時間']);
+      var sched = data.shifts || data;
+      var sRows = [];
+      var seen = {};
+      for (var k in sched) {
+        if (!sched.hasOwnProperty(k) || ['accounts', 'users', 'reports'].includes(k)) continue;
+        var item = sched[k];
+        if (!item) continue;
+        var parts = k.split('_');
+        var name = parts[0] || '';
+        var date = parts[1] || '';
+        var icon = (typeof item === 'object') ? (item.icon || item.text || '☀️ 全天') : String(item);
+        var standardKey = name.replace(/\s+/g, '') + '_' + date;
+        if (name && date && !seen[standardKey]) {
+          seen[standardKey] = true;
+          sRows.push([k, name, date, icon, '', '', nowStr]);
+        }
+      }
+      if (sRows.length > 0) sheetS.getRange(2, 1, sRows.length, 7).setValues(sRows);
+    }
+
+    // 3. 各區貨量
+    if (moduleName.includes('貨量') || moduleName.includes('圍欄') || data.counts || data.countsDetailList) {
+      var sheetC = ss.getSheetByName('各區貨量') || ss.insertSheet('各區貨量');
+      sheetC.clear();
+      sheetC.appendRow(['日期', '分區', '圍欄名稱', '原有數量', '壓車數量', '實際當日數量', 'T3數量', '更新時間']);
+      var cList = data.counts || data.countsDetailList || (Array.isArray(data) ? data : []);
+      var cRows = [];
+      cList.forEach(function(c) {
+        cRows.push([
+          c.date || c['日期'] || '',
+          c.zone || c['分區'] || '',
+          c.fence || c['圍欄名稱'] || '',
+          Number(c.orig || c['原有數量'] || 0),
+          Number(c.held || c['壓車數量'] || 0),
+          Number(c.after || c['實際當日數量'] || 0),
+          Number(c.t3 || c['T3數量'] || 0),
+          nowStr
+        ]);
+      });
+      if (cRows.length > 0) sheetC.getRange(2, 1, cRows.length, 8).setValues(cRows);
+    }
+
+    // 4. 人員名冊
+    if (moduleName.includes('名冊') || moduleName.includes('人員') || data.accounts) {
+      var sheetA = ss.getSheetByName('人員名冊') || ss.insertSheet('人員名冊');
+      sheetA.clear();
+      sheetA.appendRow(['姓名', '密碼', '所屬小隊', '權限角色', '出糧週期', '更新時間']);
+      var aList = data.accounts || (Array.isArray(data) ? data : []);
+      var aRows = [];
+      aList.forEach(function(a) {
+        aRows.push([
+          a.name || a['姓名'] || '',
+          a.pwd || a.pass || a['密碼'] || '1234',
+          a.team || a['所屬小隊'] || 'KM',
+          a.role || a['權限角色'] || '全職步兵',
+          a.cycle || a['出糧週期'] || '半月糧',
+          nowStr
+        ]);
+      });
+      if (aRows.length > 0) sheetA.getRange(2, 1, aRows.length, 6).setValues(aRows);
+    }
+
+    // 5. 物資採購
+    if (moduleName.includes('物資') || data.supplies) {
+      var sheetSup = ss.getSheetByName('物資採購') || ss.insertSheet('物資採購');
+      sheetSup.clear();
+      sheetSup.appendRow(['採購日期', '代墊人', '物品名稱', '數量', '總金額', '更新時間']);
+      var supList = data.supplies || (Array.isArray(data) ? data : []);
+      var supRows = [];
+      supList.forEach(function(s) {
+        supRows.push([s.date || '', s.buyer || '', s.item || '', Number(s.qty || 1), Number(s.amount || 0), nowStr]);
+      });
+      if (supRows.length > 0) sheetSup.getRange(2, 1, supRows.length, 6).setValues(supRows);
+    }
+
+    // 6. 件數流向
+    if (moduleName.includes('流向') || data.packageFlow) {
+      var sheetF = ss.getSheetByName('件數流向') || ss.insertSheet('件數流向');
+      sheetF.clear();
+      sheetF.appendRow(['分區', '日期', '運單號碼', '圍欄編號', '負責步兵', '流向狀態', '備註說明', '更新時間']);
+      var fList = data.packageFlow || (Array.isArray(data) ? data : []);
+      var fRows = [];
+      fList.forEach(function(f) {
+        fRows.push([f.zone || '', f.date || '', f.tracking || '', f.fence || '', f.staff || '', f.status || '', f.note || '', nowStr]);
+      });
+      if (fRows.length > 0) sheetF.getRange(2, 1, fRows.length, 8).setValues(fRows);
+    }
+
+    // 7. 現場違規
+    if (moduleName.includes('違規') || data.violations) {
+      var sheetV = ss.getSheetByName('現場違規') || ss.insertSheet('現場違規');
+      sheetV.clear();
+      sheetV.appendRow(['登記日期', '違規人員', '違規事項', '扣罰金額', '處理狀態', '備註說明', '更新時間']);
+      var vList = data.violations || (Array.isArray(data) ? data : []);
+      var vRows = [];
+      vList.forEach(function(v) {
+        vRows.push([v.date || '', v.staff || '', v.reason || v['違規事項'] || '', Number(v.penalty || 0), v.status || '已登記', v.note || '', nowStr]);
+      });
+      if (vRows.length > 0) sheetV.getRange(2, 1, vRows.length, 7).setValues(vRows);
+    }
   }
 
-  // 4. 計算沙田ST工資
-  const stPay = row.stCount * PRICE_RULES.st;
-
-  // 5. 計算車津
-  let carAllowance = row.carAllowance || 0;
-  // 倪志康、王利民：有東區件就加$50固定車津
-  if(SPECIAL_STAFF.carAllowance.includes(row.staff) && row.eastCount > 0){
-    carAllowance += PRICE_RULES.carAllowanceSpecial;
-  }
-
-  // 6. 計算扣罰
-  const penalty = row.penalty || 0;
-
-  // 7. 當日總工資
-  const dailyTotal = eastPay + ktLgPay + ktIndPay + stPay + carAllowance - penalty;
-
-  return {
-    eastPay, ktLgPay, ktIndPay, stPay, carAllowance, penalty, dailyTotal,
-    totalPieces: row.eastCount + row.ktLgCount + row.ktIndCount + row.stCount
-  };
+  return ContentService.createTextOutput(JSON.stringify({ status: 'success' })).setMimeType(ContentService.MimeType.JSON);
 }
-
-// 渲染工資卡
-window.renderPaySlip = function(){
-  const staff = selStaff.value;
-  const sDate = dtStart.value;
-  const eDate = dtEnd.value;
-  const allReports = getReports();
-
-  // 篩選對應員工+日期範圍嘅數據
-  const list = allReports.filter(r=> 
-    r.staff === staff && (r.date >= sDate && r.date <= eDate)
-  ).sort((a,b)=>a.date.localeCompare(b.date));
-
-  if(!list.length){
-    paySlipWrap.innerHTML = `<div class="bg-white p-6 rounded-xl shadow text-slate-500">🔍 呢個時段搵唔到該員工嘅報數記錄</div>`;
-    return;
-  }
-
-  // 合計數據
-  let sum = {
-    eastPay:0, ktLgPay:0, ktIndPay:0, stPay:0, 
-    carAllowance:0, penalty:0, dailyTotal:0, totalPieces:0
-  };
-  let rowsHtml = "";
-
-  // 逐行生成表格
-  list.forEach(r=>{
-    const res = calcDaily(r);
-    // 累加合計
-    sum.eastPay += res.eastPay;
-    sum.ktLgPay += res.ktLgPay;
-    sum.ktIndPay += res.ktIndPay;
-    sum.stPay += res.stPay;
-    sum.carAllowance += res.carAllowance;
-    sum.penalty += res.penalty;
-    sum.dailyTotal += res.dailyTotal;
-    sum.totalPieces += res.totalPieces;
-
-    rowsHtml += `
-    <tr class="border-b border-slate-600 text-sm">
-      <td class="py-2">${r.date}</td>
-      <td class="text-right">${r.eastCount}</td>
-      <td class="text-right">${r.ktLgCount}</td>
-      <td class="text-right">${r.ktIndCount}</td>
-      <td class="text-right">${r.stCount}</td>
-      <td class="text-right">${res.totalPieces}</td>
-      <td class="text-right">$${res.dailyTotal.toFixed(2)}</td>
-    </tr>`;
-  })
-
-  // 渲染最終頁面
-  paySlipWrap.innerHTML = `
-<div class="pay-card text-white p-5 shadow-xl">
-  <div class="pb-3 mb-4 border-b border-slate-500">
-    <h2 class="text-xl font-bold">員工工資卡</h2>
-    <div class="text-slate-300 text-sm">${staff}｜${sDate} 至 ${eDate}</div>
-  </div>
-
-  <div class="overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead>
-        <tr class="border-b border-slate-600 text-slate-300">
-          <th class="text-left py-2">日期</th>
-          <th class="text-right">東區</th>
-          <th class="text-right">麗港城</th>
-          <th class="text-right">觀塘工商</th>
-          <th class="text-right">沙田</th>
-          <th class="text-right">總件數</th>
-          <th class="text-right">當日應發工資</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rowsHtml}
-      </tbody>
-    </table>
-  </div>
-
-  <div class="mt-4 pt-4 border-t border-slate-500">
-    <div class="grid grid-cols-2 gap-2 text-sm">
-      <div>總件數：<span class="font-bold">${sum.totalPieces}</span></div>
-      <div>車津合計：<span class="font-bold">$${sum.carAllowance.toFixed(2)}</span></div>
-      <div>扣罰合計：<span class="font-bold text-rose-300">$${sum.penalty.toFixed(2)}</span></div>
-      <div class="text-lg font-bold">總應發工資：$${sum.dailyTotal.toFixed(2)}</div>
-    </div>
-  </div>
-</div>
-`;
-}
-
-// 匯出CSV功能
-window.downloadCsv = function(){
-  const raw = localStorage.getItem("MIA_DATA_reports");
-  if(!raw){alert("⚠️ 冇報數數據，無法匯出");return;}
-  const allReports = JSON.parse(raw);
-  const headers = ["日期","員工姓名","東區件數","麗港城件數","觀塘工商件數","沙田件數","總件數","車津","扣罰","當日應發工資"];
-  let csvRows = [headers];
-
-  allReports.forEach(r=>{
-    const res = calcDaily(r);
-    csvRows.push([
-      r.date, r.staff, r.eastCount, r.ktLgCount, r.ktIndCount, r.stCount,
-      res.totalPieces, res.carAllowance, res.penalty, res.dailyTotal.toFixed(2)
-    ])
-  })
-
-  // 生成CSV檔案（解決中文亂碼）
-  const csvText = '\ufeff' + csvRows.map(row=>
-    row.map(cell=>`"${String(cell).replace(/"/g,'""')}"`).join(",")
-  ).join("\n");
-  const blob = new Blob([csvText], {type:"text/csv;charset=utf-8"});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `Mia組_工資卡_${new Date().toLocaleDateString()}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(a.href);
-}
-</script>
-</body>
-</html>
